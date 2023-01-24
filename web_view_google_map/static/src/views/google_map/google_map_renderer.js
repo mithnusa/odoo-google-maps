@@ -1,55 +1,131 @@
 /** @odoo-module **/
 
 import { Component, useRef, useEffect, useState, onMounted } from '@odoo/owl';
-import { Pager } from "@web/core/pager/pager";
-import { Widget } from "@web/views/widgets/widget";
+import { Pager } from '@web/core/pager/pager';
+import { Widget } from '@web/views/widgets/widget';
 
 import { GoogleMapSidebar } from './google_map_sidebar';
-import { MARKER_ICON_SVG_PATH, MARKER_ICON_HEIGHT, MARKER_ICON_WIDTH } from './utils';
+import { MARKER_ICON_SVG_PATH, MARKER_ICON_HEIGHT, MARKER_ICON_WIDTH, MAP_THEMES } from './utils';
 
 export class GoogleMapRenderer extends Component {
     setup() {
-        console.log(' #[[GoogleMapRenderer::setup] ');
         this.mapRef = useRef('map');
+        this.markerCluster = null;
         this.googleMap = null;
-        this.state = useState({
-            sidebarIsFolded: false,
-            sidebarReload: false,
-        });
-        console.log(this);
-        // useEffect(
-        //     () => this.renderMap(),
-        //     () => [this.props.list.id]
-        // );
+        this.markers = [];
+        this.state = useState({ sidebarIsFolded: false });
         useEffect(() => this.renderMap());
-        onMounted(() => console.log('---------------<[onMounted]> '));
+    }
+
+    _setMapTheme(style) {
+        if (!Object.prototype.hasOwnProperty.call(MAP_THEMES, style) || style === 'default') {
+            return;
+        }
+        const styledMapType = new google.maps.StyledMapType(MAP_THEMES[style], {
+            name: 'Styled Map',
+        });
+        this.googleMap.setOptions({
+            mapTypeControlOptions: {
+                mapTypeIds: ['roadmap', 'satellite', 'hybrid', 'terrain', 'styled_map'],
+            },
+        });
+        // Associate the styled map with the MapTypeId and set it to display.
+        this.googleMap.mapTypes.set('styled_map', styledMapType);
+        this.googleMap.setMapTypeId('styled_map');
+    }
+
+    async getTheme() {
+        const data = await this.props.model.rpc('/web/base_google_map/theme', { context: this.props.user.context });
+        if (data.theme) {
+            this._setMapTheme(data.theme);
+        }
     }
 
     renderMap() {
-        console.log(' #[[GoogleMapRenderer::renderMap] ');
-        console.log(this);
-        this.initialize();
         this.clearMarkers();
+        this.initialize();
         this.renderMarkers();
         this.renderMarkerClusterer();
         this.centerMap();
     }
 
     initialize() {
-        this.googleMap = this.props.onInitGoogleMap(this.mapRef.el);
-    }
-
-    renderMarkerClusterer() {
-        this.props.onHandleMarkerClusterer();
+        if (!this.googleMap) {
+            this.googleMap = new google.maps.Map(this.mapRef.el, {
+                mapTypeId: google.maps.MapTypeId.ROADMAP,
+                minZoom: 2,
+                maxZoom: 20,
+                fullscreenControl: true,
+                mapTypeControl: true,
+                gestureHandling: 'auto',
+            });
+            this.getTheme();
+        }
+        this.markerInfoWindow = new google.maps.InfoWindow();
     }
 
     clearMarkers() {
-        this.props.onClearMarkers();
+        if (this.markerCluster) {
+            this.markerCluster.clearMarkers();
+        }
+        this.markers.splice(0);
     }
 
     centerMap() {
-        this.props.onCenterMap();
-        // this.state.sidebarReload = new Date().toISOString();
+        const mapBounds = new google.maps.LatLngBounds();
+        this.markers.forEach((marker) => {
+            mapBounds.extend(marker.getPosition());
+        });
+        this.googleMap.fitBounds(mapBounds);
+        google.maps.event.addListenerOnce(this.googleMap, 'idle', () => {
+            google.maps.event.trigger(this.googleMap, 'resize');
+            if (this.googleMap.getZoom() > 17) this.googleMap.setZoom(17);
+        });
+    }
+
+    handleMarker(marker) {
+        const markers = this.markers;
+        const existingRecords = [];
+        if (markers.length > 0) {
+            const position = marker.getPosition();
+            markers.forEach((_cMarker) => {
+                if (position && position.equals(_cMarker.getPosition())) {
+                    marker.setMap(null);
+                    existingRecords.push(_cMarker._odooRecord);
+                }
+            });
+        }
+        this.markers.push(marker);
+        google.maps.event.addListener(marker, 'click', this.handleMarkerInfoWindow.bind(this, marker, existingRecords));
+    }
+
+    renderMarkerClusterer() {
+        const markers = this.markers;
+        if (!this.markerCluster) {
+            this.markerCluster = new markerClusterer.MarkerClusterer({
+                map: this.googleMap,
+                markers,
+            });
+        } else {
+            this.markerCluster.addMarkers(markers);
+        }
+    }
+
+    handleMarkerInfoWindow(marker, existingRecords) {
+        const markerDiv = '<div>Hello There!</div>';
+        this.markerInfoWindow.setContent(markerDiv);
+        this.markerInfoWindow.open(this.googleMap, marker);
+    }
+
+    handlePointInMap(marker) {
+        if (marker) {
+            this.googleMap.panTo(marker.getPosition());
+            google.maps.event.addListenerOnce(this.googleMap, 'idle', () => {
+                google.maps.event.trigger(this.googleMap, 'resize');
+                if (this.googleMap.getZoom() < 12) this.googleMap.setZoom(12);
+                google.maps.event.trigger(marker, 'click');
+            });
+        }
     }
 
     createMarker(latLng, record, color) {
@@ -80,7 +156,6 @@ export class GoogleMapRenderer extends Component {
         let lng;
         let marker;
         let color;
-
         this.props.list.records.map((record) => {
             color = 'red';
             lat =
@@ -95,7 +170,8 @@ export class GoogleMapRenderer extends Component {
                 latLng = new google.maps.LatLng(lat, lng);
                 marker = this.createMarker(latLng, record, color);
                 record._marker = marker;
-                this.props.onHandleMarker(marker);
+                record._markerColor = color;
+                this.handleMarker(marker);
             }
             return record;
         });
@@ -125,21 +201,38 @@ export class GoogleMapRenderer extends Component {
     get isEmpty() {
         return this.props.list.records.length <= 0;
     }
+
+    get sidebarKey() {
+        return Math.random().toString(36).substr(2, 10);
+    }
+
+    get sidebarComponent() {
+        return GoogleMapSidebar;
+    }
+
+    get sidebarProps() {
+        return {
+            handleOpenRecord: this.props.openRecord.bind(this),
+            handlePointInMap: this.pointInMap.bind(this),
+            string: this.props.archInfo.viewTitle,
+            records: this.props.list.records,
+            fieldLat: this.props.archInfo.latitudeField,
+            fieldLng: this.props.archInfo.longitudeField,
+            fieldTitle: this.props.archInfo.sidebarTitleField,
+            fieldSubtitle: this.props.archInfo.sidebarSubtitleField,
+            markers: this.markers,
+        };
+    }
 }
 
 GoogleMapRenderer.template = 'web_view_google_map.GoogleMapRenderer';
-GoogleMapRenderer.components = { GoogleMapSidebar, Pager, Widget };
+GoogleMapRenderer.components = { Pager, Widget };
 GoogleMapRenderer.props = [
     'archInfo',
     'openRecord',
     'readonly',
+    'user',
     'list',
     'onAdd?',
     'model',
-    'onInitGoogleMap',
-    'onCenterMap',
-    'onClearMarkers',
-    'onHandleMarker',
-    'onHandleMarkerClusterer',
-    'onHandleGetMarkers',
 ];

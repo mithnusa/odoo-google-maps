@@ -6,23 +6,12 @@ import { usePager } from '@web/search/pager_hook';
 import { useService } from '@web/core/utils/hooks';
 import { standardViewProps } from '@web/views/standard_view_props';
 import { useSetupView } from '@web/views/view_hook';
-import { Component, useRef, useState, onWillDestroy } from '@odoo/owl';
-
-import { GoogleMapRenderer } from './google_map_renderer';
-import { MAP_THEMES } from './utils';
+import { Component, useRef } from '@odoo/owl';
 
 export class GoogleMapController extends Component {
     setup() {
-        console.log(' [GoogleMapController] ');
-        console.log(this);
         this.actionService = useService('action');
         this.user = useService('user');
-
-        this.markerCluster = null;
-        this.markers = [];
-
-        // we will re-using the google map instance
-        this.state = useState({ googleMap: null });
 
         const rootRef = useRef('root');
         const { Model, resModel, fields, archInfo, limit, state } = this.props;
@@ -69,125 +58,10 @@ export class GoogleMapController extends Component {
                 updateTotal: hasLimitedCount ? () => root.fetchCount() : undefined,
             };
         });
-        onWillDestroy(() => {
-            if (this.state.googleMap) {
-                console.log(' =============> CLEAR INSTANCE LISTENERS ');
-                google.maps.event.clearInstanceListeners(this.state.googleMap);
-            }
-        });
-    }
-
-    _setMapTheme(style) {
-        if (!Object.prototype.hasOwnProperty.call(MAP_THEMES, style) || style === 'default') {
-            return;
-        }
-        const styledMapType = new google.maps.StyledMapType(MAP_THEMES[style], {
-            name: 'Styled Map',
-        });
-        this.state.googleMap.setOptions({
-            mapTypeControlOptions: {
-                mapTypeIds: ['roadmap', 'satellite', 'hybrid', 'terrain', 'styled_map'],
-            },
-        });
-        // Associate the styled map with the MapTypeId and set it to display.
-        this.state.googleMap.mapTypes.set('styled_map', styledMapType);
-        this.state.googleMap.setMapTypeId('styled_map');
-    }
-
-    async getTheme() {
-        const data = await this.model.rpc('/web/base_google_map/theme', { context: this.user.context });
-        if (data.theme) {
-            this._setMapTheme(data.theme);
-        }
-    }
-
-    initializeGoogleMap(el) {
-        console.log(' [GoogleMapController::instantiateGoogleMap] ');
-        if (!this.state.googleMap) {
-            console.log(' --------------> Create instance of GMaps ');
-            this.state.googleMap = new google.maps.Map(el, {
-                mapTypeId: google.maps.MapTypeId.ROADMAP,
-                minZoom: 2,
-                maxZoom: 20,
-                fullscreenControl: true,
-                mapTypeControl: true,
-                gestureHandling: 'auto',
-            });
-            this.getTheme();
-        } else {
-            console.log(' Using existing instance of GMaps ');
-        }
-        this.markerInfoWindow = new google.maps.InfoWindow();
-        return this.state.googleMap;
-    }
-
-    clearMarkers() {
-        if (this.markerCluster) {
-            this.markerCluster.clearMarkers();
-        }
-        this.markers = [];
     }
 
     centerMap() {
-        console.log(' [GoogleMapController::centerMap] ');
-        const mapBounds = new google.maps.LatLngBounds();
-        this.markers.forEach((marker) => {
-            mapBounds.extend(marker.getPosition());
-        });
-        this.state.googleMap.fitBounds(mapBounds);
-        google.maps.event.addListenerOnce(this.state.googleMap, 'idle', () => {
-            google.maps.event.trigger(this.state.googleMap, 'resize');
-            if (this.state.googleMap.getZoom() > 17) this.state.googleMap.setZoom(17);
-        });
-    }
-
-    handleMarker(marker) {
-        const markers = this.markers;
-        const existingRecords = [];
-        if (markers.length > 0) {
-            const position = marker.getPosition();
-            markers.forEach((_cMarker) => {
-                if (position && position.equals(_cMarker.getPosition())) {
-                    marker.setMap(null);
-                    existingRecords.push(_cMarker._odooRecord);
-                }
-            });
-        }
-        this.markers.push(marker);
-        google.maps.event.addListener(marker, 'click', this.handleMarkerInfoWindow.bind(this, marker, existingRecords));
-    }
-
-    handleMarkerClusterer() {
-        const markers = this.markers;
-        if (!this.markerCluster) {
-            this.markerCluster = new markerClusterer.MarkerClusterer({
-                map: this.state.googleMap,
-                markers,
-            });
-        } else {
-            this.markerCluster.addMarkers(markers);
-        }
-    }
-
-    handleMarkerInfoWindow(marker, existingRecords) {
-        const markerDiv = '<div>Hello There!</div>';
-        this.markerInfoWindow.setContent(markerDiv);
-        this.markerInfoWindow.open(this.state.googleMap, marker);
-    }
-
-    handlePointInMap(marker) {
-        if (marker) {
-            this.state.googleMap.panTo(marker.getPosition());
-            google.maps.event.addListenerOnce(this.state.googleMap, 'idle', () => {
-                google.maps.event.trigger(this.state.googleMap, 'resize');
-                if (this.state.googleMap.getZoom() < 12) this.state.googleMap.setZoom(12);
-                google.maps.event.trigger(marker, 'click');
-            });
-        }
-    }
-
-    getMarkers() {
-        return this.markers;
+        this.render(true);
     }
 
     async openRecord(record, mode) {
@@ -212,14 +86,11 @@ export class GoogleMapController extends Component {
         return create;
     }
 
-    async onUpdatedPager() {
-        console.log(' <[GoogleMapController::onUpdatedPager]> ');
-        console.log(this);
-    }
+    async onUpdatedPager() {}
 }
 
 GoogleMapController.template = 'web_view_google_map.GoogleMapView';
-GoogleMapController.components = { Layout, GoogleMapRenderer };
+GoogleMapController.components = { Layout };
 GoogleMapController.props = {
     ...standardViewProps,
     showButtons: { type: Boolean, optional: true },

@@ -1,35 +1,16 @@
 /** @odoo-module **/
 
-import { Component, useEffect, useState, onMounted, onWillDestroy } from '@odoo/owl';
+import { Component, useState, onMounted } from '@odoo/owl';
 
 export class GoogleMapSidebar extends Component {
     setup() {
-        console.log(' #->[GoogleMapSidebar::setup]<-# ');
-        console.log(this);
-        this.state = useState({ isCompleted: null, loadId: null });
         this.defaultColor = '#989696';
+        this.state = useState({ renderId: false });
 
-        useEffect(() => {
-            console.log(' #---<[GoogleMapSidebar::useEffect]>');
-
-            this.state.loadId = new Date().toISOString();
-        });
-
+        // FIXME component reactivity
         onMounted(() => {
-            console.log(' #---<[GoogleMapSidebar::onMounted]>');
+            this.state.renderId = Math.random().toString(36).substr(2, 8);
         });
-    }
-
-    get getDataDisplay() {
-        console.log(' #->[GoogleMapSidebar::getDataDisplay]<-# ');
-        console.log(this);
-        let data;
-        const records = [];
-        this.props.records.forEach((record) => {
-            data = this.getData(record);
-            records.push(data);
-        });
-        return records;
     }
 
     _getDisplayName(record, fieldName, defaultLabel) {
@@ -77,14 +58,9 @@ export class GoogleMapSidebar extends Component {
     getData(record) {
         const title = this._getTitle(record);
         const subTitle = this._getSubtitle(record);
-        const color = this._getMarkerColor(record);
-        const hasGeolocation = color !== this.defaultColor;
         return {
             title,
             subTitle,
-            hasGeolocation,
-            color,
-            record,
         };
     }
 
@@ -100,15 +76,6 @@ export class GoogleMapSidebar extends Component {
         }
         return;
     }
-
-    _getMarkerColor(record) {
-        let color = this.defaultColor;
-        const marker = this.props.records.filter((r) => r.hasOwnProperty('_marker')).find((m) => m.id === record.id);
-        if (marker) {
-            color = marker._marker._odooMarkerColor;
-        }
-        return color;
-    }
 }
 
 GoogleMapSidebar.template = 'web_view_google_map.GoogleMapSidebar';
@@ -121,4 +88,5 @@ GoogleMapSidebar.props = [
     'fieldLng',
     'fieldTitle',
     'fieldSubtitle',
+    'markers',
 ];

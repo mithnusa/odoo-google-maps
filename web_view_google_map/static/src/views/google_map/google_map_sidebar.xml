@@ -7,21 +7,22 @@
                     <t t-esc="props.string"/>
                 </h3>
             </div>
-            <ul class="list-group">
-                <t t-foreach="getDataDisplay" t-as="data" t-key="data.record.id">
-                    <li t-attf-class="list-group-item d-flex justify-content-between align-items-center pb-1 pt-1 #{data.hasGeolocation ? '' : 'disabled'}">
-                        <a href="#" class="flex-grow-1 o_map_sidebar_record" data-toggle="tooltip" t-attf-style="cursor: #{data.hasGeolocation ? 'pointer' : 'not-allowed'};" t-attf-title="#{data.hasGeolocation ? '' : 'No geolocation'}" t-on-click="() => props.handlePointInMap(data.record._marker)">
+            <ul class="list-group" t-if="state.renderId">
+                <t t-foreach="props.records" t-as="record" t-key="record.id">
+                    <t t-set="data" t-value="getData(record)"/>
+                    <li t-attf-class="list-group-item d-flex justify-content-between align-items-center pb-1 pt-1 #{record._marker ? '' : 'disabled'}">
+                        <a href="#" class="flex-grow-1 o_map_sidebar_record" data-toggle="tooltip" t-attf-style="cursor: #{record._marker ? 'pointer' : 'not-allowed'};" t-attf-title="#{record._marker ? '' : 'No geolocation'}" t-on-click="() => props.handlePointInMap(record._marker)">
                             <span class="title" t-esc="data.title" />
                             <t t-if="data.subTitle">
                                 <br/>
-                                <t t-if="data.hasGeolocation">
-                                    <i class="fa fa-map-marker" t-attf-style="color: #{data.color};"></i>
+                                <t t-if="record._marker">
+                                    <i class="fa fa-map-marker" t-attf-style="color: #{record._markerColor};"></i>
                                     <span>  </span>
                                 </t>
                                 <small class="text-muted" t-esc="data.subTitle"/>
                             </t>
                         </a>
-                        <button type="button" class="btn btn-sm btn-light" id="open-record" data-toggle="tooltip" title="Open form" t-on-click="() => props.handleOpenRecord(data.record)">
+                        <button type="button" class="btn btn-sm btn-light" id="open-record" data-toggle="tooltip" title="Open form" t-on-click="() => props.handleOpenRecord(record)">
                             <i class="fa fa-wpforms"></i>
                         </button>
                     </li>

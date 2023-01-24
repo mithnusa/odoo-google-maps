@@ -5,17 +5,7 @@
             <div class="o_google_map_view" t-ref="map"></div>
             <div t-attf-class="o_map_right_sidebar #{state.sidebarIsFolded ? 'closed': 'open'}">
                 <div class="content">
-                    <GoogleMapSidebar 
-                        handleOpenRecord.bind="props.openRecord"
-                        handlePointInMap.bind="pointInMap"
-                        string="props.archInfo.viewTitle"
-                        records="props.list.records"
-                        fieldLat="props.archInfo.latitudeField"
-                        fieldLng="props.archInfo.longitudeField"
-                        fieldTitle="props.archInfo.sidebarTitleField"
-                        fieldSubtitle="props.archInfo.sidebarSubtitleField"
-                        markers="props.onHandleGetMarkers"
-                        sidebarReload="state.sidebarReload"/>
+                    <t t-component="sidebarComponent" t-props="sidebarProps" t-key="sidebarKey" />
                 </div>
                 <div class="toggle_right_sidenav">
                     <button data-toggle="tooltip" data-placement="right" title="Expand side panel" t-on-click="() => this.toggleSidebar()"></button>
