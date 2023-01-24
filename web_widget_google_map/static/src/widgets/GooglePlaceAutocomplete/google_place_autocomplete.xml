@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="web_widget_google_map.GooglePlacesAutocomplete" owl="1">
+        <div class="o_google_places_autocomplete" aria-atomic="true" t-att-id="o_googlePlacesAutocompleteId" data-target-input="nearest" t-ref="root">
+            <input type="text"
+                class="o_o_google_places_autocomplete_input o_input datetimepicker-input"
+                t-att-name="props.name"
+                t-att-id="props.inputId"
+                t-att-placeholder="props.placeholder"
+                t-attf-data-target="#{ '#' + o_googlePlacesAutocompleteId }"
+                t-att-readonly="props.readonly"
+                t-ref="input"
+            />
+        </div>
+    </t>
+
+</templates>
