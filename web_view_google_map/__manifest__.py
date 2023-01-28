@@ -2,13 +2,16 @@
 {
     'name': 'Web View Google Map',
     'summary': '''
-        Short (1 phrase/line) summary of the module's purpose, used as
-        subtitle on modules listing or apps.openerp.com''',
+        A new view 'Google maps'
+        Present your geographical data in Google maps without leave Odoo app
+    ''',
     'description': '''
-        Long description of module's purpose
+        A view that allows you to add Google maps in Odoo and gives a
+        possibility to see your geographical data in Google maps without
+        leaving Odoo
     ''',
     'author': 'Yopi Angi',
-    'website': 'https://www.yourcompany.com',
+    'website': 'https://github.com/mithnusa',
     'support': 'yopiangi@gmail.com',
     'category': 'Extra Tools',
     'version': '0.1',

@@ -2,20 +2,14 @@
 {
     'name': 'Base Google Map',
     'summary': '''
-        Base module for Google maps integration,
-        containing a config to setup Google API Key
+        Base module for Google maps integration
     ''',
     'description': '''
-        This module assumed you already have a Google API Key configured,
-        if not please check this link
-        https://developers.google.com/maps/documentation/javascript/get-api-key
-        Once you have it, go to Settings > General Settings find a section
-        Google Maps View and then enter your Google API Key.
-        Note, there is no functionality that you can find by just installed
-        this module.
+        Base module for Google maps integration,
+        only contain a config to setup Google API Key
     ''',
     'author': 'Yopi Angi',
-    'website': 'https://www.yourcompany.com',
+    'website': 'https://github.com/mithnusa',
     'support': 'yopiangi@gmail.com',
     'category': 'Extra Tools',
     'version': '0.1',

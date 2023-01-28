@@ -2,11 +2,11 @@
 {
     'name': 'Web widget Google Maps',
     'summary': '''
-        Web widget Google maps
+        Two new widget of Google maps autocomplete
     ''',
     'description': '''Web widget Google maps''',
     'author': 'Yopi Angi',
-    'website': 'https://www.yourcompany.com',
+    'website': 'https://github.com/mithnusa',
     'support': 'yopiangi@gmail.com',
     'category': 'Extra Tools',
     'version': '0.1',

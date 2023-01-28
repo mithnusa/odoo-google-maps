@@ -2,13 +2,14 @@
 {
     'name': 'Contacts Google Map',
     'summary': '''
-        Short (1 phrase/line) summary of the module's purpose, used as
-        subtitle on modules listing or apps.openerp.com''',
+        Show your contacts in Google maps view
+    ''',
     'description': '''
-        Long description of module's purpose
+        A new view 'Google maps' added on Contacts, gives you
+        an ability to show your contact location in Google maps
     ''',
     'author': 'Yopi Angi',
-    'website': 'https://www.yourcompany.com',
+    'website': 'https://github.com/mithnusa',
     'support': 'yopiangi@gmail.com',
     'category': 'Sales/CRM',
     'version': '0.1',
