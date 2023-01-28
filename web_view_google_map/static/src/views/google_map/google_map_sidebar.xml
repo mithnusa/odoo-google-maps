@@ -22,7 +22,7 @@
                                 <small class="text-muted" t-esc="data.subTitle"/>
                             </t>
                         </a>
-                        <button type="button" class="btn btn-sm btn-light" id="open-record" data-toggle="tooltip" title="Open form" t-on-click="() => props.handleOpenRecord(record)">
+                        <button type="button" class="btn btn-sm btn-light" id="open-record" data-toggle="tooltip" title="Open form" t-on-click.prevent="() => props.handleOpenRecord(record)">
                             <i class="fa fa-wpforms"></i>
                         </button>
                     </li>

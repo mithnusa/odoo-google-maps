@@ -19,7 +19,7 @@
                     Create
                 </button>
             </t>
-            <button type="button" class="btn btn-secondary o-google_map-button-center-map" t-on-click.prevent="() => this.centerMap()">
+            <button type="button" class="btn btn-link btn-secondary o-google_map-button-center-map" t-on-click.prevent="() => this.centerMap()">
                 Center Map
             </button>
         </div>

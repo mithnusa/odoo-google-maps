@@ -1,7 +1,8 @@
 /** @odoo-module **/
 
-import { Component, useRef, useEffect, useState, onMounted } from '@odoo/owl';
+import { Component, useRef, useEffect, useState, onWillDestroy } from '@odoo/owl';
 import { Pager } from '@web/core/pager/pager';
+import { renderToString } from '@web/core/utils/render';
 import { Widget } from '@web/views/widgets/widget';
 
 import { GoogleMapSidebar } from './google_map_sidebar';
@@ -15,6 +16,11 @@ export class GoogleMapRenderer extends Component {
         this.markers = [];
         this.state = useState({ sidebarIsFolded: false });
         useEffect(() => this.renderMap());
+        onWillDestroy(() => {
+            if (this.googleMap) {
+                google.maps.event.clearInstanceListeners(this.googleMap);
+            }
+        });
     }
 
     _setMapTheme(style) {
@@ -84,19 +90,18 @@ export class GoogleMapRenderer extends Component {
     }
 
     handleMarker(marker) {
-        const markers = this.markers;
-        const existingRecords = [];
-        if (markers.length > 0) {
+        const otherRecords = [];
+        if (this.markers.length > 0) {
             const position = marker.getPosition();
-            markers.forEach((_cMarker) => {
+            this.markers.forEach((_cMarker) => {
                 if (position && position.equals(_cMarker.getPosition())) {
                     marker.setMap(null);
-                    existingRecords.push(_cMarker._odooRecord);
+                    otherRecords.push(_cMarker._odooRecord);
                 }
             });
         }
         this.markers.push(marker);
-        google.maps.event.addListener(marker, 'click', this.handleMarkerInfoWindow.bind(this, marker, existingRecords));
+        google.maps.event.addListener(marker, 'click', this.handleMarkerInfoWindow.bind(this, marker, otherRecords));
     }
 
     renderMarkerClusterer() {
@@ -111,9 +116,63 @@ export class GoogleMapRenderer extends Component {
         }
     }
 
-    handleMarkerInfoWindow(marker, existingRecords) {
-        const markerDiv = '<div>Hello There!</div>';
-        this.markerInfoWindow.setContent(markerDiv);
+    getMarkerContent(record, latField, lngField, titleField, subTitleField) {
+        const content = renderToString('web_view_google_map.MarkerInfoWindow', {
+            record: JSON.stringify({
+                id: record.id,
+                resId: record.resId,
+                resModel: record.resModel,
+            }),
+            title: record.data[titleField],
+            destination: `${record.data[latField]},${record.data[lngField]}`,
+            subTitle: record.data[subTitleField],
+        });
+
+        const divContent = new DOMParser().parseFromString(content, 'text/html').querySelector('div');
+        divContent.querySelector('#btn-open_form').addEventListener(
+            'click',
+            (ev) => {
+                const data = ev.target.getAttribute('data-record');
+                if (data) {
+                    const record = JSON.parse(data);
+                    this.props.openRecord(record);
+                }
+            },
+            false
+        );
+        return divContent;
+    }
+
+    handleMarkerInfoWindow(marker, otherRecords) {
+        const { latitudeField, longitudeField, sidebarTitleField, sidebarSubtitleField } = this.props.archInfo;
+
+        let bodyContent = document.createElement('div');
+        bodyContent.className = 'o_kanban_group';
+
+        const markerContent = this.getMarkerContent(
+            marker._odooRecord,
+            latitudeField,
+            longitudeField,
+            sidebarTitleField,
+            sidebarSubtitleField
+        );
+
+        bodyContent.appendChild(markerContent);
+
+        if (otherRecords.length > 0) {
+            otherRecords.forEach((record) => {
+                let markerOtherContent = this.getMarkerContent(
+                    record,
+                    latitudeField,
+                    longitudeField,
+                    sidebarTitleField,
+                    sidebarSubtitleField
+                );
+                bodyContent.appendChild(markerOtherContent);
+            });
+        }
+
+        this.markerInfoWindow.setContent(bodyContent);
         this.markerInfoWindow.open(this.googleMap, marker);
     }
 
@@ -192,7 +251,7 @@ export class GoogleMapRenderer extends Component {
             this.googleMap.panTo(marker.getPosition());
             google.maps.event.addListenerOnce(this.googleMap, 'idle', () => {
                 google.maps.event.trigger(this.googleMap, 'resize');
-                if (this.googleMap.getZoom() < 12) this.googleMap.setZoom(12);
+                if (this.googleMap.getZoom() < 13) this.googleMap.setZoom(13);
                 google.maps.event.trigger(marker, 'click');
             });
         }
@@ -227,12 +286,4 @@ export class GoogleMapRenderer extends Component {
 
 GoogleMapRenderer.template = 'web_view_google_map.GoogleMapRenderer';
 GoogleMapRenderer.components = { Pager, Widget };
-GoogleMapRenderer.props = [
-    'archInfo',
-    'openRecord',
-    'readonly',
-    'user',
-    'list',
-    'onAdd?',
-    'model',
-];
+GoogleMapRenderer.props = ['archInfo', 'openRecord', 'readonly', 'user', 'list', 'onAdd?', 'model'];
