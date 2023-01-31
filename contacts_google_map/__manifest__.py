@@ -8,6 +8,7 @@
         A new view 'Google maps' added on Contacts, gives you
         an ability to show your contact location in Google maps
     ''',
+    'license': 'AGPL-3',
     'author': 'Yopi Angi',
     'website': 'https://github.com/mithnusa',
     'support': 'yopiangi@gmail.com',

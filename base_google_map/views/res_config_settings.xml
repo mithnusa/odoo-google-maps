@@ -20,26 +20,26 @@
                                     </div>
                                     <div class="content-group">
                                         <div class="mt16">
-                                            <label for="google_maps_view_api_key" string="Api key"/>
+                                            <label for="google_maps_view_api_key" string="Api key : "/>
                                             <field name="google_maps_view_api_key"/>
                                         </div>
                                         <div class="mt16">
-                                            <label for="google_maps_libraries" string="Libraries"/>
+                                            <label for="google_maps_libraries" string="Libraries : "/>
                                             <field name="google_maps_libraries"/>
                                         </div>
                                         <div class="mt16">
-                                            <label for="google_maps_lang_localization" string="Language"/>
+                                            <label for="google_maps_lang_localization" string="Language : "/>
                                             <field name="google_maps_lang_localization"/>
                                         </div>
                                         <div class="mt16" attrs="{'invisible': [('google_maps_lang_localization', 'in', [False, ''])]}">
                                             <div class="text-muted">
                                                 If you set the language of the map, it's important to consider setting the region too. This helps ensure that your application complies with local laws.
                                             </div>
-                                            <label for="google_maps_region_localization" string="Region"/>
+                                            <label for="google_maps_region_localization" string="Region : "/>
                                             <field name="google_maps_region_localization"/>
                                         </div>
                                         <div class="mt16">
-                                            <label for="google_maps_theme" string="Theme"/>
+                                            <label for="google_maps_theme" string="Theme : "/>
                                             <field name="google_maps_theme" widget="radio"/>
                                         </div>
                                     </div>

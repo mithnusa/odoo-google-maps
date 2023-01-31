@@ -5,10 +5,12 @@ import { _lt } from '@web/core/l10n/translation';
 import { standardFieldProps } from '@web/views/fields/standard_field_props';
 import { formatChar } from '@web/views/fields/formatters';
 import { useInputField } from '@web/views/fields/input_field_hook';
-import { Component, onMounted, onWillRender, useRef } from '@odoo/owl';
+import { Component, onRendered, onWillRender, useRef } from '@odoo/owl';
+import { useService } from '@web/core/utils/hooks';
 import {
     GOOGLE_PLACES_COMPONENT_FORM,
     ADDRESS_FORM,
+    ADDRESS_MODE,
     fetchValues,
     gmaps_populate_address,
     fetchCountryState,
@@ -17,6 +19,8 @@ import {
 export class GoogleAddressAutocomplete extends Component {
     setup() {
         this.input = useRef('input');
+        this.rpc = useService('rpc');
+        this.user = useService('user');
 
         this.places_autocomplete = false;
         this.component_form = GOOGLE_PLACES_COMPONENT_FORM;
@@ -41,8 +45,16 @@ export class GoogleAddressAutocomplete extends Component {
 
         useInputField({ getValue: () => this.props.value || '', parse: (v) => this.parse(v) });
         onWillRender(this.defaultFillField);
-        onMounted(this.onMounted);
+        onRendered(this.prepareOptions);
     }
+
+    async fetchConfig() {
+        const data = await this.rpc('/web/base_google_map/google_autocomplete_conf', { context: this.user.context });
+        if (data) {
+            this.autocomplete_settings = data;
+        }
+    }
+
     async onKeydownListener(ev) {
         if (ev.key === this.dynamicPlaceholder.TRIGGER_KEY && ev.target === this.input.el) {
             const baseModel = this.props.record.data.mailing_model_real;
@@ -55,14 +67,7 @@ export class GoogleAddressAutocomplete extends Component {
         }
     }
 
-    onMounted() {
-        console.log(' [GoogleAddressAutocomplete::getWidgetOption] ');
-        console.log(this);
-        this.prepareOptions();
-    }
-
     onDynamicPlaceholderValidate(chain, defaultValue) {
-        console.log(' [GoogleAddressAutocomplete::onDynamicPlaceholderValidate] ');
         if (chain) {
             const triggerKeyReplaceRegex = new RegExp(`${this.dynamicPlaceholder.TRIGGER_KEY}$`);
             let dynamicPlaceholder = '{{object.' + chain.join('.');
@@ -72,12 +77,10 @@ export class GoogleAddressAutocomplete extends Component {
     }
 
     onDynamicPlaceholderClose() {
-        console.log(' [GoogleAddressAutocomplete::onDynamicPlaceholderClose] ');
         this.input.el.focus();
     }
 
     defaultFillField() {
-        console.log(' [GoogleAddressAutocomplete::defaultFillField] ');
         this.fillfields = {
             [this.address_form.street]: ['street_number', 'route'],
             [this.address_form.street2]: [
@@ -127,39 +130,39 @@ export class GoogleAddressAutocomplete extends Component {
     }
 
     async prepareOptions() {
-        console.log(' [GoogleAddressAutocomplete::prepareOptions] ');
-        if (!this.props.readonly) {
-            if (this.props.options) {
-                if (this.props.options.hasOwnProperty('component_form')) {
-                    this.component_form = _.defaults({}, this.props.options.component_form, this.component_form);
+        const { readonly, options } = this.props;
+        if (!readonly) {
+            if (options) {
+                if (options.hasOwnProperty('component_form')) {
+                    this.component_form = _.defaults({}, options.component_form, this.component_form);
                 }
-                if (this.props.options.hasOwnProperty('delimiter')) {
-                    this.fillfields_delimiter = _.defaults({}, this.props.options.delimiter, this.fillfields_delimiter);
+                if (options.hasOwnProperty('delimiter')) {
+                    this.fillfields_delimiter = _.defaults({}, options.delimiter, this.fillfields_delimiter);
                 }
-                if (this.props.options.hasOwnProperty('lat')) {
-                    this.fieldLat = this.props.options.lat;
+                if (options.hasOwnProperty('lat')) {
+                    this.fieldLat = options.lat;
                 }
-                if (this.props.options.hasOwnProperty('lng')) {
-                    this.fieldLng = this.props.options.lng;
+                if (options.hasOwnProperty('lng')) {
+                    this.fieldLng = options.lng;
                 }
-                if (this.props.options.hasOwnProperty('address_form')) {
+                if (options.hasOwnProperty('address_form')) {
                     if (this.force_override) {
-                        this.address_form = this.props.options.address_form;
+                        this.address_form = options.address_form;
                     } else {
-                        this.address_form = _.defaults({}, this.props.options.address_form, this.address_form);
+                        this.address_form = _.defaults({}, options.address_form, this.address_form);
                     }
                 }
-                if (this.props.options.hasOwnProperty('display_name')) {
-                    this.display_name = this.props.options.display_name;
+                if (options.hasOwnProperty('display_name')) {
+                    this.display_name = options.display_name;
                 }
-                if (this.props.options.hasOwnProperty('mode')) {
-                    this.address_mode =
-                        Utils.ADDRESS_MODE.indexOf(this.props.options.mode) != -1
-                            ? this.props.options.mode
-                            : 'address_format';
+                if (options.hasOwnProperty('mode')) {
+                    this.address_mode = ADDRESS_MODE.indexOf(options.mode) != -1 ? options.mode : 'address_format';
                 }
             }
             this.target_fields = this.getFillFieldsType();
+            await this.fetchConfig();
+            await this.initGplacesAutocomplete();
+            this._geolocate();
         }
     }
 
@@ -217,7 +220,6 @@ export class GoogleAddressAutocomplete extends Component {
     }
 
     async populateAddress(place, parse_address) {
-        console.log(' [GoogleAddressAutocomplete::populateAddress] ');
         const requests = [];
         let index_of_state = _.findIndex(this.target_fields, (f) => f.name === this.address_form.state_id);
         const target_fields = this.target_fields.slice();
@@ -264,19 +266,17 @@ export class GoogleAddressAutocomplete extends Component {
     }
 
     initGplacesAutocomplete() {
-        console.log(' [GoogleAddressAutocomplete::initGplacesAutocomplete] ');
         return new Promise((resolve) => {
             setTimeout(() => {
                 if (!this.places_autocomplete) {
-                    console.log(' [GoogleAddressAutocomplete::InitializeAutocomplete] ');
                     const google_fields = this.getGoogleFieldsRestriction();
                     this.places_autocomplete = new google.maps.places.Autocomplete(this.input.el, {
                         types: this.autocomplete_types,
                         fields: google_fields,
                     });
-                    // if (this.autocomplete_settings) {
-                    //     this.places_autocomplete.setOptions(this.autocomplete_settings);
-                    // }
+                    if (this.autocomplete_settings) {
+                        this.places_autocomplete.setOptions(this.autocomplete_settings);
+                    }
                     this.places_autocomplete.addListener('place_changed', this.handlePopulateAddress.bind(this));
                 }
                 // When the user selects an address from the dropdown, populate the address fields in the form.
@@ -285,17 +285,8 @@ export class GoogleAddressAutocomplete extends Component {
         });
     }
 
-    onClick(ev) {
-        if (!this.props.readonly) {
-            ev.stopPropagation();
-            this.initGplacesAutocomplete().then(() => this._geolocate());
-        }
-    }
-
     handlePopulateAddress() {
-        console.log(' [GoogleAddressAutocomplete::handlePopulateAddress] ');
         const place = this.places_autocomplete.getPlace();
-        console.log({ place });
         if (this.address_mode === 'no_address_format') {
             const geoValues = this._prepareGeolocation(place.geometry.location.lat(), place.geometry.location.lng());
             if (geoValues) {
@@ -309,13 +300,10 @@ export class GoogleAddressAutocomplete extends Component {
     }
 
     _update(values) {
-        console.log(' [GoogleAddressAutocomplete::_update] ');
-        console.log({ values });
         this.props.record.update(values);
     }
 
     get formattedValue() {
-        console.log(' [GoogleAddressAutocomplete::formattedValue] ');
         return formatChar(this.props.value, { isPassword: false });
     }
 

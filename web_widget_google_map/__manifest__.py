@@ -2,20 +2,24 @@
 {
     'name': 'Web widget Google Maps',
     'summary': '''
-        Two new widget of Google maps autocomplete
+        Two new widget of Google autocomplete
     ''',
-    'description': '''Web widget Google maps''',
+    'description': '''
+        Implementation of Google Autocomplete Address form and
+        Google Places autocomplete through widget
+    ''',
+    'license': 'AGPL-3',
     'author': 'Yopi Angi',
     'website': 'https://github.com/mithnusa',
     'support': 'yopiangi@gmail.com',
     'category': 'Extra Tools',
     'version': '0.1',
     'depends': ['base_google_map'],
-    'data': [],
     'assets': {
         'web.assets_backend': [
             'web_widget_google_map/static/src/widgets/**/*',
         ],
     },
+    'data': ['data/gmap_libraries.xml'],
     'demo': [],
 }

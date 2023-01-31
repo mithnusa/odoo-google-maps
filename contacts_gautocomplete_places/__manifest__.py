@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
 {
-    'name': 'Base Google Map',
+    'name': 'Contacts Google Places Autocomplete',
     'summary': '''
-        Base module for Google maps integration
+        Enable Google Places autocomplete on contact name
     ''',
     'description': '''
-        Base module for Google maps integration,
-        only contain a config to setup Google API Key
+        Help you find contact by using Google places autocomplete
     ''',
     'license': 'AGPL-3',
     'author': 'Yopi Angi',
@@ -14,10 +13,11 @@
     'support': 'yopiangi@gmail.com',
     'category': 'Extra Tools',
     'version': '0.1',
-    'depends': ['base_setup'],
+    'depends': [
+        'web_widget_google_map',
+    ],
     'data': [
-        'views/res_config_settings.xml',
-        'views/templates.xml',
+        'views/res_partner.xml',
     ],
     'demo': [],
 }

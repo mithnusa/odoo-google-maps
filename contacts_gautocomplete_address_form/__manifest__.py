@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
 {
-    'name': 'Base Google Map',
+    'name': 'Contacts Google Autocomplete Address form',
     'summary': '''
-        Base module for Google maps integration
+        Enable Google Autocomplete address form on contact address
     ''',
     'description': '''
-        Base module for Google maps integration,
-        only contain a config to setup Google API Key
+        Help you find address by using Google autocomplete address form service
     ''',
     'license': 'AGPL-3',
     'author': 'Yopi Angi',
@@ -14,10 +13,11 @@
     'support': 'yopiangi@gmail.com',
     'category': 'Extra Tools',
     'version': '0.1',
-    'depends': ['base_setup'],
+    'depends': [
+        'web_widget_google_map',
+    ],
     'data': [
-        'views/res_config_settings.xml',
-        'views/templates.xml',
+        'views/res_partner.xml',
     ],
     'demo': [],
 }

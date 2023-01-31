@@ -116,16 +116,17 @@ export class GoogleMapRenderer extends Component {
         }
     }
 
-    getMarkerContent(record, latField, lngField, titleField, subTitleField) {
+    getMarkerContent(record) {
+        const { latitudeField, longitudeField, sidebarTitleField, sidebarSubtitleField } = this.props.archInfo;
         const content = renderToString('web_view_google_map.MarkerInfoWindow', {
             record: JSON.stringify({
                 id: record.id,
                 resId: record.resId,
                 resModel: record.resModel,
             }),
-            title: record.data[titleField],
-            destination: `${record.data[latField]},${record.data[lngField]}`,
-            subTitle: record.data[subTitleField],
+            title: record.data[sidebarTitleField],
+            destination: `${record.data[latitudeField]},${record.data[longitudeField]}`,
+            subTitle: record.data[sidebarSubtitleField],
         });
 
         const divContent = new DOMParser().parseFromString(content, 'text/html').querySelector('div');
@@ -144,47 +145,22 @@ export class GoogleMapRenderer extends Component {
     }
 
     handleMarkerInfoWindow(marker, otherRecords) {
-        const { latitudeField, longitudeField, sidebarTitleField, sidebarSubtitleField } = this.props.archInfo;
-
         let bodyContent = document.createElement('div');
         bodyContent.className = 'o_kanban_group';
 
-        const markerContent = this.getMarkerContent(
-            marker._odooRecord,
-            latitudeField,
-            longitudeField,
-            sidebarTitleField,
-            sidebarSubtitleField
-        );
+        const markerContent = this.getMarkerContent(marker._odooRecord);
 
         bodyContent.appendChild(markerContent);
 
         if (otherRecords.length > 0) {
             otherRecords.forEach((record) => {
-                let markerOtherContent = this.getMarkerContent(
-                    record,
-                    latitudeField,
-                    longitudeField,
-                    sidebarTitleField,
-                    sidebarSubtitleField
-                );
+                let markerOtherContent = this.getMarkerContent(record);
                 bodyContent.appendChild(markerOtherContent);
             });
         }
 
         this.markerInfoWindow.setContent(bodyContent);
         this.markerInfoWindow.open(this.googleMap, marker);
-    }
-
-    handlePointInMap(marker) {
-        if (marker) {
-            this.googleMap.panTo(marker.getPosition());
-            google.maps.event.addListenerOnce(this.googleMap, 'idle', () => {
-                google.maps.event.trigger(this.googleMap, 'resize');
-                if (this.googleMap.getZoom() < 12) this.googleMap.setZoom(12);
-                google.maps.event.trigger(marker, 'click');
-            });
-        }
     }
 
     createMarker(latLng, record, color) {

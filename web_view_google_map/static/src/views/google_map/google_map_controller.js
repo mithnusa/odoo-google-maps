@@ -18,29 +18,16 @@ export class GoogleMapController extends Component {
         const { rootState } = state || {};
 
         this.model = useModel(Model, {
-            activeFields: archInfo.activeFields,
             fields,
             resModel,
+            rootState,
+            activeFields: archInfo.activeFields,
             handleField: archInfo.handleField,
             limit: archInfo.limit || limit,
             onCreate: archInfo.onCreate,
             viewMode: 'google_map',
-            rootState,
         });
 
-        useSetupView({
-            rootRef,
-            getGlobalState: () => {
-                return {
-                    resIds: this.model.root.records.map((rec) => rec.resId), // WOWL: ask LPE why?
-                };
-            },
-            getLocalState: () => {
-                return {
-                    rootState: this.model.root.exportState(),
-                };
-            },
-        });
         usePager(() => {
             const root = this.model.root;
             const { count, hasLimitedCount, limit, offset } = root;
