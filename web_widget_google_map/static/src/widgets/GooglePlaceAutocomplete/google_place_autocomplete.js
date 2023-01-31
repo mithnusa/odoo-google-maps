@@ -43,20 +43,28 @@ export class GooglePlaceAutocomplete extends Component {
         this.force_override = false;
         this.autocomplete_settings = null;
 
-        useInputField({ getValue: () => this.props.value || '', parse: (v) => this.parse(v) });
+        useInputField({
+            getValue: () => this.props.value || '',
+            parse: (v) => this.parse(v),
+        });
         onWillRender(this.defaultFillField);
         onRendered(this.prepareOptions);
     }
 
     async fetchConfig() {
-        const data = await this.rpc('/web/base_google_map/google_autocomplete_conf', { context: this.user.context });
+        const data = await this.rpc('/web/base_google_map/google_autocomplete_conf', {
+            context: this.user.context,
+        });
         if (data) {
             this.autocomplete_settings = data;
         }
     }
 
     async onKeydownListener(ev) {
-        if (ev.key === this.dynamicPlaceholder.TRIGGER_KEY && ev.target === this.input.el) {
+        if (
+            ev.key === this.dynamicPlaceholder.TRIGGER_KEY &&
+            ev.target === this.input.el
+        ) {
             const baseModel = this.props.record.data.mailing_model_real;
             if (baseModel) {
                 await this.dynamicPlaceholder.open(this.input.el, baseModel, {
@@ -69,10 +77,18 @@ export class GooglePlaceAutocomplete extends Component {
 
     onDynamicPlaceholderValidate(chain, defaultValue) {
         if (chain) {
-            const triggerKeyReplaceRegex = new RegExp(`${this.dynamicPlaceholder.TRIGGER_KEY}$`);
+            const triggerKeyReplaceRegex = new RegExp(
+                `${this.dynamicPlaceholder.TRIGGER_KEY}$`
+            );
             let dynamicPlaceholder = '{{object.' + chain.join('.');
-            dynamicPlaceholder += defaultValue && defaultValue !== '' ? ` or '''${defaultValue}'''}}` : '}}';
-            this.props.update(this.input.el.value.replace(triggerKeyReplaceRegex, '') + dynamicPlaceholder);
+            dynamicPlaceholder +=
+                defaultValue && defaultValue !== ''
+                    ? ` or '''${defaultValue}'''}}`
+                    : '}}';
+            this.props.update(
+                this.input.el.value.replace(triggerKeyReplaceRegex, '') +
+                    dynamicPlaceholder
+            );
         }
     }
 
@@ -89,7 +105,11 @@ export class GooglePlaceAutocomplete extends Component {
             },
             address: {
                 street: ['street_number', 'route'],
-                street2: ['administrative_area_level_3', 'administrative_area_level_4', 'administrative_area_level_5'],
+                street2: [
+                    'administrative_area_level_3',
+                    'administrative_area_level_4',
+                    'administrative_area_level_5',
+                ],
                 city: ['locality', 'administrative_area_level_2'],
                 zip: 'postal_code',
                 state_id: 'administrative_area_level_1',
@@ -166,10 +186,18 @@ export class GooglePlaceAutocomplete extends Component {
                 }
 
                 if (options.hasOwnProperty('component_form')) {
-                    this.component_form = _.defaults({}, options.component_form, this.component_form);
+                    this.component_form = _.defaults(
+                        {},
+                        options.component_form,
+                        this.component_form
+                    );
                 }
                 if (options.hasOwnProperty('delimiter')) {
-                    this.fillfields_delimiter = _.defaults({}, options.delimiter, this.fillfields_delimiter);
+                    this.fillfields_delimiter = _.defaults(
+                        {},
+                        options.delimiter,
+                        this.fillfields_delimiter
+                    );
                 }
                 if (options.hasOwnProperty('lat')) {
                     this.fieldLat = options.lat;
@@ -181,14 +209,21 @@ export class GooglePlaceAutocomplete extends Component {
                     if (this.force_override) {
                         this.address_form = options.address_form;
                     } else {
-                        this.address_form = _.defaults({}, options.address_form, this.address_form);
+                        this.address_form = _.defaults(
+                            {},
+                            options.address_form,
+                            this.address_form
+                        );
                     }
                 }
                 if (options.hasOwnProperty('display_name')) {
                     this.display_name = options.display_name;
                 }
                 if (options.hasOwnProperty('mode')) {
-                    this.address_mode = ADDRESS_MODE.indexOf(options.mode) != -1 ? options.mode : 'address_format';
+                    this.address_mode =
+                        ADDRESS_MODE.indexOf(options.mode) != -1
+                            ? options.mode
+                            : 'address_format';
                 }
             }
             this.target_fields = this.getFillFieldsType();
@@ -242,8 +277,10 @@ export class GooglePlaceAutocomplete extends Component {
 
     _prepareAddress(place, fill_fields, delimiter) {
         place = typeof place !== 'undefined' ? place : false;
-        fill_fields = typeof fill_fields !== 'undefined' ? fill_fields : this.fillfields;
-        delimiter = typeof delimiter !== 'undefined' ? delimiter : this.fillfields_delimiter;
+        fill_fields =
+            typeof fill_fields !== 'undefined' ? fill_fields : this.fillfields;
+        delimiter =
+            typeof delimiter !== 'undefined' ? delimiter : this.fillfields_delimiter;
         return gmaps_populate_address(place, fill_fields, delimiter);
     }
 
@@ -282,14 +319,20 @@ export class GooglePlaceAutocomplete extends Component {
             setTimeout(() => {
                 if (!this.places_autocomplete) {
                     const google_fields = this.getGoogleFieldsRestriction();
-                    this.places_autocomplete = new google.maps.places.Autocomplete(this.input.el, {
-                        types: this.autocomplete_types,
-                        fields: google_fields,
-                    });
+                    this.places_autocomplete = new google.maps.places.Autocomplete(
+                        this.input.el,
+                        {
+                            types: this.autocomplete_types,
+                            fields: google_fields,
+                        }
+                    );
                     if (this.autocomplete_settings) {
                         this.places_autocomplete.setOptions(this.autocomplete_settings);
                     }
-                    this.places_autocomplete.addListener('place_changed', this.handlePopulateAddress.bind(this));
+                    this.places_autocomplete.addListener(
+                        'place_changed',
+                        this.handlePopulateAddress.bind(this)
+                    );
                 }
                 // When the user selects an address from the dropdown, populate the address fields in the form.
                 resolve(this);
@@ -299,11 +342,19 @@ export class GooglePlaceAutocomplete extends Component {
 
     async populateAddress(place) {
         const requests = [];
-        let index_of_state = _.findIndex(this.target_fields, (f) => f.name === this.address_form.state_id);
+        let index_of_state = _.findIndex(
+            this.target_fields,
+            (f) => f.name === this.address_form.state_id
+        );
         const target_fields = this.target_fields.slice();
-        const field_state = index_of_state > -1 ? target_fields.splice(index_of_state, 1)[0] : false;
+        const field_state =
+            index_of_state > -1 ? target_fields.splice(index_of_state, 1)[0] : false;
 
-        const google_address = this._prepareAddress(place, this.fillfields.address, this.fillfields_delimiter);
+        const google_address = this._prepareAddress(
+            place,
+            this.fillfields.address,
+            this.fillfields_delimiter
+        );
         const google_place = this._preparePlace(place, this.fillfields.general);
         const google_geolocation = this._prepareGeolocation(
             place.geometry.location.lat(),
@@ -312,7 +363,9 @@ export class GooglePlaceAutocomplete extends Component {
         const values = Object.assign(google_address, google_place, google_geolocation);
 
         target_fields.forEach((field) => {
-            requests.push(this._prepareValue(field.relation, field.name, values[field.name]));
+            requests.push(
+                this._prepareValue(field.relation, field.name, values[field.name])
+            );
         });
 
         const result = await Promise.all(requests);
@@ -349,7 +402,10 @@ export class GooglePlaceAutocomplete extends Component {
     handlePopulateAddress() {
         const place = this.places_autocomplete.getPlace();
         if (this.address_mode === 'no_address_format') {
-            const geoValues = this._prepareGeolocation(place.geometry.location.lat(), place.geometry.location.lng());
+            const geoValues = this._prepareGeolocation(
+                place.geometry.location.lat(),
+                place.geometry.location.lng()
+            );
             if (geoValues) {
                 geoValues[this.props.name] = formatChar(place.formatted_address);
                 this._update(geoValues);

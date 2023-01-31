@@ -6,7 +6,12 @@ import { renderToString } from '@web/core/utils/render';
 import { Widget } from '@web/views/widgets/widget';
 
 import { GoogleMapSidebar } from './google_map_sidebar';
-import { MARKER_ICON_SVG_PATH, MARKER_ICON_HEIGHT, MARKER_ICON_WIDTH, MAP_THEMES } from './utils';
+import {
+    MARKER_ICON_SVG_PATH,
+    MARKER_ICON_HEIGHT,
+    MARKER_ICON_WIDTH,
+    MAP_THEMES,
+} from './utils';
 
 export class GoogleMapRenderer extends Component {
     setup() {
@@ -24,7 +29,10 @@ export class GoogleMapRenderer extends Component {
     }
 
     _setMapTheme(style) {
-        if (!Object.prototype.hasOwnProperty.call(MAP_THEMES, style) || style === 'default') {
+        if (
+            !Object.prototype.hasOwnProperty.call(MAP_THEMES, style) ||
+            style === 'default'
+        ) {
             return;
         }
         const styledMapType = new google.maps.StyledMapType(MAP_THEMES[style], {
@@ -41,7 +49,9 @@ export class GoogleMapRenderer extends Component {
     }
 
     async getTheme() {
-        const data = await this.props.model.rpc('/web/base_google_map/theme', { context: this.props.user.context });
+        const data = await this.props.model.rpc('/web/base_google_map/theme', {
+            context: this.props.user.context,
+        });
         if (data.theme) {
             this._setMapTheme(data.theme);
         }
@@ -101,7 +111,11 @@ export class GoogleMapRenderer extends Component {
             });
         }
         this.markers.push(marker);
-        google.maps.event.addListener(marker, 'click', this.handleMarkerInfoWindow.bind(this, marker, otherRecords));
+        google.maps.event.addListener(
+            marker,
+            'click',
+            this.handleMarkerInfoWindow.bind(this, marker, otherRecords)
+        );
     }
 
     renderMarkerClusterer() {
@@ -117,7 +131,12 @@ export class GoogleMapRenderer extends Component {
     }
 
     getMarkerContent(record) {
-        const { latitudeField, longitudeField, sidebarTitleField, sidebarSubtitleField } = this.props.archInfo;
+        const {
+            latitudeField,
+            longitudeField,
+            sidebarTitleField,
+            sidebarSubtitleField,
+        } = this.props.archInfo;
         const content = renderToString('web_view_google_map.MarkerInfoWindow', {
             record: JSON.stringify({
                 id: record.id,
@@ -129,7 +148,9 @@ export class GoogleMapRenderer extends Component {
             subTitle: record.data[sidebarSubtitleField],
         });
 
-        const divContent = new DOMParser().parseFromString(content, 'text/html').querySelector('div');
+        const divContent = new DOMParser()
+            .parseFromString(content, 'text/html')
+            .querySelector('div');
         divContent.querySelector('#btn-open_form').addEventListener(
             'click',
             (ev) => {
@@ -178,7 +199,10 @@ export class GoogleMapRenderer extends Component {
                 strokeWeight: 0.75,
                 strokeColor: '#444',
                 scale: 0.067,
-                anchor: new google.maps.Point(MARKER_ICON_WIDTH / 2, MARKER_ICON_HEIGHT),
+                anchor: new google.maps.Point(
+                    MARKER_ICON_WIDTH / 2,
+                    MARKER_ICON_HEIGHT
+                ),
             },
         };
         const marker = new google.maps.Marker(options);
@@ -262,4 +286,12 @@ export class GoogleMapRenderer extends Component {
 
 GoogleMapRenderer.template = 'web_view_google_map.GoogleMapRenderer';
 GoogleMapRenderer.components = { Pager, Widget };
-GoogleMapRenderer.props = ['archInfo', 'openRecord', 'readonly', 'user', 'list', 'onAdd?', 'model'];
+GoogleMapRenderer.props = [
+    'archInfo',
+    'openRecord',
+    'readonly',
+    'user',
+    'list',
+    'onAdd?',
+    'model',
+];

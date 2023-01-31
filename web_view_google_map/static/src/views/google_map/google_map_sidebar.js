@@ -27,7 +27,9 @@ export class GoogleMapSidebar extends Component {
                 return default_display_name;
             }
             console.warn(
-                'Field "' + fieldName + '" not found in record. Field type supported are "many2one" and "char".'
+                'Field "' +
+                    fieldName +
+                    '" not found in record. Field type supported are "many2one" and "char".'
             );
             return default_display_name;
         } else if (record.data.hasOwnProperty('display_name')) {
@@ -42,10 +44,12 @@ export class GoogleMapSidebar extends Component {
                 record.fields['display_name'].hasOwnProperty('depends') &&
                 record.fields['display_name'].depends.length > 0
             ) {
-                display_name_field = record.fields[record.fields['display_name'].depends[0]];
+                display_name_field =
+                    record.fields[record.fields['display_name'].depends[0]];
                 if (display_name_field) {
                     try {
-                        default_display_name = record.data[display_name_field].data.display_name;
+                        default_display_name =
+                            record.data[display_name_field].data.display_name;
                     } catch (error) {
                         console.warn(error);
                     }

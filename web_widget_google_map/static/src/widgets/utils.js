@@ -52,7 +52,13 @@ export const ADDRESS_FORM = {
 };
 
 export const ADDRESS_MODE = ['address_format', 'no_address_format'];
-export const AUTOCOMPLETE_TYPES = ['geocode', 'address', 'establishment', 'regions', 'cities'];
+export const AUTOCOMPLETE_TYPES = [
+    'geocode',
+    'address',
+    'establishment',
+    'regions',
+    'cities',
+];
 
 /**
  *
@@ -93,7 +99,12 @@ export function fetchCountryState(ormService, model, country, state) {
         return new Promise(async (resolve) => {
             const data = await ormService.searchRead(
                 model,
-                [['country_id', '=', country], '|', ['code', '=', state], ['name', '=', state]],
+                [
+                    ['country_id', '=', country],
+                    '|',
+                    ['code', '=', state],
+                    ['name', '=', state],
+                ],
                 ['display_name'],
                 { limit: 1 }
             );

@@ -14,6 +14,7 @@ export class GoogleMapController extends Component {
         this.user = useService('user');
 
         const rootRef = useRef('root');
+
         const { Model, resModel, fields, archInfo, limit, state } = this.props;
         const { rootState } = state || {};
 
@@ -26,6 +27,20 @@ export class GoogleMapController extends Component {
             limit: archInfo.limit || limit,
             onCreate: archInfo.onCreate,
             viewMode: 'google_map',
+        });
+
+        useSetupView({
+            rootRef,
+            getGlobalState: () => {
+                return {
+                    resIds: this.model.root.records.map((rec) => rec.resId),
+                };
+            },
+            getLocalState: () => {
+                return {
+                    rootState: this.model.root.exportState(),
+                };
+            },
         });
 
         usePager(() => {

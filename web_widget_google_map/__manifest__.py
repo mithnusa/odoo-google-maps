@@ -13,7 +13,7 @@
     'website': 'https://github.com/mithnusa',
     'support': 'yopiangi@gmail.com',
     'category': 'Extra Tools',
-    'version': '0.1',
+    'version': '16.0.1.0.0',
     'depends': ['base_google_map'],
     'assets': {
         'web.assets_backend': [
@@ -22,4 +22,7 @@
     },
     'data': ['data/gmap_libraries.xml'],
     'demo': [],
+    'installable': True,
+    'application': False,
+    'auto_install': False,
 }

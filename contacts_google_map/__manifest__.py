@@ -13,7 +13,7 @@
     'website': 'https://github.com/mithnusa',
     'support': 'yopiangi@gmail.com',
     'category': 'Sales/CRM',
-    'version': '0.1',
+    'version': '16.0.1.0.0',
     'depends': [
         'base_geolocalize',
         'contacts',
@@ -24,4 +24,7 @@
         'views/res_partner.xml',
     ],
     'demo': [],
+    'installable': True,
+    'application': False,
+    'auto_install': False,
 }

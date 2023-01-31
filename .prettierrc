@@ -6,7 +6,7 @@
     "insertPragma": false,
     "jsxBracketSameLine": false,
     "jsxSingleQuote": false,
-    "printWidth": 120,
+    "printWidth": 88,
     "proseWrap": "always",
     "quoteProps": "as-needed",
     "requirePragma": false,
@@ -16,5 +16,5 @@
     "trailingComma": "es5",
     "useTabs": false,
     "parser": "babel",
-    "xmlWhitespaceSensitivity": "ignore"
+    "xmlWhitespaceSensitivity": "strict"
 }

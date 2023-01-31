@@ -41,11 +41,21 @@ export class GoogleMapArchParser extends XMLParser {
         this.visitXML(xmlDoc, (node) => {
             // Case: field node
             if (node.tagName === 'field') {
-                const fieldInfo = Field.parseFieldNode(node, models, modelName, 'google_map', jsClass);
+                const fieldInfo = Field.parseFieldNode(
+                    node,
+                    models,
+                    modelName,
+                    'google_map',
+                    jsClass
+                );
                 const name = fieldInfo.name;
                 fieldNodes[name] = fieldInfo;
                 node.setAttribute('field_id', name);
-                addFieldDependencies(activeFields, models[modelName], fieldInfo.FieldComponent.fieldDependencies);
+                addFieldDependencies(
+                    activeFields,
+                    models[modelName],
+                    fieldInfo.FieldComponent.fieldDependencies
+                );
             }
         });
 
