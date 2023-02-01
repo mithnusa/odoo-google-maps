@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 {
-    'name': 'Contacts Google Map',
+    'name': 'CRM Google Map',
     'summary': '''
-        Show your contacts in Google maps view
+        Show leads or opportunities in Google maps view
     ''',
     'description': '''
-        A new view 'Google maps' added on Contacts, gives you
-        an ability to show your contact location in Google maps
+        A new view 'Google maps' added on leads or opportunities, gives you
+        an ability to show the location in Google maps
     ''',
     'license': 'AGPL-3',
     'author': 'Yopi Angi',
@@ -15,11 +15,10 @@
     'category': 'Sales/CRM',
     'version': '16.0.1.0.0',
     'depends': [
-        'base_geolocalize',
-        'contacts',
+        'crm',
         'web_view_google_map',
     ],
-    'data': ['views/res_partner.xml'],
+    'data': ['views/crm_lead.xml'],
     'demo': [],
     'installable': True,
     'application': False,

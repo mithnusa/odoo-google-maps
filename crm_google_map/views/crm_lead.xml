@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_crm_lead_google_map" model="ir.ui.view">
+        <field name="name">view.crm.lead.google.map</field>
+        <field name="model">crm.lead</field>
+        <field name="arch" type="xml">
+            <google_map string="Leads" lat="customer_latitude" lng="customer_longitude" sidebar_title="name" sidebar_subtitle="customer_address">
+                <field name="name"/>
+                <field name="customer_latitude"/>
+                <field name="customer_longitude"/>
+                <field name="customer_address"/>
+            </google_map>
+        </field>
+    </record>
+    <record id="action_view_crm_lead_google_map" model="ir.actions.act_window">
+        <field name="name">Google Map</field>
+        <field name="res_model">crm.lead</field>
+        <field name="view_mode">google_map</field>
+        <field name="view_id" ref="view_crm_lead_google_map"/>
+    </record>
+    <record id="crm_lead_view_form_inherit_crm_google_map" model="ir.ui.view">
+        <field name="name">crm.lead.view.form.inherit.crm.google.map</field>
+        <field name="model">crm.lead</field>
+        <field name="inherit_id" ref="crm.crm_lead_view_form"/>
+        <field name="priority">1000</field>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="%(crm_google_map.action_view_crm_lead_google_map)d" 
+                    type="action" 
+                    class="oe_stat_button" 
+                    icon="fa-map-marker" string="Google Map" 
+                    attrs="{'invisible': ['|',('customer_latitude', '=', 0.0), ('customer_longitude', '=', 0.0)]}"/>
+            </xpath>
+            <xpath expr="//notebook" position="inside">
+                <page string="Geolocation" name="geo_location">
+                    <group>
+                        <group string="Geolocation">
+                            <label for="customer_latitude" string="Geo Location"/>
+                            <div>
+                                <span>Lat : <field name="customer_latitude" nolabel="1" class="oe_inline"/>
+                                </span>
+                                <br/>
+                                <span>Long: <field name="customer_longitude" nolabel="1" class="oe_inline"/>
+                                </span>
+                                <br/>
+                                <button attrs="{'invisible': ['|', ('customer_latitude', '!=', 0), ('customer_longitude', '!=', 0)]}" icon="fa-gear" string="Compute based on address" title="Compute Localization" name="geo_localize" type="object" class="btn btn-link p-0"/>
+                                <button attrs="{'invisible': [('customer_latitude', '=', 0), ('customer_longitude', '=', 0)]}" icon="fa-refresh" string="Refresh" title="Refresh Localization" name="geo_localize" type="object" class="btn btn-link p-0"/>
+                            </div>
+                        </group>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+    <record id="crm.crm_lead_all_leads" model="ir.actions.act_window">
+        <field name="view_mode">tree,kanban,graph,pivot,calendar,form,activity,google_map</field>
+    </record>
+    <record id="crm_lead_all_leads_view_google_map" model="ir.actions.act_window.view">
+        <field name="sequence" eval="7"/>
+        <field name="view_mode">google_map</field>
+        <field name="view_id" ref="crm_google_map.view_crm_lead_google_map"/>
+        <field name="act_window_id" ref="crm.crm_lead_all_leads"/>
+    </record>
+    <record id="crm.crm_lead_action_my_activities" model="ir.actions.act_window">
+        <field name="view_mode">tree,kanban,graph,pivot,calendar,form,activity,google_map</field>
+    </record>
+    <record id="crm_lead_action_my_activities_view_google_map" model="ir.actions.act_window.view">
+        <field name="sequence" eval="7"/>
+        <field name="view_mode">google_map</field>
+        <field name="view_id" ref="crm_google_map.view_crm_lead_google_map"/>
+        <field name="act_window_id" ref="crm.crm_lead_action_my_activities"/>
+    </record>
+    <record id="crm.crm_lead_opportunities" model="ir.actions.act_window">
+        <field name="view_mode">kanban,tree,graph,pivot,form,calendar,activity,google_map</field>
+    </record>
+    <record id="crm_lead_opportunities_view_google_map" model="ir.actions.act_window.view">
+        <field name="sequence" eval="7"/>
+        <field name="view_mode">google_map</field>
+        <field name="view_id" ref="crm_google_map.view_crm_lead_google_map"/>
+        <field name="act_window_id" ref="crm.crm_lead_opportunities"/>
+    </record>
+    <record id="crm.crm_lead_action_pipeline" model="ir.actions.act_window">
+        <field name="view_mode">kanban,tree,graph,pivot,form,calendar,activity,google_map</field>
+    </record>
+    <record id="crm_lead_action_pipeline_view_google_map" model="ir.actions.act_window.view">
+        <field name="sequence" eval="7"/>
+        <field name="view_mode">google_map</field>
+        <field name="view_id" ref="crm_google_map.view_crm_lead_google_map"/>
+        <field name="act_window_id" ref="crm.crm_lead_action_pipeline"/>
+    </record>
+    <record id="crm.crm_lead_action_forecast" model="ir.actions.act_window">
+        <field name="view_mode">kanban,graph,pivot,tree,form,google_map</field>
+    </record>
+    <record id="crm_lead_action_forecast_view_google_map" model="ir.actions.act_window.view">
+        <field name="sequence" eval="5"/>
+        <field name="view_mode">google_map</field>
+        <field name="view_id" ref="crm_google_map.view_crm_lead_google_map"/>
+        <field name="act_window_id" ref="crm.crm_lead_action_forecast"/>
+    </record>
+</odoo>

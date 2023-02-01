@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 {
-    'name': 'Contacts Google Autocomplete Address form',
+    'name': 'CRM Google Autocomplete Address form',
     'summary': '''
-        Enable Google Autocomplete address form on contact address
+        Enable Google Autocomplete address form on lead or opportunities address
     ''',
     'description': '''
         Help you find address by using Google autocomplete address form service
@@ -13,8 +13,8 @@
     'support': 'yopiangi@gmail.com',
     'category': 'Extra Tools',
     'version': '16.0.1.0.0',
-    'depends': ['web_widget_google_map'],
-    'data': ['views/res_partner.xml'],
+    'depends': ['crm_google_map', 'web_widget_google_map'],
+    'data': ['views/crm_lead.xml'],
     'demo': [],
     'installable': True,
     'application': False,

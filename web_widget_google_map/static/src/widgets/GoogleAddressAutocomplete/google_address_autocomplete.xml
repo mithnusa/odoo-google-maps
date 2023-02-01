@@ -10,8 +10,10 @@
                 t-att-class="{'o_field_translate': false}"
                 t-att-id="props.id"
                 type="text"
+                autocomplete="off"
                 t-att-maxlength="props.maxLength > 0 and props.maxLength"
                 t-att-placeholder="props.placeholder"
+                t-att-required="props.required"
                 t-ref="input"
             />
         </t>

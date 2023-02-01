@@ -444,9 +444,10 @@ GooglePlaceAutocomplete.props = {
 GooglePlaceAutocomplete.extractProps = ({ attrs }) => ({
     options: attrs.options,
     placeholder: attrs.placeholder,
+    dynamicPlaceholder: attrs.options.dynamic_placeholder,
 });
 
-GooglePlaceAutocomplete.displayName = _lt('Text');
+GooglePlaceAutocomplete.displayName = _lt('Google Places Autocomplete');
 GooglePlaceAutocomplete.supportedTypes = ['char'];
 
 registry.category('fields').add('gplaces_autocomplete', GooglePlaceAutocomplete);

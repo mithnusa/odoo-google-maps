@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 {
-    'name': 'Contacts Google Autocomplete Address form',
+    'name': 'CRM Google Autocomplete Places',
     'summary': '''
-        Enable Google Autocomplete address form on contact address
+        Enable Google Autocomplete places on lead or opportunities address
     ''',
     'description': '''
-        Help you find address by using Google autocomplete address form service
+        Help you find address by using Google autocomplete places service
     ''',
     'license': 'AGPL-3',
     'author': 'Yopi Angi',
@@ -13,8 +13,8 @@
     'support': 'yopiangi@gmail.com',
     'category': 'Extra Tools',
     'version': '16.0.1.0.0',
-    'depends': ['web_widget_google_map'],
-    'data': ['views/res_partner.xml'],
+    'depends': ['crm_google_map', 'web_widget_google_map'],
+    'data': ['views/crm_lead.xml'],
     'demo': [],
     'installable': True,
     'application': False,

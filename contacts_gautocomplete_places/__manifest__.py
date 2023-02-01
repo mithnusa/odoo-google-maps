@@ -13,12 +13,8 @@
     'support': 'yopiangi@gmail.com',
     'category': 'Extra Tools',
     'version': '16.0.1.0.0',
-    'depends': [
-        'web_widget_google_map',
-    ],
-    'data': [
-        'views/res_partner.xml',
-    ],
+    'depends': ['web_widget_google_map'],
+    'data': ['views/res_partner.xml'],
     'demo': [],
     'installable': True,
     'application': False,

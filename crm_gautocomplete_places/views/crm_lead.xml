@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="crm_lead_view_form_inherit_gautocomplete_places" model="ir.ui.view">
+        <field name="name">crm.lead.view.form.inherit.gautocomplete.places</field>
+        <field name="model">crm.lead</field>
+        <field name="inherit_id" ref="crm.crm_lead_view_form"/>
+        <field name="priority">2000</field>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='lead']/group/group/field[@name='partner_name']" position="attributes">
+                <attribute name="widget">gplaces_autocomplete</attribute>
+                <attribute name="options">{
+                    'fillfields': {
+                        'geolocation': {
+                            'customer_latitude': 'latitude',
+                            'customer_longitude': 'longitude'
+                        }
+                    }
+                }</attribute>
+            </xpath>
+            <xpath expr="//group[@name='lead_partner']/field[@name='partner_name']" position="attributes">
+                <attribute name="widget">gplaces_autocomplete</attribute>
+                <attribute name="options">{
+                    'fillfields': {
+                        'geolocation': {
+                            'customer_latitude': 'latitude',
+                            'customer_longitude': 'longitude'
+                        }
+                    }
+                }</attribute>
+            </xpath>
+        </field>
+    </record>
+</odoo>

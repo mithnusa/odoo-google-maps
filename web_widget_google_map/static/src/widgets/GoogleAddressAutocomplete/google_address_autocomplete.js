@@ -391,9 +391,10 @@ GoogleAddressAutocomplete.props = {
 GoogleAddressAutocomplete.extractProps = ({ attrs }) => ({
     options: attrs.options,
     placeholder: attrs.placeholder,
+    dynamicPlaceholder: attrs.options.dynamic_placeholder,
 });
 
-GoogleAddressAutocomplete.displayName = _lt('Text');
+GoogleAddressAutocomplete.displayName = _lt('Google Address Form Autocomplete');
 GoogleAddressAutocomplete.supportedTypes = ['char'];
 
 registry
