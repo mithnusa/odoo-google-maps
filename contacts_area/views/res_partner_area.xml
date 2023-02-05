@@ -12,14 +12,13 @@
                             <field name="partner_id"/>
                         </group>
                         <group>
-                            <field name="gshape_type" invisible="1"/>
+                            <field name="gshape_type" readonly="1"/>
                             <field name="gshape_area" attrs="{'invisible':[('gshape_type', '=', 'circle')]}"/>
                             <field name="gshape_radius" attrs="{'invisible':[('gshape_type', '!=', 'circle')]}"/>
                         </group>
                     </group>
                     <field name="gshape_description" placeholder="Description"/>
-                    <separator/>
-                    <field name="gshape_paths"/>
+                    <field name="gshape_paths" widget="google_map_drawing"/>
                 </sheet>
             </form>
         </field>
@@ -42,7 +41,7 @@
         <field name="name">view.res.partner.area.map</field>
         <field name="model">res.partner.area</field>
         <field name="arch" type="xml">
-            <google_map js_class="google_map_drawing" string="Shape">
+            <google_map js_class="google_map_drawing" string="Areas" sidebar_title="gshape_name" sidebar_subtitle="partner_id">
                 <field name="partner_id"/>
                 <field name="gshape_name"/>
                 <field name="gshape_description"/>

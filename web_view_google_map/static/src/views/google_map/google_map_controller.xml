@@ -7,7 +7,7 @@
                 <t t-set-slot="layout-buttons">
                     <t t-call="{{ props.buttonTemplate }}"/>
                 </t>
-                <t t-component="props.Renderer" list="model.root" model="model" archInfo="props.archInfo" readonly="true" openRecord.bind="openRecord" onAdd.bind="createRecord" user="user"/>
+                <t t-component="props.Renderer" list="model.root" archInfo="props.archInfo" readonly="props.readonly" openRecord.bind="openRecord" onAdd.bind="createRecord"/>
             </Layout>
         </div>
     </t>

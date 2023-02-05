@@ -17,10 +17,18 @@ export class GoogleMapSidebar extends Component {
         let default_display_name = defaultLabel || 'Unknown';
         if (fieldName) {
             if (record.fields.hasOwnProperty(fieldName)) {
-                if (record.fields[fieldName].type === 'many2one') {
-                    default_display_name = record.data[fieldName].data
-                        ? record.data[fieldName].data.display_name
-                        : ' - ';
+                if (
+                    record.fields[fieldName].type === 'many2one' &&
+                    record.data[fieldName]
+                ) {
+                    if (Array.isArray(record.data[fieldName])) {
+                        default_display_name = record.data[fieldName][1];
+                    } else if (record.data[fieldName] instanceof Array) {
+                        default_display_name =
+                            record.data[fieldName].display_name || '-';
+                    } else {
+                        default_display_name = JSON.stringify(record.data[fieldName]);
+                    }
                 } else if (record.fields[fieldName].type === 'char') {
                     default_display_name = record.data[fieldName];
                 }

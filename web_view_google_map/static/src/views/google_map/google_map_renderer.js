@@ -4,6 +4,7 @@ import { Component, useRef, useEffect, useState, onWillDestroy } from '@odoo/owl
 import { Pager } from '@web/core/pager/pager';
 import { renderToString } from '@web/core/utils/render';
 import { Widget } from '@web/views/widgets/widget';
+import { useService } from '@web/core/utils/hooks';
 
 import { GoogleMapSidebar } from './google_map_sidebar';
 import {
@@ -15,17 +16,23 @@ import {
 
 export class GoogleMapRenderer extends Component {
     setup() {
+        this.user = useService('user');
+        this.rpc = useService('rpc');
+
         this.mapRef = useRef('map');
         this.markerCluster = null;
         this.googleMap = null;
         this.markers = [];
         this.state = useState({ sidebarIsFolded: false });
+
         useEffect(() => this.renderMap());
         onWillDestroy(() => {
             if (this.googleMap) {
                 google.maps.event.clearInstanceListeners(this.googleMap);
             }
         });
+
+        console.log({props: this.props});
     }
 
     _setMapTheme(style) {
@@ -49,8 +56,8 @@ export class GoogleMapRenderer extends Component {
     }
 
     async getTheme() {
-        const data = await this.props.model.rpc('/web/base_google_map/theme', {
-            context: this.props.user.context,
+        const data = await this.rpc('/web/base_google_map/theme', {
+            context: this.user.context,
         });
         if (data.theme) {
             this._setMapTheme(data.theme);
@@ -286,12 +293,4 @@ export class GoogleMapRenderer extends Component {
 
 GoogleMapRenderer.template = 'web_view_google_map.GoogleMapRenderer';
 GoogleMapRenderer.components = { Pager, Widget };
-GoogleMapRenderer.props = [
-    'archInfo',
-    'openRecord',
-    'readonly',
-    'user',
-    'list',
-    'onAdd?',
-    'model',
-];
+GoogleMapRenderer.props = ['archInfo', 'openRecord', 'readonly', 'list', 'onAdd?'];

@@ -11,8 +11,6 @@ import { Component, useRef } from '@odoo/owl';
 export class GoogleMapController extends Component {
     setup() {
         this.actionService = useService('action');
-        this.user = useService('user');
-
         const rootRef = useRef('root');
 
         const { Model, resModel, fields, archInfo, limit, state } = this.props;

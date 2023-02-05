@@ -6,6 +6,8 @@ import { Field } from '@web/views/fields/field';
 
 export class GoogleMapArchParser extends XMLParser {
     parse(arch, models, modelName) {
+        console.log(' ---GoogleMapArchParser');
+        console.log({arch, models, modelName});
         const xmlDoc = this.parseXML(arch);
         const className = xmlDoc.getAttribute('class') || null;
         const limit = xmlDoc.getAttribute('limit');
