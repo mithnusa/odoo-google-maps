@@ -2,7 +2,14 @@
 
 import { registry } from '@web/core/registry';
 import { _lt } from '@web/core/l10n/translation';
-import { Component, useRef, onMounted, useEffect } from '@odoo/owl';
+import {
+    Component,
+    useRef,
+    useEffect,
+    onMounted,
+    onRendered,
+    onWillUpdateProps,
+} from '@odoo/owl';
 import { useService } from '@web/core/utils/hooks';
 import { standardFieldProps } from '@web/views/fields/standard_field_props';
 import { renderToString } from '@web/core/utils/render';
@@ -17,28 +24,47 @@ export class GoogleMapDrawing extends Component {
         this.notification = useService('notification');
 
         this.editColor = '#ffa187';
+        this.displayColor = '#006ee5';
         this.googleMap = null;
         this.drawingManager = null;
         this.buttonDeleteEl = null;
         this.selectedShape = null;
         this.shapes = {};
 
-        onMounted(this.renderGoogleMapDrawing);
+        useEffect(() => this.renderGoogleMapDrawing());
+        onWillUpdateProps(async (nextProps) => {
+            if (!nextProps.value) {
+                Object.values(this.shapes).forEach((shape) => {
+                    shape.setMap(null);
+                });
+            }
+        });
     }
 
     _handleLoadShape() {
         const value = this.props.value;
         if (value) {
-            try {
-                const shape = JSON.parse(value);
-                this._handleShapeToDraw(shape);
-            } catch (error) {
-                this.notification.add(
-                    this.env._t(
-                        'Something went wrong, the shape cannot be drawn on the map. Please contact administrator'
-                    ),
-                    { type: 'danger' }
-                );
+            if (this.shapes[value]) {
+                const shape = this.shapes[value];
+                if (shape.type === 'polygon') {
+                    this._handleCenterMap(shape.getPath());
+                } else if (shape.type === 'circle') {
+                    this._handleCenterMap(false, shape.getBounds());
+                } else if (shape.type === 'rectangle') {
+                    this._handleCenterMap(false, shape.getBounds());
+                }
+            } else {
+                try {
+                    const shape = JSON.parse(value);
+                    this._handleShapeToDraw(shape);
+                } catch (error) {
+                    this.notification.add(
+                        this.env._t(
+                            'Something went wrong, the shape cannot be drawn on the map. Please contact administrator'
+                        ),
+                        { type: 'danger' }
+                    );
+                }
             }
         }
     }
@@ -47,12 +73,12 @@ export class GoogleMapDrawing extends Component {
         if (shape.type === 'polygon') {
             const polygon = this._handleDrawPolygon(shape.options);
             polygon.setOptions({
-                strokeColor: this.editModeColor,
-                fillColor: this.editModeColor,
+                strokeColor: this.displayColor,
+                fillColor: this.displayColor,
             });
+            polygon.type = 'polygon';
+            this.shapes[JSON.stringify(shape)] = polygon;
             const selectedShape = polygon;
-            selectedShape.type = 'polygon';
-            this.handleSetSelectedShape(selectedShape);
             google.maps.event.addListener(
                 selectedShape,
                 'click',
@@ -62,13 +88,13 @@ export class GoogleMapDrawing extends Component {
             const rectangle = this._handleDrawRectangle(shape.options);
             rectangle.setOptions({
                 draggable: true,
-                strokeColor: this.editModeColor,
-                fillColor: this.editModeColor,
+                strokeColor: this.displayColor,
+                fillColor: this.displayColor,
             });
+            rectangle.type = 'rectangle';
+            this.shapes[JSON.stringify(shape)] = rectangle;
             const selectedShape = rectangle;
-            selectedShape.type = 'rectangle';
-            this.handleSetSelectedShape(selectedShape);
-            // event to handle when user editing rectangle
+
             google.maps.event.addListener(
                 selectedShape,
                 'click',
@@ -78,12 +104,12 @@ export class GoogleMapDrawing extends Component {
             const circle = this._handleDrawCircle(shape.options);
             circle.setOptions({
                 draggable: true,
-                strokeColor: this.editModeColor,
-                fillColor: this.editModeColor,
+                strokeColor: this.displayColor,
+                fillColor: this.displayColor,
             });
+            circle.type = 'circle';
+            this.shapes[JSON.stringify(shape)] = circle;
             const selectedShape = circle;
-            selectedShape.type = 'circle';
-            this.handleSetSelectedShape(selectedShape);
             google.maps.event.addListener(
                 selectedShape,
                 'click',
@@ -151,7 +177,7 @@ export class GoogleMapDrawing extends Component {
         });
         this.googleMap.setOptions({
             mapTypeControlOptions: {
-                mapTypeIds: ['roadmap', 'satellite', 'hybrid', 'terrain', 'styled_map'],
+                mapTypeIds: ['satellite', 'hybrid', 'terrain', 'styled_map'],
             },
         });
         // Associate the styled map with the MapTypeId and set it to display.
@@ -191,8 +217,8 @@ export class GoogleMapDrawing extends Component {
 
     _getSelectedOptions() {
         return {
-            fillColor: '#22f022',
-            strokeColor: '#08a808',
+            fillColor: '#ffa187',
+            strokeColor: '#fc6c44',
             strokeOpacity: 0.85,
             strokeWeight: 2.0,
             fillOpacity: 0.45,
@@ -223,7 +249,7 @@ export class GoogleMapDrawing extends Component {
 
     _actionDelete() {
         if (this.selectedShape) {
-            delete this.shapes[this.selectedShape._ID];
+            // delete this.shapes[this.selectedShape._ID];
             this.selectedShape.setMap(null);
             this.selectedShape = null;
         } else {
@@ -262,13 +288,23 @@ export class GoogleMapDrawing extends Component {
             } else if (this.selectedShape.type === 'circle') {
                 values = this._handleSaveCircle();
             }
+            this._saveChanges(values);
+        }
+    }
 
-            if (values) {
-                this.props.record.update(values);
-                this.notification.add(this.env._t('The shape has been updated'), {
-                    type: 'info',
-                });
-            }
+    _saveChanges(values) {
+        if (values) {
+            this.props.record.update(values);
+            this.selectedShape.setOptions({
+                editable: false,
+                strokeColor: this.displayColor,
+                fillColor: this.displayColor,
+            });
+            this.drawingManager.setDrawingMode(null);
+            this.notification.add(this.env._t('The shape has been updated'), {
+                type: 'info',
+            });
+            this.selectedShape = null;
         }
     }
 
@@ -285,6 +321,7 @@ export class GoogleMapDrawing extends Component {
         const values = {
             gshape_type: this.selectedShape.type,
             gshape_area: area,
+            gshape_radius: 0.0,
         };
         const shape_paths = {
             type: this.selectedShape.type,
@@ -299,6 +336,8 @@ export class GoogleMapDrawing extends Component {
     _handleSaveRectangle() {
         const values = {
             gshape_type: this.selectedShape.type,
+            gshape_radius: 0.0,
+            gshape_area: 0.0,
         };
         const bounds = this.selectedShape.getBounds();
         const directions = bounds.toJSON();
@@ -318,6 +357,7 @@ export class GoogleMapDrawing extends Component {
         const values = {
             gshape_type: this.selectedShape.type,
             gshape_radius: radius,
+            gshape_area: 0.0,
         };
         const shape_paths = {
             type: this.selectedShape.type,
@@ -336,6 +376,7 @@ export class GoogleMapDrawing extends Component {
     renderGoogleMapDrawing() {
         if (!this.googleMap) {
             this.googleMap = new google.maps.Map(this.mapRef.el, {
+                mapTypeId: 'terrain',
                 center: { lat: 0, lng: 0 },
                 zoom: 2,
                 gestureHandling: 'cooperative',
@@ -345,12 +386,8 @@ export class GoogleMapDrawing extends Component {
         if (!this.drawingManager) {
             const shapeOption = this._getGeneralOptions();
             const circleOption = this._getCircleOptions();
-            console.log({
-                shapeOption,
-                circleOption,
-            });
             this.drawingManager = new google.maps.drawing.DrawingManager({
-                drawingControl: true,
+                drawingControl: !this.props.readonly,
                 drawingControlOptions: {
                     position: google.maps.ControlPosition.BOTTOM_CENTER,
                     drawingModes: [
@@ -375,7 +412,6 @@ export class GoogleMapDrawing extends Component {
                 this._clearSelectedShape.bind(this)
             );
         }
-        // this.drawingManager.setOptions({ drawingControl: !this.props.readonly });
         this._renderButtonDelete();
         this._handleLoadShape();
     }
@@ -384,6 +420,7 @@ export class GoogleMapDrawing extends Component {
         const shape = event.overlay;
         shape.type = event.type;
 
+        this.drawingManager.setDrawingMode(null);
         this.handleSetSelectedShape(shape);
 
         google.maps.event.addListener(
@@ -396,6 +433,8 @@ export class GoogleMapDrawing extends Component {
     handleSetSelectedShape(shape) {
         this.selectedShape = shape;
         this.selectedShape.setEditable(true);
+        const options = this._getSelectedOptions();
+        this.selectedShape.setOptions(options);
     }
 
     _clearSelectedShape() {
@@ -408,9 +447,9 @@ export class GoogleMapDrawing extends Component {
     _handleCenterMap(paths, bounds) {
         paths = paths || [];
         bounds = bounds || false;
-        var mapBounds = new google.maps.LatLngBounds();
+        let mapBounds = new google.maps.LatLngBounds();
         if (paths.length > 0) {
-            paths.forEach(function (item) {
+            paths.forEach((item) => {
                 mapBounds.extend({ lat: item.lat(), lng: item.lng() });
             });
         } else if (bounds) {

@@ -22,7 +22,7 @@ class GoogleDrawingShape(models.AbstractModel):
         default='polygon',
         required=True,
     )
-    gshape_paths = fields.Text(string='Paths', help='Data JSON of shape path')
+    gshape_paths = fields.Text(string='Data JSON of shape path')
 
     def decode_shape_paths(self):
         self.ensure_one()

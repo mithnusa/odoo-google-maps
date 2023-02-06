@@ -12,7 +12,7 @@
                             <field name="partner_id"/>
                         </group>
                         <group>
-                            <field name="gshape_type" readonly="1"/>
+                            <field name="gshape_type" invisible="1"/>
                             <field name="gshape_area" attrs="{'invisible':[('gshape_type', '=', 'circle')]}"/>
                             <field name="gshape_radius" attrs="{'invisible':[('gshape_type', '!=', 'circle')]}"/>
                         </group>

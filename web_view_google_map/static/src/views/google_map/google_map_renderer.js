@@ -76,6 +76,8 @@ export class GoogleMapRenderer extends Component {
         if (!this.googleMap) {
             this.googleMap = new google.maps.Map(this.mapRef.el, {
                 mapTypeId: google.maps.MapTypeId.ROADMAP,
+                center: { lat: 0, lng: 0 },
+                zoom: 2,
                 minZoom: 2,
                 maxZoom: 20,
                 fullscreenControl: true,
