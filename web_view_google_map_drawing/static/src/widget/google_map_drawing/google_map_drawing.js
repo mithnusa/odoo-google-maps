@@ -2,7 +2,7 @@
 
 import { registry } from '@web/core/registry';
 import { _lt } from '@web/core/l10n/translation';
-import { Component, useRef, useEffect, onRendered, onWillUpdateProps } from '@odoo/owl';
+import { Component, useRef, useEffect, onRendered } from '@odoo/owl';
 import { useService } from '@web/core/utils/hooks';
 import { standardFieldProps } from '@web/views/fields/standard_field_props';
 import { renderToString } from '@web/core/utils/render';
@@ -27,10 +27,14 @@ export class GoogleMapDrawing extends Component {
         useEffect(() => this.renderGoogleMapDrawing());
         onRendered(() => {
             if (!this.props.value) {
-                Object.values(this.shapes).forEach((shape) => {
-                    console.log({ shape });
-                    shape.setMap(null);
-                });
+                Object.values(this.shapes).forEach((shape) => shape.setMap(null));
+            } else {
+                const currentShape = JSON.parse(this.props.value);
+                for (const [key, shape] of Object.entries(this.shapes)) {
+                    if (key !== currentShape) {
+                        shape.setMap(null);
+                    }
+                }
             }
         });
     }
@@ -40,6 +44,9 @@ export class GoogleMapDrawing extends Component {
         if (value) {
             if (this.shapes[value]) {
                 const shape = this.shapes[value];
+                if (!shape.getMap()) {
+                    shape.setMap(this.googleMap);
+                }
                 if (shape.type === 'polygon') {
                     this._handleCenterMap(shape.getPath());
                 } else if (shape.type === 'circle') {
@@ -262,7 +269,7 @@ export class GoogleMapDrawing extends Component {
         }
     }
 
-    _actionSave(ev) {
+    _actionSave() {
         if (!this.selectedShape) {
             this.notification.add(this.env._t('There is no shape to save'), {
                 type: 'danger',
@@ -296,7 +303,7 @@ export class GoogleMapDrawing extends Component {
                 fillColor: this.displayColor,
             });
             this.drawingManager.setDrawingMode(null);
-            this.notification.add(this.env._t('The shape has been updated'), {
+            this.notification.add(this.env._t('The shape has been recorded'), {
                 type: 'info',
             });
             this.selectedShape = null;
@@ -307,7 +314,7 @@ export class GoogleMapDrawing extends Component {
         const paths = this.selectedShape.getPath();
         const area = google.maps.geometry.spherical.computeArea(paths);
         const paths_latLng = [];
-        paths.forEach(function (item) {
+        paths.forEach((item) => {
             paths_latLng.push({
                 lat: item.lat(),
                 lng: item.lng(),
@@ -373,7 +380,7 @@ export class GoogleMapDrawing extends Component {
             this.googleMap = new google.maps.Map(this.mapRef.el, {
                 mapTypeId: 'terrain',
                 center: { lat: 0, lng: 0 },
-                zoom: 2,
+                zoom: 4,
                 gestureHandling: 'cooperative',
             });
             this.getTheme();
@@ -412,10 +419,25 @@ export class GoogleMapDrawing extends Component {
     }
 
     handleOverlayComplete(event) {
-        const shape = event.overlay;
-        shape.type = event.type;
-
         this.drawingManager.setDrawingMode(null);
+        const shape = event.overlay;
+        if (this.selectedShape) {
+            shape.setMap(null);
+            this.notification.add(this.env._t('Only one shape is allowed'), {
+                type: 'warning',
+            });
+            this.notification.add(
+                this.env._t(
+                    'If you want to change the shape, please delete the one you are currently drawing'
+                ),
+                {
+                    type: 'info',
+                }
+            );
+            return;
+        }
+
+        shape.type = event.type;
         this.handleSetSelectedShape(shape);
 
         google.maps.event.addListener(
@@ -437,6 +459,7 @@ export class GoogleMapDrawing extends Component {
             this.selectedShape.setEditable(false);
             this.selectedShape = null;
         }
+        this.drawingManager.setDrawingMode(null);
     }
 
     _handleCenterMap(paths, bounds) {

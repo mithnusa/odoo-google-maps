@@ -11,6 +11,8 @@ export class GoogleMapDrawingRenderer extends GoogleMapRenderer {
         this.drawingManager = null;
         this.shapesBounds = new google.maps.LatLngBounds();
         this.shapes = {};
+        this.prevShapeSelected = null;
+        this.currentShapeSelected = null;
     }
 
     /**
@@ -67,6 +69,30 @@ export class GoogleMapDrawingRenderer extends GoogleMapRenderer {
         };
     }
 
+    _getBaseColorOptions() {
+        return {
+            strokeColor: '#FF0000',
+            strokeOpacity: 0.55,
+            strokeWeight: 0.85,
+            fillColor: '#FF9999',
+            fillOpacity: 0.45,
+            editable: false,
+            zIndex: 1,
+        };
+    }
+
+    _getSelectedColorOptions() {
+        return {
+            fillColor: '#de6ade',
+            strokeColor: '#b038b0',
+            strokeOpacity: 0.65,
+            strokeWeight: 0.85,
+            fillOpacity: 0.45,
+            editable: false,
+            zIndex: 99,
+        };
+    }
+
     initializeDrawing() {
         if (!this.drawingManager) {
             const shapeOption = this._getGeneralOptions();
@@ -116,7 +142,7 @@ export class GoogleMapDrawingRenderer extends GoogleMapRenderer {
         }
         const polygon = new google.maps.Polygon({
             strokeColor: '#FF0000',
-            strokeOpacity: 0.85,
+            strokeOpacity: 0.55,
             strokeWeight: 1.0,
             fillColor: '#FF9999',
             fillOpacity: 0.35,
@@ -144,7 +170,7 @@ export class GoogleMapDrawingRenderer extends GoogleMapRenderer {
         }
         const rectangle = new google.maps.Rectangle({
             strokeColor: '#FF0000',
-            strokeOpacity: 0.85,
+            strokeOpacity: 0.55,
             strokeWeight: 1.0,
             fillColor: '#FF9999',
             fillOpacity: 0.35,
@@ -241,8 +267,23 @@ export class GoogleMapDrawingRenderer extends GoogleMapRenderer {
         });
     }
 
+    _handleActiveShape() {
+        let options;
+        if (this.prevShapeSelected) {
+            options = this._getBaseColorOptions();
+            this.prevShapeSelected.setOptions(options);
+        }
+        if (this.currentShapeSelected) {
+            options = this._getSelectedColorOptions();
+            this.currentShapeSelected.setOptions(options);
+        }
+    }
+
     pointInMap(shape) {
         if (shape) {
+            this.prevShapeSelected = this.currentShapeSelected;
+            this.currentShapeSelected = shape;
+
             let bounds;
             if (shape.type === 'polygon') {
                 const paths = shape.getPath();
@@ -257,7 +298,7 @@ export class GoogleMapDrawingRenderer extends GoogleMapRenderer {
             } else if (shape.type === 'rectangle') {
                 bounds = shape.getBounds();
             }
-
+            this._handleActiveShape();
             if (bounds) {
                 this.googleMap.fitBounds(bounds);
                 this.googleMap.panTo(bounds.getCenter());
