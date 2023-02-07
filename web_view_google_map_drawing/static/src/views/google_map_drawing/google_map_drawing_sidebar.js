@@ -1,6 +1,6 @@
 /** @odoo-module **/
 
-import { Component, useState, onMounted, onRendered, useEffect } from '@odoo/owl';
+import { Component, useState, onMounted } from '@odoo/owl';
 
 export class GoogleMapsDrawingSidebar extends Component {
     setup() {

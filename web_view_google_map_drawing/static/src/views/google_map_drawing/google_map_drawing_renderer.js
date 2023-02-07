@@ -19,11 +19,8 @@ export class GoogleMapDrawingRenderer extends GoogleMapRenderer {
      * @override
      */
     renderMap() {
-        // reset shapes
         this.shapes = {};
-        // initialize google maps
         this.initialize();
-        // initialize google drawing manager
         this.initializeDrawing();
         this.renderShapes();
         this.centerMap();
@@ -228,7 +225,7 @@ export class GoogleMapDrawingRenderer extends GoogleMapRenderer {
         divContent.querySelector('#btn-open_form').addEventListener(
             'click',
             (ev) => {
-                const dataId = ev.target.getAttribute('data-record');
+                const dataId = ev.target.getAttribute('data-record') || null;
                 const record = this.props.list.records.find((r) => r.id === dataId);
                 if (record) {
                     this.props.openRecord(record);
@@ -251,7 +248,6 @@ export class GoogleMapDrawingRenderer extends GoogleMapRenderer {
             content: bodyContent,
             position: event.latLng,
         });
-        // this.markerInfoWindow.setPosition(event.latLng);
         this.markerInfoWindow.open(this.googleMap);
     }
 
