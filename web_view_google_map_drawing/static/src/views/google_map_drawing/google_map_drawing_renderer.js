@@ -2,7 +2,7 @@
 
 import { renderToString } from '@web/core/utils/render';
 import { GoogleMapRenderer } from '@web_view_google_map/views/google_map/google_map_renderer';
-import { GoogleMapsDrawingSidebar } from './google_map_sidebar';
+import { GoogleMapsDrawingSidebar } from './google_map_drawing_sidebar';
 
 export class GoogleMapDrawingRenderer extends GoogleMapRenderer {
     setup() {
@@ -17,10 +17,10 @@ export class GoogleMapDrawingRenderer extends GoogleMapRenderer {
      * @override
      */
     renderMap() {
-        // initialize google maps
-        this.initialize();
         // reset shapes
         this.shapes = {};
+        // initialize google maps
+        this.initialize();
         // initialize google drawing manager
         this.initializeDrawing();
         this.renderShapes();
@@ -133,7 +133,7 @@ export class GoogleMapDrawingRenderer extends GoogleMapRenderer {
         google.maps.event.addListener(
             polygon,
             'click',
-            this._shapeInfoWindow.bind(this, record)
+            this.handleShapeInfoWindow.bind(this, record)
         );
         return polygon;
     }
@@ -158,7 +158,7 @@ export class GoogleMapDrawingRenderer extends GoogleMapRenderer {
         google.maps.event.addListener(
             rectangle,
             'click',
-            this._shapeInfoWindow.bind(this, record)
+            this.handleShapeInfoWindow.bind(this, record)
         );
         return rectangle;
     }
@@ -183,18 +183,14 @@ export class GoogleMapDrawingRenderer extends GoogleMapRenderer {
         google.maps.event.addListener(
             circle,
             'click',
-            this._shapeInfoWindow.bind(this, record)
+            this.handleShapeInfoWindow.bind(this, record)
         );
         return circle;
     }
 
     getShapeContent(record) {
         const content = renderToString('web_view_google_map_drawing.ShapeInfoWindow', {
-            record: JSON.stringify({
-                id: record.id,
-                resId: record.resId,
-                resModel: record.resModel,
-            }),
+            record: record.id,
             title: record.data.gshape_name,
             description: record.data.gshape_description,
         });
@@ -206,9 +202,9 @@ export class GoogleMapDrawingRenderer extends GoogleMapRenderer {
         divContent.querySelector('#btn-open_form').addEventListener(
             'click',
             (ev) => {
-                const data = ev.target.getAttribute('data-record');
-                if (data) {
-                    const record = JSON.parse(data);
+                const dataId = ev.target.getAttribute('data-record');
+                const record = this.props.list.records.find((r) => r.id === dataId);
+                if (record) {
                     this.props.openRecord(record);
                 }
             },
@@ -217,7 +213,7 @@ export class GoogleMapDrawingRenderer extends GoogleMapRenderer {
         return divContent;
     }
 
-    _shapeInfoWindow(record, event) {
+    handleShapeInfoWindow(record, event) {
         let bodyContent = document.createElement('div');
         bodyContent.className = 'o_kanban_group';
 
@@ -225,14 +221,15 @@ export class GoogleMapDrawingRenderer extends GoogleMapRenderer {
 
         bodyContent.appendChild(shapeContent);
 
-        this.markerInfoWindow.setContent(bodyContent);
-        this.markerInfoWindow.setPosition(event.latLng);
+        this.markerInfoWindow.setOptions({
+            content: bodyContent,
+            position: event.latLng,
+        });
+        // this.markerInfoWindow.setPosition(event.latLng);
         this.markerInfoWindow.open(this.googleMap);
     }
 
     centerMap() {
-        console.log(' -<[centerMap]>- ');
-        console.log(this);
         const mapBounds = new google.maps.LatLngBounds();
         if (!this.shapesBounds.isEmpty()) {
             mapBounds.union(this.shapesBounds);
@@ -250,11 +247,10 @@ export class GoogleMapDrawingRenderer extends GoogleMapRenderer {
             if (shape.type === 'polygon') {
                 const paths = shape.getPath();
                 if (paths.length > 0) {
-                    let mapBounds = new google.maps.LatLngBounds();
+                    bounds = new google.maps.LatLngBounds();
                     paths.forEach((item) => {
-                        mapBounds.extend({ lat: item.lat(), lng: item.lng() });
+                        bounds.extend({ lat: item.lat(), lng: item.lng() });
                     });
-                    bounds = mapBounds;
                 }
             } else if (shape.type === 'circle') {
                 bounds = shape.getBounds();

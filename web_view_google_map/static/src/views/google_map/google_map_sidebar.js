@@ -4,12 +4,11 @@ import { Component, useState, onMounted } from '@odoo/owl';
 
 export class GoogleMapSidebar extends Component {
     setup() {
-        this.defaultColor = '#989696';
         this.state = useState({ renderId: false });
 
         // FIXME component reactivity
         onMounted(() => {
-            this.state.renderId = Math.random().toString(36).substr(2, 8);
+            this.state.renderId = Math.random().toString(36).substring(2, 12);
         });
     }
 

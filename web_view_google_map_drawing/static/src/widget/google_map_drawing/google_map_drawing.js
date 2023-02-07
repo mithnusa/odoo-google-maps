@@ -2,14 +2,7 @@
 
 import { registry } from '@web/core/registry';
 import { _lt } from '@web/core/l10n/translation';
-import {
-    Component,
-    useRef,
-    useEffect,
-    onMounted,
-    onRendered,
-    onWillUpdateProps,
-} from '@odoo/owl';
+import { Component, useRef, useEffect, onRendered, onWillUpdateProps } from '@odoo/owl';
 import { useService } from '@web/core/utils/hooks';
 import { standardFieldProps } from '@web/views/fields/standard_field_props';
 import { renderToString } from '@web/core/utils/render';
@@ -32,9 +25,10 @@ export class GoogleMapDrawing extends Component {
         this.shapes = {};
 
         useEffect(() => this.renderGoogleMapDrawing());
-        onWillUpdateProps(async (nextProps) => {
-            if (!nextProps.value) {
+        onRendered(() => {
+            if (!this.props.value) {
                 Object.values(this.shapes).forEach((shape) => {
+                    console.log({ shape });
                     shape.setMap(null);
                 });
             }
@@ -295,6 +289,7 @@ export class GoogleMapDrawing extends Component {
     _saveChanges(values) {
         if (values) {
             this.props.record.update(values);
+            this.shapes[JSON.stringify(values[this.props.name])] = this.selectedShape;
             this.selectedShape.setOptions({
                 editable: false,
                 strokeColor: this.displayColor,

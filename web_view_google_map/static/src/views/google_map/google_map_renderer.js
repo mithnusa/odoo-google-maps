@@ -31,8 +31,6 @@ export class GoogleMapRenderer extends Component {
                 google.maps.event.clearInstanceListeners(this.googleMap);
             }
         });
-
-        console.log({props: this.props});
     }
 
     _setMapTheme(style) {
@@ -271,7 +269,7 @@ export class GoogleMapRenderer extends Component {
     }
 
     get sidebarKey() {
-        return Math.random().toString(36).substr(2, 10);
+        return Math.random().toString(36).substring(2, 12);
     }
 
     get sidebarComponent() {

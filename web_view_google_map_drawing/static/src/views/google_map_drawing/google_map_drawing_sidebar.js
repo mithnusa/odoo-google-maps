@@ -1,17 +1,16 @@
 /** @odoo-module **/
 
-import { Component, useState, onMounted } from '@odoo/owl';
+import { Component, useState, onMounted, onRendered, useEffect } from '@odoo/owl';
 
 export class GoogleMapsDrawingSidebar extends Component {
     setup() {
         this.state = useState({ renderId: false });
 
-        console.log(this);
-
         // FIXME component reactivity
         onMounted(() => {
-            this.state.renderId = Math.random().toString(36).substr(2, 8);
+            this.state.renderId = Math.random().toString(36).substring(2, 12);
         });
+
     }
 
     getData(record) {

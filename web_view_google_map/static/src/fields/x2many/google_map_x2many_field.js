@@ -7,7 +7,6 @@ import { GoogleMapRenderer } from '../../views/google_map/google_map_renderer';
 export class X2ManyFieldGoogleMap extends X2ManyField {
     get rendererProps() {
         if (this.viewMode === 'google_map') {
-            console.log(this);
             const archInfo = this.activeField.views[this.viewMode];
             const props = {
                 archInfo,

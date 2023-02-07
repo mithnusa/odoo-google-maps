@@ -18,7 +18,11 @@
     'depends': ['web_view_google_map'],
     'data': ['data/gmap_libraries.xml'],
     'assets': {
-        'web.assets_backend': ['web_view_google_map_drawing/static/src/**/*']
+        'web.assets_backend': [
+            'web_view_google_map_drawing/static/src/views/**/*',
+            'web_view_google_map_drawing/static/src/fields/**/*',
+            'web_view_google_map_drawing/static/src/widget/**/*',
+        ]
     },
     'demo': [],
     'installable': True,

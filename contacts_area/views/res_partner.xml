@@ -8,7 +8,7 @@
         <field name="arch" type="xml">
             <xpath expr="//notebook" position="inside">
                 <page string="Area">
-                    <field name="shape_line_ids" widget="google_map_one2many" mode="google_map">
+                    <field name="shape_line_ids" widget="google_map_drawing_one2many" mode="google_map">
                         <google_map js_class="google_map_drawing" string="Areas" sidebar_title="gshape_name" sidebar_subtitle="partner_id">
                             <field name="partner_id" invisible="1"/>
                             <field name="gshape_name"/>
@@ -18,14 +18,6 @@
                             <field name="gshape_area"/>
                             <field name="gshape_paths"/>
                         </google_map>
-                        <tree string="Areas">
-                            <field name="partner_id" invisible="1"/>
-                            <field name="gshape_name"/>
-                            <field name="gshape_type"/>
-                            <field name="gshape_area"/>
-                            <field name="gshape_radius"/>
-                            <field name="gshape_description"/>
-                        </tree>
                     </field>
                 </page>
             </xpath>
