@@ -96,33 +96,11 @@ export class GoogleMapRenderer extends Component {
                 this.searchPlacesRef.el
             );
 
-            this._handleGeolocate();
-
             google.maps.event.addListener(
                 this.placesAutocomplete,
                 'place_changed',
                 this.handleSearchPlaceResult.bind(this)
             );
-        }
-    }
-
-    _handleGeolocate() {
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition((position) => {
-                const geolocation = {
-                    lat: position.coords.latitude,
-                    lng: position.coords.longitude,
-                };
-
-                const circle = new google.maps.Circle({
-                    center: geolocation,
-                    radius: position.coords.accuracy,
-                });
-
-                this.placesAutocomplete.setBounds(circle.getBounds());
-            });
-        } else {
-            this.placesAutocomplete.bindTo('bounds', this.googleMap);
         }
     }
 
@@ -149,12 +127,19 @@ export class GoogleMapRenderer extends Component {
         }
     }
 
+    handleSearchPlaceBounds() {
+        if (this.placesAutocomplete) {
+            this.placesAutocomplete.bindTo('bounds', this.googleMap);
+        }
+    }
+
     renderMap() {
         this.clearMarkers();
         this.initialize();
         this.renderMarkers();
         this.renderMarkerClusterer();
         this.centerMap();
+        this.handleSearchPlaceBounds();
     }
 
     initialize() {
@@ -164,10 +149,9 @@ export class GoogleMapRenderer extends Component {
                 center: { lat: 0, lng: 0 },
                 zoom: 2,
                 minZoom: 2,
-                maxZoom: 20,
+                maxZoom: 22,
                 fullscreenControl: true,
                 mapTypeControl: true,
-                gestureHandling: 'auto',
             });
             this.getTheme();
         }
