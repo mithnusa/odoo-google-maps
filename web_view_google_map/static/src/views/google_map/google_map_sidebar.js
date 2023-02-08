@@ -4,12 +4,8 @@ import { Component, useState, onMounted } from '@odoo/owl';
 
 export class GoogleMapSidebar extends Component {
     setup() {
-        this.state = useState({ renderId: false });
-
         // FIXME component reactivity
-        onMounted(() => {
-            this.state.renderId = Math.random().toString(36).substring(2, 12);
-        });
+        onMounted(() => this.render(true));
     }
 
     _getDisplayName(record, fieldName, defaultLabel) {
@@ -76,16 +72,15 @@ export class GoogleMapSidebar extends Component {
     }
 
     _getTitle(record) {
-        let title = this._getDisplayName(record, this.props.fieldTitle, ' - ');
-        return title;
+        return this._getDisplayName(record, this.props.fieldTitle, ' - ');
     }
 
     _getSubtitle(record) {
+        let title = '';
         if (this.props.fieldSubtitle) {
-            let title = this._getDisplayName(record, this.props.fieldSubtitle, ' - ');
-            return title;
+            title = this._getDisplayName(record, this.props.fieldSubtitle, ' - ');
         }
-        return;
+        return title;
     }
 }
 

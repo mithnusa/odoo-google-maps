@@ -30,8 +30,7 @@ export class X2ManyFieldGoogleMap extends X2ManyField {
     }
 
     centerMap() {
-        console.log(' -<[centerMap]>- ');
-        console.log(this);
+        this.render(true);
     }
 }
 

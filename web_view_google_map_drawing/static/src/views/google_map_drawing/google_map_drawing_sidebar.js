@@ -4,13 +4,8 @@ import { Component, useState, onMounted } from '@odoo/owl';
 
 export class GoogleMapsDrawingSidebar extends Component {
     setup() {
-        this.state = useState({ renderId: false });
-
         // FIXME component reactivity
-        onMounted(() => {
-            this.state.renderId = Math.random().toString(36).substring(2, 12);
-        });
-
+        onMounted(() => this.render(true));
     }
 
     getData(record) {

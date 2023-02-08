@@ -56,7 +56,7 @@
         <field name="name">Partner Area</field>
         <field name="type">ir.actions.act_window</field>
         <field name="res_model">res.partner.area</field>
-        <field name="view_mode">tree,google_map,form</field>
+        <field name="view_mode">google_map,tree,form</field>
     </record>
 
     <menuitem id="menu_partner_area" name="Partner Area" action="action_res_partner_area" parent="contacts.res_partner_menu_config"/>

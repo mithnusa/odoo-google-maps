@@ -457,5 +457,20 @@
         input[data-value="unsaturated_brown"] + label {
             background-image: url('/web_view_google_map/static/img/map_theme/unsaturated_brown.png');
         }
+        input[data-value="wy"] + label {
+            background-image: url('/web_view_google_map/static/img/map_theme/wy.png');
+        }
+        input[data-value="interface_map"] + label {
+            background-image: url('/web_view_google_map/static/img/map_theme/interface_map.png');
+        }
+        input[data-value="blue_water"] + label {
+            background-image: url('/web_view_google_map/static/img/map_theme/blue_water.png');
+        }
+        input[data-value="blue_essense"] + label {
+            background-image: url('/web_view_google_map/static/img/map_theme/blue_essense.png');
+        }
+        input[data-value="line_drawing"] + label {
+            background-image: url('/web_view_google_map/static/img/map_theme/line_drawing.png');
+        }
     }
 }

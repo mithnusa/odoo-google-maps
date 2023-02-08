@@ -1,8 +1,10 @@
 /** @odoo-module **/
 
 import { renderToString } from '@web/core/utils/render';
+import { onWillDestroy, onWillUpdateProps } from '@odoo/owl';
 import { GoogleMapRenderer } from '@web_view_google_map/views/google_map/google_map_renderer';
 import { GoogleMapsDrawingSidebar } from './google_map_drawing_sidebar';
+import { MAP_THEMES } from '@web_view_google_map/views/google_map/utils';
 
 export class GoogleMapDrawingRenderer extends GoogleMapRenderer {
     setup() {
@@ -13,13 +15,24 @@ export class GoogleMapDrawingRenderer extends GoogleMapRenderer {
         this.shapes = {};
         this.prevShapeSelected = null;
         this.currentShapeSelected = null;
+
+        onWillDestroy(() => {
+            if (this.shapes) {
+                Object.values(this.shapes).forEach((shape) => shape.setMap(null));
+            }
+        });
+
+        onWillUpdateProps(() => {
+            if (this.shapes) {
+                Object.values(this.shapes).forEach((shape) => shape.setMap(null));
+            }
+        });
     }
 
     /**
      * @override
      */
     renderMap() {
-        this.shapes = {};
         this.initialize();
         this.initializeDrawing();
         this.renderShapes();
@@ -29,13 +42,36 @@ export class GoogleMapDrawingRenderer extends GoogleMapRenderer {
     /**
      * @override
      */
+    _setMapTheme(style) {
+        if (
+            !Object.prototype.hasOwnProperty.call(MAP_THEMES, style) ||
+            style === 'default'
+        ) {
+            return;
+        }
+        const styledMapType = new google.maps.StyledMapType(MAP_THEMES[style], {
+            name: 'Styled Map',
+        });
+        this.googleMap.setOptions({
+            mapTypeControlOptions: {
+                mapTypeIds: ['satellite', 'hybrid', 'terrain', 'styled_map'],
+            },
+        });
+        // Associate the styled map with the MapTypeId and set it to display.
+        this.googleMap.mapTypes.set('styled_map', styledMapType);
+        this.googleMap.setMapTypeId('styled_map');
+    }
+
+    /**
+     * @override
+     */
     initialize() {
         if (!this.googleMap) {
             this.googleMap = new google.maps.Map(this.mapRef.el, {
+                mapTypeId: google.maps.MapTypeId.TERRAIN,
                 center: { lat: 0, lng: 0 },
-                mapTypeId: 'terrain',
                 minZoom: 2,
-                maxZoom: 20,
+                maxZoom: 22,
                 fullscreenControl: true,
                 mapTypeControl: true,
                 gestureHandling: 'auto',
@@ -47,8 +83,8 @@ export class GoogleMapDrawingRenderer extends GoogleMapRenderer {
 
     _getGeneralOptions() {
         return {
-            fillColor: this.editColor,
-            strokeColor: '#fc6c44',
+            fillColor: '#fa5a5a',
+            strokeColor: '#fc3232',
             strokeOpacity: 0.85,
             strokeWeight: 2.0,
             fillOpacity: 0.45,
@@ -58,7 +94,7 @@ export class GoogleMapDrawingRenderer extends GoogleMapRenderer {
 
     _getCircleOptions() {
         return {
-            fillColor: this.editColor,
+            fillColor: '#fa5a5a',
             fillOpacity: 0.45,
             strokeWeight: 0,
             editable: true,
@@ -68,10 +104,10 @@ export class GoogleMapDrawingRenderer extends GoogleMapRenderer {
 
     _getBaseColorOptions() {
         return {
-            strokeColor: '#FF0000',
+            strokeColor: '#fc3232',
             strokeOpacity: 0.55,
             strokeWeight: 0.85,
-            fillColor: '#FF9999',
+            fillColor: '#fa5a5a',
             fillOpacity: 0.45,
             editable: false,
             zIndex: 1,
@@ -92,9 +128,8 @@ export class GoogleMapDrawingRenderer extends GoogleMapRenderer {
 
     initializeDrawing() {
         if (!this.drawingManager) {
-            const shapeOption = this._getGeneralOptions();
-            const circleOption = this._getCircleOptions();
             this.drawingManager = new google.maps.drawing.DrawingManager({
+                drawingMode: null,
                 drawingControl: false,
                 drawingControlOptions: {
                     position: google.maps.ControlPosition.TOP_CENTER,
@@ -105,9 +140,6 @@ export class GoogleMapDrawingRenderer extends GoogleMapRenderer {
                     ],
                 },
                 map: this.googleMap,
-                polygonOptions: shapeOption,
-                circleOptions: circleOption,
-                rectangleOptions: shapeOption,
             });
         }
     }
@@ -137,16 +169,9 @@ export class GoogleMapDrawingRenderer extends GoogleMapRenderer {
         if (record.id in this.shapes) {
             this.shapes[record.id].setMap(null);
         }
-        const polygon = new google.maps.Polygon({
-            strokeColor: '#FF0000',
-            strokeOpacity: 0.55,
-            strokeWeight: 1.0,
-            fillColor: '#FF9999',
-            fillOpacity: 0.35,
-            editable: false,
-            map: this.googleMap,
-        });
-        polygon.setOptions(options);
+        const styleOption = this._getBaseColorOptions();
+        const polygon = new google.maps.Polygon(styleOption);
+        polygon.setOptions({ ...options, map: this.googleMap });
         this.shapes[record.id] = polygon;
         polygon.getPaths().forEach((path) => {
             path.forEach((latlng) => {
@@ -165,17 +190,9 @@ export class GoogleMapDrawingRenderer extends GoogleMapRenderer {
         if (record.id in this.shapes) {
             this.shapes[record.id].setMap(null);
         }
-        const rectangle = new google.maps.Rectangle({
-            strokeColor: '#FF0000',
-            strokeOpacity: 0.55,
-            strokeWeight: 1.0,
-            fillColor: '#FF9999',
-            fillOpacity: 0.35,
-            map: this.googleMap,
-            editable: false,
-            draggable: false,
-        });
-        rectangle.setOptions(options);
+        const styleOption = this._getBaseColorOptions();
+        const rectangle = new google.maps.Rectangle(styleOption);
+        rectangle.setOptions({ ...options, map: this.googleMap, draggable: false });
         this.shapes[record.id] = rectangle;
         this.shapesBounds.union(rectangle.getBounds());
         google.maps.event.addListener(
@@ -190,17 +207,9 @@ export class GoogleMapDrawingRenderer extends GoogleMapRenderer {
         if (record.id in this.shapes) {
             this.shapes[record.id].setMap(null);
         }
-        const circle = new google.maps.Circle({
-            strokeColor: '#FF0000',
-            strokeOpacity: 0.85,
-            strokeWeight: 1.0,
-            fillColor: '#FF9999',
-            fillOpacity: 0.35,
-            map: this.googleMap,
-            editable: false,
-            draggable: false,
-        });
-        circle.setOptions(options);
+        const styleOption = this._getBaseColorOptions();
+        const circle = new google.maps.Circle(styleOption);
+        circle.setOptions({ ...options, map: this.googleMap, draggable: false });
         this.shapes[record.id] = circle;
         this.shapesBounds.union(circle.getBounds());
         google.maps.event.addListener(
@@ -300,7 +309,6 @@ export class GoogleMapDrawingRenderer extends GoogleMapRenderer {
                 this.googleMap.panTo(bounds.getCenter());
                 google.maps.event.addListenerOnce(this.googleMap, 'idle', () => {
                     google.maps.event.trigger(this.googleMap, 'resize');
-                    if (this.googleMap.getZoom() > 17) this.googleMap.setZoom(17);
                 });
             }
         }
