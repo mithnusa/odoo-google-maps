@@ -1,25 +1,36 @@
+.o_field_google_map_one2many {
+    width: 100%;
 
-.o_field_x2many_google_map {
-    margin-top: 10px;
-}
+    .o_field_x2many_google_map {
+        .o_google_map_renderer {
+            min-height: 600px;
 
-.o_form_view {
-    .o_google_map_renderer {
-        max-height: 600px;
+            .o_google_map_view {
+                border: 1px solid #cccccc;
+            }
 
-        .o_map_right_sidebar {
-            &.closed {
-                position: relative;
+            .o_map_right_sidebar {
+                &.closed {
+                    position: relative;
+                }
             }
         }
     }
 }
+
+
 
 .o_google_map_renderer {
     display: flex;
     align-content: stretch;
     overflow-x: visible;
     height: 100%;
+
+    .google_search_places {
+        position: absolute;
+        z-index: 0;
+        margin-top: 8px;
+    }
 
     .o_google_map_view {
         width: 100%;
@@ -48,7 +59,7 @@
         position: absolute;
         z-index: 1;
         color: rgb(253, 253, 253);
-        box-shadow: 0 0 8px rgba(181, 181, 181, 0.75);
+        box-shadow: -0.9px 0 1px 0.1px rgba(199, 199, 199, 0.75);
 
         .content {
             display: flex;
@@ -452,6 +463,21 @@
         }
         input[data-value="unsaturated_brown"] + label {
             background-image: url('/web_view_google_map/static/img/map_theme/unsaturated_brown.png');
+        }
+        input[data-value="wy"] + label {
+            background-image: url('/web_view_google_map/static/img/map_theme/wy.png');
+        }
+        input[data-value="interface_map"] + label {
+            background-image: url('/web_view_google_map/static/img/map_theme/interface_map.png');
+        }
+        input[data-value="blue_water"] + label {
+            background-image: url('/web_view_google_map/static/img/map_theme/blue_water.png');
+        }
+        input[data-value="blue_essense"] + label {
+            background-image: url('/web_view_google_map/static/img/map_theme/blue_essense.png');
+        }
+        input[data-value="line_drawing"] + label {
+            background-image: url('/web_view_google_map/static/img/map_theme/line_drawing.png');
         }
     }
 }

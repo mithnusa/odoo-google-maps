@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="web_view_google_map_drawing.ShapeInfoWindow" owl="1">
+        <div class="o_kanban_record d-flex flex-grow-1 flex-md-shrink-1 flex-shrink-0">
+            <div class="o_kanban_record d-flex">
+                <div class="oe_kanban_card d-flex flex-column">
+                    <div class="d-flex o_kanban_header">
+                        <button type="button" class="btn btn-primary" tabindex="-1" id="btn-open_form" t-att-data-record="record" data-toggle="tooltip" title="Open form view">
+                            <i class="fa fa-wpforms" t-att-data-record="record"></i>
+                            <span class="text-uppercase" t-att-data-record="record"> Open</span>
+                        </button>
+                    </div>
+                    <div class="oe_kanban_details d-flex flex-column justify-content-between pt-3">
+                        <div class="o_kanban_record_title">
+                            <h3>
+                                <t t-esc="title"/>
+                            </h3>
+                        </div>
+                        <div class="o_kanban_record_subtitle" t-if="description">
+                            <t t-esc="description"/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </t>
+</templates>

@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_res_partner_area_form" model="ir.ui.view">
+        <field name="name">view.res.partner.area.form</field>
+        <field name="model">res.partner.area</field>
+        <field name="arch" type="xml">
+            <form string="Area">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="gshape_name" required="1" placeholder="Name"/>
+                            <field name="partner_id"/>
+                        </group>
+                        <group>
+                            <field name="gshape_type" invisible="1"/>
+                            <field name="gshape_area" attrs="{'invisible':[('gshape_type', '=', 'circle')]}"/>
+                            <field name="gshape_radius" attrs="{'invisible':[('gshape_type', '!=', 'circle')]}"/>
+                        </group>
+                    </group>
+                    <field name="gshape_description" placeholder="Description"/>
+                    <field name="gshape_paths" widget="google_map_drawing"/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="view_res_partner_area_tree" model="ir.ui.view">
+        <field name="name">view.res.partner.area.tree</field>
+        <field name="model">res.partner.area</field>
+        <field name="arch" type="xml">
+            <tree string="Areas">
+                <field name="partner_id"/>
+                <field name="gshape_name"/>
+                <field name="gshape_type"/>
+                <field name="gshape_area"/>
+                <field name="gshape_radius"/>
+                <field name="gshape_description"/>
+            </tree>
+        </field>
+    </record>
+    <record id="view_res_partner_area_map" model="ir.ui.view">
+        <field name="name">view.res.partner.area.map</field>
+        <field name="model">res.partner.area</field>
+        <field name="arch" type="xml">
+            <google_map js_class="google_map_drawing" string="Areas" sidebar_title="gshape_name" sidebar_subtitle="partner_id">
+                <field name="partner_id"/>
+                <field name="gshape_name"/>
+                <field name="gshape_description"/>
+                <field name="gshape_type"/>
+                <field name="gshape_radius"/>
+                <field name="gshape_area"/>
+                <field name="gshape_paths"/>
+            </google_map>
+        </field>
+    </record>
+    <record id="action_res_partner_area" model="ir.actions.act_window">
+        <field name="name">Partner Area</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">res.partner.area</field>
+        <field name="view_mode">google_map,tree,form</field>
+    </record>
+
+    <menuitem id="menu_partner_area" name="Partner Area" action="action_res_partner_area" parent="contacts.res_partner_menu_config"/>
+
+</odoo>

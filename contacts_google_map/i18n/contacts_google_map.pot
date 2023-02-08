@@ -1,0 +1,27 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* contacts_google_map
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 16.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-02-08 16:44+0000\n"
+"PO-Revision-Date: 2023-02-08 16:44+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: contacts_google_map
+#: model_terms:ir.ui.view,arch_db:contacts_google_map.view_res_partner_google_map
+msgid "Contacts"
+msgstr ""
+
+#. module: contacts_google_map
+#: model:ir.actions.act_window,name:contacts_google_map.action_view_res_partner_google_map
+#: model_terms:ir.ui.view,arch_db:contacts_google_map.view_res_partner_form_inherit_google_map
+msgid "Google Map"
+msgstr ""

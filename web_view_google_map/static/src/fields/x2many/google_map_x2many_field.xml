@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates id="template" xml:space="preserve">
+
+    <t t-name="web_view_google_map.X2ManyFieldGoogleMap" t-inherit="web.X2ManyField" t-inherit-mode="primary" owl="1">
+        <xpath expr="//ListRenderer" position="after">
+            <GoogleMapRenderer t-elif="viewMode === 'google_map'" t-props="rendererProps"/>
+        </xpath>
+        <xpath expr="//t[@t-if='displayAddButton']" position="replace">
+            <div class="o_cp_buttons" role="toolbar" aria-label="Control panel buttons" t-ref="buttons">
+                <div class="pb-2">
+                    <t t-if="displayAddButton">
+                        <button type="button" class="btn btn-secondary o-kanban-button-new" title="Create record" accesskey="c" t-on-click="() => this.onAdd()">
+                            <t t-esc="addButtonText"/>
+                        </button>
+                    </div>
+                    <button type="button" class="btn btn-secondary" title="Center Map" t-on-click.prevent="() => this.centerMap()">
+                        <span>CENTER MAP</span>
+                    </button>
+                </div>
+            </t>
+        </xpath>
+    </t>
+
+</templates>
