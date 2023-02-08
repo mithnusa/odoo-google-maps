@@ -19,11 +19,18 @@
 }
 
 
+
 .o_google_map_renderer {
     display: flex;
     align-content: stretch;
     overflow-x: visible;
     height: 100%;
+
+    .google_search_places {
+        position: absolute;
+        z-index: 0;
+        margin-top: 8px;
+    }
 
     .o_google_map_view {
         width: 100%;

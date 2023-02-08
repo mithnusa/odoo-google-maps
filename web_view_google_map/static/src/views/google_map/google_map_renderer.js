@@ -1,6 +1,13 @@
 /** @odoo-module **/
 
-import { Component, useRef, useEffect, useState, onWillDestroy } from '@odoo/owl';
+import {
+    Component,
+    useRef,
+    useEffect,
+    useState,
+    onWillDestroy,
+    onMounted,
+} from '@odoo/owl';
 import { Pager } from '@web/core/pager/pager';
 import { renderToString } from '@web/core/utils/render';
 import { Widget } from '@web/views/widgets/widget';
@@ -20,8 +27,11 @@ export class GoogleMapRenderer extends Component {
         this.rpc = useService('rpc');
 
         this.mapRef = useRef('map');
+        this.searchPlacesRef = useRef('searchPlaces');
         this.markerCluster = null;
+        this.markerPlacesSearch = null;
         this.googleMap = null;
+        this.placesAutocomplete = null;
         this.markers = [];
         this.state = useState({ sidebarIsFolded: false });
 
@@ -31,6 +41,7 @@ export class GoogleMapRenderer extends Component {
                 google.maps.event.clearInstanceListeners(this.googleMap);
             }
         });
+        onMounted(this.renderGooglePlaceSearch);
     }
 
     _setMapTheme(style) {
@@ -59,6 +70,82 @@ export class GoogleMapRenderer extends Component {
         });
         if (data.theme) {
             this._setMapTheme(data.theme);
+        }
+    }
+
+    renderGooglePlaceSearch() {
+        if (!this.markerPlacesSearch) {
+            this.markerPlacesSearch = new google.maps.Marker({
+                map: this.googleMap,
+                anchorPoint: new google.maps.Point(0, -29),
+            });
+        } else {
+            this.markerPlacesSearch.setVisible(false);
+        }
+
+        if (!this.placesAutocomplete) {
+            this.placesAutocomplete = new google.maps.places.Autocomplete(
+                this.searchPlacesRef.el,
+                {
+                    fields: ['geometry', 'formatted_address'],
+                    strictBounds: false,
+                    types: ['establishment'],
+                }
+            );
+            this.googleMap.controls[google.maps.ControlPosition.TOP_CENTER].push(
+                this.searchPlacesRef.el
+            );
+
+            this._handleGeolocate();
+
+            google.maps.event.addListener(
+                this.placesAutocomplete,
+                'place_changed',
+                this.handleSearchPlaceResult.bind(this)
+            );
+        }
+    }
+
+    _handleGeolocate() {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition((position) => {
+                const geolocation = {
+                    lat: position.coords.latitude,
+                    lng: position.coords.longitude,
+                };
+
+                const circle = new google.maps.Circle({
+                    center: geolocation,
+                    radius: position.coords.accuracy,
+                });
+
+                this.placesAutocomplete.setBounds(circle.getBounds());
+            });
+        } else {
+            this.placesAutocomplete.bindTo('bounds', this.googleMap);
+        }
+    }
+
+    handleSearchPlaceResult() {
+        const place = this.placesAutocomplete.getPlace();
+        if (place) {
+            if (place.geometry.hasOwnProperty('viewport') && place.geometry.viewport) {
+                this.googleMap.fitBounds(place.geometry.viewport);
+            } else {
+                this.googleMap.panTo(place.geometry.location);
+            }
+            this.markerPlacesSearch.setPosition(place.geometry.location);
+            this.markerPlacesSearch.setVisible(true);
+
+            const para = document.createElement('p');
+            const node = document.createTextNode(place.formatted_address);
+            para.appendChild(node);
+
+            const divContent = document.createElement('div');
+            divContent.appendChild(para);
+
+            this.markerInfoWindow.setContent(divContent);
+            this.markerInfoWindow.open(this.googleMap, this.markerPlacesSearch);
         }
     }
 
