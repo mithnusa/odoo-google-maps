@@ -3,7 +3,7 @@
 All the modules related to Javascript (all new view and new widget created) was already written using the new Odoo Javascript Framework, [OWL Framework](https://odoo.github.io/owl/)
 
 ## Modules
----
+
 | Module | Description |
 |--------|-------------|
 | base_google_maps | Base module of Google map contains settings to setup Google API Key|
@@ -18,7 +18,7 @@ All the modules related to Javascript (all new view and new widget created) was 
 | web_widget_google_map | Base module of widget Google Autocomplete |
 
 ## Usage
----
+
 Google API Key is a must, you need to configure one if you don't have it yet.
 For more details please check this link [https://developers.google.com/maps/documentation/javascript/get-api-key](https://developers.google.com/maps/documentation/javascript/get-api-key)
 
@@ -29,7 +29,7 @@ Please activate the following Services/API for your Google API Key:
 
 
 ## Notes
----
+
 All these modules are not perfect, please do not hesitate to open an issue if you find one or two.    
 
 
