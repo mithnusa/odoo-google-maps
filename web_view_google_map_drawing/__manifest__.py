@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 {
-    'name': 'Web View Google Map',
+    'name': 'Web View Google Map Drawing',
     'summary': '''
         Present your geographical data in a new view "Google maps"
     ''',
@@ -15,17 +15,17 @@
     'support': 'yopiangi@gmail.com',
     'category': 'Extra Tools',
     'version': '16.0.1.0.0',
-    'depends': ['base_google_map'],
+    'depends': ['web_view_google_map'],
     'data': ['data/gmap_libraries.xml'],
     'assets': {
         'web.assets_backend': [
-            'web_view_google_map/static/src/views/**/*',
-            'web_view_google_map/static/src/fields/**/*',
+            'web_view_google_map_drawing/static/src/views/**/*',
+            'web_view_google_map_drawing/static/src/fields/**/*',
+            'web_view_google_map_drawing/static/src/widget/**/*',
         ]
     },
     'demo': [],
     'installable': True,
     'application': False,
     'auto_install': False,
-    'uninstall_hook': '_uninstall_view_google_map',
 }

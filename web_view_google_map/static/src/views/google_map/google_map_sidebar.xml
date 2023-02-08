@@ -7,7 +7,7 @@
                     <t t-esc="props.string"/>
                 </h3>
             </div>
-            <ul class="list-group" t-if="state.renderId">
+            <ul class="list-group">
                 <t t-foreach="props.records" t-as="record" t-key="record.id">
                     <t t-set="data" t-value="getData(record)"/>
                     <li t-attf-class="list-group-item d-flex justify-content-between align-items-center pb-1 pt-1 #{record._marker ? '' : 'disabled'}">

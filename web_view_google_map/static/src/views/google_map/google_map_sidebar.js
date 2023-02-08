@@ -4,23 +4,26 @@ import { Component, useState, onMounted } from '@odoo/owl';
 
 export class GoogleMapSidebar extends Component {
     setup() {
-        this.defaultColor = '#989696';
-        this.state = useState({ renderId: false });
-
         // FIXME component reactivity
-        onMounted(() => {
-            this.state.renderId = Math.random().toString(36).substr(2, 8);
-        });
+        onMounted(() => this.render(true));
     }
 
     _getDisplayName(record, fieldName, defaultLabel) {
         let default_display_name = defaultLabel || 'Unknown';
         if (fieldName) {
             if (record.fields.hasOwnProperty(fieldName)) {
-                if (record.fields[fieldName].type === 'many2one') {
-                    default_display_name = record.data[fieldName].data
-                        ? record.data[fieldName].data.display_name
-                        : ' - ';
+                if (
+                    record.fields[fieldName].type === 'many2one' &&
+                    record.data[fieldName]
+                ) {
+                    if (Array.isArray(record.data[fieldName])) {
+                        default_display_name = record.data[fieldName][1];
+                    } else if (record.data[fieldName] instanceof Array) {
+                        default_display_name =
+                            record.data[fieldName].display_name || '-';
+                    } else {
+                        default_display_name = JSON.stringify(record.data[fieldName]);
+                    }
                 } else if (record.fields[fieldName].type === 'char') {
                     default_display_name = record.data[fieldName];
                 }
@@ -69,16 +72,15 @@ export class GoogleMapSidebar extends Component {
     }
 
     _getTitle(record) {
-        let title = this._getDisplayName(record, this.props.fieldTitle, ' - ');
-        return title;
+        return this._getDisplayName(record, this.props.fieldTitle, ' - ');
     }
 
     _getSubtitle(record) {
+        let title = '';
         if (this.props.fieldSubtitle) {
-            let title = this._getDisplayName(record, this.props.fieldSubtitle, ' - ');
-            return title;
+            title = this._getDisplayName(record, this.props.fieldSubtitle, ' - ');
         }
-        return;
+        return title;
     }
 }
 
