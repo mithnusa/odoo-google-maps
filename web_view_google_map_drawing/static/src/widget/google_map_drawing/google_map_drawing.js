@@ -169,7 +169,7 @@ export class GoogleMapDrawing extends Component {
     _setMapTheme(style) {
         if (
             !Object.prototype.hasOwnProperty.call(MAP_THEMES, style) ||
-            style === 'default'
+            ['default', 'line_drawing'].indexOf(style) >= 0
         ) {
             return;
         }
@@ -178,7 +178,7 @@ export class GoogleMapDrawing extends Component {
         });
         this.googleMap.setOptions({
             mapTypeControlOptions: {
-                mapTypeIds: ['satellite', 'hybrid', 'terrain', 'styled_map'],
+                mapTypeIds: ['satellite', 'hybrid', 'terrain', 'drawing', 'styled_map'],
             },
         });
         // Associate the styled map with the MapTypeId and set it to display.
@@ -383,6 +383,14 @@ export class GoogleMapDrawing extends Component {
                 zoom: 4,
                 gestureHandling: 'cooperative',
             });
+            const mapThemeDrawing = new google.maps.StyledMapType(
+                MAP_THEMES['line_drawing'],
+                {
+                    name: 'Drawing',
+                }
+            );
+            this.googleMap.mapTypes.set('drawing', mapThemeDrawing);
+            this.googleMap.setMapTypeId('drawing');
             this.getTheme();
         }
         if (!this.drawingManager) {
