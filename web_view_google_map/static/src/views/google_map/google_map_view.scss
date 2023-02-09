@@ -405,8 +405,14 @@
 
 }
 
-.o_settings_container {
+div[name="base_google_map"] {
+    label[for="google_maps_theme"] {
+        padding-right: 10px;
+    }
     div[name="google_maps_theme"] {
+        max-height: 600px;
+        overflow-x: scroll;
+
         .o_radio_item {
             .o_form_label {
                 cursor:pointer;

@@ -52,11 +52,13 @@ export class GoogleAddressAutocomplete extends Component {
     }
 
     async fetchConfig() {
-        const data = await this.rpc('/web/base_google_map/google_autocomplete_conf', {
+        const data = await this.rpc('/web/base_google_map/settings', {
             context: this.user.context,
         });
-        if (data) {
-            this.autocomplete_settings = data;
+        if (data && 'language' in data) {
+            this.autocomplete_settings = {
+                language: data.language,
+            };
         }
     }
 

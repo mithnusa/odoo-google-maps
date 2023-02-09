@@ -84,7 +84,7 @@ export class GoogleMapDrawingRenderer extends GoogleMapRenderer {
             );
             this.googleMap.mapTypes.set('drawing', mapThemeDrawing);
             this.googleMap.setMapTypeId('drawing');
-            this.getTheme();
+            this.getMapConf();
         }
         this.markerInfoWindow = new google.maps.InfoWindow();
     }

@@ -29,6 +29,7 @@ export class GoogleMapRenderer extends Component {
         this.mapRef = useRef('map');
         this.searchPlacesRef = useRef('searchPlaces');
         this.markerCluster = null;
+        this.isPlacesSearchEnable = null;
         this.markerPlacesSearch = null;
         this.googleMap = null;
         this.placesAutocomplete = null;
@@ -41,7 +42,6 @@ export class GoogleMapRenderer extends Component {
                 google.maps.event.clearInstanceListeners(this.googleMap);
             }
         });
-        onMounted(this.renderGooglePlaceSearch);
     }
 
     _setMapTheme(style) {
@@ -64,43 +64,47 @@ export class GoogleMapRenderer extends Component {
         this.googleMap.setMapTypeId('styled_map');
     }
 
-    async getTheme() {
-        const data = await this.rpc('/web/base_google_map/theme', {
+    async getMapConf() {
+        const data = await this.rpc('/web/base_google_map/settings', {
             context: this.user.context,
         });
+        this.isPlacesSearchEnable = data.is_places_search_enable;
         if (data.theme) {
             this._setMapTheme(data.theme);
         }
+        this.renderGooglePlaceSearch();
     }
 
     renderGooglePlaceSearch() {
-        if (!this.markerPlacesSearch) {
-            this.markerPlacesSearch = new google.maps.Marker({
-                map: this.googleMap,
-                anchorPoint: new google.maps.Point(0, -29),
-            });
-        } else {
-            this.markerPlacesSearch.setVisible(false);
-        }
+        if (this.isPlacesSearchEnable) {
+            if (!this.markerPlacesSearch) {
+                this.markerPlacesSearch = new google.maps.Marker({
+                    map: this.googleMap,
+                    anchorPoint: new google.maps.Point(0, -29),
+                });
+            } else {
+                this.markerPlacesSearch.setVisible(false);
+            }
 
-        if (!this.placesAutocomplete) {
-            this.placesAutocomplete = new google.maps.places.Autocomplete(
-                this.searchPlacesRef.el,
-                {
-                    fields: ['geometry', 'formatted_address'],
-                    strictBounds: false,
-                    types: ['establishment'],
-                }
-            );
-            this.googleMap.controls[google.maps.ControlPosition.TOP_CENTER].push(
-                this.searchPlacesRef.el
-            );
+            if (!this.placesAutocomplete) {
+                this.placesAutocomplete = new google.maps.places.Autocomplete(
+                    this.searchPlacesRef.el,
+                    {
+                        fields: ['geometry', 'formatted_address'],
+                        strictBounds: false,
+                        types: ['establishment'],
+                    }
+                );
+                this.googleMap.controls[google.maps.ControlPosition.TOP_CENTER].push(
+                    this.searchPlacesRef.el
+                );
 
-            google.maps.event.addListener(
-                this.placesAutocomplete,
-                'place_changed',
-                this.handleSearchPlaceResult.bind(this)
-            );
+                google.maps.event.addListener(
+                    this.placesAutocomplete,
+                    'place_changed',
+                    this.handleSearchPlaceResult.bind(this)
+                );
+            }
         }
     }
 
@@ -153,7 +157,7 @@ export class GoogleMapRenderer extends Component {
                 fullscreenControl: true,
                 mapTypeControl: true,
             });
-            this.getTheme();
+            this.getMapConf();
         }
         this.markerInfoWindow = new google.maps.InfoWindow();
     }

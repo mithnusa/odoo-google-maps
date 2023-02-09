@@ -5,32 +5,30 @@ from odoo.tools.safe_eval import safe_eval
 
 
 class Main(http.Controller):
-    @http.route('/web/base_google_map/theme', type='json', auth='user')
-    def map_theme(self):
-        theme = (
-            request.env['ir.config_parameter']
-            .sudo()
-            .get_param('base_google_map.theme', default='default')
+    @http.route('/web/base_google_map/settings', type='json', auth='user')
+    def map_setting(self):
+        IrParam = request.env['ir.config_parameter'].sudo()
+        theme = IrParam.get_param('base_google_map.theme', default='default')
+        is_places_search_enable = safe_eval(
+            IrParam.get_param(
+                'base_google_map.enable_map_place_search', default='False'
+            )
         )
-        res = {'theme': theme}
-        return res
-
-    @http.route(
-        '/web/base_google_map/google_autocomplete_conf',
-        type='json',
-        auth='user',
-    )
-    def google_autocomplete_settings(self):
-        get_param = http.request.env['ir.config_parameter'].sudo().get_param
-        is_lang_restrict = safe_eval(
-            get_param(
+        is_restrict_language = safe_eval(
+            IrParam.get_param(
                 'base_google_map.autocomplete_lang_restrict', default='False'
             )
         )
-        lang = get_param('base_google_map.lang_localization', default=False)
+        language = IrParam.get_param(
+            'base_google_map.lang_localization', default=''
+        )
 
-        result = {}
-        if is_lang_restrict and lang:
-            result['language'] = lang
+        values = {
+            'theme': theme,
+            'is_places_search_enable': is_places_search_enable,
+        }
 
-        return result
+        if is_restrict_language and language:
+            values['language'] = language
+
+        return values

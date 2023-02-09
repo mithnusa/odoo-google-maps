@@ -2,7 +2,7 @@
 
 import { registry } from '@web/core/registry';
 import { _lt } from '@web/core/l10n/translation';
-import { Component, useRef, useEffect, onRendered } from '@odoo/owl';
+import { Component, useRef, useEffect, onRendered, onMounted } from '@odoo/owl';
 import { useService } from '@web/core/utils/hooks';
 import { standardFieldProps } from '@web/views/fields/standard_field_props';
 import { renderToString } from '@web/core/utils/render';
@@ -12,6 +12,7 @@ import { MAP_THEMES } from '@web_view_google_map/views/google_map/utils';
 export class GoogleMapDrawing extends Component {
     setup() {
         this.mapRef = useRef('map');
+        this.searchPlacesRef = useRef('searchPlaces');
         this.rpc = useService('rpc');
         this.user = useService('user');
         this.notification = useService('notification');
@@ -22,6 +23,9 @@ export class GoogleMapDrawing extends Component {
         this.drawingManager = null;
         this.buttonDeleteEl = null;
         this.selectedShape = null;
+        this.isPlacesSearchEnable = null;
+        this.markerPlacesSearch = null;
+        this.placesAutocomplete = null;
         this.shapes = {};
 
         useEffect(() => this.renderGoogleMapDrawing());
@@ -37,6 +41,63 @@ export class GoogleMapDrawing extends Component {
                 }
             }
         });
+    }
+
+    renderGooglePlaceSearch() {
+        if (this.isPlacesSearchEnable) {
+            if (!this.markerPlacesSearch) {
+                this.markerPlacesSearch = new google.maps.Marker({
+                    map: this.googleMap,
+                    anchorPoint: new google.maps.Point(0, -29),
+                });
+            } else {
+                this.markerPlacesSearch.setVisible(false);
+            }
+
+            if (!this.placesAutocomplete) {
+                this.placesAutocomplete = new google.maps.places.Autocomplete(
+                    this.searchPlacesRef.el,
+                    {
+                        fields: ['geometry', 'formatted_address'],
+                        strictBounds: false,
+                        types: ['establishment'],
+                    }
+                );
+                this.googleMap.controls[google.maps.ControlPosition.TOP_CENTER].push(
+                    this.searchPlacesRef.el
+                );
+                this.placesAutocomplete.bindTo('bounds', this.googleMap);
+                google.maps.event.addListener(
+                    this.placesAutocomplete,
+                    'place_changed',
+                    this.handleSearchPlaceResult.bind(this)
+                );
+                this.markerInfoWindow = new google.maps.InfoWindow();
+            }
+        }
+    }
+
+    handleSearchPlaceResult() {
+        const place = this.placesAutocomplete.getPlace();
+        if (place) {
+            if (place.geometry.hasOwnProperty('viewport') && place.geometry.viewport) {
+                this.googleMap.fitBounds(place.geometry.viewport);
+            } else {
+                this.googleMap.panTo(place.geometry.location);
+            }
+            this.markerPlacesSearch.setPosition(place.geometry.location);
+            this.markerPlacesSearch.setVisible(true);
+
+            const para = document.createElement('p');
+            const node = document.createTextNode(place.formatted_address);
+            para.appendChild(node);
+
+            const divContent = document.createElement('div');
+            divContent.appendChild(para);
+
+            this.markerInfoWindow.setContent(divContent);
+            this.markerInfoWindow.open(this.googleMap, this.markerPlacesSearch);
+        }
     }
 
     _handleLoadShape() {
@@ -186,13 +247,15 @@ export class GoogleMapDrawing extends Component {
         this.googleMap.setMapTypeId('styled_map');
     }
 
-    async getTheme() {
-        const data = await this.rpc('/web/base_google_map/theme', {
+    async getMapConf() {
+        const data = await this.rpc('/web/base_google_map/settings', {
             context: this.user.context,
         });
+        this.isPlacesSearchEnable = data.is_places_search_enable;
         if (data.theme) {
             this._setMapTheme(data.theme);
         }
+        this.renderGooglePlaceSearch();
     }
 
     _getGeneralOptions() {
@@ -391,7 +454,7 @@ export class GoogleMapDrawing extends Component {
             );
             this.googleMap.mapTypes.set('drawing', mapThemeDrawing);
             this.googleMap.setMapTypeId('drawing');
-            this.getTheme();
+            this.getMapConf();
         }
         if (!this.drawingManager) {
             const shapeOption = this._getGeneralOptions();
