@@ -103,6 +103,10 @@ export class GoogleMapDrawing extends Component {
 
             this.markerInfoWindow.setContent(divContent);
             this.markerInfoWindow.open(this.googleMap, this.markerPlacesSearch);
+
+            this.markerInfoWindow.addListener('closeclick', () => {
+                this.markerPlacesSearch.setVisible(false);
+            });
         }
     }
 
