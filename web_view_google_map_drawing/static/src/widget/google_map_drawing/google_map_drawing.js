@@ -2,7 +2,7 @@
 
 import { registry } from '@web/core/registry';
 import { _lt } from '@web/core/l10n/translation';
-import { Component, useRef, useEffect, onRendered, onMounted } from '@odoo/owl';
+import { Component, useRef, useEffect, onRendered } from '@odoo/owl';
 import { useService } from '@web/core/utils/hooks';
 import { standardFieldProps } from '@web/views/fields/standard_field_props';
 import { renderToString } from '@web/core/utils/render';
@@ -63,9 +63,15 @@ export class GoogleMapDrawing extends Component {
                         types: ['establishment'],
                     }
                 );
-                this.googleMap.controls[google.maps.ControlPosition.TOP_CENTER].push(
+                this.searchPlacesRef.el.style.display = 'block';
+                this.googleMap.controls[google.maps.ControlPosition.TOP_RIGHT].push(
                     this.searchPlacesRef.el
                 );
+
+                setTimeout(() => {
+                    this.searchPlacesRef.el.style.opacity = '1';
+                }, 800);
+
                 this.placesAutocomplete.bindTo('bounds', this.googleMap);
                 google.maps.event.addListener(
                     this.placesAutocomplete,
@@ -239,10 +245,9 @@ export class GoogleMapDrawing extends Component {
         });
         this.googleMap.setOptions({
             mapTypeControlOptions: {
-                mapTypeIds: ['satellite', 'hybrid', 'terrain', 'drawing', 'styled_map'],
+                mapTypeIds: ['roadmap', 'satellite', 'hybrid', 'terrain', 'drawing', 'styled_map'],
             },
         });
-        // Associate the styled map with the MapTypeId and set it to display.
         this.googleMap.mapTypes.set('styled_map', styledMapType);
         this.googleMap.setMapTypeId('styled_map');
     }
@@ -313,7 +318,6 @@ export class GoogleMapDrawing extends Component {
 
     _actionDelete() {
         if (this.selectedShape) {
-            // delete this.shapes[this.selectedShape._ID];
             this.selectedShape.setMap(null);
             this.selectedShape = null;
         } else {
@@ -441,7 +445,7 @@ export class GoogleMapDrawing extends Component {
     renderGoogleMapDrawing() {
         if (!this.googleMap) {
             this.googleMap = new google.maps.Map(this.mapRef.el, {
-                mapTypeId: 'terrain',
+                mapTypeId: google.maps.MapTypeId.ROADMAP,
                 center: { lat: 0, lng: 0 },
                 zoom: 4,
                 gestureHandling: 'cooperative',
@@ -453,7 +457,6 @@ export class GoogleMapDrawing extends Component {
                 }
             );
             this.googleMap.mapTypes.set('drawing', mapThemeDrawing);
-            this.googleMap.setMapTypeId('drawing');
             this.getMapConf();
         }
         if (!this.drawingManager) {

@@ -8,6 +8,9 @@ export class X2ManyFieldGoogleMap extends X2ManyField {
     get rendererProps() {
         if (this.viewMode === 'google_map') {
             const archInfo = this.activeField.views[this.viewMode];
+            if (!archInfo.gestureHandling) {
+                archInfo.gestureHandling = 'cooperative';
+            }
             const props = {
                 archInfo,
                 list: this.list,

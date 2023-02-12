@@ -2,7 +2,7 @@
 <templates xml:space="preserve">
     <t t-name="web_view_google_map_drawing.GoogleDrawingField" owl="1">
         <div class="o_google_map_renderer">
-            <input type="text" class="form-control google_search_places w-25" placeholder="Google place search..." t-ref="searchPlaces"/>
+            <input type="text" class="form-control form-control-lg google_search_places" placeholder="Search.." title="Google places search" t-ref="searchPlaces"/>
             <div class="o_google_map_view" t-ref="map"></div>
         </div>
     </t>

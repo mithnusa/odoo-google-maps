@@ -12,11 +12,13 @@ export class GoogleMapArchParser extends XMLParser {
         const jsClass = xmlDoc.getAttribute('js_class');
         const action = xmlDoc.getAttribute('action');
         const type = xmlDoc.getAttribute('type');
+        const markerColor = xmlDoc.getAttribute('color');
         const latitudeField = xmlDoc.getAttribute('lat');
         const longitudeField = xmlDoc.getAttribute('lng');
         const sidebarTitleField = xmlDoc.getAttribute('sidebar_title');
         const sidebarSubtitleField = xmlDoc.getAttribute('sidebar_subtitle');
         const onCreate = xmlDoc.getAttribute('on_create');
+        const gestureHandling = xmlDoc.getAttribute('gesture_handling') || false;
 
         const activeActions = {
             ...getActiveActions(xmlDoc),
@@ -24,14 +26,6 @@ export class GoogleMapArchParser extends XMLParser {
 
         const fieldNodes = {};
 
-        /**
-         * optional config for the maps
-         *
-         * - marker-cluster: bool (default: true)
-         * - gesture: cooperative, greedy, auto (default: auto)
-         * - color: marker color
-         */
-        const options = xmlDoc.getAttribute('options');
         const viewTitle = xmlDoc.getAttribute('string') || 'Google Map';
 
         const openAction = action && type ? { action, type } : null;
@@ -76,6 +70,8 @@ export class GoogleMapArchParser extends XMLParser {
             viewTitle,
             onCreate,
             openAction,
+            gestureHandling,
+            markerColor,
             limit: limit && parseInt(limit, 10),
             examples: xmlDoc.getAttribute('examples'),
             __rawArch: arch,

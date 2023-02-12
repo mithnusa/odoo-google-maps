@@ -4,12 +4,13 @@
         <field name="name">view.res.partner.google_map</field>
         <field name="model">res.partner</field>
         <field name="arch" type="xml">
-            <google_map string="Contacts" lat="partner_latitude" lng="partner_longitude" sidebar_title="display_name" sidebar_subtitle="contact_address">
+            <google_map string="Contacts" lat="partner_latitude" color="marker_color" lng="partner_longitude" sidebar_title="display_name" sidebar_subtitle="contact_address">
                 <field name="partner_latitude"/>
                 <field name="partner_longitude"/>
                 <field name="color"/>
                 <field name="display_name"/>
                 <field name="contact_address"/>
+                <field name="marker_color"/>
             </google_map>
         </field>
     </record>
@@ -54,6 +55,21 @@
             </div>
             <xpath expr="//field[@name='child_ids']" position="attributes">
                 <attribute name="context">{'default_parent_id': active_id, 'default_street': street, 'default_street2': street2, 'default_city': city, 'default_state_id': state_id, 'default_zip': zip, 'default_country_id': country_id, 'default_lang': lang, 'default_user_id': user_id, 'default_type': 'other', 'default_partner_latitude': partner_latitude, 'default_partner_longitude': partner_longitude}</attribute>
+            </xpath>
+        </field>
+    </record>
+    <record id="view_crm_partner_geo_form_inherit" model="ir.ui.view">
+        <field name="name">view.crm.partner.get.form.inherit</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base_geolocalize.view_crm_partner_geo_form"/>
+        <field name="priority">1000</field>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='geo_location']" position="inside">
+                <group>
+                    <group>
+                        <field name="marker_color" widget="color_picker"/>
+                    </group>
+                </group>
             </xpath>
         </field>
     </record>

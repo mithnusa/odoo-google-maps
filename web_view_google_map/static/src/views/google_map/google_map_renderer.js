@@ -1,13 +1,6 @@
 /** @odoo-module **/
 
-import {
-    Component,
-    useRef,
-    useEffect,
-    useState,
-    onWillDestroy,
-    onMounted,
-} from '@odoo/owl';
+import { Component, useRef, useEffect, useState, onWillDestroy } from '@odoo/owl';
 import { Pager } from '@web/core/pager/pager';
 import { renderToString } from '@web/core/utils/render';
 import { Widget } from '@web/views/widgets/widget';
@@ -91,13 +84,18 @@ export class GoogleMapRenderer extends Component {
                     this.searchPlacesRef.el,
                     {
                         fields: ['geometry', 'formatted_address'],
-                        strictBounds: false,
                         types: ['establishment'],
                     }
                 );
-                this.googleMap.controls[google.maps.ControlPosition.TOP_CENTER].push(
+                this.placesAutocomplete.bindTo('bounds', this.googleMap);
+                this.searchPlacesRef.el.style.display = 'block';
+                this.googleMap.controls[google.maps.ControlPosition.TOP_RIGHT].push(
                     this.searchPlacesRef.el
                 );
+
+                setTimeout(() => {
+                    this.searchPlacesRef.el.style.opacity = 1;
+                }, 800);
 
                 google.maps.event.addListener(
                     this.placesAutocomplete,
@@ -128,6 +126,10 @@ export class GoogleMapRenderer extends Component {
 
             this.markerInfoWindow.setContent(divContent);
             this.markerInfoWindow.open(this.googleMap, this.markerPlacesSearch);
+
+            this.markerInfoWindow.addListener('closeclick', () => {
+                this.markerPlacesSearch.setVisible(false);
+            });
         }
     }
 
@@ -146,17 +148,30 @@ export class GoogleMapRenderer extends Component {
         this.handleSearchPlaceBounds();
     }
 
+    getMapOptions() {
+        const gestureHandling =
+            ['cooperative', 'greedy', 'none', 'auto'].indexOf(
+                this.props.archInfo.gestureHandling
+            ) === -1
+                ? 'auto'
+                : this.props.archInfo.gestureHandling;
+
+        return {
+            mapTypeId: google.maps.MapTypeId.ROADMAP,
+            center: { lat: 0, lng: 0 },
+            zoom: 2,
+            minZoom: 2,
+            maxZoom: 22,
+            fullscreenControl: true,
+            mapTypeControl: true,
+            gestureHandling,
+        };
+    }
+
     initialize() {
         if (!this.googleMap) {
-            this.googleMap = new google.maps.Map(this.mapRef.el, {
-                mapTypeId: google.maps.MapTypeId.ROADMAP,
-                center: { lat: 0, lng: 0 },
-                zoom: 2,
-                minZoom: 2,
-                maxZoom: 22,
-                fullscreenControl: true,
-                mapTypeControl: true,
-            });
+            const options = this.getMapOptions();
+            this.googleMap = new google.maps.Map(this.mapRef.el, options);
             this.getMapConf();
         }
         this.markerInfoWindow = new google.maps.InfoWindow();
@@ -266,17 +281,49 @@ export class GoogleMapRenderer extends Component {
         this.markerInfoWindow.open(this.googleMap, marker);
     }
 
+    handleMarkerColor(record) {
+        // color can be a hex color
+        // or integer (an index) represent color from widget `color_picker`
+        const color =
+            record.data[this.props.archInfo.markerColor] ||
+            this.props.archInfo.markerColor;
+        let markerColor = 'red';
+        if (typeof color === 'number') {
+            const ColorList = [
+                null,
+                '#F06050', // Red
+                '#F4A460', // Orange
+                '#F7CD1F', // Yellow
+                '#6CC1ED', // Light blue
+                '#814968', // Dark purple
+                '#EB7E7F', // Salmon pink
+                '#2C8397', // Medium blue
+                '#475577', // Dark blue
+                '#D6145F', // Fuchsia
+                '#30C381', // Green
+                '#9365B8', // Purple
+            ];
+            markerColor = ColorList[color] || markerColor;
+        } else if (
+            /(?:#|0x)(?:[a-f0-9]{3}|[a-f0-9]{6})\b|(?:rgb|hsl)a?\([^\)]*\)/gi.test(
+                color
+            )
+        ) {
+            markerColor = color;
+        }
+        return markerColor;
+    }
+
     createMarker(latLng, record, color) {
-        const _color = color || 'red';
         const options = {
             position: latLng,
             map: this.googleMap,
             optimized: true,
             _odooRecord: record,
-            _odooMarkerColor: _color,
+            _odooMarkerColor: color,
             icon: {
                 path: MARKER_ICON_SVG_PATH,
-                fillColor: _color,
+                fillColor: color,
                 fillOpacity: 1,
                 strokeWeight: 0.75,
                 strokeColor: '#444',
@@ -287,8 +334,7 @@ export class GoogleMapRenderer extends Component {
                 ),
             },
         };
-        const marker = new google.maps.Marker(options);
-        return marker;
+        return new google.maps.Marker(options);
     }
 
     renderMarkers() {
@@ -298,7 +344,7 @@ export class GoogleMapRenderer extends Component {
         let marker;
         let color;
         this.props.list.records.map((record) => {
-            color = 'red';
+            color = this.handleMarkerColor(record);
             lat =
                 typeof record.data[this.props.archInfo.latitudeField] === 'number'
                     ? record.data[this.props.archInfo.latitudeField]

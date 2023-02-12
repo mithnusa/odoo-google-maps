@@ -2,7 +2,7 @@
 <templates xml:space="preserve">
     <t t-name="web_view_google_map.GoogleMapRenderer" owl="1">
         <div class="o_google_map_renderer" t-ref="root">
-            <input type="text" class="form-control google_search_places w-25" placeholder="Google place search..." t-ref="searchPlaces"/>
+            <input type="text" class="form-control form-control-lg google_search_places" placeholder="Search.." title="Google places search" t-ref="searchPlaces"/>
             <div class="o_google_map_view" t-ref="map"></div>
             <div t-attf-class="o_map_right_sidebar #{state.sidebarIsFolded ? 'closed': 'open'}">
                 <div class="content">
@@ -44,13 +44,6 @@
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
-    </t>
-    <t t-name="web_view_google_map.PlacesSearchBox" owl="1">
-        <div>
-            <div class="input-group p-3">
-                <input type="text" id="placeSearch" class="form-control" placeholder="search.."/>
             </div>
         </div>
     </t>

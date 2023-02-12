@@ -27,9 +27,20 @@
     height: 100%;
 
     .google_search_places {
+        margin-top: 10px;
+        margin-right: 10px;
+        width: 75px;
+        -webkit-transition: all .5s ease;
+        -moz-transition: all .5s ease;
+        transition: all .5s ease;
+        float: right;
         position: absolute;
-        z-index: 0;
-        margin-top: 8px;
+        opacity: 0;
+        display: none;
+
+        &:focus {
+            width: 350px;
+        }
     }
 
     .o_google_map_view {

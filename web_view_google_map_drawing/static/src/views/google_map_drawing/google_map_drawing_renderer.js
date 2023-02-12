@@ -54,7 +54,7 @@ export class GoogleMapDrawingRenderer extends GoogleMapRenderer {
         });
         this.googleMap.setOptions({
             mapTypeControlOptions: {
-                mapTypeIds: ['satellite', 'hybrid', 'terrain', 'drawing', 'styled_map'],
+                mapTypeIds: ['roadmap', 'satellite', 'hybrid', 'terrain', 'drawing', 'styled_map'],
             },
         });
         // Associate the styled map with the MapTypeId and set it to display.
@@ -66,27 +66,14 @@ export class GoogleMapDrawingRenderer extends GoogleMapRenderer {
      * @override
      */
     initialize() {
-        if (!this.googleMap) {
-            this.googleMap = new google.maps.Map(this.mapRef.el, {
-                mapTypeId: google.maps.MapTypeId.TERRAIN,
-                center: { lat: 0, lng: 0 },
-                minZoom: 2,
-                maxZoom: 22,
-                fullscreenControl: true,
-                mapTypeControl: true,
-                gestureHandling: 'auto',
-            });
-            const mapThemeDrawing = new google.maps.StyledMapType(
-                MAP_THEMES['line_drawing'],
-                {
-                    name: 'Drawing',
-                }
-            );
-            this.googleMap.mapTypes.set('drawing', mapThemeDrawing);
-            this.googleMap.setMapTypeId('drawing');
-            this.getMapConf();
-        }
-        this.markerInfoWindow = new google.maps.InfoWindow();
+        super.initialize();
+        const mapThemeDrawing = new google.maps.StyledMapType(
+            MAP_THEMES['line_drawing'],
+            {
+                name: 'Drawing',
+            }
+        );
+        this.googleMap.mapTypes.set('drawing', mapThemeDrawing);
     }
 
     _getGeneralOptions() {
