@@ -4,11 +4,12 @@
         <field name="name">view.crm.lead.google.map</field>
         <field name="model">crm.lead</field>
         <field name="arch" type="xml">
-            <google_map string="Leads" lat="customer_latitude" lng="customer_longitude" sidebar_title="name" sidebar_subtitle="customer_address">
+            <google_map string="Leads" lat="customer_latitude" lng="customer_longitude" color="marker_color" sidebar_title="name" sidebar_subtitle="customer_address">
                 <field name="name"/>
                 <field name="customer_latitude"/>
                 <field name="customer_longitude"/>
                 <field name="customer_address"/>
+                <field name="marker_color"/>
             </google_map>
         </field>
     </record>
@@ -46,6 +47,7 @@
                                 <button attrs="{'invisible': ['|', ('customer_latitude', '!=', 0), ('customer_longitude', '!=', 0)]}" icon="fa-gear" string="Compute based on address" title="Compute Localization" name="geo_localize" type="object" class="btn btn-link p-0"/>
                                 <button attrs="{'invisible': [('customer_latitude', '=', 0), ('customer_longitude', '=', 0)]}" icon="fa-refresh" string="Refresh" title="Refresh Localization" name="geo_localize" type="object" class="btn btn-link p-0"/>
                             </div>
+                            <field name="marker_color" widget="color_picker"/>
                         </group>
                     </group>
                 </page>

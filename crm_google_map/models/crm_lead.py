@@ -103,6 +103,7 @@ class CrmLead(models.Model):
     customer_address = fields.Char(
         compute='_compute_customer_address', string='Complete Address'
     )
+    marker_color = fields.Integer(string='Marker color')
 
     @api.model
     def _geo_localize(self, street='', zip='', city='', state='', country=''):
