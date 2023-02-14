@@ -28,6 +28,7 @@
         <field name="res_model">res.partner</field>
         <field name="view_mode">google_map</field>
         <field name="view_id" ref="contacts_google_map.view_res_partner_google_map"/>
+        <field name="domain">[('id', '=', active_id)]</field>
     </record>
     <record id="contacts.action_contacts" model="ir.actions.act_window">
         <field name="view_mode">kanban,tree,google_map,form,activity</field>

@@ -18,6 +18,7 @@
         <field name="res_model">crm.lead</field>
         <field name="view_mode">google_map</field>
         <field name="view_id" ref="view_crm_lead_google_map"/>
+        <field name="domain">[('id', '=', active_id)]</field>
     </record>
     <record id="crm_lead_view_form_inherit_crm_google_map" model="ir.ui.view">
         <field name="name">crm.lead.view.form.inherit.crm.google.map</field>

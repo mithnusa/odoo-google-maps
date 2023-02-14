@@ -56,21 +56,17 @@ export class GoogleMapDrawing extends Component {
 
             if (!this.placesAutocomplete) {
                 this.placesAutocomplete = new google.maps.places.Autocomplete(
-                    this.searchPlacesRef.el,
+                    this.searchPlacesRef.el.querySelector('input#search'),
                     {
                         fields: ['geometry', 'formatted_address'],
                         strictBounds: false,
                         types: ['establishment'],
                     }
                 );
-                this.searchPlacesRef.el.style.display = 'block';
+
                 this.googleMap.controls[google.maps.ControlPosition.TOP_RIGHT].push(
                     this.searchPlacesRef.el
                 );
-
-                setTimeout(() => {
-                    this.searchPlacesRef.el.style.opacity = '1';
-                }, 800);
 
                 this.placesAutocomplete.bindTo('bounds', this.googleMap);
                 google.maps.event.addListener(

@@ -2,7 +2,10 @@
 <templates xml:space="preserve">
     <t t-name="web_view_google_map.GoogleMapRenderer" owl="1">
         <div class="o_google_map_renderer" t-ref="root">
-            <input type="text" class="form-control form-control-lg google_search_places" placeholder="Search.." title="Google places search" t-ref="searchPlaces"/>
+            <div class="input-group google_search_places" t-ref="searchPlaces">
+                <input type="text" class="form-control form-control-lg" id="search" />
+                <span class="input-group-text" id="group-search" title="Google places search"><i class="fa fa-search"></i></span>
+            </div>
             <div class="o_google_map_view" t-ref="map"></div>
             <div t-attf-class="o_map_right_sidebar #{state.sidebarIsFolded ? 'closed': 'open'}">
                 <div class="content">

@@ -29,18 +29,23 @@
     .google_search_places {
         margin-top: 10px;
         margin-right: 10px;
-        width: 75px;
+        width: 60px;
+        max-width: 400px;
         -webkit-transition: all .5s ease;
         -moz-transition: all .5s ease;
         transition: all .5s ease;
         float: right;
         position: absolute;
-        opacity: 0;
-        display: none;
 
-        &:focus {
+        .input-group-text {
+            background-color: #ffffff;
+            border-radius: 0 0.6rem 0.6rem 0;
+        }
+
+        &:focus-within {
             width: 350px;
         }
+
     }
 
     .o_google_map_view {
@@ -189,23 +194,7 @@
     --KanbanRecord-padding-h: #{$o-kanban-inside-hgutter};
     --KanbanRecord-gap-v: #{$o-kanban-inner-hmargin};
 
-    --KanbanRecord--small-width: #{$o-kanban-small-record-width};
-
-    --KanbanRecord__image-width: #{$o-kanban-image-width};
-    --KanbanRecord__image--fill-width: #{$o-kanban-image-fill-width};
-
-    --KanbanRecord__dropdown-gap: #{$border-width};
-
-    --KanbanColumn__highlight-background: #{rgba($o-info, 0.05)};
-    --KanbanColumn__highlight-border: #{$o-info};
-
-    --o-view-nocontent-zindex: 1;
     // ----------------------------------------------------------------------------
-
-    .dropdown,
-    .o_kanban_manage_button_section {
-        position: inherit;
-    }
 
     @include media-breakpoint-down(md) {
         --KanbanRecord-padding-h: #{$o-kanban-inside-hgutter * 2};
@@ -219,7 +208,6 @@
 
     .o_kanban_record {
         position: relative;
-        min-width: 150px;
         margin: 0 0 -1px;
 
         > div {
@@ -331,44 +319,10 @@
         }
     }
 
-    // Kanban Grouped Layout
-    &.o_kanban_grouped {
-        min-height: 100%;
-
-        @include media-breakpoint-down(md) {
-            min-height: initial;
-            height: 100%;
-            overflow: scroll hidden !important;
-            scroll-snap-type: x mandatory;
-        }
-
-        .o_kanban_record {
-            width: 100%;
-        }
-
-        --KanbanGroup-width: 90%; // don't take full width to give a hint of next/previous column on smaller screens
-
-        @include media-breakpoint-up(md) {
-            --KanbanGroup-width: calc(var(--KanbanRecord-width) + (2 * var(--KanbanGroup-padding-h)));
-
-            &.o_kanban_small_column {
-                --KanbanGroup-width: calc(var(--KanbanRecord--small-width) + (2 * var(--KanbanGroup-padding-h)));
-            }
-        }
-
-        .o_kanban_group,
-        .o_column_quick_create {
-            flex-basis: var(--KanbanGroup-width);
-
-            @include media-breakpoint-up(md) {
-                max-width: var(--KanbanGroup-width);
-            }
-        }
-    }
-
     // Kanban Grouped Layout - Column default
     .o_kanban_group {
         padding: 0 var(--KanbanGroup-padding-h) var(--KanbanGroup-padding-bottom);
+        width: 400px;
 
         .o_kanban_header > .o_kanban_header_title {
             &:hover .o_kanban_config,
@@ -387,16 +341,6 @@
                 }
             }
         }
-    }
-
-    .o_column_quick_create,
-    .o_kanban_group:not(.o_column_folded) .o_kanban_header_title {
-        // Makes them come on top of the "no-content" background gradient.
-        z-index: calc(var(--o-view-nocontent-zindex) + 1);
-    }
-
-    .o_group_draggable .o_column_title {
-        cursor: move;
     }
 
 
