@@ -19,7 +19,7 @@ Example:
 ```
 
 Available option `fillfields` that you can customize:
-```json
+```javascript
 {
     general: {
         ODOO_FIELD: [GOOGLE_PLACES_FIELDS],
@@ -38,19 +38,19 @@ Available option `fillfields` that you can customize:
 Replace `ODOO_FIELD` with field in your model    
 Replace `GOOGLE_PLACES_FIELDS` with Google autocomplete component form, you can assigned multiple components
 
-The option are devided into three sections
+The option are devided into three sections:
 - `general`    
 This option is to represent fields: `name`, `website`, and `phone` in your model.    
-On right side, is where you defined your field name
-On left side, is fields returned from Google API.    
+On the right side, is where you defined Odoo field name.    
+On the left side, is fields returned from Google API.    
 - `address`    
 Behave like `general`, this section is where you define your address fields of your model
 - `geolocation`    
-Same as `general` and `address`, this section is for the fields that represent geolocation (latitude and longitude)
+Same as `general` and `address`, this section is for the fields that represent geolocation (latitude and longitude) in your model.
 
 
 Example:
-```json
+```javascript
 {
     general: {
         name: 'name',
@@ -76,25 +76,87 @@ Example:
 }
 ```
 
+
+Notes:    
+For options `fillfields`, the default values are 
+```javascript
+{
+    general: {
+        name: 'name',
+        website: 'website',
+        phone: ['international_phone_number', 'formatted_phone_number'],
+    },
+    address: {
+        street: ['street_number', 'route'],
+        street2: [
+            'administrative_area_level_3',
+            'administrative_area_level_4',
+            'administrative_area_level_5',
+        ],
+        city: ['locality', 'administrative_area_level_2'],
+        zip: 'postal_code',
+        state_id: 'administrative_area_level_1',
+        country_id: 'country',
+    },
+},
+```
+If "general" section and "address" section in your model defined like fields in `res.partner` model than no need to set it.    
+Section "geolocation" is not define by default so you must set it manually.
+
 ### 2. Widget `gplaces_address_autocomplete`
-This widget uses Google Autocomplete Address Form API [https://developers.google.com/maps/documentation/javascript/examples/places-autocomplete-addressform](https://developers.google.com/maps/documentation/javascript/examples/places-autocomplete-addressform)
+This widget uses Google Autocomplete Address Form API [https://developers.google.com/maps/documentation/javascript/examples/places-autocomplete-addressform](https://developers.google.com/maps/documentation/javascript/examples/places-autocomplete-addressform)    
+
+
+This widget works similar to widget `gplaces_autocomplete`.
 
 How to use?    
 Example: 
 ```xml
-<field name="name" widget="gplaces_address_autocomplete" options="{'lat': 'partner_latitude', 'lng': 'partner_longitude'}"/>
+<field name="name" widget="gplaces_address_autocomplete" options="{
+    fillfields: {
+        street: 'street',
+        street2: 'street2',
+        city: 'city',
+        zip: 'zip',
+        state_id: 'state_id',
+        country_id: 'country_id',
+    },
+    lat: 'partner_latitude',
+    lng: 'partner_longitude',
+}"/>
 ```
 
 Available option `fillfields` that you can customize:
-```json
+```javascript
 {
-    ODOO_FIELD: [ADDRESS_COMPONENTS],
-    ...
+    fillfields: {
+        ODOO_FIELD: [ADDRESS_COMPONENTS],
+        ...
+    },
+    lat: ODOO_FIELD,
+    lng: ODOO_FIELD 
 }
 ```
 
 Example:
-```json
+```javascript
+{
+    fillfields: {
+        street: 'street',
+        street2: 'street2',
+        city: 'city',
+        zip: 'zip',
+        state_id: 'state_id',
+        country_id: 'country_id',
+    },
+    lat: 'partner_latitude',
+    lng: 'partner_longitude',
+}
+```
+
+Notes:    
+For options `fillfields`, the default value are 
+```javascript
 {
     street: 'street',
     street2: 'street2',
@@ -102,10 +164,10 @@ Example:
     zip: 'zip',
     state_id: 'state_id',
     country_id: 'country_id',
-}
+},
 ```
+If the address fields in your model defined like address fields in `res.partner` model than no need to set it.
 
-This widget works similar to widget `gplaces_autocomplete`, but there is only one section.
 
 
 Useful links:

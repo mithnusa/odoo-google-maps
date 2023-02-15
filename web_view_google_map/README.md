@@ -38,11 +38,30 @@ Mandatory attributes:
 Optional attributes:
 - `string`: attribute to be used on a sidebar of map, as a head title
 - `sidebar_subtitle`: attribute to be used on a sidebar of map, to display secondary info that you would like to display (only support field `Char` and field `Many2one`)
-- `color`: attribute to define color of marker. You can assign hex color or a field `Integer` in your model. <strong><u> In the view definition, it's must be combined with widget `color_picker`</u></strong>
+- `color`: attribute to define color of marker. You can assign color hex code or a field `Integer` in your model. When you assign a field to set marker color, make sure to use widget `color_picker` in `form` view.    
+    Example: 
+    1. Using color hex code
+    ```xml
+    <google_map color="#FF0000">
+    ...
+    </google_map>
+    ```
+    2. Using field
+    ```xml
+    <!-- google_map view -->
+    
+    <google_map color="marker_color">
+    ...
+    </google_map>
 
+    <!-- on the form view -->
+    <form>
+        <field name="marker_color" widget="color_picker">
+    </form>
+    ```
 
 ### Using `google_map` view inside `form` view
-You can use the view inside form view
+You can use the view inside `form` view
 
 Example:
 ```xml

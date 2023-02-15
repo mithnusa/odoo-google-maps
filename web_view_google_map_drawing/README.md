@@ -37,10 +37,10 @@ How to create the view?
 
 Mandatory attributes:
 - `js_class`: attribute to load Google Maps Drawing, must be set with `google_map_drawing`
-- `sidebar_title`: attribute to be used on a sidebar of map, to display name of record (only support field `Char` and field `One2many` )
+- `sidebar_title`: attribute to be used on a sidebar of map, to display name of record (only support field `Char` and field `Many2one` )
 
 Optional attributes:
-- `sidebar_subtitle`: attribute to be used on a sidebar of map, to display secondary info that you would like to display (only support field `Char` and field `One2many`)
+- `sidebar_subtitle`: attribute to be used on a sidebar of map, to display secondary info that you would like to display (only support field `Char` and field `Many2one`)
 
 
 ### Use `google_map` view inside `form` view
