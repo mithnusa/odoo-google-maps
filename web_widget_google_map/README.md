@@ -36,13 +36,13 @@ Available option `fillfields` that you can customize:
 }
 ```
 Replace `ODOO_FIELD` with field in your model    
-Replace `GOOGLE_PLACES_FIELDS` with Google autocomplete component form, you can assigned multiple components
+Replace `GOOGLE_PLACES_FIELDS` with Google autocomplete component form (address section) and Google places field name (general section), and Google geocode (geolocation section), you can assigned multiple values
 
 The option are devided into three sections:
 - `general`    
 This option is to represent fields: `name`, `website`, and `phone` in your model.    
-On the right side, is where you defined Odoo field name.    
-On the left side, is fields returned from Google API.    
+On the left side is where you define Odoo field name.    
+On the right side is Google places field name.    
 - `address`    
 Behave like `general`, this section is where you define your address fields of your model
 - `geolocation`    
@@ -107,7 +107,7 @@ Section "geolocation" is not define by default so you must set it manually.
 This widget uses Google Autocomplete Address Form API [https://developers.google.com/maps/documentation/javascript/examples/places-autocomplete-addressform](https://developers.google.com/maps/documentation/javascript/examples/places-autocomplete-addressform)    
 
 
-This widget works similar to widget `gplaces_autocomplete`.
+This widget works similar to the widget `gplaces_autocomplete`.
 
 How to use?    
 Example: 
@@ -166,10 +166,12 @@ For options `fillfields`, the default value are
     country_id: 'country_id',
 },
 ```
-If the address fields in your model defined like address fields in `res.partner` model than no need to set it.
+If the address fields in your model are defined like the address fields in `res.partner` model than no need to set it.
 
 
 
 Useful links:
 - [https://developers.google.com/maps/documentation/javascript/place-data-fields](https://developers.google.com/maps/documentation/javascript/place-data-fields)
 - [https://developers.google.com/maps/documentation/geocoding/requests-geocoding#Types](https://developers.google.com/maps/documentation/geocoding/requests-geocoding#Types)
+
+If you have difficulties implement or use these widget on your custom module, please do not hesitate to open an issue.

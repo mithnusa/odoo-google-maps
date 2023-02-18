@@ -81,3 +81,5 @@ Example:
     </field>
 </record>
 ```
+
+If you have difficulties implement or use the view and the widget on your custom module, please do not hesitate to open an issue.
