@@ -9,7 +9,7 @@ import { registry } from '@web/core/registry';
 
 export const googleMapView = {
     type: 'google_map',
-    display_name: 'Google maps',
+    display_name: 'Google Maps',
     icon: 'fa fa-map-o',
     multiRecord: true,
 

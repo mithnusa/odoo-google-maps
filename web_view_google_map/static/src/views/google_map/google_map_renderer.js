@@ -1,136 +1,34 @@
 /** @odoo-module **/
 
-import { Component, useRef, useEffect, useState, onWillDestroy } from '@odoo/owl';
+import { useRef, useEffect, useState } from '@odoo/owl';
 import { Pager } from '@web/core/pager/pager';
 import { renderToString } from '@web/core/utils/render';
 import { Widget } from '@web/views/widgets/widget';
-import { useService } from '@web/core/utils/hooks';
+
+import { BaseGoogleMap } from '@base_google_map/utils/base_google_map';
 
 import { GoogleMapSidebar } from './google_map_sidebar';
-import {
-    MARKER_ICON_SVG_PATH,
-    MARKER_ICON_HEIGHT,
-    MARKER_ICON_WIDTH,
-    MAP_THEMES,
-} from './utils';
+import { MARKER_ICON_SVG_PATH, MARKER_ICON_HEIGHT, MARKER_ICON_WIDTH } from './utils';
 
-export class GoogleMapRenderer extends Component {
+export class GoogleMapRenderer extends BaseGoogleMap {
     setup() {
-        this.user = useService('user');
-        this.rpc = useService('rpc');
-
+        super.setup();
         this.mapRef = useRef('map');
         this.searchPlacesRef = useRef('searchPlaces');
         this.markerCluster = null;
-        this.isPlacesSearchEnable = null;
-        this.markerPlacesSearch = null;
-        this.googleMap = null;
-        this.placesAutocomplete = null;
+
         this.markers = [];
         this.state = useState({ sidebarIsFolded: false });
 
-        useEffect(() => this.renderMap());
-        onWillDestroy(() => {
-            if (this.googleMap) {
-                google.maps.event.clearInstanceListeners(this.googleMap);
-            }
-        });
-    }
-
-    _setMapTheme(style) {
-        if (
-            !Object.prototype.hasOwnProperty.call(MAP_THEMES, style) ||
-            style === 'default'
-        ) {
-            return;
-        }
-        const styledMapType = new google.maps.StyledMapType(MAP_THEMES[style], {
-            name: 'Styled Map',
-        });
-        this.googleMap.setOptions({
-            mapTypeControlOptions: {
-                mapTypeIds: ['roadmap', 'satellite', 'hybrid', 'terrain', 'styled_map'],
-            },
-        });
-        // Associate the styled map with the MapTypeId and set it to display.
-        this.googleMap.mapTypes.set('styled_map', styledMapType);
-        this.googleMap.setMapTypeId('styled_map');
-    }
-
-    async getMapConf() {
-        const data = await this.rpc('/web/base_google_map/settings', {
-            context: this.user.context,
-        });
-        this.isPlacesSearchEnable = data.is_places_search_enable;
-        if (data.theme) {
-            this._setMapTheme(data.theme);
-        }
-        this.renderGooglePlaceSearch();
-    }
-
-    renderGooglePlaceSearch() {
-        if (this.isPlacesSearchEnable) {
-            if (!this.markerPlacesSearch) {
-                this.markerPlacesSearch = new google.maps.Marker({
-                    map: this.googleMap,
-                    anchorPoint: new google.maps.Point(0, -29),
-                });
-            } else {
-                this.markerPlacesSearch.setVisible(false);
-            }
-
-            if (!this.placesAutocomplete) {
-                this.placesAutocomplete = new google.maps.places.Autocomplete(
-                    this.searchPlacesRef.el.querySelector('input#search'),
-                    {
-                        fields: ['geometry', 'formatted_address'],
-                        types: ['establishment'],
-                    }
-                );
-                this.placesAutocomplete.bindTo('bounds', this.googleMap);
-                this.googleMap.controls[google.maps.ControlPosition.TOP_RIGHT].push(
-                    this.searchPlacesRef.el
-                );
-                google.maps.event.addListener(
-                    this.placesAutocomplete,
-                    'place_changed',
-                    this.handleSearchPlaceResult.bind(this)
-                );
-            }
-        }
-    }
-
-    handleSearchPlaceResult() {
-        const place = this.placesAutocomplete.getPlace();
-        if (place) {
-            if (place.geometry.hasOwnProperty('viewport') && place.geometry.viewport) {
-                this.googleMap.fitBounds(place.geometry.viewport);
-            } else {
-                this.googleMap.panTo(place.geometry.location);
-            }
-            this.markerPlacesSearch.setPosition(place.geometry.location);
-            this.markerPlacesSearch.setVisible(true);
-
-            const para = document.createElement('p');
-            const node = document.createTextNode(place.formatted_address);
-            para.appendChild(node);
-
-            const divContent = document.createElement('div');
-            divContent.appendChild(para);
-
-            this.markerInfoWindow.setContent(divContent);
-            this.markerInfoWindow.open(this.googleMap, this.markerPlacesSearch);
-
-            this.markerInfoWindow.addListener('closeclick', () => {
-                this.markerPlacesSearch.setVisible(false);
+        useEffect(() => {
+            this.loader.loadCallback((e) => {
+                if (e) {
+                    console.log(e);
+                } else {
+                    this.renderMap();
+                }
             });
-        }
-    }
-
-    handleSearchPlaceBounds() {
-        if (this.placesAutocomplete) {
-            this.placesAutocomplete.bindTo('bounds', this.googleMap);
-        }
+        });
     }
 
     renderMap() {
@@ -166,9 +64,10 @@ export class GoogleMapRenderer extends Component {
         if (!this.googleMap) {
             const options = this.getMapOptions();
             this.googleMap = new google.maps.Map(this.mapRef.el, options);
-            this.getMapConf();
+            this.setMapTheme();
         }
         this.markerInfoWindow = new google.maps.InfoWindow();
+        this.renderGooglePlaceSearch(this.searchPlacesRef, this.markerInfoWindow);
     }
 
     clearMarkers() {

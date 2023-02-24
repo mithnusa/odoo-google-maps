@@ -1,16 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
     <template id="assets_gmaps" name="Google Maps Assets">
-        <t t-set="google_maps_api_key" t-value="request.env['ir.config_parameter'].sudo().get_param('base_google_map.api_key')"/>
-        <t t-set="google_maps_lang_localization" t-value="request.env['ir.config_parameter'].sudo().get_param('base_google_map.lang_localization')"/>
-        <t t-set="google_maps_libraries" t-value="request.env['ir.config_parameter'].sudo().get_param('base_google_map.libraries')"/>
-        <t t-set="google_maps_region_localization" t-value="request.env['ir.config_parameter'].sudo().get_param('base_google_map.region_localization', default='')"/>
-        <t t-if="google_maps_api_key">
-            <script t-attf-src="https://maps.googleapis.com/maps/api/js?v=quarterly&amp;key=#{google_maps_api_key}&amp;libraries=#{google_maps_libraries}#{google_maps_lang_localization and '&amp;language=' + google_maps_lang_localization or ''}#{google_maps_region_localization and '&amp;region=' + google_maps_region_localization or ''}"></script>
-        </t>
-        <t t-else="">
-            <script t-attf-src="https://maps.googleapis.com/maps/api/js?v=quarterly&amp;libraries=#{google_maps_libraries}#{google_maps_lang_localization and '&amp;language=' + google_maps_lang_localization or ''}#{google_maps_region_localization and '&amp;region=' + google_maps_region_localization or ''}"></script>
-        </t>
+        <script src="https://unpkg.com/@googlemaps/js-api-loader@1.15.1/dist/index.min.js"></script>
         <script src="https://unpkg.com/@googlemaps/markerclusterer/dist/index.min.js"></script>
     </template>
     <template id="webclient_bootstrap" name="webclient_bootstrap gmaps" inherit_id="web.webclient_bootstrap">

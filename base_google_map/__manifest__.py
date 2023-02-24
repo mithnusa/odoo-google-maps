@@ -13,12 +13,17 @@
     'website': 'https://github.com/mithnusa',
     'support': 'yopiangi@gmail.com',
     'category': 'Extra Tools',
-    'version': '16.0.1.0.0',
+    'version': '16.0.1.1.0',
     'depends': ['base_setup'],
     'data': [
         'views/res_config_settings.xml',
         'views/templates.xml',
     ],
+    'assets': {
+        'web.assets_backend': [
+            'base_google_map/static/src/utils/*.js',
+        ]
+    },
     'demo': [],
     'installable': True,
     'application': False,

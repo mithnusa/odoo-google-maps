@@ -42,7 +42,7 @@
             border-radius: 0 0.6rem 0.6rem 0;
         }
 
-        &:focus-within {
+        &:focus-within, &:focus {
             width: 350px;
         }
 

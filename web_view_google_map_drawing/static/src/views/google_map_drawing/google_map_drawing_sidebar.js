@@ -1,17 +1,14 @@
 /** @odoo-module **/
 
-import { Component, useState, onMounted } from '@odoo/owl';
+import { GoogleMapSidebar } from '@web_view_google_map/views/google_map/google_map_sidebar';
 
-export class GoogleMapsDrawingSidebar extends Component {
-    setup() {
-        // FIXME component reactivity
-        onMounted(() => this.render(true));
-    }
-
+export class GoogleMapsDrawingSidebar extends GoogleMapSidebar {
     getData(record) {
+        const title = this._getTitle(record) || record.data.gshape_name;
+        const subTitle = this._getSubtitle(record) || record.data.gshape_description;
         return {
-            title: record.data.gshape_name,
-            description: record.data.gshape_description,
+            title,
+            subTitle,
             hasShape: record.id in this.props.shapes || false,
             shape: this.props.shapes[record.id] || false,
         };
@@ -25,4 +22,6 @@ GoogleMapsDrawingSidebar.props = [
     'handlePointInMap',
     'records',
     'shapes',
+    'fieldTitle',
+    'fieldSubTitle',
 ];
