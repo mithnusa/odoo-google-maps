@@ -227,6 +227,12 @@ export class GoogleMapRenderer extends BaseGoogleMap {
                 ),
             },
         };
+        const title = this.props.fieldTitle
+            ? record.data[this.props.fieldTitle]
+            : record.data.name || record.data.display_name;
+        if (title) {
+            options['title'] = title;
+        }
         return new google.maps.Marker(options);
     }
 
@@ -271,9 +277,11 @@ export class GoogleMapRenderer extends BaseGoogleMap {
         if (marker) {
             this.googleMap.panTo(marker.getPosition());
             google.maps.event.addListenerOnce(this.googleMap, 'idle', () => {
-                google.maps.event.trigger(this.googleMap, 'resize');
                 if (this.googleMap.getZoom() < 13) this.googleMap.setZoom(13);
-                google.maps.event.trigger(marker, 'click');
+                // workaround for a case marker was inside cluster marker
+                setTimeout(() => {
+                    google.maps.event.trigger(marker, 'click');
+                }, 500);
             });
         }
     }
