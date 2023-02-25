@@ -227,8 +227,9 @@ export class GoogleMapRenderer extends BaseGoogleMap {
                 ),
             },
         };
-        const title = this.props.fieldTitle
-            ? record.data[this.props.fieldTitle]
+
+        const title = this.props.archInfo.sidebarTitleField
+            ? record.data[this.props.archInfo.sidebarTitleField]
             : record.data.name || record.data.display_name;
         if (title) {
             options['title'] = title;
