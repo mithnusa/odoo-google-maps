@@ -2,7 +2,7 @@
 <odoo>
     <template id="assets_gmaps" name="Google Maps Assets">
         <script src="https://unpkg.com/@googlemaps/js-api-loader@1.15.1/dist/index.min.js"></script>
-        <script src="https://unpkg.com/@googlemaps/markerclusterer/dist/index.min.js"></script>
+        <script src="https://unpkg.com/@googlemaps/markerclusterer@2.0.15/dist/index.min.js"></script>
     </template>
     <template id="webclient_bootstrap" name="webclient_bootstrap gmaps" inherit_id="web.webclient_bootstrap">
         <xpath expr="//t[@t-call-assets='web.assets_common']" position="before">
