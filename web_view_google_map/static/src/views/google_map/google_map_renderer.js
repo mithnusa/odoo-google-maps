@@ -276,13 +276,13 @@ export class GoogleMapRenderer extends BaseGoogleMap {
 
     pointInMap(marker) {
         if (marker) {
-            this.googleMap.panTo(marker.getPosition());
+            const position = marker.getPosition();
+            this.markerInfoWindow.close();
+            this.googleMap.panTo(position);
             google.maps.event.addListenerOnce(this.googleMap, 'idle', () => {
-                if (this.googleMap.getZoom() < 13) this.googleMap.setZoom(13);
-                // workaround for a case marker was inside cluster marker
-                setTimeout(() => {
-                    google.maps.event.trigger(marker, 'click');
-                }, 500);
+                google.maps.event.trigger(marker, 'click');
+                if (this.googleMap.getZoom() < 14) this.googleMap.setZoom(14);
+                this.markerInfoWindow.setPosition(position);
             });
         }
     }
