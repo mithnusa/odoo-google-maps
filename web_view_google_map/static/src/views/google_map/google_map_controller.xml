@@ -16,7 +16,7 @@
         <div t-if="props.showButtons" class="o_cp_buttons d-flex align-items-baseline" role="toolbar" aria-label="Main actions">
             <t t-if="canCreate">
                 <button type="button" class="btn btn-primary o-google_map-button-new" accesskey="c" t-on-click="() => this.createRecord()">
-                    Create
+                    New
                 </button>
             </t>
             <button type="button" class="btn btn-link btn-secondary o-google_map-button-center-map" t-on-click.prevent="() => this.centerMap()">

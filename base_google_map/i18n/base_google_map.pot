@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-02-08 16:41+0000\n"
-"PO-Revision-Date: 2023-02-08 16:41+0000\n"
+"POT-Creation-Date: 2023-02-25 16:03+0000\n"
+"PO-Revision-Date: 2023-02-25 16:03+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -37,6 +37,11 @@ msgstr ""
 
 #. module: base_google_map
 #: model:ir.model.fields.selection,name:base_google_map.selection__res_config_settings__google_maps_lang_localization__ar
+msgid "Arabic"
+msgstr ""
+
+#. module: base_google_map
+#: model:ir.model.fields.selection,name:base_google_map.selection__res_config_settings__google_maps_lang_localization__hy
 msgid "Armenian"
 msgstr ""
 
@@ -131,6 +136,13 @@ msgid "Croatian"
 msgstr ""
 
 #. module: base_google_map
+#. odoo-javascript
+#: code:addons/base_google_map/static/src/utils/base_google_map.js:0
+#, python-format
+msgid "Custom"
+msgstr ""
+
+#. module: base_google_map
 #: model:ir.model.fields.selection,name:base_google_map.selection__res_config_settings__google_maps_lang_localization__cs
 msgid "Czech"
 msgstr ""
@@ -153,6 +165,18 @@ msgstr ""
 #. module: base_google_map
 #: model:ir.model.fields.selection,name:base_google_map.selection__res_config_settings__google_maps_lang_localization__nl
 msgid "Dutch"
+msgstr ""
+
+#. module: base_google_map
+#: model_terms:ir.ui.view,arch_db:base_google_map.res_config_settings_view_form
+msgid ""
+"Enable Google Places Search Autocomplete in Google map. This feature "
+"required the “Places API” to be enabled in your Google API key."
+msgstr ""
+
+#. module: base_google_map
+#: model:ir.model.fields,field_description:base_google_map.field_res_config_settings__google_enable_map_place_search
+msgid "Enable Google Places search"
 msgstr ""
 
 #. module: base_google_map
@@ -465,7 +489,7 @@ msgstr ""
 
 #. module: base_google_map
 #: model_terms:ir.ui.view,arch_db:base_google_map.res_config_settings_view_form
-msgid "Set API keys and map localization"
+msgid "Set Google API key and map localization"
 msgstr ""
 
 #. module: base_google_map
@@ -543,12 +567,8 @@ msgstr ""
 
 #. module: base_google_map
 #: model:ir.model.fields,field_description:base_google_map.field_res_config_settings__google_maps_theme
-msgid "Theme"
-msgstr ""
-
-#. module: base_google_map
 #: model_terms:ir.ui.view,arch_db:base_google_map.res_config_settings_view_form
-msgid "Theme :"
+msgid "Theme"
 msgstr ""
 
 #. module: base_google_map

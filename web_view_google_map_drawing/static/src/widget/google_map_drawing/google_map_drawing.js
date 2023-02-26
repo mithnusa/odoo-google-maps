@@ -2,33 +2,23 @@
 
 import { registry } from '@web/core/registry';
 import { _lt } from '@web/core/l10n/translation';
-import { Component, useRef, useEffect, onRendered } from '@odoo/owl';
+import { onRendered } from '@odoo/owl';
 import { useService } from '@web/core/utils/hooks';
 import { standardFieldProps } from '@web/views/fields/standard_field_props';
 import { renderToString } from '@web/core/utils/render';
 
-import { MAP_THEMES } from '@web_view_google_map/views/google_map/utils';
+import { GoogleMapDrawingRenderer } from '../../views/google_map_drawing/google_map_drawing_renderer';
 
-export class GoogleMapDrawing extends Component {
+export class GoogleMapDrawing extends GoogleMapDrawingRenderer {
     setup() {
-        this.mapRef = useRef('map');
-        this.searchPlacesRef = useRef('searchPlaces');
-        this.rpc = useService('rpc');
-        this.user = useService('user');
+        super.setup();
         this.notification = useService('notification');
 
-        this.editColor = '#ffa187';
         this.displayColor = '#006ee5';
-        this.googleMap = null;
-        this.drawingManager = null;
+
         this.buttonDeleteEl = null;
         this.selectedShape = null;
-        this.isPlacesSearchEnable = null;
-        this.markerPlacesSearch = null;
-        this.placesAutocomplete = null;
-        this.shapes = {};
 
-        useEffect(() => this.renderGoogleMapDrawing());
         onRendered(() => {
             if (!this.props.value) {
                 Object.values(this.shapes).forEach((shape) => shape.setMap(null));
@@ -43,67 +33,12 @@ export class GoogleMapDrawing extends Component {
         });
     }
 
-    renderGooglePlaceSearch() {
-        if (this.isPlacesSearchEnable) {
-            if (!this.markerPlacesSearch) {
-                this.markerPlacesSearch = new google.maps.Marker({
-                    map: this.googleMap,
-                    anchorPoint: new google.maps.Point(0, -29),
-                });
-            } else {
-                this.markerPlacesSearch.setVisible(false);
-            }
-
-            if (!this.placesAutocomplete) {
-                this.placesAutocomplete = new google.maps.places.Autocomplete(
-                    this.searchPlacesRef.el.querySelector('input#search'),
-                    {
-                        fields: ['geometry', 'formatted_address'],
-                        strictBounds: false,
-                        types: ['establishment'],
-                    }
-                );
-
-                this.googleMap.controls[google.maps.ControlPosition.TOP_RIGHT].push(
-                    this.searchPlacesRef.el
-                );
-
-                this.placesAutocomplete.bindTo('bounds', this.googleMap);
-                google.maps.event.addListener(
-                    this.placesAutocomplete,
-                    'place_changed',
-                    this.handleSearchPlaceResult.bind(this)
-                );
-                this.markerInfoWindow = new google.maps.InfoWindow();
-            }
-        }
-    }
-
-    handleSearchPlaceResult() {
-        const place = this.placesAutocomplete.getPlace();
-        if (place) {
-            if (place.geometry.hasOwnProperty('viewport') && place.geometry.viewport) {
-                this.googleMap.fitBounds(place.geometry.viewport);
-            } else {
-                this.googleMap.panTo(place.geometry.location);
-            }
-            this.markerPlacesSearch.setPosition(place.geometry.location);
-            this.markerPlacesSearch.setVisible(true);
-
-            const para = document.createElement('p');
-            const node = document.createTextNode(place.formatted_address);
-            para.appendChild(node);
-
-            const divContent = document.createElement('div');
-            divContent.appendChild(para);
-
-            this.markerInfoWindow.setContent(divContent);
-            this.markerInfoWindow.open(this.googleMap, this.markerPlacesSearch);
-
-            this.markerInfoWindow.addListener('closeclick', () => {
-                this.markerPlacesSearch.setVisible(false);
-            });
-        }
+    /**
+     * override
+     */
+    renderMap() {
+        this.initialize();
+        this.renderGoogleMapDrawing();
     }
 
     _handleLoadShape() {
@@ -233,54 +168,20 @@ export class GoogleMapDrawing extends Component {
         return circle;
     }
 
-    _setMapTheme(style) {
-        if (
-            !Object.prototype.hasOwnProperty.call(MAP_THEMES, style) ||
-            ['default', 'line_drawing'].indexOf(style) >= 0
-        ) {
-            return;
-        }
-        const styledMapType = new google.maps.StyledMapType(MAP_THEMES[style], {
-            name: 'Styled Map',
-        });
-        this.googleMap.setOptions({
-            mapTypeControlOptions: {
-                mapTypeIds: ['roadmap', 'satellite', 'hybrid', 'terrain', 'drawing', 'styled_map'],
-            },
-        });
-        this.googleMap.mapTypes.set('styled_map', styledMapType);
-        this.googleMap.setMapTypeId('styled_map');
-    }
-
-    async getMapConf() {
-        const data = await this.rpc('/web/base_google_map/settings', {
-            context: this.user.context,
-        });
-        this.isPlacesSearchEnable = data.is_places_search_enable;
-        if (data.theme) {
-            this._setMapTheme(data.theme);
-        }
-        this.renderGooglePlaceSearch();
-    }
-
     _getGeneralOptions() {
+        const options = super._getGeneralOptions();
         return {
+            ...options,
             fillColor: this.editColor,
             strokeColor: '#fc6c44',
-            strokeOpacity: 0.85,
-            strokeWeight: 2.0,
-            fillOpacity: 0.45,
-            editable: true,
         };
     }
 
     _getCircleOptions() {
+        const options = super._getCircleOptions();
         return {
+            ...options,
             fillColor: this.editColor,
-            fillOpacity: 0.45,
-            strokeWeight: 0,
-            editable: true,
-            zIndex: 1,
         };
     }
 
@@ -321,15 +222,12 @@ export class GoogleMapDrawing extends Component {
             this.selectedShape.setMap(null);
             this.selectedShape = null;
         } else {
-            this.notification.add(
-                this.env._t('You have not selected a shape to delete'),
-                {
-                    type: 'warning',
-                }
-            );
+            this.notification.add(this.env._t('No shape selected to delete'), {
+                type: 'warning',
+            });
             this.notification.add(
                 this.env._t(
-                    'To select a shape, please click on any of the shapes that you have drawn'
+                    'Click on one of the shapes you have drawn to select a shape'
                 ),
                 { type: 'info' }
             );
@@ -442,23 +340,24 @@ export class GoogleMapDrawing extends Component {
         return values;
     }
 
+    /**
+     * Overwrite
+     * @returns {}
+     */
+    getMapOptions() {
+        return {
+            mapTypeId: google.maps.MapTypeId.ROADMAP,
+            center: { lat: 0, lng: 0 },
+            zoom: 4,
+            minZoom: 2,
+            maxZoom: 22,
+            fullscreenControl: true,
+            mapTypeControl: true,
+            gestureHandling: 'cooperative',
+        };
+    }
+
     renderGoogleMapDrawing() {
-        if (!this.googleMap) {
-            this.googleMap = new google.maps.Map(this.mapRef.el, {
-                mapTypeId: google.maps.MapTypeId.ROADMAP,
-                center: { lat: 0, lng: 0 },
-                zoom: 4,
-                gestureHandling: 'cooperative',
-            });
-            const mapThemeDrawing = new google.maps.StyledMapType(
-                MAP_THEMES['line_drawing'],
-                {
-                    name: 'Drawing',
-                }
-            );
-            this.googleMap.mapTypes.set('drawing', mapThemeDrawing);
-            this.getMapConf();
-        }
         if (!this.drawingManager) {
             const shapeOption = this._getGeneralOptions();
             const circleOption = this._getCircleOptions();
@@ -497,12 +396,12 @@ export class GoogleMapDrawing extends Component {
         const shape = event.overlay;
         if (this.selectedShape) {
             shape.setMap(null);
-            this.notification.add(this.env._t('Only one shape is allowed'), {
+            this.notification.add(this.env._t('Only one shape allowed'), {
                 type: 'warning',
             });
             this.notification.add(
                 this.env._t(
-                    'If you want to change the shape, please delete the one you are currently drawing'
+                    'If you want to change the shape, you will need to delete the shape that you are currently drawing'
                 ),
                 {
                     type: 'info',
@@ -551,6 +450,7 @@ export class GoogleMapDrawing extends Component {
     }
 }
 
+GoogleMapDrawing.components = {};
 GoogleMapDrawing.template = 'web_view_google_map_drawing.GoogleDrawingField';
 GoogleMapDrawing.defaultProps = {
     dynamicPlaceholder: false,

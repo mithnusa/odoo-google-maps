@@ -5,7 +5,11 @@ import { Component, useState, onMounted } from '@odoo/owl';
 export class GoogleMapSidebar extends Component {
     setup() {
         // FIXME component reactivity
-        onMounted(() => this.render(true));
+        onMounted(() => {
+            setTimeout(() => {
+                this.render(true);
+            }, 500);
+        });
     }
 
     _getDisplayName(record, fieldName, defaultLabel) {

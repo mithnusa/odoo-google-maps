@@ -1,65 +1,28 @@
 /** @odoo-module **/
 
+import { useRef, onMounted } from '@odoo/owl';
 import { registry } from '@web/core/registry';
 import { _lt } from '@web/core/l10n/translation';
+import { useInputField } from '@web/views/fields/input_field_hook';
 import { standardFieldProps } from '@web/views/fields/standard_field_props';
 import { formatChar } from '@web/views/fields/formatters';
-import { useInputField } from '@web/views/fields/input_field_hook';
-import { Component, onWillRender, useRef, onRendered } from '@odoo/owl';
-import { useService } from '@web/core/utils/hooks';
-import {
-    GOOGLE_PLACES_COMPONENT_FORM,
-    ADDRESS_FORM,
-    fetchValues,
-    gmaps_populate_address,
-    gmaps_populate_places,
-    fetchCountryState,
-} from '../utils';
 
-export class GooglePlaceAutocomplete extends Component {
+import { BaseGoogleAutocomplete } from '../base_google_autocomplete';
+
+export class GooglePlaceAutocomplete extends BaseGoogleAutocomplete {
     setup() {
+        super.setup();
         this.input = useRef('input');
-        this.rpc = useService('rpc');
-        this.user = useService('user');
-
-        this.places_autocomplete = false;
-        this.component_form = GOOGLE_PLACES_COMPONENT_FORM;
-        this.address_form = ADDRESS_FORM;
-        this.fillfields_delimiter = {
-            street: ' ',
-            street2: ', ',
-        };
-        // Fields to be filled when place/address is selected
-        this.fillfields = {};
-        // Longitude, field's name that hold longitude
-        this.fieldLng = false;
-        // Latitude, field's name that hold latitude
-        this.fieldLat = false;
-        // Google address form/places instance attribute to be assigned to the field
-        this.display_name = 'name';
-        // Utilize the default `fillfields` and then combined it with the fillfields options given if any
-        // or overwrite the default values and used the `fillfields` provided in the view options instead.
-        // This option will be applied only on `fillfields` and `address_form`
-        this.force_override = false;
-        this.autocomplete_settings = null;
 
         useInputField({
             getValue: () => this.props.value || '',
             parse: (v) => this.parse(v),
         });
-        onWillRender(this.defaultFillField);
-        onRendered(this.prepareOptions);
-    }
 
-    async fetchConfig() {
-        const data = await this.rpc('/web/base_google_map/settings', {
-            context: this.user.context,
+        onMounted(() => {
+            this.defaultFillField();
+            this.prepareOptions();
         });
-        if (data && 'language' in data) {
-            this.autocomplete_settings = {
-                language: data.language,
-            };
-        }
     }
 
     async onKeydownListener(ev) {
@@ -99,6 +62,7 @@ export class GooglePlaceAutocomplete extends Component {
     }
 
     defaultFillField() {
+        super.defaultFillField();
         this.fillfields = {
             general: {
                 name: 'name',
@@ -119,13 +83,6 @@ export class GooglePlaceAutocomplete extends Component {
             },
             geolocation: {},
         };
-        this.address_mode = 'address_format';
-        // Autocomplete request types
-        this.autocomplete_types = ['establishment'];
-    }
-
-    getGoogleFieldsRestriction() {
-        return ['address_components', 'name', 'geometry', 'formatted_address'];
     }
 
     getFillFieldsType() {
@@ -146,13 +103,10 @@ export class GooglePlaceAutocomplete extends Component {
     }
 
     async prepareOptions() {
+        super.prepareOptions();
         const { readonly, options } = this.props;
         if (!readonly) {
             if (options) {
-                if (options.hasOwnProperty('mode')) {
-                    console.warn('Option "mode" is not supported');
-                }
-
                 if (options.hasOwnProperty('force_override')) {
                     this.force_override = true;
                 }
@@ -186,52 +140,9 @@ export class GooglePlaceAutocomplete extends Component {
                         this.fillfields.geolocation = options.fillfields.geolocation;
                     }
                 }
-
-                if (options.hasOwnProperty('component_form')) {
-                    this.component_form = _.defaults(
-                        {},
-                        options.component_form,
-                        this.component_form
-                    );
-                }
-                if (options.hasOwnProperty('delimiter')) {
-                    this.fillfields_delimiter = _.defaults(
-                        {},
-                        options.delimiter,
-                        this.fillfields_delimiter
-                    );
-                }
-                if (options.hasOwnProperty('lat')) {
-                    this.fieldLat = options.lat;
-                }
-                if (options.hasOwnProperty('lng')) {
-                    this.fieldLng = options.lng;
-                }
-                if (options.hasOwnProperty('address_form')) {
-                    if (this.force_override) {
-                        this.address_form = options.address_form;
-                    } else {
-                        this.address_form = _.defaults(
-                            {},
-                            options.address_form,
-                            this.address_form
-                        );
-                    }
-                }
-                if (options.hasOwnProperty('display_name')) {
-                    this.display_name = options.display_name;
-                }
-                if (options.hasOwnProperty('mode')) {
-                    this.address_mode =
-                        ADDRESS_MODE.indexOf(options.mode) != -1
-                            ? options.mode
-                            : 'address_format';
-                }
             }
             this.target_fields = this.getFillFieldsType();
-            await this.fetchConfig();
-            await this.initGplacesAutocomplete();
-            this._geolocate();
+            this.initGplacesAutocomplete(this.input);
         }
     }
 
@@ -244,61 +155,6 @@ export class GooglePlaceAutocomplete extends Component {
             'international_phone_number',
             'formatted_phone_number',
         ];
-    }
-
-    _geolocate() {
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition((position) => {
-                const geolocation = {
-                    lat: position.coords.latitude,
-                    lng: position.coords.longitude,
-                };
-
-                const circle = new google.maps.Circle({
-                    center: geolocation,
-                    radius: position.coords.accuracy,
-                });
-
-                this.places_autocomplete.setBounds(circle.getBounds());
-            });
-        }
-    }
-
-    _prepareValue(model, field_name, value) {
-        model = typeof model !== 'undefined' ? model : false;
-        field_name = typeof field_name !== 'undefined' ? field_name : false;
-        value = typeof value !== 'undefined' ? value : false;
-        return fetchValues(this.env.model.orm, model, field_name, value);
-    }
-
-    _preparePlace(place, fill_fields) {
-        place = typeof place !== 'undefined' ? place : false;
-        fill_fields = typeof fill_fields !== 'undefined' ? fill_fields : false;
-        return gmaps_populate_places(place, fill_fields);
-    }
-
-    _prepareAddress(place, fill_fields, delimiter) {
-        place = typeof place !== 'undefined' ? place : false;
-        fill_fields =
-            typeof fill_fields !== 'undefined' ? fill_fields : this.fillfields;
-        delimiter =
-            typeof delimiter !== 'undefined' ? delimiter : this.fillfields_delimiter;
-        return gmaps_populate_address(place, fill_fields, delimiter);
-    }
-
-    _fetchCountryState(model, country, state) {
-        model = typeof model !== 'undefined' ? model : false;
-        country = typeof country !== 'undefined' ? country : false;
-        state = typeof state !== 'undefined' ? state : false;
-        return fetchCountryState(this.env.model.orm, model, country, state);
-    }
-
-    async setCountryState(model, country, state) {
-        if (model && country && state) {
-            const result = await this._fetchCountryState(model, country, state);
-            const value = { [this.address_form.state_id]: Object.values(result) };
-            this._update(value);
-        }
     }
 
     _prepareGeolocation(lat, lng) {
@@ -314,32 +170,6 @@ export class GooglePlaceAutocomplete extends Component {
             });
         }
         return res;
-    }
-
-    initGplacesAutocomplete() {
-        return new Promise((resolve) => {
-            setTimeout(() => {
-                if (!this.places_autocomplete) {
-                    const google_fields = this.getGoogleFieldsRestriction();
-                    this.places_autocomplete = new google.maps.places.Autocomplete(
-                        this.input.el,
-                        {
-                            types: this.autocomplete_types,
-                            fields: google_fields,
-                        }
-                    );
-                    if (this.autocomplete_settings) {
-                        this.places_autocomplete.setOptions(this.autocomplete_settings);
-                    }
-                    this.places_autocomplete.addListener(
-                        'place_changed',
-                        this.handlePopulateAddress.bind(this)
-                    );
-                }
-                // When the user selects an address from the dropdown, populate the address fields in the form.
-                resolve(this);
-            }, 100);
-        });
     }
 
     async populateAddress(place) {
@@ -399,37 +229,6 @@ export class GooglePlaceAutocomplete extends Component {
             const state_code = google_address[this.address_form.state_id];
             await this.setCountryState(field_state.relation, country, state_code);
         }
-    }
-
-    handlePopulateAddress() {
-        const place = this.places_autocomplete.getPlace();
-        if (this.address_mode === 'no_address_format') {
-            const geoValues = this._prepareGeolocation(
-                place.geometry.location.lat(),
-                place.geometry.location.lng()
-            );
-            if (geoValues) {
-                geoValues[this.props.name] = formatChar(place.formatted_address);
-                this._update(geoValues);
-            }
-        } else if (place.hasOwnProperty('address_components')) {
-            this.populateAddress(place);
-        }
-    }
-
-    _update(values) {
-        this.props.record.update(values);
-    }
-
-    get formattedValue() {
-        return formatChar(this.props.value, { isPassword: false });
-    }
-
-    parse(value) {
-        if (this.props.shouldTrim) {
-            return value.trim();
-        }
-        return value;
     }
 }
 

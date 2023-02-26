@@ -1,17 +1,17 @@
 /** @odoo-module **/
 
 import { renderToString } from '@web/core/utils/render';
+import { _lt } from '@web/core/l10n/translation';
 import { onWillDestroy, onWillUpdateProps } from '@odoo/owl';
 import { GoogleMapRenderer } from '@web_view_google_map/views/google_map/google_map_renderer';
 import { GoogleMapsDrawingSidebar } from './google_map_drawing_sidebar';
-import { MAP_THEMES } from '@web_view_google_map/views/google_map/utils';
+import { MAP_THEMES } from '@base_google_map/utils/themes';
 
 export class GoogleMapDrawingRenderer extends GoogleMapRenderer {
     setup() {
         super.setup();
         this.editColor = '#ffa187';
         this.drawingManager = null;
-        this.shapesBounds = new google.maps.LatLngBounds();
         this.shapes = {};
         this.prevShapeSelected = null;
         this.currentShapeSelected = null;
@@ -33,33 +33,31 @@ export class GoogleMapDrawingRenderer extends GoogleMapRenderer {
      * @override
      */
     renderMap() {
+        this.shapesBounds = new google.maps.LatLngBounds();
         this.initialize();
         this.initializeDrawing();
         this.renderShapes();
         this.centerMap();
+        this.handleSearchPlaceBounds();
     }
 
     /**
      * @override
      */
-    _setMapTheme(style) {
-        if (
-            !Object.prototype.hasOwnProperty.call(MAP_THEMES, style) ||
-            ['default', 'line_drawing'].indexOf(style) >= 0
-        ) {
-            return;
-        }
-        const styledMapType = new google.maps.StyledMapType(MAP_THEMES[style], {
-            name: 'Styled Map',
-        });
+    setMapTheme() {
+        super.setMapTheme();
         this.googleMap.setOptions({
             mapTypeControlOptions: {
-                mapTypeIds: ['roadmap', 'satellite', 'hybrid', 'terrain', 'drawing', 'styled_map'],
+                mapTypeIds: [
+                    'roadmap',
+                    'satellite',
+                    'hybrid',
+                    'terrain',
+                    'drawing',
+                    'styled_map',
+                ],
             },
         });
-        // Associate the styled map with the MapTypeId and set it to display.
-        this.googleMap.mapTypes.set('styled_map', styledMapType);
-        this.googleMap.setMapTypeId('styled_map');
     }
 
     /**
@@ -70,7 +68,7 @@ export class GoogleMapDrawingRenderer extends GoogleMapRenderer {
         const mapThemeDrawing = new google.maps.StyledMapType(
             MAP_THEMES['line_drawing'],
             {
-                name: 'Drawing',
+                name: _lt('Drawing'),
             }
         );
         this.googleMap.mapTypes.set('drawing', mapThemeDrawing);
@@ -320,6 +318,8 @@ export class GoogleMapDrawingRenderer extends GoogleMapRenderer {
             string: this.props.archInfo.viewTitle,
             records: this.props.list.records,
             shapes: this.shapes,
+            fieldTitle: this.props.archInfo.sidebarTitleField,
+            fieldSubtitle: this.props.archInfo.sidebarSubtitleField,
         };
     }
 }

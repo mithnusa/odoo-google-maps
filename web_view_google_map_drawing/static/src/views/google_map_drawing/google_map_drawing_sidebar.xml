@@ -16,7 +16,7 @@
                             <br/>
                             <i class="fa fa-map-marker" t-if="data.hasShape"></i>
                             <span>  </span>
-                            <small class="text-muted" t-esc="data.description" t-if="data.description"/>
+                            <small class="text-muted" t-esc="data.subTitle" t-if="data.subTitle"/>
                         </a>
                         <button type="button" class="btn btn-sm btn-light" id="open-record" data-toggle="tooltip" title="Open form" t-on-click.prevent="() => props.handleOpenRecord(record)">
                             <i class="fa fa-wpforms"></i>

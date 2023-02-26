@@ -365,8 +365,9 @@ div[name="base_google_map"] {
         padding-right: 10px;
     }
     div[name="google_maps_theme"] {
-        max-height: 600px;
+        max-height: 370px;
         overflow-x: scroll;
+        width: 220px;
 
         .o_radio_item {
             .o_form_label {
