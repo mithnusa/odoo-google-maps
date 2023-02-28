@@ -23,5 +23,5 @@ GoogleMapsDrawingSidebar.props = [
     'records',
     'shapes',
     'fieldTitle',
-    'fieldSubTitle',
+    'fieldSubtitle',
 ];
