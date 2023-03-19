@@ -146,6 +146,10 @@ class ResConfigSettings(models.TransientModel):
         string='Enable Google Places search',
         config_parameter='base_google_map.enable_map_place_search',
     )
+    google_maps_version = fields.Char(
+        string='Version',
+        config_parameter='base_google_map.version',
+    )
 
     @api.onchange('google_maps_lang_localization')
     def onchange_lang_localization(self):
