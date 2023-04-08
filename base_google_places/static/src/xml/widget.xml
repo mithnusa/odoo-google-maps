@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+    <t t-name="GplacePhotosGallery">
+        <t t-if="photos.length > 0">
+            <div id="carousel-places-photos" class="carousel slide" data-ride="carousel">
+                <t t-set="i" t-value="1"/>
+                <ol class="carousel-indicators">
+                    <t t-foreach="photos" t-as="item">
+                        <li data-target="#carousel-places-photos" t-att-data-slide-to="i" t-attf-class="#{i == 1 ? 'active' : ''}"></li>
+                        <t t-set="i" t-value=" i+1"/>
+                    </t>
+                </ol>
+                <div class="carousel-inner">
+                    <t t-set="j" t-value="1"/>
+                    <t t-foreach="photos" t-as="photo_url">
+                        <div t-attf-class="carousel-item #{j == 1 ? 'active' : ''}">
+                            <img alt="Place image" t-att-class="widget.className" t-att-src="photo_url" height="300" style="max-height:300px;"/>
+                        </div>
+                        <t t-set="j" t-value="j+1"/>
+                    </t>
+                </div>
+                <a class="carousel-control-prev" href="#carousel-places-photos" role="button" data-slide="prev">
+                    <span class="fa fa-arrow-circle-left fa-2x" role="img"></span>
+                </a>
+                <a class="carousel-control-next" href="#carousel-places-photos" role="button" data-slide="next">
+                    <span class="fa fa-arrow-circle-right fa-2x" role="img"></span>
+                </a>
+            </div>
+        </t>
+        <t t-if="photos.length == 0">
+            <span class="text-muted">No Picture</span>
+        </t>
+    </t>
+    <t t-name="GoogleMapView.MapViewSearchPlaces" t-extend="GoogleMapView.MapView">
+        <t t-jquery="div.o_google_map_view" t-operation="before">
+            <div class="o_map_left_sidenav closed">
+                <div class="sidenav-body">
+                    <div class="d-flex" style="padding: 6px;">
+                        <input class="form-control form-control-lg" id="searchinputbox" type="text" placeholder="Search Google Maps"/>
+                    </div>
+                    <div class="search-result">
+                        <div id="content"></div>
+                    </div>
+                </div>
+                <div class="toggle_left_sidenav">
+                    <button data-toggle="tooltip" data-placement="right" title="Expand side panel"></button>
+                </div>
+            </div>
+        </t>
+    </t>
+    <t t-name="GoogleMapView.SearchPlacesResult">
+        <div class="mt-3">
+            <t t-if="places_total == 1">
+                <t t-set="place" t-value="places[0]"/>
+                <t t-set="photo_url" t-value="funcGetPhoto(place.photos, 'medium')"/>
+                <div class="container">
+                    <div class="card">
+                        <img class="img-fluid card-img-top" t-att-src="photo_url" alt="Place image"/>
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <t t-esc="place.name"/>
+                            </h5>
+                            <t t-if="place.rating">
+                                <div>
+                                    <span>
+                                        <t t-esc="place.rating"/>
+                                    </span>
+                                    <span class="place-stars" t-attf-style="--rating: {{place.rating}};" t-attf-title="Rating of this place is {{place.rating}} out of 5." t-attf-aria-label="Rating of this place is {{place.rating}} out of 5."></span>
+                                    <span title="Number of user rating">(<t t-esc="place.user_ratings_total"/>)</span>
+                                </div>
+                            </t>
+                            <t t-else="">
+                                <div>
+                                    <span>0</span>
+                                    <span class="place-stars" t-attf-style="--rating: 0;" title="No rating" aria-label="No rating"></span>
+                                    <span title="No user rating">(0)</span>
+                                </div>
+                            </t>
+                            <t t-if="place.types">
+                                <h6 class="card-subtitle mb-2 mt-2 text-muted">
+                                    <t t-foreach="place.types" t-as="ptype">
+                                        <span class="badge badge-pill badge-light">
+                                            <t t-esc="ptype"/>
+                                        </span>
+                                    </t>
+                                </h6>
+                            </t>
+                            <p class="card-text">
+                                <t t-if="place.vicinity">
+                                    <span t-esc="place.vicinity"/>
+                                </t>
+                                <t t-else="">
+                                    <span t-esc="place.formatted_address"/>
+                                </t>
+                            </p>
+                            <p t-if="place.business_status == 'CLOSED_TEMPORARILY'" class="card-text">
+                                <span style="color:red;">Temporarily closed</span>
+                            </p>
+                            <a t-attf-href="https://www.google.com/maps/search/?api=1&amp;query={{place.formatted_address or place.name}}&amp;query_place_id={{place.place_id}}" target="_blank" class="card-link">View on Google Maps</a>
+                            <a href="#" id="search-result-add" t-attf-data-placeid="#{place.place_id}" class="card-link">Add to contact</a>
+                        </div>
+                    </div>
+                </div>
+            </t>
+            <t t-else="">
+                <div class="list-group mb-5">
+                    <t t-foreach="places" t-as="place">
+                        <t t-set="photo_url" t-value="funcGetPhoto(place.photos)"/>
+                        <div class="list-group-item list-group-item-action flex-column align-items-start">
+                            <div class="d-flex w-100">
+                                <span t-if="photo_url">
+                                    <img t-att-src="photo_url" class="img-fluid img-thumbnail" t-att-alt="place.name"/>
+                                </span>
+                                <div class="d-flex flex-column flex-nowrap pl-2" id="place-item" t-attf-data-placeid="#{place.place_id}">
+                                    <h5 class="mb-1">
+                                        <t t-esc="place.name"/>
+                                    </h5>
+                                    <t t-if="place.rating">
+                                        <div>
+                                            <span>
+                                                <t t-esc="place.rating"/>
+                                            </span>
+                                            <span class="place-stars" t-attf-style="--rating: {{place.rating}};" t-attf-title="Rating of this place is {{place.rating}} out of 5." t-attf-aria-label="Rating of this place is {{place.rating}} out of 5."></span>
+                                            <span title="Number of user rating">(<t t-esc="place.user_ratings_total"/>)</span>
+                                        </div>
+                                    </t>
+                                    <t t-else="">
+                                        <div>
+                                            <span>0</span>
+                                            <span class="place-stars" t-attf-style="--rating: 0;" title="No rating" aria-label="No rating"></span>
+                                            <span title="No user rating">(0)</span>
+                                        </div>
+                                    </t>
+                                    <t t-if="place.business_status == 'CLOSED_TEMPORARILY'">
+                                        <small style="color:red;">Temporarily closed</small>
+                                    </t>
+                                </div>
+                            </div>
+                            <t t-if="place.types">
+                                <h6 class="card-subtitle mb-2 mt-2 text-muted">
+                                    <t t-foreach="place.types" t-as="ptype">
+                                        <span class="badge badge-pill badge-light">
+                                            <t t-esc="ptype"/>
+                                        </span>
+                                    </t>
+                                </h6>
+                            </t>
+                            <t t-if="place.vicinity">
+                                <p>
+                                    <i class="fa fa-map-pin"></i>
+                                    <span t-esc="place.vicinity"/>
+                                </p>
+                            </t>
+                            <t t-else="">
+                                <p>
+                                    <i class="fa fa-map-pin"></i>
+                                    <span t-esc="place.formatted_address"/>
+                                </p>
+                            </t>
+                            <div class="d-flex w-100 justify-content-around">
+                                <a class="btn btn-sm btn-light" t-attf-href="https://www.google.com/maps/search/?api=1&amp;query={{place.formatted_address or place.name}}&amp;query_place_id={{place.place_id}}" target="_blank">
+                                    <i class="fa fa-external-link-square"></i>
+                                    <span>View on Google Maps</span>
+                                </a>
+                                <a href="#" class="btn btn-sm btn-primary" id="search-result-add" t-attf-data-placeid="#{place.place_id}">
+                                    <i class="fa fa-plus-circle"></i>
+                                    <span>Add</span>
+                                </a>
+                            </div>
+                        </div>
+                    </t>
+                </div>
+                <div class="d-flex w-100" style="bottom: 0; position: fixed; padding: 2px; z-index: 10;">
+                    <button type="button" class="btn btn-info btn-block o_hidden" id="search-more">Next page</button>
+                </div>
+            </t>
+        </div>
+    </t>
+    <t t-name="GoogleMapView.SearchButtonUpdateBounds">
+        <div>
+            <div class="search_this_area">
+                <button class="btn btn-sm btn-secondary mt-2" id="search" type="button">
+                    <i class="fa fa-search"></i>
+                    <span>Search this area</span>
+                </button>
+                <button class="btn btn-sm btn-secondary mt-2" id="clear" type="button">
+                    <i class="fa fa-times"></i>
+                    <span>Clear</span>
+                </button>
+            </div>
+        </div>
+    </t>
+    <t t-name="GoogleMapView.FormUnknownPlace">
+        <form>
+            <div class="form-group">
+                <label for="unknown_name">Name</label>
+                <input type="text" class="form-control" name="unknown_name" id="unknown_name" t-att-value="place_name"/>
+            </div>
+            <div class="form-group">
+                <label for="address">Address</label>
+                <input type="text" class="form-control" id="address" readonly="1" disabled="1" t-att-value="address"/>
+            </div>
+        </form>
+    </t>
+    <t t-name="GoogleMapView.PlaceCreationIndicator">
+        <div class="place-creation-indicator">
+            <div class="place_creation_indicator">
+                <button class="btn btn-sm btn-light mt-2" disabled="1" type="button" title="Zoom in until the color changed to yellow. Yellow means you can add any location or place to your record simply by click the location">
+                    <i class="fa fa-lightbulb-o fa-2x"></i>
+                </button>
+            </div>
+        </div>
+    </t>
+</templates>

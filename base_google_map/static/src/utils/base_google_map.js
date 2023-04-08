@@ -23,11 +23,18 @@ export class BaseGoogleMap extends Component {
         if (!this.loader) {
             const settings = await this._fetchSettings();
             this.settings = { ...settings };
-            this.loader = new google.maps.plugins.loader.Loader({
+            const loaderOptions = {
                 apiKey: settings.api_key,
                 version: settings.version,
                 libraries: settings.libraries,
-            });
+            };
+            if (settings.region) {
+                loaderOptions.region = settings.region;
+            }
+            if (settings.language) {
+                loaderOptions.language = settings.language;
+            }
+            this.loader = new google.maps.plugins.loader.Loader(loaderOptions);
         }
     }
 
@@ -119,7 +126,7 @@ export class BaseGoogleMap extends Component {
     }
 
     handleSearchPlaceBounds() {
-        if (this.placesAutocomplete) {
+        if (this.placesAutocomplete && this.googleMap) {
             this.placesAutocomplete.bindTo('bounds', this.googleMap);
         }
     }
