@@ -15,16 +15,21 @@ export class GoogleMapDrawingRenderer extends GoogleMapRenderer {
         this.shapes = {};
         this.prevShapeSelected = null;
         this.currentShapeSelected = null;
+        this.shapesBounds = null;
 
         onWillDestroy(() => {
             if (this.shapes) {
-                Object.values(this.shapes).forEach((shape) => shape.setMap(null));
+                Object.keys(this.shapes).forEach((key) =>
+                    this._deleteShapeInCache(key)
+                );
             }
         });
 
         onWillUpdateProps(() => {
             if (this.shapes) {
-                Object.values(this.shapes).forEach((shape) => shape.setMap(null));
+                Object.keys(this.shapes).forEach((key) =>
+                    this._deleteShapeInCache(key)
+                );
             }
         });
     }
@@ -32,13 +37,13 @@ export class GoogleMapDrawingRenderer extends GoogleMapRenderer {
     /**
      * @override
      */
-    renderMap() {
+    renderMap(isCentered) {
         this.shapesBounds = new google.maps.LatLngBounds();
-        this.initialize();
-        this.initializeDrawing();
         this.renderShapes();
-        this.centerMap();
-        this.handleSearchPlaceBounds();
+
+        if (isCentered) {
+            this.centerMap();
+        }
     }
 
     /**
@@ -72,6 +77,7 @@ export class GoogleMapDrawingRenderer extends GoogleMapRenderer {
             }
         );
         this.googleMap.mapTypes.set('drawing', mapThemeDrawing);
+        this.initializeDrawing();
     }
 
     _getGeneralOptions() {
@@ -137,6 +143,13 @@ export class GoogleMapDrawingRenderer extends GoogleMapRenderer {
         }
     }
 
+    _deleteShapeInCache(shape_key) {
+        if (shape_key in this.shapes) {
+            this.shapes[shape_key].setMap(null);
+            delete this.shapes[shape_key];
+        }
+    }
+
     renderShapes() {
         this.props.list.records.forEach((record) => this.renderShape(record));
     }
@@ -159,9 +172,7 @@ export class GoogleMapDrawingRenderer extends GoogleMapRenderer {
     }
 
     _handleDrawPolygon(record, options) {
-        if (record.id in this.shapes) {
-            this.shapes[record.id].setMap(null);
-        }
+        this._deleteShapeInCache(record.id);
         const styleOption = this._getBaseColorOptions();
         const polygon = new google.maps.Polygon(styleOption);
         polygon.setOptions({ ...options, map: this.googleMap });
@@ -180,9 +191,7 @@ export class GoogleMapDrawingRenderer extends GoogleMapRenderer {
     }
 
     _handleDrawRectangle(record, options) {
-        if (record.id in this.shapes) {
-            this.shapes[record.id].setMap(null);
-        }
+        this._deleteShapeInCache(record.id);
         const styleOption = this._getBaseColorOptions();
         const rectangle = new google.maps.Rectangle(styleOption);
         rectangle.setOptions({ ...options, map: this.googleMap, draggable: false });
@@ -197,9 +206,7 @@ export class GoogleMapDrawingRenderer extends GoogleMapRenderer {
     }
 
     _handleDrawCircle(record, options) {
-        if (record.id in this.shapes) {
-            this.shapes[record.id].setMap(null);
-        }
+        this._deleteShapeInCache(record.id);
         const styleOption = this._getBaseColorOptions();
         const circle = new google.maps.Circle(styleOption);
         circle.setOptions({ ...options, map: this.googleMap, draggable: false });
@@ -215,7 +222,11 @@ export class GoogleMapDrawingRenderer extends GoogleMapRenderer {
 
     getShapeContent(record) {
         const content = renderToString('web_view_google_map_drawing.ShapeInfoWindow', {
-            record: record.id,
+            record: JSON.stringify({
+                id: record.id,
+                resId: record.resId,
+                resModel: record.resModel,
+            }),
             title: record.data.gshape_name,
             description: record.data.gshape_description,
         });
@@ -227,10 +238,19 @@ export class GoogleMapDrawingRenderer extends GoogleMapRenderer {
         divContent.querySelector('#btn-open_form').addEventListener(
             'click',
             (ev) => {
-                const dataId = ev.target.getAttribute('data-record') || null;
-                const record = this.props.list.records.find((r) => r.id === dataId);
-                if (record) {
-                    this.props.openRecord(record);
+                const data = ev.target.getAttribute('data-record') || null;
+                if (data) {
+                    const values = JSON.parse(data);
+                    if ('openRecordDialog' in this.props) {
+                        this.props.openRecordDialog(values);
+                    } else {
+                        const record = this.props.list.records.find(
+                            (r) => r.id === values.id
+                        );
+                        if (record) {
+                            this.props.openRecord(record);
+                        }
+                    }
                 }
             },
             false
@@ -255,7 +275,7 @@ export class GoogleMapDrawingRenderer extends GoogleMapRenderer {
 
     centerMap() {
         const mapBounds = new google.maps.LatLngBounds();
-        if (!this.shapesBounds.isEmpty()) {
+        if (this.shapesBounds && !this.shapesBounds.isEmpty()) {
             mapBounds.union(this.shapesBounds);
         }
         this.googleMap.fitBounds(mapBounds);

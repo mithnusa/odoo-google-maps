@@ -2,7 +2,7 @@
 
 import { registry } from '@web/core/registry';
 import { _lt } from '@web/core/l10n/translation';
-import { onRendered } from '@odoo/owl';
+import { onWillUpdateProps } from '@odoo/owl';
 import { useService } from '@web/core/utils/hooks';
 import { standardFieldProps } from '@web/views/fields/standard_field_props';
 import { renderToString } from '@web/core/utils/render';
@@ -15,17 +15,16 @@ export class GoogleMapDrawing extends GoogleMapDrawingRenderer {
         this.notification = useService('notification');
 
         this.displayColor = '#006ee5';
-
-        this.buttonDeleteEl = null;
+        this.customControl = null;
         this.selectedShape = null;
 
-        onRendered(() => {
+        onWillUpdateProps((_nextProps) => {
+            // on page changed, disable the shape already drawn before
             if (!this.props.value) {
                 Object.values(this.shapes).forEach((shape) => shape.setMap(null));
             } else {
-                const currentShape = JSON.parse(this.props.value);
                 for (const [key, shape] of Object.entries(this.shapes)) {
-                    if (key !== currentShape) {
+                    if (key !== this.props.value) {
                         shape.setMap(null);
                     }
                 }
@@ -36,17 +35,20 @@ export class GoogleMapDrawing extends GoogleMapDrawingRenderer {
     /**
      * override
      */
-    renderMap() {
-        this.initialize();
-        this.renderGoogleMapDrawing();
+    renderMap(_isCentered) {
+        this._handleLoadShape();
     }
 
+    /**
+     * Load the shape from cache if any, otherwise create a new one
+     */
     _handleLoadShape() {
         const value = this.props.value;
         if (value) {
             if (this.shapes[value]) {
                 const shape = this.shapes[value];
-                if (!shape.getMap()) {
+                const shapeMap = shape.getMap();
+                if (!shapeMap) {
                     shape.setMap(this.googleMap);
                 }
                 if (shape.type === 'polygon') {
@@ -61,6 +63,7 @@ export class GoogleMapDrawing extends GoogleMapDrawingRenderer {
                     const shape = JSON.parse(value);
                     this._handleShapeToDraw(shape);
                 } catch (error) {
+                    console.warn(error);
                     this.notification.add(
                         this.env._t(
                             'Something went wrong, the shape cannot be drawn on the map. Please contact administrator'
@@ -72,6 +75,38 @@ export class GoogleMapDrawing extends GoogleMapDrawingRenderer {
         }
     }
 
+    _storeInCache(shape) {
+        const value = {
+            type: shape.type,
+        };
+
+        if (shape.type === 'rectangle') {
+            const directions = shape.getBounds().toJSON();
+            value.options = {
+                bounds: directions,
+            };
+        } else if (shape.type === 'polygon') {
+            const paths = shape.getPath();
+            value.options = {
+                paths: paths.getArray().map((item) => ({
+                    lat: item.lat(),
+                    lng: item.lng(),
+                })),
+            };
+        } else if (shape.type === 'circle') {
+            const radius = shape.getRadius();
+            const center = shape.getCenter();
+            value.options = {
+                radius: radius,
+                center: {
+                    lat: center.lat(),
+                    lng: center.lng(),
+                },
+            };
+        }
+        this.shapes[JSON.stringify(value)] = shape;
+    }
+
     _handleShapeToDraw(shape) {
         if (shape.type === 'polygon') {
             const polygon = this._handleDrawPolygon(shape.options);
@@ -80,7 +115,7 @@ export class GoogleMapDrawing extends GoogleMapDrawingRenderer {
                 fillColor: this.displayColor,
             });
             polygon.type = 'polygon';
-            this.shapes[JSON.stringify(shape)] = polygon;
+            this._storeInCache(polygon);
             const selectedShape = polygon;
             google.maps.event.addListener(
                 selectedShape,
@@ -90,12 +125,12 @@ export class GoogleMapDrawing extends GoogleMapDrawingRenderer {
         } else if (shape.type === 'rectangle') {
             const rectangle = this._handleDrawRectangle(shape.options);
             rectangle.setOptions({
-                draggable: true,
+                draggable: false,
                 strokeColor: this.displayColor,
                 fillColor: this.displayColor,
             });
             rectangle.type = 'rectangle';
-            this.shapes[JSON.stringify(shape)] = rectangle;
+            this._storeInCache(rectangle);
             const selectedShape = rectangle;
 
             google.maps.event.addListener(
@@ -106,11 +141,12 @@ export class GoogleMapDrawing extends GoogleMapDrawingRenderer {
         } else if (shape.type === 'circle') {
             const circle = this._handleDrawCircle(shape.options);
             circle.setOptions({
-                draggable: true,
+                draggable: false,
                 strokeColor: this.displayColor,
                 fillColor: this.displayColor,
             });
             circle.type = 'circle';
+            this._storeInCache(circle);
             this.shapes[JSON.stringify(shape)] = circle;
             const selectedShape = circle;
             google.maps.event.addListener(
@@ -196,22 +232,22 @@ export class GoogleMapDrawing extends GoogleMapDrawingRenderer {
         };
     }
 
-    _renderButtonDelete() {
-        if (!this.buttonDeleteEl) {
+    _renderMapCustomControl() {
+        if (!this.customControl) {
             const content = renderToString(
                 'web_view_google_map_drawing.ButtonActionDelete',
                 {}
             );
-            this.buttonDeleteEl = new DOMParser()
+            this.customControl = new DOMParser()
                 .parseFromString(content, 'text/html')
                 .querySelector('div');
             this.googleMap.controls[google.maps.ControlPosition.BOTTOM_CENTER].push(
-                this.buttonDeleteEl
+                this.customControl
             );
-            this.buttonDeleteEl
+            this.customControl
                 .querySelector('#delete')
                 .addEventListener('click', this._actionDelete.bind(this), false);
-            this.buttonDeleteEl
+            this.customControl
                 .querySelector('#save')
                 .addEventListener('click', this._actionSave.bind(this), false);
         }
@@ -260,8 +296,10 @@ export class GoogleMapDrawing extends GoogleMapDrawingRenderer {
 
     _saveChanges(values) {
         if (values) {
+            this.props.update(values[this.props.name]);
+            this._storeInCache(this.selectedShape);
+            delete values[this.props.name];
             this.props.record.update(values);
-            this.shapes[JSON.stringify(values[this.props.name])] = this.selectedShape;
             this.selectedShape.setOptions({
                 editable: false,
                 strokeColor: this.displayColor,
@@ -278,13 +316,6 @@ export class GoogleMapDrawing extends GoogleMapDrawingRenderer {
     _handleSavePolygon() {
         const paths = this.selectedShape.getPath();
         const area = google.maps.geometry.spherical.computeArea(paths);
-        const paths_latLng = [];
-        paths.forEach((item) => {
-            paths_latLng.push({
-                lat: item.lat(),
-                lng: item.lng(),
-            });
-        });
         const values = {
             gshape_type: this.selectedShape.type,
             gshape_area: area,
@@ -293,7 +324,10 @@ export class GoogleMapDrawing extends GoogleMapDrawingRenderer {
         const shape_paths = {
             type: this.selectedShape.type,
             options: {
-                paths: paths_latLng,
+                paths: paths.getArray().map((item) => ({
+                    lat: item.lat(),
+                    lng: item.lng(),
+                })),
             },
         };
         values[this.props.name] = JSON.stringify(shape_paths);
@@ -357,7 +391,11 @@ export class GoogleMapDrawing extends GoogleMapDrawingRenderer {
         };
     }
 
-    renderGoogleMapDrawing() {
+    /**
+     * Overwrite
+     * Instantiate Drawing Manager with edit options
+     */
+    initializeDrawing() {
         if (!this.drawingManager) {
             const shapeOption = this._getGeneralOptions();
             const circleOption = this._getCircleOptions();
@@ -387,8 +425,7 @@ export class GoogleMapDrawing extends GoogleMapDrawingRenderer {
                 this._clearSelectedShape.bind(this)
             );
         }
-        this._renderButtonDelete();
-        this._handleLoadShape();
+        this._renderMapCustomControl();
     }
 
     handleOverlayComplete(event) {
@@ -422,8 +459,10 @@ export class GoogleMapDrawing extends GoogleMapDrawingRenderer {
 
     handleSetSelectedShape(shape) {
         this.selectedShape = shape;
-        this.selectedShape.setEditable(true);
         const options = this._getSelectedOptions();
+        if (['circle', 'rectangle'].indexOf(this.selectedShape.type) >= 0) {
+            options.draggable = true;
+        }
         this.selectedShape.setOptions(options);
     }
 

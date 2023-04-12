@@ -1,11 +1,18 @@
 /** @odoo-module **/
 
-import { useRef, useEffect, useState } from '@odoo/owl';
+import {
+    useRef,
+    useEffect,
+    useState,
+    onMounted,
+    onRendered,
+    onWillUpdateProps,
+} from '@odoo/owl';
 import { Pager } from '@web/core/pager/pager';
 import { renderToString } from '@web/core/utils/render';
 import { Widget } from '@web/views/widgets/widget';
 
-import { BaseGoogleMap } from '@base_google_map/utils/base_google_map';
+import { BaseGoogleMap, LOADER_STATUS } from '@base_google_map/utils/base_google_map';
 
 import { GoogleMapSidebar } from './google_map_sidebar';
 import { MARKER_ICON_SVG_PATH, MARKER_ICON_HEIGHT, MARKER_ICON_WIDTH } from './utils';
@@ -16,28 +23,56 @@ export class GoogleMapRenderer extends BaseGoogleMap {
         this.mapRef = useRef('map');
         this.searchPlacesRef = useRef('searchPlaces');
         this.markerCluster = null;
-
         this.markers = [];
-        this.state = useState({ sidebarIsFolded: false });
 
-        useEffect(() => {
-            this.loader.loadCallback((e) => {
-                if (e) {
-                    console.log(e);
-                } else {
-                    this.renderMap();
+        this.state = useState({ ...this.state, sidebarIsFolded: false });
+
+        useEffect(
+            () => {
+                if (this.state.loaderStatus === LOADER_STATUS.SUCCESS) {
+                    this.renderMap(true);
                 }
-            });
+            },
+            () => [this.state.loaderStatus]
+        );
+
+        onMounted(() => {
+            const status = this.loader.status || this.state.loaderStatus;
+            if (
+                [LOADER_STATUS.UNLOAD, LOADER_STATUS.INITIALIZED].indexOf(status) >= 0
+            ) {
+                this.loader.loadCallback((e) => {
+                    if (e) {
+                        console.warn(e);
+                    } else {
+                        this.initialize();
+                    }
+                });
+            } else if (status === LOADER_STATUS.SUCCESS) {
+                if (!this.googleMap) {
+                    this.initialize();
+                }
+            }
+        });
+
+        onRendered(() => {
+            if (this.state.loaderStatus === LOADER_STATUS.SUCCESS) {
+                this.renderMap(false);
+            }
+        });
+
+        onWillUpdateProps((_nextProps) => {
+            this.centerMap();
         });
     }
 
-    renderMap() {
+    renderMap(isCentered) {
         this.clearMarkers();
-        this.initialize();
         this.renderMarkers();
         this.renderMarkerClusterer();
-        this.centerMap();
-        this.handleSearchPlaceBounds();
+        if (isCentered) {
+            this.centerMap();
+        }
     }
 
     getMapOptions() {
@@ -60,8 +95,18 @@ export class GoogleMapRenderer extends BaseGoogleMap {
         };
     }
 
+    /**
+     * Initialize Google Map instance & Google search places (if enabled)
+     */
     initialize() {
+        this._initializeGoogleMap();
+        this.handleSearchPlaceBounds();
+    }
+
+    _initializeGoogleMap() {
         if (!this.googleMap) {
+            // we update state loaderStatus
+            this.state.loaderStatus = this.loader.status;
             const options = this.getMapOptions();
             this.googleMap = new google.maps.Map(this.mapRef.el, options);
             this.setMapTheme();
@@ -70,13 +115,21 @@ export class GoogleMapRenderer extends BaseGoogleMap {
         this.renderGooglePlaceSearch(this.searchPlacesRef, this.markerInfoWindow);
     }
 
+    /**
+     * Reset the markers
+     */
     clearMarkers() {
         if (this.markerCluster) {
             this.markerCluster.clearMarkers();
+            this.markerCluster.setMap(null);
         }
+        this.markers.forEach((marker) => marker.setMap(null));
         this.markers.splice(0);
     }
 
+    /**
+     * Center the map
+     */
     centerMap() {
         const mapBounds = new google.maps.LatLngBounds();
         this.markers.forEach((marker) => {
@@ -89,6 +142,11 @@ export class GoogleMapRenderer extends BaseGoogleMap {
         });
     }
 
+    /**
+     * Add event 'click' listener to marker and
+     * manage marker located at the same coordinate
+     * @param {Object} marker
+     */
     handleMarker(marker) {
         const otherRecords = [];
         if (this.markers.length > 0) {
@@ -115,12 +173,22 @@ export class GoogleMapRenderer extends BaseGoogleMap {
                 map: this.googleMap,
                 markers,
             });
+            this.markerCluster.addListener('click', () => {
+                this.markerInfoWindow.close();
+            });
         } else {
+            this.markerCluster.setMap(this.googleMap);
             this.markerCluster.addMarkers(markers);
         }
     }
 
-    getMarkerContent(record) {
+    /**
+     *
+     * @param {Object} record
+     * @param {boolean} isMulti
+     * @returns {HTMLElement} Marker content
+     */
+    getMarkerContent(record, isMulti) {
         const {
             latitudeField,
             longitudeField,
@@ -136,6 +204,7 @@ export class GoogleMapRenderer extends BaseGoogleMap {
             title: record.data[sidebarTitleField],
             destination: `${record.data[latitudeField]},${record.data[longitudeField]}`,
             subTitle: record.data[sidebarSubtitleField],
+            isMulti: isMulti,
         });
 
         const divContent = new DOMParser()
@@ -146,8 +215,8 @@ export class GoogleMapRenderer extends BaseGoogleMap {
             (ev) => {
                 const data = ev.target.getAttribute('data-record');
                 if (data) {
-                    const record = JSON.parse(data);
-                    this.props.openRecord(record);
+                    const values = JSON.parse(data);
+                    this.props.openRecordDialog(values);
                 }
             },
             false
@@ -155,17 +224,22 @@ export class GoogleMapRenderer extends BaseGoogleMap {
         return divContent;
     }
 
+    /**
+     *
+     * @param {Object} marker
+     * @param {Array} otherRecords
+     */
     handleMarkerInfoWindow(marker, otherRecords) {
         let bodyContent = document.createElement('div');
         bodyContent.className = 'o_kanban_group';
 
-        const markerContent = this.getMarkerContent(marker._odooRecord);
+        const markerContent = this.getMarkerContent(marker._odooRecord, false);
 
         bodyContent.appendChild(markerContent);
 
         if (otherRecords.length > 0) {
             otherRecords.forEach((record) => {
-                let markerOtherContent = this.getMarkerContent(record);
+                let markerOtherContent = this.getMarkerContent(record, true);
                 bodyContent.appendChild(markerOtherContent);
             });
         }
@@ -174,6 +248,11 @@ export class GoogleMapRenderer extends BaseGoogleMap {
         this.markerInfoWindow.open(this.googleMap, marker);
     }
 
+    /**
+     *
+     * @param {Object} record
+     * @returns {String} color of marker
+     */
     handleMarkerColor(record) {
         // color can be a hex color
         // or integer (an index) represent color from widget `color_picker`
@@ -207,11 +286,17 @@ export class GoogleMapRenderer extends BaseGoogleMap {
         return markerColor;
     }
 
+    /**
+     *
+     * @param {Object} latLng
+     * @param {Object} record
+     * @param {String} color
+     * @returns {Object} Instance of Google maps marker
+     */
     createMarker(latLng, record, color) {
         const options = {
             position: latLng,
             map: this.googleMap,
-            optimized: true,
             _odooRecord: record,
             _odooMarkerColor: color,
             icon: {
@@ -238,7 +323,6 @@ export class GoogleMapRenderer extends BaseGoogleMap {
     }
 
     renderMarkers() {
-        let latLng;
         let lat;
         let lng;
         let marker;
@@ -254,8 +338,7 @@ export class GoogleMapRenderer extends BaseGoogleMap {
                     ? record.data[this.props.archInfo.longitudeField]
                     : 0.0;
             if (lat !== 0.0 || lng !== 0.0) {
-                latLng = new google.maps.LatLng(lat, lng);
-                marker = this.createMarker(latLng, record, color);
+                marker = this.createMarker({ lat, lng }, record, color);
                 record._marker = marker;
                 record._markerColor = color;
                 this.handleMarker(marker);
@@ -305,15 +388,19 @@ export class GoogleMapRenderer extends BaseGoogleMap {
             handlePointInMap: this.pointInMap.bind(this),
             string: this.props.archInfo.viewTitle,
             records: this.props.list.records,
-            fieldLat: this.props.archInfo.latitudeField,
-            fieldLng: this.props.archInfo.longitudeField,
             fieldTitle: this.props.archInfo.sidebarTitleField,
             fieldSubtitle: this.props.archInfo.sidebarSubtitleField,
-            markers: this.markers,
         };
     }
 }
 
 GoogleMapRenderer.template = 'web_view_google_map.GoogleMapRenderer';
 GoogleMapRenderer.components = { Pager, Widget };
-GoogleMapRenderer.props = ['archInfo', 'openRecord', 'readonly', 'list', 'onAdd?'];
+GoogleMapRenderer.props = [
+    'archInfo',
+    'openRecord',
+    'openRecordDialog',
+    'readonly',
+    'list',
+    'onAdd?',
+];

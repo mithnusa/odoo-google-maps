@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-02-25 16:03+0000\n"
-"PO-Revision-Date: 2023-02-25 16:03+0000\n"
+"POT-Creation-Date: 2023-04-12 06:28+0000\n"
+"PO-Revision-Date: 2023-04-12 06:28+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -599,6 +599,11 @@ msgstr ""
 #. module: base_google_map
 #: model:ir.model.fields.selection,name:base_google_map.selection__res_config_settings__google_maps_lang_localization__uz
 msgid "Uzbek"
+msgstr ""
+
+#. module: base_google_map
+#: model:ir.model.fields,field_description:base_google_map.field_res_config_settings__google_maps_version
+msgid "Version"
 msgstr ""
 
 #. module: base_google_map
