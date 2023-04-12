@@ -13,9 +13,10 @@
     'website': 'https://github.com/mithnusa',
     'support': 'yopiangi@gmail.com',
     'category': 'Extra Tools',
-    'version': '16.0.1.1.0',
+    'version': '16.0.1.1.1',
     'depends': ['base_setup'],
     'data': [
+        'data/google_map.xml',
         'views/res_config_settings.xml',
         'views/templates.xml',
     ],

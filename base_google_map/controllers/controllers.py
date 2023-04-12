@@ -16,12 +16,15 @@ class Main(http.Controller):
         region = IrParam.get_param(
             'base_google_map.region_localization', default=''
         )
+        version = IrParam.get_param(
+            'base_google_map.version', default='quarterly'
+        )
 
         values = {
             'api_key': api_key,
             'libraries': [lib.strip() for lib in libraries.split(',')],
             'region': region,
-            'version': 'quarterly',
+            'version': version,
         }
 
         # Extras

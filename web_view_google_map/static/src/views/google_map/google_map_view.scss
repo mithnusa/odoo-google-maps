@@ -1,5 +1,6 @@
 .o_field_google_map_one2many {
     width: 100%;
+    color: #6c757d;
 
     .o_field_x2many_google_map {
         .o_google_map_renderer {
@@ -25,6 +26,7 @@
     align-content: stretch;
     overflow-x: visible;
     height: 100%;
+    color: #6c757d;
 
     .google_search_places {
         margin-top: 10px;
@@ -74,7 +76,7 @@
         bottom: 0;
         position: absolute;
         z-index: 1;
-        color: rgb(253, 253, 253);
+        // color: rgb(253, 253, 253);
         box-shadow: -0.9px 0 1px 0.1px rgba(199, 199, 199, 0.75);
 
         .content {
@@ -157,13 +159,13 @@
         }
 
         .o_map_sidebar {
-            small {
-                &.text-mutex {
-                    letter-spacing: -0.5px;
+            span {
+                &.text-muted {
+                    @include font-size($font-size-sm);
                 }
-            }
-            span.title {
-                text-shadow: 1px 1px 1px #ddd;
+                &.title {
+                    @include o-kanban-record-title($font-size: 14px);
+                }
             }
         }
 

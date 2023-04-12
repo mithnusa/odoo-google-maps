@@ -19,7 +19,7 @@
                                     <i class="fa fa-map-marker" t-attf-style="color: #{record._markerColor};"></i>
                                     <span>  </span>
                                 </t>
-                                <small class="text-muted" t-esc="data.subTitle"/>
+                                <span class="text-muted" t-esc="data.subTitle"/>
                             </t>
                         </a>
                         <button type="button" class="btn btn-sm btn-light" id="open-record" data-toggle="tooltip" title="Open form" t-on-click.prevent="() => props.handleOpenRecord(record)">
