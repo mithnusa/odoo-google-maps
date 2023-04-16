@@ -194,7 +194,13 @@ export class GoogleMapDrawingRenderer extends GoogleMapRenderer {
         this._deleteShapeInCache(record.id);
         const styleOption = this._getBaseColorOptions();
         const rectangle = new google.maps.Rectangle(styleOption);
-        rectangle.setOptions({ ...options, map: this.googleMap, draggable: false });
+        rectangle.setOptions({
+            ...options,
+            map: this.googleMap,
+            draggable: false,
+            title: 'Rectangle',
+            label: 'Rectangle',
+        });
         this.shapes[record.id] = rectangle;
         this.shapesBounds.union(rectangle.getBounds());
         google.maps.event.addListener(
@@ -303,6 +309,7 @@ export class GoogleMapDrawingRenderer extends GoogleMapRenderer {
             this.currentShapeSelected = shape;
 
             let bounds;
+            this._cleanPolygonPoints();
             if (shape.type === 'polygon') {
                 const paths = shape.getPath();
                 if (paths.length > 0) {
@@ -311,6 +318,7 @@ export class GoogleMapDrawingRenderer extends GoogleMapRenderer {
                         bounds.extend({ lat: item.lat(), lng: item.lng() });
                     });
                 }
+                this._handleDrawPolygonPoints(shape.lines);
             } else if (shape.type === 'circle') {
                 bounds = shape.getBounds();
             } else if (shape.type === 'rectangle') {
@@ -324,6 +332,37 @@ export class GoogleMapDrawingRenderer extends GoogleMapRenderer {
                     google.maps.event.trigger(this.googleMap, 'resize');
                 });
             }
+        }
+    }
+
+    _cleanPolygonPoints() {
+        if (this.polygonMarkers) {
+            Object.keys(this.polygonMarkers).forEach((lineAt) => {
+                this.polygonMarkers[lineAt].setMap(null);
+                delete this.polygonMarkers[lineAt];
+            });
+        } else {
+            this.polygonMarkers = {};
+        }
+    }
+
+    _handleDrawPolygonPoints(lines) {
+        if (lines) {
+            let latLng;
+            const totalStop = Object.keys(lines).length;
+            Object.keys(lines).forEach((key) => {
+                if (key < totalStop) {
+                    latLng = lines[key].start;
+                } else {
+                    latLng = lines[key].stop;
+                }
+                this.polygonMarkers[key] = new google.maps.Marker({
+                    map: this.googleMap,
+                    position: latLng,
+                    label: key,
+                    animation: google.maps.Animation.DROP,
+                });
+            });
         }
     }
 

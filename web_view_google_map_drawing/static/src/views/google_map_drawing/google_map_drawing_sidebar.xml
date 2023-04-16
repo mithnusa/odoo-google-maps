@@ -12,11 +12,14 @@
                     <t t-set="data" t-value="this.getData(record)"/>
                     <li t-attf-class="list-group-item d-flex justify-content-between align-items-center pb-1 pt-1 #{data.hasShape ? '' : 'disabled'}">
                         <a href="#" class="flex-grow-1 o_map_sidebar_record" data-toggle="tooltip" t-attf-style="cursor: #{data.hasShape ? 'pointer' : 'not-allowed'};" t-attf-title="#{data.hasShape ? '' : 'No geolocation'}" t-on-click="() => props.handlePointInMap(data.shape)">
-                            <span class="title" t-esc="data.title" />
+                            <span class="title fs-3" t-esc="data.title" />
                             <br/>
                             <i class="fa fa-map-marker" t-if="data.hasShape"></i>
-                            <span>  </span>
-                            <small class="text-muted" t-esc="data.subTitle" t-if="data.subTitle"/>
+                            <span class="text-muted m-1 fs-5" t-esc="data.subTitle" t-if="data.subTitle"/>
+                            <br t-if="data.extras"/>
+                            <t t-foreach="data.extras" t-as="extra" t-key="extra_index">
+                                <span class="badge bg-light text-wrap m-1 fs-6 font-monospace" t-raw="extra"/>
+                            </t>
                         </a>
                         <button type="button" class="btn btn-sm btn-light" id="open-record" data-toggle="tooltip" title="Open form" t-on-click.prevent="() => props.handleOpenRecord(record)">
                             <i class="fa fa-wpforms"></i>
