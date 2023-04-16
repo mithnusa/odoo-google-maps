@@ -36,7 +36,7 @@ export class GoogleMapDrawing extends GoogleMapDrawingRenderer {
      * override
      */
     renderMap(_isCentered) {
-        this._clearSelectedShape();
+        this._resetShape();
         this._handleLoadShape();
     }
 
@@ -531,7 +531,7 @@ export class GoogleMapDrawing extends GoogleMapDrawingRenderer {
         this.selectedShape.setOptions(options);
     }
 
-    _clearSelectedShape() {
+    _resetShape() {
         if (this.selectedShape) {
             this.selectedShape.setOptions({
                 editable: false,
@@ -545,6 +545,14 @@ export class GoogleMapDrawing extends GoogleMapDrawingRenderer {
                 this.polygonMarkers[lineAt].setMap(null);
                 delete this.polygonMarkers[lineAt];
             });
+        }
+        this.drawingManager.setDrawingMode(null);
+    }
+
+    _clearSelectedShape() {
+        if (this.selectedShape) {
+            this.selectedShape.setEditable(false);
+            this.selectedShape = null;
         }
         this.drawingManager.setDrawingMode(null);
     }

@@ -4,18 +4,20 @@
         <div class="o_google_map_renderer">
             <div class="input-group google_search_places" t-ref="searchPlaces">
                 <input type="text" class="form-control form-control-lg" id="search" />
-                <span class="input-group-text" id="group-search" title="Google places search"><i class="fa fa-search"></i></span>
+                <span class="input-group-text" id="group-search" title="Google places search">
+                    <i class="fa fa-search"></i>
+                </span>
             </div>
             <div class="o_google_map_view" t-ref="map"></div>
         </div>
     </t>
     <t t-name="web_view_google_map_drawing.ButtonActionDelete" owl="1">
-        <div style="border: 1px solid #cccccc; background-color: white;margin-bottom: 4.5px;height: 25px;border-radius: 2px;">
+        <div style="border: 1px solid #cccccc; background-color: white;margin-bottom: 4.5px;height: 35px;border-radius: 2px;">
             <button class="btn btn-secondary" id="delete" style="margin-top: 1px;padding: 1px 6px 1px 6px;" type="button" data-toggle="tooltip" data-placement="bottom" title="Delete selected shape">
-                <i class="fa fa-lg fa-trash-o"></i>
+                <i class="fa fa-2x fa-trash-o"></i>
             </button>
             <button class="btn btn-secondary" id="save" style="margin-top: 1px;padding: 1px 6px 1px 6px;" type="button" data-toggle="tooltip" data-placement="bottom" title="Save">
-                <i class="fa fa-lg fa-floppy-o"></i>
+                <i class="fa fa-2x fa-floppy-o"></i>
             </button>
         </div>
     </t>
