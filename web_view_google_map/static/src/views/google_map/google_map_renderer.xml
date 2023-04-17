@@ -27,7 +27,7 @@
                     <div class="oe_kanban_card d-flex flex-column">
                         <div class="d-flex o_kanban_header">
                             <button type="button" class="btn btn-primary" tabindex="-1" id="btn-open_form" t-att-data-record="record" data-toggle="tooltip" title="Open form view">
-                                <i class="fa fa-wpforms" t-att-data-record="record"></i>
+                                <i class="fa fa-arrow-right" t-att-data-record="record"></i>
                                 <span class="text-uppercase" t-att-data-record="record"> Open</span>
                             </button>
                             <a t-attf-href="https://www.google.com/maps/dir/?api=1&amp;destination={{ destination }}" target="_blank" tabindex="-1" class="btn btn-light" id="btn-navigate_to" data-toggle="tooltip" title="Navigate to this location">
