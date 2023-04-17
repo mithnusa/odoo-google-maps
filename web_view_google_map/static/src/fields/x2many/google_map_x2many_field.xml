@@ -12,7 +12,7 @@
                         <button type="button" class="btn btn-secondary o-kanban-button-new" title="Create record" accesskey="c" t-on-click="() => this.onAdd()">
                             <t t-esc="addButtonText"/>
                         </button>
-                    </div>
+                    </t>
                     <button type="button" class="btn btn-secondary" title="Center Map" t-on-click.prevent="() => this.centerMap()">
                         <span>CENTER MAP</span>
                     </button>

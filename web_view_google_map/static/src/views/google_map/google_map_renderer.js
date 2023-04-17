@@ -216,7 +216,7 @@ export class GoogleMapRenderer extends BaseGoogleMap {
                 const data = ev.target.getAttribute('data-record');
                 if (data) {
                     const values = JSON.parse(data);
-                    this.props.openRecordDialog(values);
+                    this.props.showRecord(values);
                 }
             },
             false
@@ -399,7 +399,7 @@ GoogleMapRenderer.components = { Pager, Widget };
 GoogleMapRenderer.props = [
     'archInfo',
     'openRecord',
-    'openRecordDialog',
+    'showRecord',
     'readonly',
     'list',
     'onAdd?',

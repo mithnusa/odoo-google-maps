@@ -78,7 +78,7 @@ export class GoogleMapController extends Component {
      * Open form view in a dialog window
      * @param {Object} values
      */
-    async openRecordDialog(values) {
+    async showRecord(values) {
         if (values && values.resId) {
             const record = this.model.root.records.find(
                 (rec) => rec.resId === values.resId
