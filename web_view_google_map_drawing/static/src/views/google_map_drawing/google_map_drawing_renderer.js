@@ -198,8 +198,6 @@ export class GoogleMapDrawingRenderer extends GoogleMapRenderer {
             ...options,
             map: this.googleMap,
             draggable: false,
-            title: 'Rectangle',
-            label: 'Rectangle',
         });
         this.shapes[record.id] = rectangle;
         this.shapesBounds.union(rectangle.getBounds());
