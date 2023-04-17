@@ -23,7 +23,7 @@
                             </t>
                         </a>
                         <button type="button" class="btn btn-sm btn-light" id="open-record" data-toggle="tooltip" title="Open form" t-on-click.prevent="() => props.handleOpenRecord(record)">
-                            <i class="fa fa-wpforms"></i>
+                            <i class="fa fa-arrow-right"></i>
                         </button>
                     </li>
                 </t>

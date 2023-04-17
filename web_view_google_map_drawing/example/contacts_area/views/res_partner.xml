@@ -17,6 +17,9 @@
                             <field name="gshape_radius"/>
                             <field name="gshape_area"/>
                             <field name="gshape_paths"/>
+                            <field name="gshape_height"/>
+                            <field name="gshape_width"/>
+                            <field name="gshape_polygon_lines"/>
                         </google_map>
                     </field>
                 </page>

@@ -1,6 +1,7 @@
 /** @odoo-module **/
 
 import { registry } from '@web/core/registry';
+import { _lt } from '@web/core/l10n/translation';
 import { googleMapView } from '@web_view_google_map/views/google_map/google_map_view';
 import { GoogleMapDrawingRenderer } from './google_map_drawing_renderer';
 

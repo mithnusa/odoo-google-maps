@@ -20,11 +20,11 @@ export class GoogleMapDrawing extends GoogleMapDrawingRenderer {
 
         onWillUpdateProps((_nextProps) => {
             // on page changed, disable the shape already drawn before
-            if (!this.props.value) {
+            if (!_nextProps.value) {
                 Object.values(this.shapes).forEach((shape) => shape.setMap(null));
             } else {
                 for (const [key, shape] of Object.entries(this.shapes)) {
-                    if (key !== this.props.value) {
+                    if (key !== _nextProps.value) {
                         shape.setMap(null);
                     }
                 }
@@ -36,6 +36,7 @@ export class GoogleMapDrawing extends GoogleMapDrawingRenderer {
      * override
      */
     renderMap(_isCentered) {
+        this._resetShape();
         this._handleLoadShape();
     }
 
@@ -76,10 +77,7 @@ export class GoogleMapDrawing extends GoogleMapDrawingRenderer {
     }
 
     _storeInCache(shape) {
-        const value = {
-            type: shape.type,
-        };
-
+        const value = { type: shape.type };
         if (shape.type === 'rectangle') {
             const directions = shape.getBounds().toJSON();
             value.options = {
@@ -107,9 +105,16 @@ export class GoogleMapDrawing extends GoogleMapDrawingRenderer {
         this.shapes[JSON.stringify(value)] = shape;
     }
 
+    _deleteShapeInCache(shape_key) {
+        if (shape_key in this.shapes) {
+            this.shapes[shape_key].setMap(null);
+            delete this.shapes[shape_key];
+        }
+    }
+
     _handleShapeToDraw(shape) {
         if (shape.type === 'polygon') {
-            const polygon = this._handleDrawPolygon(shape.options);
+            const polygon = this._handleDrawPolygon(shape);
             polygon.setOptions({
                 strokeColor: this.displayColor,
                 fillColor: this.displayColor,
@@ -132,7 +137,6 @@ export class GoogleMapDrawing extends GoogleMapDrawingRenderer {
             rectangle.type = 'rectangle';
             this._storeInCache(rectangle);
             const selectedShape = rectangle;
-
             google.maps.event.addListener(
                 selectedShape,
                 'click',
@@ -147,7 +151,6 @@ export class GoogleMapDrawing extends GoogleMapDrawingRenderer {
             });
             circle.type = 'circle';
             this._storeInCache(circle);
-            this.shapes[JSON.stringify(shape)] = circle;
             const selectedShape = circle;
             google.maps.event.addListener(
                 selectedShape,
@@ -157,7 +160,13 @@ export class GoogleMapDrawing extends GoogleMapDrawingRenderer {
         }
     }
 
-    _handleDrawPolygon(options) {
+    _handleDrawPolygonPoints() {
+        this._cleanPolygonPoints();
+        super._handleDrawPolygonPoints(...arguments);
+    }
+
+    _handleDrawPolygon(shape) {
+        const options = shape.options;
         const polygon = new google.maps.Polygon({
             strokeColor: '#FF0000',
             strokeOpacity: 0.85,
@@ -168,6 +177,7 @@ export class GoogleMapDrawing extends GoogleMapDrawingRenderer {
             map: this.googleMap,
         });
         polygon.setOptions(options);
+        this._handleDrawPolygonPoints(shape.lines);
         this._handleCenterMap(polygon.getPath());
         return polygon;
     }
@@ -246,10 +256,10 @@ export class GoogleMapDrawing extends GoogleMapDrawingRenderer {
             );
             this.customControl
                 .querySelector('#delete')
-                .addEventListener('click', this._actionDelete.bind(this), false);
+                .addEventListener('click', this._actionDelete.bind(this));
             this.customControl
                 .querySelector('#save')
-                .addEventListener('click', this._actionSave.bind(this), false);
+                .addEventListener('click', this._actionSave.bind(this));
         }
     }
 
@@ -294,12 +304,13 @@ export class GoogleMapDrawing extends GoogleMapDrawingRenderer {
         }
     }
 
-    _saveChanges(values) {
+    async _saveChanges(values) {
         if (values) {
-            this.props.update(values[this.props.name]);
             this._storeInCache(this.selectedShape);
+            const paths = values[this.props.name];
             delete values[this.props.name];
-            this.props.record.update(values);
+            this.props.update(paths);
+            await this.props.record.update(values);
             this.selectedShape.setOptions({
                 editable: false,
                 strokeColor: this.displayColor,
@@ -313,6 +324,36 @@ export class GoogleMapDrawing extends GoogleMapDrawingRenderer {
         }
     }
 
+    _computePolygonLines(paths) {
+        let stop;
+        let start;
+        let count = 0;
+
+        const lines = {};
+        paths.forEach((latLng) => {
+            start = stop;
+            stop = latLng;
+            if (start) {
+                lines[count] = { start, stop };
+            }
+            count += 1;
+        });
+
+        const lines_len = Object.keys(lines).length;
+        lines[lines_len + 1] = {
+            start: lines[1].start,
+            stop: lines[lines_len].stop,
+        };
+
+        Object.keys(lines).forEach((line) => {
+            lines[line].length = google.maps.geometry.spherical.computeLength([
+                lines[line].start,
+                lines[line].stop,
+            ]);
+        });
+        return lines;
+    }
+
     _handleSavePolygon() {
         const paths = this.selectedShape.getPath();
         const area = google.maps.geometry.spherical.computeArea(paths);
@@ -320,15 +361,21 @@ export class GoogleMapDrawing extends GoogleMapDrawingRenderer {
             gshape_type: this.selectedShape.type,
             gshape_area: area,
             gshape_radius: 0.0,
+            gshape_width: 0.0,
+            gshape_height: 0.0,
         };
+
+        const linePaths = paths
+            .getArray()
+            .map((item) => ({ lat: item.lat(), lng: item.lng() }));
+
+        const lines = this._computePolygonLines(linePaths);
         const shape_paths = {
             type: this.selectedShape.type,
             options: {
-                paths: paths.getArray().map((item) => ({
-                    lat: item.lat(),
-                    lng: item.lng(),
-                })),
+                paths: linePaths,
             },
+            lines,
         };
         values[this.props.name] = JSON.stringify(shape_paths);
         return values;
@@ -344,10 +391,28 @@ export class GoogleMapDrawing extends GoogleMapDrawingRenderer {
         const directions = bounds.toJSON();
         const shape_paths = {
             type: this.selectedShape.type,
-            options: {
-                bounds: directions,
-            },
+            options: { bounds: directions },
         };
+        values.gshape_height = google.maps.geometry.spherical.computeDistanceBetween(
+            new google.maps.LatLng(
+                this.selectedShape.bounds.toJSON().north,
+                this.selectedShape.bounds.toJSON().east
+            ),
+            new google.maps.LatLng(
+                this.selectedShape.bounds.toJSON().south,
+                this.selectedShape.bounds.toJSON().east
+            )
+        );
+        values.gshape_width = google.maps.geometry.spherical.computeDistanceBetween(
+            new google.maps.LatLng(
+                this.selectedShape.bounds.toJSON().north,
+                this.selectedShape.bounds.toJSON().east
+            ),
+            new google.maps.LatLng(
+                this.selectedShape.bounds.toJSON().north,
+                this.selectedShape.bounds.toJSON().west
+            )
+        );
         values[this.props.name] = JSON.stringify(shape_paths);
         return values;
     }
@@ -359,6 +424,8 @@ export class GoogleMapDrawing extends GoogleMapDrawingRenderer {
             gshape_type: this.selectedShape.type,
             gshape_radius: radius,
             gshape_area: 0.0,
+            gshape_width: 0.0,
+            gshape_height: 0.0,
         };
         const shape_paths = {
             type: this.selectedShape.type,
@@ -440,9 +507,7 @@ export class GoogleMapDrawing extends GoogleMapDrawingRenderer {
                 this.env._t(
                     'If you want to change the shape, you will need to delete the shape that you are currently drawing'
                 ),
-                {
-                    type: 'info',
-                }
+                { type: 'info' }
             );
             return;
         }
@@ -466,6 +531,24 @@ export class GoogleMapDrawing extends GoogleMapDrawingRenderer {
         this.selectedShape.setOptions(options);
     }
 
+    _resetShape() {
+        if (this.selectedShape) {
+            this.selectedShape.setOptions({
+                editable: false,
+                map: null,
+            });
+            this.selectedShape = null;
+        }
+        Object.values(this.shapes).forEach((shape) => shape.setMap(null));
+        if (this.polygonMarkers) {
+            Object.keys(this.polygonMarkers).forEach((lineAt) => {
+                this.polygonMarkers[lineAt].setMap(null);
+                delete this.polygonMarkers[lineAt];
+            });
+        }
+        this.drawingManager.setDrawingMode(null);
+    }
+
     _clearSelectedShape() {
         if (this.selectedShape) {
             this.selectedShape.setEditable(false);
@@ -477,15 +560,15 @@ export class GoogleMapDrawing extends GoogleMapDrawingRenderer {
     _handleCenterMap(paths, bounds) {
         paths = paths || [];
         bounds = bounds || false;
-        let mapBounds = new google.maps.LatLngBounds();
         if (paths.length > 0) {
+            let mapBounds = new google.maps.LatLngBounds();
             paths.forEach((item) => {
                 mapBounds.extend({ lat: item.lat(), lng: item.lng() });
             });
+            this.googleMap.fitBounds(mapBounds);
         } else if (bounds) {
-            mapBounds.union(bounds);
+            this.googleMap.fitBounds(bounds);
         }
-        this.googleMap.fitBounds(mapBounds);
     }
 }
 
