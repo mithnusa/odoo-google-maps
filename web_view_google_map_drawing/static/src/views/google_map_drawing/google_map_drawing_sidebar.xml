@@ -23,7 +23,7 @@
                                 </p>
                                 <div class="collapse" t-attf-id="extras_{{ record.id }}">
                                     <t t-foreach="data.extras" t-as="extra" t-key="extra_index">
-                                        <span class="badge bg-light text-wrap m-1 fs-6 font-monospace" t-raw="extra"/>
+                                        <span class="badge bg-light text-wrap m-1 fs-6 font-monospace" t-out="extra"/>
                                     </t>
                                 </div>
                             </t>

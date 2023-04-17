@@ -245,15 +245,11 @@ export class GoogleMapDrawingRenderer extends GoogleMapRenderer {
                 const data = ev.target.getAttribute('data-record') || null;
                 if (data) {
                     const values = JSON.parse(data);
-                    if ('openRecordDialog' in this.props) {
-                        this.props.openRecordDialog(values);
-                    } else {
-                        const record = this.props.list.records.find(
-                            (r) => r.id === values.id
-                        );
-                        if (record) {
-                            this.props.openRecord(record);
-                        }
+                    const record = this.props.list.records.find(
+                        (r) => r.id === values.id
+                    );
+                    if (record) {
+                        this.props.showRecord(record);
                     }
                 }
             },

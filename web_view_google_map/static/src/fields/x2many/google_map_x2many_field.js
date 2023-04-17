@@ -15,6 +15,7 @@ export class X2ManyFieldGoogleMap extends X2ManyField {
                 archInfo,
                 list: this.list,
                 openRecord: this.openRecord.bind(this),
+                showRecord: this.openRecord.bind(this),
             };
             props.readonly = this.props.readonly;
             return props;
