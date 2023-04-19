@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="contacts_google_map.GoogleMapSidebarAvatar" owl="1">
+        <div class="o_map_sidebar" t-ref="root">
+            <div class="m-2">
+                <h3>
+                    <t t-esc="props.string"/>
+                </h3>
+            </div>
+            <ul class="list-group">
+                <t t-foreach="props.records" t-as="record" t-key="record.id">
+                    <t t-set="data" t-value="getData(record)"/>
+                    <li t-attf-class="list-group-item d-flex justify-content-between align-items-center pb-1 pt-1 #{record._marker ? '' : 'disabled'}">
+                        <div class="o_kanban_record_has_image_fill">
+                            <img t-att-src="data.avatarUrl" class="o_kanban_image_fill_left o_kanban_image_full o_image_40_cover" alt="Avatar"/>
+                        </div>
+                        <a href="#" class="flex-grow-1 o_map_sidebar_record" data-toggle="tooltip" t-attf-style="cursor: #{record._marker ? 'pointer' : 'not-allowed'};" t-attf-title="#{record._marker ? '' : 'No geolocation'}" t-on-click="() => props.handlePointInMap(record._marker)">
+                            <span class="title" t-esc="data.title" />
+                            <t t-if="data.subTitle">
+                                <br/>
+                                <t t-if="record._marker">
+                                    <i class="fa fa-map-marker" t-attf-style="color: #{record._markerColor};"></i>
+                                    <span> </span>
+                                </t>
+                                <span class="text-muted" t-esc="data.subTitle"/>
+                            </t>
+                        </a>
+                        <button type="button" class="btn btn-sm btn-light" id="open-record" data-toggle="tooltip" title="Open form" t-on-click.prevent="() => props.handleOpenRecord(record)">
+                            <i class="fa fa-arrow-right"></i>
+                        </button>
+                    </li>
+                </t>
+            </ul>
+        </div>
+    </t>
+</templates>

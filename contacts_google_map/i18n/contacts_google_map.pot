@@ -6,14 +6,21 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-02-25 16:04+0000\n"
-"PO-Revision-Date: 2023-02-25 16:04+0000\n"
+"POT-Creation-Date: 2023-04-19 12:50+0000\n"
+"PO-Revision-Date: 2023-04-19 12:50+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: \n"
+
+#. module: contacts_google_map
+#. odoo-javascript
+#: code:addons/contacts_google_map/static/src/js/views/google_map/google_map_sidebar.xml:0
+#, python-format
+msgid "Avatar"
+msgstr ""
 
 #. module: contacts_google_map
 #: model:ir.model,name:contacts_google_map.model_res_partner
@@ -35,4 +42,53 @@ msgstr ""
 #: model:ir.model.fields,field_description:contacts_google_map.field_res_partner__marker_color
 #: model:ir.model.fields,field_description:contacts_google_map.field_res_users__marker_color
 msgid "Marker Color"
+msgstr ""
+
+#. module: contacts_google_map
+#. odoo-javascript
+#: code:addons/contacts_google_map/static/src/js/views/google_map/google_map_renderer.xml:0
+#, python-format
+msgid "Navigate to"
+msgstr ""
+
+#. module: contacts_google_map
+#. odoo-javascript
+#: code:addons/contacts_google_map/static/src/js/views/google_map/google_map_renderer.xml:0
+#, python-format
+msgid "Navigate to this location"
+msgstr ""
+
+#. module: contacts_google_map
+#. odoo-javascript
+#: code:addons/contacts_google_map/static/src/js/views/google_map/google_map_renderer.xml:0
+#, python-format
+msgid "Open"
+msgstr ""
+
+#. module: contacts_google_map
+#. odoo-javascript
+#: code:addons/contacts_google_map/static/src/js/views/google_map/google_map_sidebar.xml:0
+#, python-format
+msgid "Open form"
+msgstr ""
+
+#. module: contacts_google_map
+#. odoo-javascript
+#: code:addons/contacts_google_map/static/src/js/views/google_map/google_map_renderer.xml:0
+#, python-format
+msgid "Open form view"
+msgstr ""
+
+#. module: contacts_google_map
+#. odoo-javascript
+#: code:addons/contacts_google_map/static/src/js/views/google_map/google_map_renderer.xml:0
+#, python-format
+msgid "View on Google Maps"
+msgstr ""
+
+#. module: contacts_google_map
+#. odoo-javascript
+#: code:addons/contacts_google_map/static/src/js/views/google_map/google_map_renderer.xml:0
+#, python-format
+msgid "View on Google Maps website"
 msgstr ""

@@ -22,7 +22,7 @@
     <t t-name="web_view_google_map.MarkerInfoWindow" owl="1">
         <div>
             <hr t-if="isMulti"/>
-            <div class="o_kanban_record d-flex flex-grow-1 flex-md-shrink-1 flex-shrink-0">
+            <div class="d-flex flex-grow-1 flex-md-shrink-1 flex-shrink-0">
                 <div class="o_kanban_record d-flex">
                     <div class="oe_kanban_card d-flex flex-column">
                         <div class="d-flex o_kanban_header">
