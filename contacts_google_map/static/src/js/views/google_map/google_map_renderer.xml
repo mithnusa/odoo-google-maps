@@ -2,7 +2,7 @@
 <templates xml:space="preserve">
     <t t-name="contacts_google_map.MarkerInfoWindow" t-inherit="web_view_google_map.MarkerInfoWindow" owl="1">
         <xpath expr="//div[hasclass('o_kanban_record')]" position="replace">
-            <div class="o_kanban_record o_kanban_record_has_image_fill d-flex">
+            <div class="o_kanban_record o_kanban_record_has_image_fill d-flex w-100">
                 <div class="w-50 o_kanban_image_fill_left o_kanban_image_full" role="img" t-attf-style="background-image:url('{{avatarUrl}}')"/>
                 <div class="oe_kanban_card d-flex flex-column">
                     <div class="d-flex o_kanban_header">
