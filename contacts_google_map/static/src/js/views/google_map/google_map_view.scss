@@ -1,0 +1,69 @@
+.o_google_map_renderer {
+    .o_kanban_record_has_image_fill {
+        display: flex;
+
+        .o_kanban_image_fill_left {
+            position: relative;
+            margin-right: var(--KanbanRecord-padding-h);
+            @include media-breakpoint-up(sm) {
+                margin: {
+                    left: calc(var(--KanbanRecord-padding-h) * -1);
+                }
+            }
+            flex: 1 0 var(--KanbanRecord__image--fill-width);
+            min-height: 95px;
+            background: {
+                size: cover;
+                position: center;
+                repeat: no-repeat;
+            }
+
+            &.o_kanban_image_full {
+                background-size: contain;
+            }
+        }
+
+        // Adapt default 'o_kanban_image' element if present.
+        // This adaptation allow to use both images type.
+        // Eg. In partners list we use to fill user picture only, keeping the
+        // default design for company logos.
+        .o_kanban_image {
+            margin-right: var(--KanbanRecord-padding-h);
+            flex: 0 0 var(--KanbanRecord__image-width);
+            min-height: var(--KanbanRecord__image-width);
+            align-self: center;
+            background: {
+                size: cover;
+                repeat: no-repeat;
+                position: center;
+            }
+
+            @include media-breakpoint-down(md) {
+                flex-basis: var(--KanbanRecord__image--fill-width);
+                min-height: var(--KanbanRecord__image--fill-width);
+            }
+
+            // Reset immedialy after div padding
+            + div {
+                padding-left: 0;
+            }
+        }
+
+        // Images (backgrounds) could accomodate another image inside.
+        // (eg. Company logo badge inside a contact picture)
+        .o_kanban_image_fill_left,
+        .o_kanban_image {
+            background-color: var(--KanbanRecord__image-bg-color, none);
+
+            .o_kanban_image_inner_pic {
+                @include o-position-absolute($right: 0, $bottom: 0);
+                max: {
+                    height: 25px;
+                    width: 80%;
+                }
+                background: white;
+                box-shadow: -1px -1px 0 1px white;
+            }
+        }
+    }
+}

@@ -13,13 +13,18 @@
     'website': 'https://github.com/mithnusa',
     'support': 'yopiangi@gmail.com',
     'category': 'Sales/CRM',
-    'version': '16.0.1.0.0',
+    'version': '16.0.1.1.0',
     'depends': [
         'base_geolocalize',
         'contacts',
         'web_view_google_map',
     ],
     'data': ['views/res_partner.xml'],
+    'assets': {
+        'web.assets_backend': [
+            'contacts_google_map/static/src/js/views/google_map/*',
+        ]
+    },
     'demo': [],
     'installable': True,
     'application': False,

@@ -3,7 +3,6 @@
 import { registry } from '@web/core/registry';
 import { _lt } from '@web/core/l10n/translation';
 import { onWillUpdateProps } from '@odoo/owl';
-import { useService } from '@web/core/utils/hooks';
 import { standardFieldProps } from '@web/views/fields/standard_field_props';
 import { renderToString } from '@web/core/utils/render';
 
@@ -12,7 +11,6 @@ import { GoogleMapDrawingRenderer } from '../../views/google_map_drawing/google_
 export class GoogleMapDrawing extends GoogleMapDrawingRenderer {
     setup() {
         super.setup();
-        this.notification = useService('notification');
 
         this.displayColor = '#006ee5';
         this.customControl = null;
@@ -36,6 +34,7 @@ export class GoogleMapDrawing extends GoogleMapDrawingRenderer {
      * override
      */
     renderMap(_isCentered) {
+        if (!this.drawingManager) return;
         this._resetShape();
         this._handleLoadShape();
     }
@@ -466,33 +465,43 @@ export class GoogleMapDrawing extends GoogleMapDrawingRenderer {
         if (!this.drawingManager) {
             const shapeOption = this._getGeneralOptions();
             const circleOption = this._getCircleOptions();
-            this.drawingManager = new google.maps.drawing.DrawingManager({
-                drawingControl: !this.props.readonly,
-                drawingControlOptions: {
-                    position: google.maps.ControlPosition.BOTTOM_CENTER,
-                    drawingModes: [
-                        google.maps.drawing.OverlayType.CIRCLE,
-                        google.maps.drawing.OverlayType.POLYGON,
-                        google.maps.drawing.OverlayType.RECTANGLE,
-                    ],
-                },
-                map: this.googleMap,
-                polygonOptions: shapeOption,
-                circleOptions: circleOption,
-                rectangleOptions: shapeOption,
-            });
-            google.maps.event.addListener(
-                this.drawingManager,
-                'overlaycomplete',
-                this.handleOverlayComplete.bind(this)
-            );
-            google.maps.event.addListener(
-                this.googleMap,
-                'click',
-                this._clearSelectedShape.bind(this)
-            );
+            try {
+                this.drawingManager = new google.maps.drawing.DrawingManager({
+                    drawingControl: !this.props.readonly,
+                    drawingControlOptions: {
+                        position: google.maps.ControlPosition.BOTTOM_CENTER,
+                        drawingModes: [
+                            google.maps.drawing.OverlayType.CIRCLE,
+                            google.maps.drawing.OverlayType.POLYGON,
+                            google.maps.drawing.OverlayType.RECTANGLE,
+                        ],
+                    },
+                    map: this.googleMap,
+                    polygonOptions: shapeOption,
+                    circleOptions: circleOption,
+                    rectangleOptions: shapeOption,
+                });
+                google.maps.event.addListener(
+                    this.drawingManager,
+                    'overlaycomplete',
+                    this.handleOverlayComplete.bind(this)
+                );
+                google.maps.event.addListener(
+                    this.googleMap,
+                    'click',
+                    this._clearSelectedShape.bind(this)
+                );
+                this._renderMapCustomControl();
+            } catch (error) {
+                console.log(error);
+                this.notification.add(
+                    this.env._t(
+                        'Google Maps DrawingManager could not be loaded. Please make sure "drawing" is configured on Google Maps Libraries settings'
+                    ),
+                    { type: 'danger' }
+                );
+            }
         }
-        this._renderMapCustomControl();
     }
 
     handleOverlayComplete(event) {

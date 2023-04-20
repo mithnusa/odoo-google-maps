@@ -3,6 +3,7 @@
 import { renderToString } from '@web/core/utils/render';
 import { _lt } from '@web/core/l10n/translation';
 import { onWillDestroy, onWillUpdateProps } from '@odoo/owl';
+import { useService } from '@web/core/utils/hooks';
 import { GoogleMapRenderer } from '@web_view_google_map/views/google_map/google_map_renderer';
 import { GoogleMapsDrawingSidebar } from './google_map_drawing_sidebar';
 import { MAP_THEMES } from '@base_google_map/utils/themes';
@@ -10,6 +11,8 @@ import { MAP_THEMES } from '@base_google_map/utils/themes';
 export class GoogleMapDrawingRenderer extends GoogleMapRenderer {
     setup() {
         super.setup();
+        this.notification = useService('notification');
+
         this.editColor = '#ffa187';
         this.drawingManager = null;
         this.shapes = {};
@@ -127,19 +130,29 @@ export class GoogleMapDrawingRenderer extends GoogleMapRenderer {
 
     initializeDrawing() {
         if (!this.drawingManager) {
-            this.drawingManager = new google.maps.drawing.DrawingManager({
-                drawingMode: null,
-                drawingControl: false,
-                drawingControlOptions: {
-                    position: google.maps.ControlPosition.TOP_CENTER,
-                    drawingModes: [
-                        google.maps.drawing.OverlayType.CIRCLE,
-                        google.maps.drawing.OverlayType.POLYGON,
-                        google.maps.drawing.OverlayType.RECTANGLE,
-                    ],
-                },
-                map: this.googleMap,
-            });
+            try {
+                this.drawingManager = new google.maps.drawing.DrawingManager({
+                    drawingMode: null,
+                    drawingControl: false,
+                    drawingControlOptions: {
+                        position: google.maps.ControlPosition.TOP_CENTER,
+                        drawingModes: [
+                            google.maps.drawing.OverlayType.CIRCLE,
+                            google.maps.drawing.OverlayType.POLYGON,
+                            google.maps.drawing.OverlayType.RECTANGLE,
+                        ],
+                    },
+                    map: this.googleMap,
+                });
+            } catch (error) {
+                console.log(error);
+                this.notification.add(
+                    this.env._t(
+                        'Google Maps DrawingManager could not be loaded. Please make sure "drawing" is configured on Google Maps Libraries settings'
+                    ),
+                    { type: 'danger' }
+                );
+            }
         }
     }
 
@@ -263,7 +276,6 @@ export class GoogleMapDrawingRenderer extends GoogleMapRenderer {
         bodyContent.className = 'o_kanban_group';
 
         const shapeContent = this.getShapeContent(record);
-
         bodyContent.appendChild(shapeContent);
 
         this.markerInfoWindow.setOptions({
@@ -279,10 +291,6 @@ export class GoogleMapDrawingRenderer extends GoogleMapRenderer {
             mapBounds.union(this.shapesBounds);
         }
         this.googleMap.fitBounds(mapBounds);
-        google.maps.event.addListenerOnce(this.googleMap, 'idle', () => {
-            google.maps.event.trigger(this.googleMap, 'resize');
-            if (this.googleMap.getZoom() > 17) this.googleMap.setZoom(17);
-        });
     }
 
     _handleActiveShape() {

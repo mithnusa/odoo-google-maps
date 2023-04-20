@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-17 15:34+0000\n"
-"PO-Revision-Date: 2023-04-17 15:34+0000\n"
+"POT-Creation-Date: 2023-04-20 04:15+0000\n"
+"PO-Revision-Date: 2023-04-20 04:15+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -78,6 +78,16 @@ msgstr ""
 #: code:addons/web_view_google_map_drawing/static/src/widget/google_map_drawing/google_map_drawing.js:0
 #, python-format
 msgid "Google Maps Drawing"
+msgstr ""
+
+#. module: web_view_google_map_drawing
+#. odoo-javascript
+#: code:addons/web_view_google_map_drawing/static/src/views/google_map_drawing/google_map_drawing_renderer.js:0
+#: code:addons/web_view_google_map_drawing/static/src/widget/google_map_drawing/google_map_drawing.js:0
+#, python-format
+msgid ""
+"Google Maps DrawingManager could not be loaded. Please make sure \"drawing\""
+" is configured on Google Maps Libraries settings"
 msgstr ""
 
 #. module: web_view_google_map_drawing
