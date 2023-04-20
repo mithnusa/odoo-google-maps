@@ -1,5 +1,5 @@
 /** @odoo-module **/
-import { onMounted } from '@odoo/owl';
+import { onMounted, onWillDestroy } from '@odoo/owl';
 import { _lt } from '@web/core/l10n/translation';
 import { sprintf } from '@web/core/utils/strings';
 import { GoogleMapSidebar } from '@web_view_google_map/views/google_map/google_map_sidebar';
@@ -7,9 +7,13 @@ import { GoogleMapSidebar } from '@web_view_google_map/views/google_map/google_m
 export class GoogleMapsDrawingSidebar extends GoogleMapSidebar {
     setup() {
         onMounted(() => {
-            setTimeout(() => {
+            this.timer = setTimeout(() => {
                 this.render(true);
             }, 500);
+        });
+
+        onWillDestroy(() => {
+            clearTimeout(this.timer);
         });
     }
     getData(record) {
