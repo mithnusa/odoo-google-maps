@@ -7,7 +7,7 @@
         <field name="priority">5500</field>
         <field name="arch" type="xml">
             <xpath expr="//google_map" position="attributes">
-                <attribute name="js_class">google_map_places_contacts_avatar</attribute>
+                <attribute name="js_class">google_map_places_contact_avatar</attribute>
             </xpath>
         </field>
     </record>

@@ -11,4 +11,4 @@ export const googleMapPlacesContactAvatarView = {
 
 registry
     .category('views')
-    .add('google_map_places_contacts_avatar', googleMapPlacesContactAvatarView);
+    .add('google_map_places_contact_avatar', googleMapPlacesContactAvatarView);
