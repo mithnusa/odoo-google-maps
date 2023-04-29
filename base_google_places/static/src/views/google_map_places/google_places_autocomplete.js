@@ -70,6 +70,8 @@ export class GooglePlacesAutocompleteSidebar extends Component {
                     this.onPlacesChanged.bind(this)
                 );
             }
+
+            this.placeAutocomplete.bindTo('bounds', this.props.googleMap);
         }
     }
 
@@ -79,7 +81,16 @@ export class GooglePlacesAutocompleteSidebar extends Component {
         if (places) {
             this.placeAutocomplete.bindTo('bounds', this.props.googleMap);
             const bounds = new google.maps.LatLngBounds();
-            places.forEach((place) => this.handlePlace(bounds, place));
+            places.forEach((place) => {
+                this.handlePlace(place);
+                if (place.geometry || place.geometry.location) {
+                    if (place.geometry.viewport) {
+                        bounds.union(place.geometry.viewport);
+                    } else {
+                        bounds.union(place.geometry.location);
+                    }
+                }
+            });
             this.props.googleMap.fitBounds(bounds);
             this.state.places = [...this.placesResult];
         } else {
@@ -89,7 +100,22 @@ export class GooglePlacesAutocompleteSidebar extends Component {
         }
     }
 
-    handlePlace(bounds, place) {
+    centerMapToCurrentSearchResult() {
+        const places = this.placeAutocomplete.getPlaces();
+        const bounds = new google.maps.LatLngBounds();
+        places.forEach((place) => {
+            if (place.geometry || place.geometry.location) {
+                if (place.geometry.viewport) {
+                    bounds.union(place.geometry.viewport);
+                } else {
+                    bounds.union(place.geometry.location);
+                }
+            }
+        });
+        this.props.googleMap.fitBounds(bounds);
+    }
+
+    handlePlace(place) {
         if (place.geometry || place.geometry.location) {
             const markerOption = {
                 map: this.props.googleMap,
@@ -109,11 +135,6 @@ export class GooglePlacesAutocompleteSidebar extends Component {
             const marker = new google.maps.Marker(markerOption);
             place._marker = marker;
             this.placesResult.push(place);
-            if (place.geometry.viewport) {
-                bounds.union(place.geometry.viewport);
-            } else {
-                bounds.union(place.geometry.location);
-            }
         }
     }
 

@@ -22,7 +22,7 @@
     'data': ['views/res_partner.xml'],
     'assets': {
         'web.assets_backend': [
-            'contacts_google_map/static/src/js/views/google_map/*',
+            'contacts_google_map/static/src/views/google_map/*',
         ]
     },
     'demo': [],

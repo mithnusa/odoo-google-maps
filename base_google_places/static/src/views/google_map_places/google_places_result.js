@@ -49,16 +49,8 @@ export class GooglePlacesResult extends Component {
                 },
                 {
                     props: {
-                        onSave: async (record, params) => {
-                            if (record.resId) {
-                                this.env.model.action.doAction({
-                                    type: 'ir.actions.act_window_close',
-                                });
-                                await this.env.model.root.load();
-                                this.env.model.notify();
-                                this.render(true);
-                            }
-                        },
+                        onSave: async (record, params) =>
+                            await this._handleAfterAction(record, 'write', params),
                     },
                 }
             );
@@ -75,22 +67,39 @@ export class GooglePlacesResult extends Component {
                 },
                 {
                     props: {
-                        onSave: async (record, params) => {
-                            console.log(' onSave2! ', { record, params });
-
-                            if (record.resId) {
-                                this.env.model.action.doAction({
-                                    type: 'ir.actions.act_window_close',
-                                });
-
-                                await this.env.model.root.load();
-                                this.env.model.notify();
-                                this.render(true);
-                            }
-                        },
+                        onSave: async (record, params) =>
+                            await this._handleAfterAction(record, 'create', params),
                     },
                 }
             );
+        }
+    }
+
+    async _handleAfterAction(record, mode, _params) {
+        if (record.resId) {
+            this.env.model.action.doAction({
+                type: 'ir.actions.act_window_close',
+            });
+
+            await this.env.model.root.load();
+            this.env.model.notify();
+            this.render(true);
+            setTimeout(() => {
+                this.props.centerToCurrentSearchResult();
+                if (mode === 'create') {
+                    this.notification.add(
+                        this.env._t('New place is created successfully', {
+                            type: 'success',
+                        })
+                    );
+                } else if (mode === 'write') {
+                    this.notification.add(
+                        this.env._t('Place is updated successfully', {
+                            type: 'success',
+                        })
+                    );
+                }
+            }, 500);
         }
     }
 
@@ -133,4 +142,10 @@ export class GooglePlacesResult extends Component {
 
 GooglePlacesResult.template = 'base_google_places.PlacesResult';
 GooglePlacesResult.components = { GooglePlacesItem };
-GooglePlacesResult.props = ['places', 'googleMap', 'markerInfoWindow', 'placeService'];
+GooglePlacesResult.props = [
+    'places',
+    'googleMap',
+    'markerInfoWindow',
+    'placeService',
+    'centerToCurrentSearchResult',
+];

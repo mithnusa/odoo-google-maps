@@ -14,7 +14,7 @@ Base of Google Places integration
 A base module for Google Places integration.
 Extension of Google Maps Odoo integration focusing on Google Places service.
     ''',
-    'depends': ['web_view_google_map',],
+    'depends': ['web_view_google_map'],
     'data': [
         'data/google_places_type.xml',
         'security/ir.model.access.csv',
@@ -22,7 +22,7 @@ Extension of Google Maps Odoo integration focusing on Google Places service.
     ],
     'assets': {
         'web.assets_backend': [
-            'base_google_places/static/src/js/view/**/*',
+            'base_google_places/static/src/views/**/*',
         ],
     },
     'installable': True,

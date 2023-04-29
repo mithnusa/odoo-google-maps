@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'Contacts Google Places',
-    'version': '16.0.1.0.0',
+    'version': '16.0.1.1.0',
     'author': 'Yopi Angi',
     'license': 'AGPL-3',
     'maintainer': 'Yopi Angi<yopiangi@gmail.com >',
@@ -25,6 +25,11 @@ You can create a new contact within Google maps by:
     ],
     'website': 'https://github.com/gityopie',
     'data': ['views/res_partner.xml'],
+    'assets': {
+        'web.assets_backend': [
+            'contacts_google_places/static/src/views/google_map/*',
+        ]
+    },
     'images': ['static/description/thumbnail.png'],
     'demo': [],
     'installable': True,
