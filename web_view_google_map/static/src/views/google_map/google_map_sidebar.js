@@ -1,17 +1,8 @@
 /** @odoo-module **/
 
-import { Component, onMounted } from '@odoo/owl';
+import { Component } from '@odoo/owl';
 
 export class GoogleMapSidebar extends Component {
-    setup() {
-        // FIXME component reactivity
-        onMounted(() => {
-            setTimeout(() => {
-                this.render(true);
-            }, 500);
-        });
-    }
-
     _getDisplayName(record, fieldName, defaultLabel) {
         let default_display_name = defaultLabel || 'Unknown';
         if (fieldName) {
@@ -94,9 +85,6 @@ GoogleMapSidebar.props = [
     'handleOpenRecord',
     'handlePointInMap',
     'records',
-    'fieldLat',
-    'fieldLng',
     'fieldTitle',
     'fieldSubtitle',
-    'markers',
 ];

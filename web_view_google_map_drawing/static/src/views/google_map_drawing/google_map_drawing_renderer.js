@@ -3,6 +3,7 @@
 import { renderToString } from '@web/core/utils/render';
 import { _lt } from '@web/core/l10n/translation';
 import { onWillDestroy, onWillUpdateProps } from '@odoo/owl';
+import { useService } from '@web/core/utils/hooks';
 import { GoogleMapRenderer } from '@web_view_google_map/views/google_map/google_map_renderer';
 import { GoogleMapsDrawingSidebar } from './google_map_drawing_sidebar';
 import { MAP_THEMES } from '@base_google_map/utils/themes';
@@ -10,21 +11,28 @@ import { MAP_THEMES } from '@base_google_map/utils/themes';
 export class GoogleMapDrawingRenderer extends GoogleMapRenderer {
     setup() {
         super.setup();
+        this.notification = useService('notification');
+
         this.editColor = '#ffa187';
         this.drawingManager = null;
         this.shapes = {};
         this.prevShapeSelected = null;
         this.currentShapeSelected = null;
+        this.shapesBounds = null;
 
         onWillDestroy(() => {
             if (this.shapes) {
-                Object.values(this.shapes).forEach((shape) => shape.setMap(null));
+                Object.keys(this.shapes).forEach((key) =>
+                    this._deleteShapeInCache(key)
+                );
             }
         });
 
         onWillUpdateProps(() => {
             if (this.shapes) {
-                Object.values(this.shapes).forEach((shape) => shape.setMap(null));
+                Object.keys(this.shapes).forEach((key) =>
+                    this._deleteShapeInCache(key)
+                );
             }
         });
     }
@@ -32,13 +40,13 @@ export class GoogleMapDrawingRenderer extends GoogleMapRenderer {
     /**
      * @override
      */
-    renderMap() {
+    renderMap(isCentered) {
         this.shapesBounds = new google.maps.LatLngBounds();
-        this.initialize();
-        this.initializeDrawing();
         this.renderShapes();
-        this.centerMap();
-        this.handleSearchPlaceBounds();
+
+        if (isCentered) {
+            this.centerMap();
+        }
     }
 
     /**
@@ -72,6 +80,7 @@ export class GoogleMapDrawingRenderer extends GoogleMapRenderer {
             }
         );
         this.googleMap.mapTypes.set('drawing', mapThemeDrawing);
+        this.initializeDrawing();
     }
 
     _getGeneralOptions() {
@@ -121,19 +130,36 @@ export class GoogleMapDrawingRenderer extends GoogleMapRenderer {
 
     initializeDrawing() {
         if (!this.drawingManager) {
-            this.drawingManager = new google.maps.drawing.DrawingManager({
-                drawingMode: null,
-                drawingControl: false,
-                drawingControlOptions: {
-                    position: google.maps.ControlPosition.TOP_CENTER,
-                    drawingModes: [
-                        google.maps.drawing.OverlayType.CIRCLE,
-                        google.maps.drawing.OverlayType.POLYGON,
-                        google.maps.drawing.OverlayType.RECTANGLE,
-                    ],
-                },
-                map: this.googleMap,
-            });
+            try {
+                this.drawingManager = new google.maps.drawing.DrawingManager({
+                    drawingMode: null,
+                    drawingControl: false,
+                    drawingControlOptions: {
+                        position: google.maps.ControlPosition.TOP_CENTER,
+                        drawingModes: [
+                            google.maps.drawing.OverlayType.CIRCLE,
+                            google.maps.drawing.OverlayType.POLYGON,
+                            google.maps.drawing.OverlayType.RECTANGLE,
+                        ],
+                    },
+                    map: this.googleMap,
+                });
+            } catch (error) {
+                console.log(error);
+                this.notification.add(
+                    this.env._t(
+                        'Google Maps DrawingManager could not be loaded. Please make sure "drawing" is configured on Google Maps Libraries settings'
+                    ),
+                    { type: 'danger' }
+                );
+            }
+        }
+    }
+
+    _deleteShapeInCache(shape_key) {
+        if (shape_key in this.shapes) {
+            this.shapes[shape_key].setMap(null);
+            delete this.shapes[shape_key];
         }
     }
 
@@ -159,9 +185,7 @@ export class GoogleMapDrawingRenderer extends GoogleMapRenderer {
     }
 
     _handleDrawPolygon(record, options) {
-        if (record.id in this.shapes) {
-            this.shapes[record.id].setMap(null);
-        }
+        this._deleteShapeInCache(record.id);
         const styleOption = this._getBaseColorOptions();
         const polygon = new google.maps.Polygon(styleOption);
         polygon.setOptions({ ...options, map: this.googleMap });
@@ -180,12 +204,14 @@ export class GoogleMapDrawingRenderer extends GoogleMapRenderer {
     }
 
     _handleDrawRectangle(record, options) {
-        if (record.id in this.shapes) {
-            this.shapes[record.id].setMap(null);
-        }
+        this._deleteShapeInCache(record.id);
         const styleOption = this._getBaseColorOptions();
         const rectangle = new google.maps.Rectangle(styleOption);
-        rectangle.setOptions({ ...options, map: this.googleMap, draggable: false });
+        rectangle.setOptions({
+            ...options,
+            map: this.googleMap,
+            draggable: false,
+        });
         this.shapes[record.id] = rectangle;
         this.shapesBounds.union(rectangle.getBounds());
         google.maps.event.addListener(
@@ -197,9 +223,7 @@ export class GoogleMapDrawingRenderer extends GoogleMapRenderer {
     }
 
     _handleDrawCircle(record, options) {
-        if (record.id in this.shapes) {
-            this.shapes[record.id].setMap(null);
-        }
+        this._deleteShapeInCache(record.id);
         const styleOption = this._getBaseColorOptions();
         const circle = new google.maps.Circle(styleOption);
         circle.setOptions({ ...options, map: this.googleMap, draggable: false });
@@ -215,7 +239,11 @@ export class GoogleMapDrawingRenderer extends GoogleMapRenderer {
 
     getShapeContent(record) {
         const content = renderToString('web_view_google_map_drawing.ShapeInfoWindow', {
-            record: record.id,
+            record: JSON.stringify({
+                id: record.id,
+                resId: record.resId,
+                resModel: record.resModel,
+            }),
             title: record.data.gshape_name,
             description: record.data.gshape_description,
         });
@@ -227,10 +255,15 @@ export class GoogleMapDrawingRenderer extends GoogleMapRenderer {
         divContent.querySelector('#btn-open_form').addEventListener(
             'click',
             (ev) => {
-                const dataId = ev.target.getAttribute('data-record') || null;
-                const record = this.props.list.records.find((r) => r.id === dataId);
-                if (record) {
-                    this.props.openRecord(record);
+                const data = ev.target.getAttribute('data-record') || null;
+                if (data) {
+                    const values = JSON.parse(data);
+                    const record = this.props.list.records.find(
+                        (r) => r.id === values.id
+                    );
+                    if (record) {
+                        this.props.showRecord(record);
+                    }
                 }
             },
             false
@@ -243,7 +276,6 @@ export class GoogleMapDrawingRenderer extends GoogleMapRenderer {
         bodyContent.className = 'o_kanban_group';
 
         const shapeContent = this.getShapeContent(record);
-
         bodyContent.appendChild(shapeContent);
 
         this.markerInfoWindow.setOptions({
@@ -255,14 +287,10 @@ export class GoogleMapDrawingRenderer extends GoogleMapRenderer {
 
     centerMap() {
         const mapBounds = new google.maps.LatLngBounds();
-        if (!this.shapesBounds.isEmpty()) {
+        if (this.shapesBounds && !this.shapesBounds.isEmpty()) {
             mapBounds.union(this.shapesBounds);
         }
         this.googleMap.fitBounds(mapBounds);
-        google.maps.event.addListenerOnce(this.googleMap, 'idle', () => {
-            google.maps.event.trigger(this.googleMap, 'resize');
-            if (this.googleMap.getZoom() > 17) this.googleMap.setZoom(17);
-        });
     }
 
     _handleActiveShape() {
@@ -283,6 +311,7 @@ export class GoogleMapDrawingRenderer extends GoogleMapRenderer {
             this.currentShapeSelected = shape;
 
             let bounds;
+            this._cleanPolygonPoints();
             if (shape.type === 'polygon') {
                 const paths = shape.getPath();
                 if (paths.length > 0) {
@@ -291,6 +320,7 @@ export class GoogleMapDrawingRenderer extends GoogleMapRenderer {
                         bounds.extend({ lat: item.lat(), lng: item.lng() });
                     });
                 }
+                this._handleDrawPolygonPoints(shape.lines);
             } else if (shape.type === 'circle') {
                 bounds = shape.getBounds();
             } else if (shape.type === 'rectangle') {
@@ -304,6 +334,37 @@ export class GoogleMapDrawingRenderer extends GoogleMapRenderer {
                     google.maps.event.trigger(this.googleMap, 'resize');
                 });
             }
+        }
+    }
+
+    _cleanPolygonPoints() {
+        if (this.polygonMarkers) {
+            Object.keys(this.polygonMarkers).forEach((lineAt) => {
+                this.polygonMarkers[lineAt].setMap(null);
+                delete this.polygonMarkers[lineAt];
+            });
+        } else {
+            this.polygonMarkers = {};
+        }
+    }
+
+    _handleDrawPolygonPoints(lines) {
+        if (lines) {
+            let latLng;
+            const totalStop = Object.keys(lines).length;
+            Object.keys(lines).forEach((key) => {
+                if (key < totalStop) {
+                    latLng = lines[key].start;
+                } else {
+                    latLng = lines[key].stop;
+                }
+                this.polygonMarkers[key] = new google.maps.Marker({
+                    map: this.googleMap,
+                    position: latLng,
+                    label: key,
+                    animation: google.maps.Animation.DROP,
+                });
+            });
         }
     }
 

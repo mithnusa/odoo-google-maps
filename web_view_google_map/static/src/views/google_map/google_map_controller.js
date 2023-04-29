@@ -64,9 +64,71 @@ export class GoogleMapController extends Component {
         this.render(true);
     }
 
+    /**
+     * Switch to form view
+     * @param {Object} record
+     * @param {String} mode
+     */
     async openRecord(record, mode) {
         const activeIds = this.model.root.records.map((datapoint) => datapoint.resId);
         this.props.selectRecord(record.resId, { activeIds, mode });
+    }
+
+    /**
+     * Open form view in a dialog window
+     * @param {Object} values
+     */
+    async showRecord(values) {
+        if (values && values.resId) {
+            const record = this.model.root.records.find(
+                (rec) => rec.resId === values.resId
+            );
+            if (record) {
+                const name = this._getRecordName(record);
+                this.model.action.doAction(
+                    {
+                        name: name,
+                        type: 'ir.actions.act_window',
+                        res_model: record.resModel,
+                        views: [[false, 'form']],
+                        view_mode: 'form',
+                        res_id: record.resId,
+                        target: 'new',
+                    },
+                    {
+                        props: {
+                            onSave: async () => {
+                                this.model.action.doAction({
+                                    type: 'ir.actions.act_window_close',
+                                });
+                                await record.load({}, { keepChanges: true });
+                                record.model.notify();
+                            },
+                        },
+                    }
+                );
+            }
+        }
+    }
+
+    /**
+     * Get display_name of record
+     * @param {Object} record
+     * @returns String
+     */
+    _getRecordName(record) {
+        if (
+            this.props.archInfo.sidebarTitleField &&
+            this.props.archInfo.sidebarTitleField in record.data
+        ) {
+            return record.data[this.props.archInfo.sidebarTitleField];
+        } else if ('name' in record.data) {
+            return record.data.name;
+        } else if ('display_name' in record.data) {
+            return record.data.display_name;
+        } else {
+            return '';
+        }
     }
 
     get className() {

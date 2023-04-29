@@ -1,13 +1,24 @@
 /** @odoo-module **/
-import { Component, onWillStart } from '@odoo/owl';
+import { Component, onWillStart, useState } from '@odoo/owl';
 import { _lt } from '@web/core/l10n/translation';
 import { useService } from '@web/core/utils/hooks';
 import { MAP_THEMES } from './themes';
+
+// see https://googlemaps.github.io/js-api-loader/enums/LoaderStatus.html
+export const LOADER_STATUS = {
+    FAILURE: 3,
+    INITIALIZED: 0,
+    LOADING: 1,
+    SUCCESS: 2,
+    UNLOAD: 999, // custom status for internal usage
+};
 
 export class BaseGoogleMap extends Component {
     setup() {
         this.user = useService('user');
         this.rpc = useService('rpc');
+
+        this.state = useState({ loaderStatus: LOADER_STATUS.UNLOAD });
 
         this.loader = null;
         this.settings = {};

@@ -161,8 +161,10 @@
         .o_map_sidebar {
             span {
                 &.text-muted {
-                    @include o-kanban-record-title($font-size: 12px);
-                    letter-spacing: -0.5px;
+                    @include font-size($font-size-sm);
+                }
+                &.title {
+                    @include o-kanban-record-title($font-size: 14px);
                 }
             }
         }
