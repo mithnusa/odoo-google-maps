@@ -108,7 +108,7 @@ export class GooglePlacesResult extends Component {
         if (values) {
             const data = await this.env.model.orm.call(
                 this.env.model.env.searchModel.resModel,
-                'action_google_place_quick_create1',
+                'action_google_place_quick_create',
                 [{ place, values }]
             );
             this._actionAddPlace(data);

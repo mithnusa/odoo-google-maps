@@ -208,6 +208,10 @@ export class BaseGoogleAutocomplete extends Component {
         }
     }
 
+    async populateAddress() {
+        // Not implemented
+    }
+
     handlePopulateAddress() {
         const place = this.places_autocomplete.getPlace();
         if (this.address_mode === 'no_address_format') {

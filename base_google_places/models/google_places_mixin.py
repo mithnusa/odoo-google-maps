@@ -394,69 +394,6 @@ class GooglePlacesMixin(models.AbstractModel):
                     values['image_1920'] = image
 
         place_id = values.get('gplace_id')
-        if place_id:
-            record_id = self.search([('gplace_id', '=', place_id)])
-            if record_id:
-                return record_id.write(values)
-
-            return self.create(values)
-
-        return False
-
-    @api.model
-    def action_google_place_quick_create1(self, place_dict):
-        values = self.default_get(self._fields.keys())
-        place = place_dict.get('place')
-        address_components = place.get('address_components')
-        location = (place.get('geometry') or {}).get('location') or {}
-        place.pop('photos', None)
-        places_value = place_dict.get('values') or {}
-        values.update(places_value)
-
-        if values.get('gplace_type_ids'):
-            gplace_type_ids = values['gplace_type_ids'].get('ids')
-            values['gplace_type_ids'] = [(6, 0, gplace_type_ids)]
-
-        odoo_fields = self._get_mapping_odoo_fields()
-        if place:
-            if odoo_fields.get('name') and place.get('name'):
-                values[odoo_fields['name']] = place['name']
-
-            if odoo_fields.get('website') and place.get('website'):
-                values[odoo_fields['website']] = place['website']
-
-            if odoo_fields.get('phone') and place.get(
-                'international_phone_number'
-            ):
-                values[odoo_fields['phone']] = place[
-                    'international_phone_number'
-                ]
-
-            # address
-            if address_components:
-                # address
-                address_values = self._prepare_address_fields(
-                    address_components
-                )
-                values.update(address_values)
-
-            # geolocation
-            if location:
-                geo_values = self._prepare_geolocation_fields(
-                    odoo_fields, location
-                )
-                values.update(geo_values)
-
-            if (
-                values.get('gplace_photos_url')
-                and 'image_1920' in self._fields
-            ):
-                photos = values['gplace_photos_url'].split(',')
-                image = self._google_get_place_image(photos[0])
-                if image:
-                    values['image_1920'] = image
-
-        place_id = values.get('gplace_id')
         context = self.env.context.copy()
 
         for key, val in values.items():
