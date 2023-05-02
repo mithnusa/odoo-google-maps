@@ -14,7 +14,11 @@
     'support': 'yopiangi@gmail.com',
     'category': 'Extra Tools',
     'version': '16.0.1.0.0',
-    'depends': ['contacts_gautocomplete_places', 'web_widget_google_places'],
+    'depends': [
+        'contacts_gautocomplete_places',
+        'web_widget_google_places',
+        'contacts_google_places',
+    ],
     'data': ['views/res_partner.xml'],
     'demo': [],
     'installable': True,

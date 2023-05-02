@@ -17,6 +17,7 @@
     'depends': [
         'contacts_gautocomplete_address_form',
         'web_widget_google_places',
+        'contacts_google_places',
     ],
     'data': ['views/res_partner.xml'],
     'demo': [],
