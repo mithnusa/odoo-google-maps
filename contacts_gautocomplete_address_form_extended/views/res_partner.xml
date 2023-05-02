@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_res_partner_form_inherit_gautocomplete_address_form_extended" model="ir.ui.view">
+        <field name="name">view.res.partner.form.inherit.gautocomplete.address.form.extended</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="priority">4000</field>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='street']" position="attributes">
+                <attribute name="widget">gplaces_address_autocomplete_extended</attribute>
+            </xpath>
+        </field>
+    </record>
+</odoo>

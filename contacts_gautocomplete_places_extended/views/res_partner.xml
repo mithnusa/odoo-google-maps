@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_res_partner_form_inherit_gautocomplete_places_extended" model="ir.ui.view">
+        <field name="name">view.res.partner.form.inherit.gautocomplete.places.extended</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="priority">4000</field>
+        <field name="arch" type="xml">
+            <xpath expr="//div[hasclass('oe_title')]/h1/field[@id='company']" position="attributes">
+                <attribute name="widget">gplaces_autocomplete_extended</attribute>
+            </xpath>
+            <xpath expr="//div[hasclass('oe_title')]/h1/field[@id='individual']" position="attributes">
+                <attribute name="widget">gplaces_autocomplete_extended</attribute>
+            </xpath>
+        </field>
+    </record>
+</odoo>
