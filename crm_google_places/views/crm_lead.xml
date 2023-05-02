@@ -120,20 +120,12 @@
     <record id="view_crm_lead_google_map_inherit_google_places" model="ir.ui.view">
         <field name="name">view.crm.lead.google.map.inherit.google.places</field>
         <field name="model">crm.lead</field>
-        <field name="inherit_id" ref="crm_maps.view_crm_leads_google_map"/>
+        <field name="inherit_id" ref="crm_google_map.view_crm_lead_google_map"/>
         <field name="priority">1000</field>
         <field name="arch" type="xml">
             <xpath expr="//google_map" position="attributes">
-                <attribute name="js_class">google_map_search_places</attribute>
-                <attribute name="color">marker_color</attribute>
-                <attribute name="colors"></attribute>
-                <attribute name="sidebar_title">name</attribute>
-                <attribute name="sidebar_subtitle">gplace_formatted_address</attribute>
+                <attribute name="js_class">google_map_places</attribute>
             </xpath>
-            <field name="user_id" position="after">
-                <field name="marker_color"/>
-                <field name="gplace_formatted_address"/>
-            </field>
         </field>
     </record>
 </odoo>

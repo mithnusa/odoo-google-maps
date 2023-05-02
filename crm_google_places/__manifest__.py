@@ -24,15 +24,14 @@ You can create a new leads within Google maps by:
         'base_google_places',
         'crm_google_map',
     ],
-    'website': 'https://github.com/gityopie',
+    'website': 'https://github.com/mithnusa',
     'data': [
         'views/crm_lead.xml',
-        'views/crm_stage.xml',
     ],
     'demo': [],
     'images': ['static/description/thumbnail.png'],
-    'installable': False,
+    'installable': True,
     'application': False,
     'auto_install': False,
-    'active': False,
+    'active': True,
 }

@@ -6,7 +6,7 @@
     ''',
     'description': '''
         Extended version of Contacts Google Places Autocomplete Extended
-        Added some more info from Google place into Odoo
+        Added some more info (Google Address, Place ID, Place URL, Opening Hours, Types, Global Code, Compound Code, Plus code URL, Vicinity) of a place from Google place into Odoo
     ''',
     'license': 'AGPL-3',
     'author': 'Yopi Angi',

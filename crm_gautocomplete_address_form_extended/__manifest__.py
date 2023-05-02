@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 {
-    'name': 'Contacts Google Autocomplete Address form extended',
+    'name': 'CRM Google Autocomplete Address form Extended',
     'summary': '''
-        Extended version of Contacts Google Autocomplete Address form
+        Extended version of CRM Google Autocomplete Address Form
     ''',
     'description': '''
-        Extended version of Contacts Google Autocomplete Address form
+        Extended version of CRM Google Autocomplete Address Form
         Added some more info (Google Address, Place ID, Place URL, Opening Hours, Types, Global Code, Compound Code, Plus code URL, Vicinity) of a place from Google place into Odoo
     ''',
     'license': 'AGPL-3',
@@ -15,10 +15,11 @@
     'category': 'Extra Tools',
     'version': '16.0.1.0.0',
     'depends': [
-        'contacts_gautocomplete_address_form',
+        'crm_google_places',
+        'crm_gautocomplete_address_form',
         'web_widget_google_places',
     ],
-    'data': ['views/res_partner.xml'],
+    'data': ['views/crm_lead.xml'],
     'demo': [],
     'installable': True,
     'application': False,
