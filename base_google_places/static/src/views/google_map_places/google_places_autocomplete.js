@@ -1,6 +1,13 @@
 /** @odoo-module **/
 
-import { Component, useRef, onRendered, useState } from '@odoo/owl';
+import {
+    Component,
+    useRef,
+    onRendered,
+    useState,
+    onWillUnmount,
+    useEffect,
+} from '@odoo/owl';
 import { useService } from '@web/core/utils/hooks';
 import { GooglePlacesResult } from './google_places_result';
 
@@ -14,7 +21,17 @@ export class GooglePlacesAutocompleteSidebar extends Component {
         this.placesResult = [];
         this.markerInfoWindow = null;
         this.placeService = null;
+
+        useEffect(
+            () => {
+                if (!this.props.isComponentFolded) {
+                    this.searchBoxRef.el.querySelector('input#searchinputbox').focus();
+                }
+            },
+            () => [this.props.isComponentFolded]
+        );
         onRendered(this.onRendered);
+        onWillUnmount(this._cleanPlacesResult);
     }
 
     onRendered() {

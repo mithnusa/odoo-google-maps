@@ -1,17 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates xml:space="preserve">
-
     <t t-name="base_google_places.SidebarPlacesAutocomplete" owl="1">
         <div t-ref="root">
             <div class="d-flex" style="padding: 6px;" t-ref="searchBox">
                 <input class="form-control form-control-lg" id="searchinputbox" type="text" placeholder="Search Google Maps" autofocus="autofocus"/>
             </div>
-            <div class="search-result" t-ref="searchResultBox">
+            <div class="search-result w-100" t-ref="searchResultBox">
                 <div class="content">
                     <GooglePlacesResult places="state.places" googleMap="props.googleMap" markerInfoWindow="markerInfoWindow" placeService="placeService" centerToCurrentSearchResult.bind="centerMapToCurrentSearchResult"/>
                 </div>
             </div>
         </div>
     </t>
-
 </templates>

@@ -342,7 +342,18 @@ class GooglePlacesMixin(models.AbstractModel):
 
     @api.model
     def action_google_place_quick_create(self, place_dict):
-        values = self.default_get(self._fields.keys())
+        place_id = place_dict.get('gplace_id')
+        exists = False
+        if place_id:
+            values = {}
+            record_count = self.search_count(
+                [('gplace_id', '=', place_id)], limit=1
+            )
+            if record_count:
+                exists = True
+        else:
+            values = self.default_get(self._fields.keys())
+
         place = place_dict.get('place')
         address_components = place.get('address_components')
         location = (place.get('geometry') or {}).get('location') or {}
@@ -371,7 +382,6 @@ class GooglePlacesMixin(models.AbstractModel):
 
             # address
             if address_components:
-                # address
                 address_values = self._prepare_address_fields(
                     address_components
                 )
@@ -393,18 +403,14 @@ class GooglePlacesMixin(models.AbstractModel):
                 if image:
                     values['image_1920'] = image
 
-        place_id = values.get('gplace_id')
-        context = self.env.context.copy()
+        if exists:
+            return values
 
+        default_values = self.env.context.copy()
         for key, val in values.items():
-            context['default_{}'.format(key)] = val
+            default_values['default_{}'.format(key)] = val
 
-        if place_id:
-            record_id = self.search([('gplace_id', '=', place_id)])
-            if record_id:
-                context['res_id'] = record_id.id
-
-        return context
+        return default_values
 
     def _google_get_place_image(self, photo_url):
         if photo_url:

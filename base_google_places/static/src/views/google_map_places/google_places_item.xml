@@ -7,7 +7,7 @@
                 <span t-if="photo_url">
                     <img t-att-src="photo_url" class="img-fluid img-thumbnail" t-att-alt="props.place.name"/>
                 </span>
-                <div class="d-flex flex-column flex-nowrap pl-2" id="place-item" t-on-click.prevent="() => props.handlePointInMap(props.place)" t-attf-data-placeid="#{props.place.place_id}">
+                <div class="d-flex flex-column flex-nowrap ml4" id="place-item" t-on-click.prevent="() => props.handlePointInMap(props.place)" t-attf-data-placeid="#{props.place.place_id}">
                     <h5 class="mb-1">
                         <t t-esc="props.place.name"/>
                     </h5>
