@@ -118,18 +118,20 @@ export class GoogleAddressAutocomplete extends BaseGoogleAutocomplete {
 
     handlePopulateAddress() {
         const place = this.places_autocomplete.getPlace();
-        if (this.address_mode === 'no_address_format') {
-            const geoValues = this._prepareGeolocation(
-                place.geometry.location.lat(),
-                place.geometry.location.lng()
-            );
-            if (geoValues) {
-                geoValues[this.props.name] = formatChar(place.formatted_address);
-                this._update(geoValues);
+        if (place) {
+            if (this.address_mode === 'no_address_format') {
+                const geoValues = this._prepareGeolocation(
+                    place.geometry.location.lat(),
+                    place.geometry.location.lng()
+                );
+                if (geoValues) {
+                    geoValues[this.props.name] = formatChar(place.formatted_address);
+                    this._update(geoValues);
+                }
+            } else if (place.hasOwnProperty('address_components')) {
+                const google_address = this._prepareAddress(place);
+                this.populateAddress(place, google_address);
             }
-        } else if (place.hasOwnProperty('address_components')) {
-            const google_address = this._prepareAddress(place);
-            this.populateAddress(place, google_address);
         }
     }
 

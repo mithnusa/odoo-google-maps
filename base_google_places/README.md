@@ -7,7 +7,6 @@ Contains one Abstract Model `google.places.mixin` and a concrete model `google.p
 
 1. Abstract model `google.places.mixin`    
 The idea was to store information of a place and store in Odoo.    
-Reference: https://developers.google.com/maps/documentation/places/web-service/place-data-fields    
     ```python
     gplace_formatted_address = fields.Char(string='Google Address')
     gplace_id = fields.Char(string='Place ID', help='A textual identifier that uniquely identifies a place')
@@ -26,7 +25,7 @@ A model to manage Google Places Types
 Reference: https://developers.google.com/maps/documentation/places/web-service/supported_types#table1
 
 
-#### Steps to implement
+### Steps to implement
 1. Model   
     Inherit the abstract model `"google.places.mixin"`   
     example:
@@ -66,4 +65,26 @@ Reference: https://developers.google.com/maps/documentation/places/web-service/s
    </record>
    ```
 
+### Features    
+1. Google Place Search    
+Using Place Autocomplete helps you find any places such Office building, Pharmacy, Restaurant, etc. And store the data in Odoo   
+
+    <img src="./static/src/img/PlacesSearch.png" width="600px" alt="Places Search"/>
+2. Google Place Nearby Search    
+You can search any places within certain area    
+
+    <img src="./static/src/img/NearbySearch.png" width="600px" alt="Nearby Search"/>
+
+3. Register any place or location on map    
+Click any location on map and then store it in Odoo    
+
+    <img src="./static/src/img/OnMapClickAddPlace.png" width="600px" alt="OnMap Click Add Place"/>
+
+
+### Implementation
 For implementation, please have a look on the module `contacts_google_places` and module `crm_google_places`
+
+### References
+- https://developers.google.com/maps/documentation/places/web-service/autocomplete
+- https://developers.google.com/maps/documentation/places/web-service/place-data-fields  
+- https://developers.google.com/maps/documentation/places/web-service/details

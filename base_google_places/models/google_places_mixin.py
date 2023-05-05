@@ -42,17 +42,13 @@ GOOGLE_PLACES_COMPONENT_FORM = {
 }
 
 PLACES_FIELDS = [
-    'business_status',
     'formatted_address',
     'geometry',
-    'icon',
     'name',
     'place_id',
     'plus_code',
     'type',
-    'rating',
     'vicinity',
-    'user_ratings_total',
     'url',
 ]
 

@@ -44,6 +44,7 @@
             <t t-if="props.place.vicinity">
                 <p>
                     <i class="fa fa-map-pin"></i>
+                    <span> </span>
                     <span t-esc="props.place.vicinity"/>
                 </p>
             </t>

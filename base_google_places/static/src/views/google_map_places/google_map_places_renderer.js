@@ -13,6 +13,8 @@ export class GoogleMapPlacesRenderer extends GoogleMapRenderer {
             sidebarPlacesIsFolded: true,
         });
 
+        this.placeService = null;
+
         useChildSubEnv({
             model: this.props.list.model,
             fields: this.props.list.fields,
@@ -21,6 +23,29 @@ export class GoogleMapPlacesRenderer extends GoogleMapRenderer {
 
     togglePlacesSidebar() {
         this.state.sidebarPlacesIsFolded = !this.state.sidebarPlacesIsFolded;
+    }
+
+    initialize() {
+        super.initialize();
+        if (!this.placeService && this.googleMap) {
+            this.placeService = new google.maps.places.PlacesService(this.googleMap, {
+                fields: [
+                    'business_status',
+                    'formatted_address',
+                    'geometry',
+                    'icon',
+                    'name',
+                    'photos',
+                    'place_id',
+                    'plus_code',
+                    'type',
+                    'rating',
+                    'vicinity',
+                    'user_ratings_total',
+                    'url',
+                ],
+            });
+        }
     }
 }
 

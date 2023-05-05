@@ -2,7 +2,7 @@
 
 import { _lt } from '@web/core/l10n/translation';
 import { formatChar } from '@web/views/fields/formatters';
-import { Component, onWillStart } from '@odoo/owl';
+import { Component, onWillStart, onWillUnmount, onWillDestroy } from '@odoo/owl';
 import { useService } from '@web/core/utils/hooks';
 import {
     GOOGLE_PLACES_COMPONENT_FORM,
@@ -42,7 +42,26 @@ export class BaseGoogleAutocomplete extends Component {
         this.force_override = false;
         this.autocomplete_settings = null;
 
-        onWillStart(this._onWillStart);
+        onWillStart(() => {
+            this._onWillStart();
+        });
+        onWillUnmount(() => {
+            // Reset the placeAutocomplete and remove the event listener attached
+            if (this.places_autocomplete) {
+                this.places_autocomplete.set('place', null);
+            }
+            if (this.placeAutocompleteListener) {
+                google.maps.event.removeListener(this.placeAutocompleteListener);
+            }
+        });
+        onWillDestroy(() => {
+            // set display none for all pac-container residu on the dom
+            setTimeout(() => {
+                document.body.querySelectorAll('.pac-container').forEach((el) => {
+                    el.style.display = 'none';
+                });
+            }, 150);
+        });
     }
 
     async _onWillStart() {
@@ -95,10 +114,11 @@ export class BaseGoogleAutocomplete extends Component {
                         });
                     }
 
-                    this.places_autocomplete.addListener(
-                        'place_changed',
-                        this.handlePopulateAddress.bind(this)
-                    );
+                    this.placeAutocompleteListener =
+                        this.places_autocomplete.addListener(
+                            'place_changed',
+                            this.handlePopulateAddress.bind(this)
+                        );
                     this._geolocate();
                 }
             });
@@ -214,17 +234,19 @@ export class BaseGoogleAutocomplete extends Component {
 
     handlePopulateAddress() {
         const place = this.places_autocomplete.getPlace();
-        if (this.address_mode === 'no_address_format') {
-            const geoValues = this._prepareGeolocation(
-                place.geometry.location.lat(),
-                place.geometry.location.lng()
-            );
-            if (geoValues) {
-                geoValues[this.props.name] = formatChar(place.formatted_address);
-                this._update(geoValues);
+        if (place) {
+            if (this.address_mode === 'no_address_format') {
+                const geoValues = this._prepareGeolocation(
+                    place.geometry.location.lat(),
+                    place.geometry.location.lng()
+                );
+                if (geoValues) {
+                    geoValues[this.props.name] = formatChar(place.formatted_address);
+                    this._update(geoValues);
+                }
+            } else if (place.hasOwnProperty('address_components')) {
+                this.populateAddress(place);
             }
-        } else if (place.hasOwnProperty('address_components')) {
-            this.populateAddress(place);
         }
     }
 
