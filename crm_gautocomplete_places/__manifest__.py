@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 {
-    'name': 'CRM Google Autocomplete Places Extended',
+    'name': 'CRM Google Autocomplete Places',
     'summary': '''
         Enable Google Autocomplete places on lead or opportunities address
     ''',
