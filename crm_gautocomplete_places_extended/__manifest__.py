@@ -2,10 +2,11 @@
 {
     'name': 'CRM Google Autocomplete Places Extended',
     'summary': '''
-        Enable Google Autocomplete places on lead or opportunities address
+        Extended version of CRM Google Autocomplete Places
     ''',
     'description': '''
-        Help you find address by using Google autocomplete places service
+        Extended version of CRM Google Autocomplete Places
+        Added some more info (Google Address, Place ID, Place URL, Opening Hours, Types, Global Code, Compound Code, Plus code URL, Vicinity) of a place from Google place into Odoo
     ''',
     'license': 'AGPL-3',
     'author': 'Yopi Angi',
@@ -13,7 +14,11 @@
     'support': 'yopiangi@gmail.com',
     'category': 'Extra Tools',
     'version': '16.0.1.0.0',
-    'depends': ['crm_google_map', 'web_widget_google_map'],
+    'depends': [
+        'crm_google_places',
+        'crm_gautocomplete_places',
+        'web_widget_google_places',
+    ],
     'data': ['views/crm_lead.xml'],
     'demo': [],
     'installable': True,
