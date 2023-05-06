@@ -1,6 +1,6 @@
 # Web View Google Maps
 
-A new `google_map` view to display geolocation data using Google Maps
+#### A new `google_map` view to display geolocation data using Google Maps
 
 How to create the view?
 
@@ -60,7 +60,7 @@ Optional attributes:
     </form>
     ```
 
-### Using `google_map` view inside `form` view
+#### Using `google_map` view inside `form` view
 You can use the view inside `form` view
 
 Example:
