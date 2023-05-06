@@ -2,7 +2,15 @@
 
 import { _lt } from '@web/core/l10n/translation';
 import { formatChar } from '@web/views/fields/formatters';
-import { Component, onWillStart } from '@odoo/owl';
+import {
+    Component,
+    onMounted,
+    onWillStart,
+    onWillUnmount,
+    onWillDestroy,
+    useState,
+    useEffect,
+} from '@odoo/owl';
 import { useService } from '@web/core/utils/hooks';
 import {
     GOOGLE_PLACES_COMPONENT_FORM,
@@ -12,16 +20,19 @@ import {
     gmaps_populate_places,
     fetchCountryState,
 } from './utils';
+import { LOADER_STATUS } from '@base_google_map/utils/base_google_map';
 
 export class BaseGoogleAutocomplete extends Component {
     setup() {
         this.rpc = useService('rpc');
         this.user = useService('user');
 
+        this.state = useState({ loaderStatus: LOADER_STATUS.UNLOAD });
+
         this.loader = null;
         this.settings = {};
 
-        this.places_autocomplete = false;
+        this.placesAutocomplete = false;
         this.component_form = GOOGLE_PLACES_COMPONENT_FORM;
         this.address_form = ADDRESS_FORM;
         this.fillfields_delimiter = {
@@ -43,6 +54,49 @@ export class BaseGoogleAutocomplete extends Component {
         this.autocomplete_settings = null;
 
         onWillStart(this._onWillStart);
+        useEffect(
+            () => {
+                if (this.state.loaderStatus === LOADER_STATUS.SUCCESS) {
+                    this.initialize();
+                }
+            },
+            () => [this.state.loaderStatus]
+        );
+        onMounted(() => {
+            const status = this.loader.status || this.state.loaderStatus;
+            if (
+                [LOADER_STATUS.UNLOAD, LOADER_STATUS.INITIALIZED].indexOf(status) >= 0
+            ) {
+                this.loader.loadCallback((e) => {
+                    if (e) {
+                        console.warn(e);
+                    } else {
+                        this.initialize();
+                    }
+                });
+            } else if (status === LOADER_STATUS.SUCCESS) {
+                if (!this.placesAutocomplete) {
+                    this.initialize();
+                }
+            }
+        });
+        onWillUnmount(() => {
+            // Reset the placeAutocomplete and remove the event listener attached
+            if (this.placesAutocomplete) {
+                this.placesAutocomplete.set('place', null);
+            }
+            if (this.placeAutocompleteListener) {
+                google.maps.event.removeListener(this.placeAutocompleteListener);
+            }
+        });
+        onWillDestroy(() => {
+            // set display none for all pac-container residu on the dom
+            setTimeout(() => {
+                document.body.querySelectorAll('.pac-container').forEach((el) => {
+                    el.style.display = 'none';
+                });
+            }, 150);
+        });
     }
 
     async _onWillStart() {
@@ -55,6 +109,11 @@ export class BaseGoogleAutocomplete extends Component {
                 libraries: settings.libraries,
             });
         }
+    }
+
+    initialize() {
+        this.defaultFillField();
+        this.prepareOptions();
     }
 
     async _fetchSettings() {
@@ -75,33 +134,25 @@ export class BaseGoogleAutocomplete extends Component {
     }
 
     initGplacesAutocomplete(inputRef) {
-        if (!this.places_autocomplete) {
+        if (!this.placesAutocomplete) {
             const google_fields = this.getGoogleFieldsRestriction();
-            this.loader.loadCallback((e) => {
-                if (e) {
-                    console.log(e);
-                } else {
-                    this.places_autocomplete = new google.maps.places.Autocomplete(
-                        inputRef.el,
-                        {
-                            types: this.autocomplete_types,
-                            fields: google_fields,
-                        }
-                    );
-
-                    if (this.settings.language) {
-                        this.places_autocomplete.setOptions({
-                            language: this.settings.language,
-                        });
-                    }
-
-                    this.places_autocomplete.addListener(
-                        'place_changed',
-                        this.handlePopulateAddress.bind(this)
-                    );
-                    this._geolocate();
-                }
+            this.state.loaderStatus = this.loader.status;
+            this.placesAutocomplete = new google.maps.places.Autocomplete(inputRef.el, {
+                types: this.autocomplete_types,
+                fields: google_fields,
             });
+
+            if (this.settings.language) {
+                this.placesAutocomplete.setOptions({
+                    language: this.settings.language,
+                });
+            }
+
+            this.placeAutocompleteListener = this.placesAutocomplete.addListener(
+                'place_changed',
+                this.handlePopulateAddress.bind(this)
+            );
+            this._geolocate();
         }
     }
 
@@ -166,7 +217,7 @@ export class BaseGoogleAutocomplete extends Component {
                     radius: position.coords.accuracy,
                 });
 
-                this.places_autocomplete.setBounds(circle.getBounds());
+                this.placesAutocomplete.setBounds(circle.getBounds());
             });
         }
     }
@@ -208,19 +259,25 @@ export class BaseGoogleAutocomplete extends Component {
         }
     }
 
+    async populateAddress() {
+        // Not implemented
+    }
+
     handlePopulateAddress() {
-        const place = this.places_autocomplete.getPlace();
-        if (this.address_mode === 'no_address_format') {
-            const geoValues = this._prepareGeolocation(
-                place.geometry.location.lat(),
-                place.geometry.location.lng()
-            );
-            if (geoValues) {
-                geoValues[this.props.name] = formatChar(place.formatted_address);
-                this._update(geoValues);
+        const place = this.placesAutocomplete.getPlace();
+        if (place) {
+            if (this.address_mode === 'no_address_format') {
+                const geoValues = this._prepareGeolocation(
+                    place.geometry.location.lat(),
+                    place.geometry.location.lng()
+                );
+                if (geoValues) {
+                    geoValues[this.props.name] = formatChar(place.formatted_address);
+                    this._update(geoValues);
+                }
+            } else if (place.hasOwnProperty('address_components')) {
+                this.populateAddress(place);
             }
-        } else if (place.hasOwnProperty('address_components')) {
-            this.populateAddress(place);
         }
     }
 
