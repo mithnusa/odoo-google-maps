@@ -24,7 +24,7 @@ export class GooglePlacesAutocompleteSidebar extends Component {
         this.state = useState({ places: [], hasNextPage: false });
         this.placesResult = [];
         this.markerInfoWindow = null;
-        this.placeAutocomplete = null;
+        this.placesAutocomplete = null;
 
         useEffect(
             () => {
@@ -85,7 +85,7 @@ export class GooglePlacesAutocompleteSidebar extends Component {
             (element) => {
                 if (element.id === 'custom-control-add-places-indicator') {
                     let button = element.querySelector('button');
-                    if (zoomLevel >= 18) {
+                    if (zoomLevel >= 17) {
                         if (button.classList.contains('btn-light')) {
                             button.classList.remove('btn-light');
                             button.classList.add('btn-warning', 'animate');
@@ -105,8 +105,8 @@ export class GooglePlacesAutocompleteSidebar extends Component {
         if (!this.props.googleMap) return;
 
         if (!this.props.isComponentFolded) {
-            if (!this.placeAutocomplete) {
-                this.placeAutocomplete = new google.maps.places.SearchBox(
+            if (!this.placesAutocomplete) {
+                this.placesAutocomplete = new google.maps.places.SearchBox(
                     this.searchBoxRef.el.querySelector('input#searchinputbox'),
                     {
                         fields: [
@@ -129,7 +129,7 @@ export class GooglePlacesAutocompleteSidebar extends Component {
                 this.markerInfoWindow = new google.maps.InfoWindow({ content: '' });
             }
 
-            this.placeAutocomplete.bindTo('bounds', this.props.googleMap);
+            this.placesAutocomplete.bindTo('bounds', this.props.googleMap);
 
             this.addHandleMapEventListener();
         }
@@ -137,7 +137,7 @@ export class GooglePlacesAutocompleteSidebar extends Component {
 
     addHandleMapEventListener() {
         if (!this.listenerPlaceChanged) {
-            this.listenerPlaceChanged = this.placeAutocomplete.addListener(
+            this.listenerPlaceChanged = this.placesAutocomplete.addListener(
                 'places_changed',
                 this.handleOnPlacesChanged.bind(this)
             );
@@ -155,18 +155,18 @@ export class GooglePlacesAutocompleteSidebar extends Component {
         ev.stop();
         ev.cancelBubble = true;
         const zoomLevel = this.props.googleMap.getZoom();
-        if (zoomLevel >= 18) {
+        if (zoomLevel >= 17) {
             if (ev.placeId) {
                 this.ui.block();
-                this._getPlaceDetails(ev);
+                this._handleGetPlaceDetails(ev);
             } else {
                 this.ui.block();
-                this._placeReverseGeocoding(ev);
+                this._handlePlaceReverseGeocoding(ev);
             }
         }
     }
 
-    _getPlaceDetails(event) {
+    _handleGetPlaceDetails(event) {
         this.props.placeService.getDetails(
             { placeId: event.placeId },
             (place, status) => {
@@ -186,7 +186,7 @@ export class GooglePlacesAutocompleteSidebar extends Component {
         );
     }
 
-    _placeReverseGeocoding(event) {
+    _handlePlaceReverseGeocoding(event) {
         if (!this.geocoder) {
             this.geocoder = new google.maps.Geocoder();
         }
@@ -254,7 +254,7 @@ export class GooglePlacesAutocompleteSidebar extends Component {
     }
 
     /**
-     *
+     * Nearby search, search within 3km radius of the current map center
      */
     actionUpdateSearch() {
         const search_terms =
@@ -277,7 +277,7 @@ export class GooglePlacesAutocompleteSidebar extends Component {
                         );
                         return;
                     }
-                    this.placeAutocomplete.set('places', places);
+                    this.placesAutocomplete.set('places', places);
                     this.state.hasNextPage = pagination.hasNextPage;
                     if (pagination && pagination.hasNextPage) {
                         this.funcGetNextPage = () => {
@@ -323,8 +323,8 @@ export class GooglePlacesAutocompleteSidebar extends Component {
             google.maps.event.removeListener(this.listenerMapClick);
             this.listenerMapClick = null;
         }
-        if (this.places_autocomplete) {
-            this.places_autocomplete.set('place', null);
+        if (this.placesAutocomplete) {
+            this.placesAutocomplete.set('place', null);
         }
         if (this.listenerPlaceChanged) {
             google.maps.event.removeListener(this.listenerPlaceChanged);
@@ -366,12 +366,12 @@ export class GooglePlacesAutocompleteSidebar extends Component {
     }
 
     handleOnPlacesChanged() {
-        const places = this.placeAutocomplete.getPlaces();
+        const places = this.placesAutocomplete.getPlaces();
         // reset the previous current search result
         this._cleanPlacesResult();
         if (places) {
-            // update the current bounds of placeAutocomplete
-            this.placeAutocomplete.bindTo('bounds', this.props.googleMap);
+            // update the current bounds of placesAutocomplete
+            this.placesAutocomplete.bindTo('bounds', this.props.googleMap);
             // center the map
             const bounds = new google.maps.LatLngBounds();
             places.forEach((place) => {
@@ -575,8 +575,8 @@ export class GooglePlacesAutocompleteSidebar extends Component {
     }
 
     centerMapToCurrentSearchResult() {
-        if (this.placeAutocomplete) {
-            const places = this.placeAutocomplete.getPlaces();
+        if (this.placesAutocomplete) {
+            const places = this.placesAutocomplete.getPlaces();
             if (places) {
                 const bounds = new google.maps.LatLngBounds();
                 places.forEach((place) => {

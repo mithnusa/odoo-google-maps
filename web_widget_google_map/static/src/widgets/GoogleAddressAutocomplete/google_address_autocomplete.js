@@ -18,11 +18,6 @@ export class GoogleAddressAutocomplete extends BaseGoogleAutocomplete {
             getValue: () => this.props.value || '',
             parse: (v) => this.parse(v),
         });
-
-        onMounted(() => {
-            this.defaultFillField();
-            this.prepareOptions();
-        });
     }
 
     async onKeydownListener(ev) {
@@ -109,15 +104,14 @@ export class GoogleAddressAutocomplete extends BaseGoogleAutocomplete {
 
     async prepareOptions() {
         super.prepareOptions();
-        const { readonly } = this.props;
-        if (!readonly) {
+        if (!this.props.readonly) {
             this.target_fields = this.getFillFieldsType();
             this.initGplacesAutocomplete(this.input);
         }
     }
 
     handlePopulateAddress() {
-        const place = this.places_autocomplete.getPlace();
+        const place = this.placesAutocomplete.getPlace();
         if (place) {
             if (this.address_mode === 'no_address_format') {
                 const geoValues = this._prepareGeolocation(

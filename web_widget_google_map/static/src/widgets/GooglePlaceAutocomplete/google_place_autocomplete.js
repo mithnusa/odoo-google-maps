@@ -1,6 +1,6 @@
 /** @odoo-module **/
 
-import { useRef, onMounted } from '@odoo/owl';
+import { useRef } from '@odoo/owl';
 import { registry } from '@web/core/registry';
 import { _lt } from '@web/core/l10n/translation';
 import { useInputField } from '@web/views/fields/input_field_hook';
@@ -17,11 +17,6 @@ export class GooglePlaceAutocomplete extends BaseGoogleAutocomplete {
         useInputField({
             getValue: () => this.props.value || '',
             parse: (v) => this.parse(v),
-        });
-
-        onMounted(() => {
-            this.defaultFillField();
-            this.prepareOptions();
         });
     }
 
