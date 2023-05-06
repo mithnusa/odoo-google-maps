@@ -22,13 +22,11 @@ export class GoogleMapDrawing extends GoogleMapDrawingRenderer {
             this._handlePolygonBoundsChanged,
             500
         );
-
-        this._handleDrawCircleAddListenerDebounce = useDebounced(
+        this._handleCircleBoundsChangedDebounce = useDebounced(
             this._handleCircleBoundsChanged,
             500
         );
-
-        this._handleDrawRectangleAddListenerDebounce = useDebounced(
+        this._handleRectangleBoundsChangedDebounce = useDebounced(
             this._handleRectangleBoundsChanged,
             500
         );
@@ -246,7 +244,7 @@ export class GoogleMapDrawing extends GoogleMapDrawingRenderer {
     _handleDrawRectangleAddListener(rectangle) {
         rectangle.addListener(
             'bounds_changed',
-            this._handleDrawRectangleAddListenerDebounce.bind(this)
+            this._handleRectangleBoundsChangedDebounce.bind(this)
         );
     }
 
@@ -275,11 +273,11 @@ export class GoogleMapDrawing extends GoogleMapDrawingRenderer {
     _handleDrawCircleAddListener(circle) {
         circle.addListener(
             'radius_changed',
-            this._handleDrawCircleAddListenerDebounce.bind(this)
+            this._handleCircleBoundsChangedDebounce.bind(this)
         );
         circle.addListener(
             'center_changed',
-            this._handleDrawCircleAddListenerDebounce.bind(this)
+            this._handleCircleBoundsChangedDebounce.bind(this)
         );
     }
 
@@ -592,7 +590,7 @@ export class GoogleMapDrawing extends GoogleMapDrawingRenderer {
                 );
                 this._renderMapCustomControl();
             } catch (error) {
-                console.log(error);
+                console.error(error);
                 this.notification.add(
                     this.env._t(
                         'Google Maps DrawingManager could not be loaded. Please make sure "drawing" is configured on Google Maps Libraries settings'
