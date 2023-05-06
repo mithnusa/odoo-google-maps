@@ -1,6 +1,6 @@
 # Translation of Odoo Server.
 # This file contains the translation of the following modules:
-# 	* web_widget_google_map
+# 	* web_widget_google_places
 #
 msgid ""
 msgstr ""
@@ -15,16 +15,16 @@ msgstr ""
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: \n"
 
-#. module: web_widget_google_map
+#. module: web_widget_google_places
 #. odoo-javascript
-#: code:addons/web_widget_google_map/static/src/widgets/GoogleAddressAutocomplete/google_address_autocomplete.js:0
+#: code:addons/web_widget_google_places/static/src/widgets/GoogleAddressAutocomplete/google_address_autocomplete.js:0
 #, python-format
-msgid "Google Address Form Autocomplete"
+msgid "Google Address Form Autocomplete Extended"
 msgstr ""
 
-#. module: web_widget_google_map
+#. module: web_widget_google_places
 #. odoo-javascript
-#: code:addons/web_widget_google_map/static/src/widgets/GooglePlaceAutocomplete/google_place_autocomplete.js:0
+#: code:addons/web_widget_google_places/static/src/widgets/GooglePlaceAutocomplete/google_place_autocomplete.js:0
 #, python-format
-msgid "Google Places Autocomplete"
+msgid "Google Places Autocomplete Extended"
 msgstr ""
