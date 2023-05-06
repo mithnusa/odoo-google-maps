@@ -13,7 +13,6 @@ export async function preparePlaces(orm, fields, place) {
         'gplace_vicinity',
     ];
 
-
     const odooFields = Object.keys(fields);
     const validateFields = placesFields.filter((v) => odooFields.includes(v));
 
@@ -46,13 +45,11 @@ export async function preparePlaces(orm, fields, place) {
             if (place.types) {
                 const records = await orm.call('google.places.type', 'search_read', [
                     [['code', 'in', place.types]],
-                    ['id'],
+                    ['display_name'],
                 ]);
                 res['gplace_type_ids'] = {
                     operation: 'REPLACE_WITH',
-                    ids: _.map(records, function (val) {
-                        return val.id;
-                    }),
+                    resIds: _.map(records, (val) => val.id),
                 };
             }
             resolve(res);
