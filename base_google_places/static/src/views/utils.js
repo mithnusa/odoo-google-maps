@@ -1,7 +1,7 @@
 /** @odoo-module **/
 
 export async function preparePlaces(orm, fields, place) {
-    const places_fields = [
+    const placesFields = [
         'gplace_formatted_address',
         'gplace_id',
         'gplace_url',
@@ -13,7 +13,11 @@ export async function preparePlaces(orm, fields, place) {
         'gplace_vicinity',
     ];
 
-    if (_.intersection(_.keys(fields), places_fields).length === places_fields.length) {
+
+    const odooFields = Object.keys(fields);
+    const validateFields = placesFields.filter((v) => odooFields.includes(v));
+
+    if (validateFields.length === placesFields.length) {
         const res = {
             gplace_formatted_address: place.formatted_address || '',
             gplace_id: place.place_id || '',
