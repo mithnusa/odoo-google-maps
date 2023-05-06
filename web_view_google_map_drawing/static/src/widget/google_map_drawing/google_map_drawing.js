@@ -3,6 +3,7 @@
 import { registry } from '@web/core/registry';
 import { _lt } from '@web/core/l10n/translation';
 import { onWillUpdateProps } from '@odoo/owl';
+import { useDebounced } from '@web/core/utils/timing';
 import { standardFieldProps } from '@web/views/fields/standard_field_props';
 import { renderToString } from '@web/core/utils/render';
 
@@ -15,6 +16,20 @@ export class GoogleMapDrawing extends GoogleMapDrawingRenderer {
         this.displayColor = '#006ee5';
         this.customControl = null;
         this.selectedShape = null;
+        this.isEditing = false;
+
+        this._handleDrawPolygonAddListenerDebounce = useDebounced(
+            this._handlePolygonBoundsChanged,
+            500
+        );
+        this._handleCircleBoundsChangedDebounce = useDebounced(
+            this._handleCircleBoundsChanged,
+            500
+        );
+        this._handleRectangleBoundsChangedDebounce = useDebounced(
+            this._handleRectangleBoundsChanged,
+            500
+        );
 
         onWillUpdateProps((_nextProps) => {
             // on page changed, disable the shape already drawn before
@@ -27,6 +42,9 @@ export class GoogleMapDrawing extends GoogleMapDrawingRenderer {
                     }
                 }
             }
+            // reset the edit mode
+            this.isEditing = false;
+            this.toggleSaveButtonAnimation();
         });
     }
 
@@ -178,7 +196,32 @@ export class GoogleMapDrawing extends GoogleMapDrawingRenderer {
         polygon.setOptions(options);
         this._handleDrawPolygonPoints(shape.lines);
         this._handleCenterMap(polygon.getPath());
+        this._handleDrawPolygonAddListener(polygon);
         return polygon;
+    }
+
+    _handleDrawPolygonAddListener(polygon) {
+        google.maps.event.addListener(
+            polygon.getPath(),
+            'insert_at',
+            this._handleDrawPolygonAddListenerDebounce.bind(this)
+        );
+        // event `dragend` is also fired at event `set_at`
+        google.maps.event.addListener(
+            polygon.getPath(),
+            'set_at',
+            this._handleDrawPolygonAddListenerDebounce.bind(this)
+        );
+        google.maps.event.addListener(
+            polygon.getPath(),
+            'remove_at',
+            this._handleDrawPolygonAddListenerDebounce.bind(this)
+        );
+    }
+
+    _handlePolygonBoundsChanged() {
+        this.isEditing = true;
+        this.toggleSaveButtonAnimation();
     }
 
     _handleDrawRectangle(options) {
@@ -194,7 +237,20 @@ export class GoogleMapDrawing extends GoogleMapDrawingRenderer {
         });
         rectangle.setOptions(options);
         this._handleCenterMap(false, rectangle.getBounds());
+        this._handleDrawRectangleAddListener(rectangle);
         return rectangle;
+    }
+
+    _handleDrawRectangleAddListener(rectangle) {
+        rectangle.addListener(
+            'bounds_changed',
+            this._handleRectangleBoundsChangedDebounce.bind(this)
+        );
+    }
+
+    _handleRectangleBoundsChanged() {
+        this.isEditing = true;
+        this.toggleSaveButtonAnimation();
     }
 
     _handleDrawCircle(options) {
@@ -210,7 +266,24 @@ export class GoogleMapDrawing extends GoogleMapDrawingRenderer {
         });
         circle.setOptions(options);
         this._handleCenterMap(false, circle.getBounds());
+        this._handleDrawCircleAddListener(circle);
         return circle;
+    }
+
+    _handleDrawCircleAddListener(circle) {
+        circle.addListener(
+            'radius_changed',
+            this._handleCircleBoundsChangedDebounce.bind(this)
+        );
+        circle.addListener(
+            'center_changed',
+            this._handleCircleBoundsChangedDebounce.bind(this)
+        );
+    }
+
+    _handleCircleBoundsChanged() {
+        this.isEditing = true;
+        this.toggleSaveButtonAnimation();
     }
 
     _getGeneralOptions() {
@@ -239,6 +312,28 @@ export class GoogleMapDrawing extends GoogleMapDrawingRenderer {
             fillOpacity: 0.45,
             editable: true,
         };
+    }
+
+    toggleSaveButtonAnimation() {
+        this.googleMap.controls[google.maps.ControlPosition.BOTTOM_CENTER].forEach(
+            (element) => {
+                if (element.id === 'custom-control-drawing-buttons') {
+                    let button = element.querySelector('#save');
+                    let floppyIcon = element.querySelector('.fa-floppy-o');
+                    if (button && floppyIcon) {
+                        if (this.isEditing) {
+                            button.classList.add('btn-success');
+                            button.classList.remove('btn-secondary');
+                            floppyIcon.classList.add('animate');
+                        } else {
+                            floppyIcon.classList.remove('btn-success');
+                            button.classList.add('btn-secondary');
+                            floppyIcon.classList.remove('animate');
+                        }
+                    }
+                }
+            }
+        );
     }
 
     _renderMapCustomControl() {
@@ -320,6 +415,8 @@ export class GoogleMapDrawing extends GoogleMapDrawingRenderer {
                 type: 'info',
             });
             this.selectedShape = null;
+            this.isEditing = false;
+            this.toggleSaveButtonAnimation();
         }
     }
 
@@ -493,7 +590,7 @@ export class GoogleMapDrawing extends GoogleMapDrawingRenderer {
                 );
                 this._renderMapCustomControl();
             } catch (error) {
-                console.log(error);
+                console.error(error);
                 this.notification.add(
                     this.env._t(
                         'Google Maps DrawingManager could not be loaded. Please make sure "drawing" is configured on Google Maps Libraries settings'
@@ -520,7 +617,8 @@ export class GoogleMapDrawing extends GoogleMapDrawingRenderer {
             );
             return;
         }
-
+        this.isEditing = true;
+        this.toggleSaveButtonAnimation();
         shape.type = event.type;
         this.handleSetSelectedShape(shape);
 
@@ -534,7 +632,7 @@ export class GoogleMapDrawing extends GoogleMapDrawingRenderer {
     handleSetSelectedShape(shape) {
         this.selectedShape = shape;
         const options = this._getSelectedOptions();
-        if (['circle', 'rectangle'].indexOf(this.selectedShape.type) >= 0) {
+        if (['circle', 'rectangle', 'polygon'].indexOf(this.selectedShape.type) >= 0) {
             options.draggable = true;
         }
         this.selectedShape.setOptions(options);
