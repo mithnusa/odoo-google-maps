@@ -1,0 +1,161 @@
+:root {
+    --gplace-star-size: 18px;
+    --gplace-star-color: #ddd;
+    --gplace-star-background: #fc0;
+}
+.o_google_map_renderer {
+    .o_google_map_view {
+        .search_this_area {
+            .btn {
+                border-radius: 10px;
+                font-size: 14px;
+                padding: 3px 10px 3px 10px;
+                box-shadow: 1px 1px 2px #dddddd;
+            }
+        }
+        .place_creation_indicator {
+            .btn {
+                opacity: 1;
+                cursor: help;
+                padding: 8px 12px 8px 12px;
+                margin-right: 10px;
+            }
+        }
+
+        .animate {
+            animation: notification 1.5s infinite;
+            color: white;
+        }
+
+        @keyframes notification {
+            5% {
+                transform:rotate(10deg);
+            }
+            10% {
+                transform:rotate(-10deg);
+            }
+            15% {
+                transform:rotate(10deg);
+            }
+            20% {
+                transform:rotate(0deg);
+            }
+        }
+    }
+
+    .o_map_left_sidebar {
+        left: 0;
+        top: 0;
+        bottom: 0;
+        position: absolute;
+        z-index: 3;
+        background-color: #f7f8f9;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+
+        .content {
+            display: flex;
+            flex-direction: column;
+            flex-wrap: wrap;
+            overflow: auto;
+            height: 100%;
+            width: 100%;
+            padding: 0px 2px 0px 2px;
+        }
+
+        &.closed {
+            box-shadow: none;
+            transform: translate3d(-100%, 0, 0);
+            -webkit-transform: translate3d(-100%, 0, 0);
+
+            .sidebar-body .panel {
+                border: none;
+            }
+
+            .content {
+                overflow: hidden;
+            }
+
+
+            .toggle_left_sidebar button {
+                &::before {
+                    content: '\203A';
+                }
+            }
+        }
+
+        &.open {
+            transform: translate3d(0, 0, 0);
+            -webkit-transform: translate3d(0, 0, 0);
+            -moz-transform: translate3d(0, 0, 0);
+            position: relative;
+            min-width: 250px;
+            max-width: 450px;
+            width: 25%;
+
+
+            .toggle_left_sidebar button {
+                &::before {
+                    content: '\2039';
+                }
+            }
+        }
+
+        .sidebar-body {
+            .search-result {
+                overflow-y: auto;
+                position: absolute;
+                height: 90%;
+            }
+        }
+
+        .toggle_left_sidebar {
+            display: block;
+            position: absolute;
+            left: 100%;
+            top: 25%;
+
+            button {
+                width: 25px;
+                height: 60px;
+                cursor: pointer;
+                // border: none;
+
+                border-right: 1.5px solid #ddd;
+                border-top: 1.5px solid #ddd;
+                border-bottom: 1.5px solid #ddd;
+                border-left: 0px;
+                box-shadow: 0px 1px 0px #989898;
+                border-radius: 0px 4px 4px 0px;
+                font-size: 20px;
+                background-color: rgb(248, 248, 248);
+            }
+
+            button:focus {
+                outline: none !important;
+            }
+        }
+
+    }
+      
+    .place-stars {
+        --percent: calc(var(--rating) / 5 * 100%);
+        
+        display: inline-block;
+        font-size: var(--gplace-star-size);
+        font-family: Times;
+        line-height: 1;
+
+        &::before {
+            content: '★★★★★';
+            letter-spacing: 1px;
+            background: linear-gradient(90deg, var(--gplace-star-background) var(--percent), var(--gplace-star-color) var(--percent));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+    }
+
+    #place-item {
+        cursor: pointer;
+    }
+}

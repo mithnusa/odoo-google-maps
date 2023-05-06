@@ -1,0 +1,537 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="accounting" model="google.places.type">
+            <field name="code">accounting</field>
+            <field name="name">Accounting</field>
+        </record>
+        <record id="airport" model="google.places.type">
+            <field name="code">airport</field>
+            <field name="name">Airport</field>
+        </record>
+        <record id="amusement_park" model="google.places.type">
+            <field name="code">amusement_park</field>
+            <field name="name">Amusement park</field>
+        </record>
+        <record id="aquarium" model="google.places.type">
+            <field name="code">aquarium</field>
+            <field name="name">Aquarium</field>
+        </record>
+        <record id="art_gallery" model="google.places.type">
+            <field name="code">art_gallery</field>
+            <field name="name">Art gallery</field>
+        </record>
+        <record id="atm" model="google.places.type">
+            <field name="code">atm</field>
+            <field name="name">ATM</field>
+        </record>
+        <record id="bakery" model="google.places.type">
+            <field name="code">bakery</field>
+            <field name="name">Bakery</field>
+        </record>
+        <record id="bank" model="google.places.type">
+            <field name="code">bank</field>
+            <field name="name">Bank</field>
+        </record>
+        <record id="bar" model="google.places.type">
+            <field name="code">bar</field>
+            <field name="name">Bar</field>
+        </record>
+        <record id="beauty_salon" model="google.places.type">
+            <field name="code">beauty_salon</field>
+            <field name="name">Beauty salon</field>
+        </record>
+        <record id="bicycle_store" model="google.places.type">
+            <field name="code">bicycle_store</field>
+            <field name="name">Bicycle store</field>
+        </record>
+        <record id="book_store" model="google.places.type">
+            <field name="code">book_store</field>
+            <field name="name">Book store</field>
+        </record>
+        <record id="bowling_alley" model="google.places.type">
+            <field name="code">bowling_alley</field>
+            <field name="name">Bowling alley</field>
+        </record>
+        <record id="bus_station" model="google.places.type">
+            <field name="code">bus_station</field>
+            <field name="name">Bus station</field>
+        </record>
+        <record id="cafe" model="google.places.type">
+            <field name="code">cafe</field>
+            <field name="name">Cafe</field>
+        </record>
+        <record id="campground" model="google.places.type">
+            <field name="code">campground</field>
+            <field name="name">Campground</field>
+        </record>
+        <record id="car_dealer" model="google.places.type">
+            <field name="code">car_dealer</field>
+            <field name="name">Car dealer</field>
+        </record>
+        <record id="car_rental" model="google.places.type">
+            <field name="code">car_rental</field>
+            <field name="name">Car rental</field>
+        </record>
+        <record id="car_repair" model="google.places.type">
+            <field name="code">car_repair</field>
+            <field name="name">Car repair</field>
+        </record>
+        <record id="car_wash" model="google.places.type">
+            <field name="code">car_wash</field>
+            <field name="name">Car wash</field>
+        </record>
+        <record id="casino" model="google.places.type">
+            <field name="code">casino</field>
+            <field name="name">Casino</field>
+        </record>
+        <record id="cemetery" model="google.places.type">
+            <field name="code">cemetery</field>
+            <field name="name">Cemetery</field>
+        </record>
+        <record id="church" model="google.places.type">
+            <field name="code">church</field>
+            <field name="name">Church</field>
+        </record>
+        <record id="city_hall" model="google.places.type">
+            <field name="code">city_hall</field>
+            <field name="name">City hall</field>
+        </record>
+        <record id="clothing_store" model="google.places.type">
+            <field name="code">clothing_store</field>
+            <field name="name">Clothing store</field>
+        </record>
+        <record id="convenience_store" model="google.places.type">
+            <field name="code">convenience_store</field>
+            <field name="name">Convenience store</field>
+        </record>
+        <record id="courthouse" model="google.places.type">
+            <field name="code">courthouse</field>
+            <field name="name">Courthouse</field>
+        </record>
+        <record id="dentist" model="google.places.type">
+            <field name="code">dentist</field>
+            <field name="name">Dentist</field>
+        </record>
+        <record id="department_store" model="google.places.type">
+            <field name="code">department_store</field>
+            <field name="name">Department store</field>
+        </record>
+        <record id="doctor" model="google.places.type">
+            <field name="code">doctor</field>
+            <field name="name">Doctor</field>
+        </record>
+        <record id="electrician" model="google.places.type">
+            <field name="code">electrician</field>
+            <field name="name">Electrician</field>
+        </record>
+        <record id="electronics_store" model="google.places.type">
+            <field name="code">electronics_store</field>
+            <field name="name">Electronics store</field>
+        </record>
+        <record id="embassy" model="google.places.type">
+            <field name="code">embassy</field>
+            <field name="name">Embassy</field>
+        </record>
+        <record id="fire_station" model="google.places.type">
+            <field name="code">fire_station</field>
+            <field name="name">Fire station</field>
+        </record>
+        <record id="florist" model="google.places.type">
+            <field name="code">florist</field>
+            <field name="name">Florist</field>
+        </record>
+        <record id="funeral_home" model="google.places.type">
+            <field name="code">funeral_home</field>
+            <field name="name">Funeral home</field>
+        </record>
+        <record id="furniture_store" model="google.places.type">
+            <field name="code">furniture_store</field>
+            <field name="name">Furniture store</field>
+        </record>
+        <record id="gas_station" model="google.places.type">
+            <field name="code">gas_station</field>
+            <field name="name">Gas station</field>
+        </record>
+        <record id="gym" model="google.places.type">
+            <field name="code">gym</field>
+            <field name="name">Gym</field>
+        </record>
+        <record id="hair_care" model="google.places.type">
+            <field name="code">hair_care</field>
+            <field name="name">Hair care</field>
+        </record>
+        <record id="hardware_store" model="google.places.type">
+            <field name="code">hardware_store</field>
+            <field name="name">Hardware store</field>
+        </record>
+        <record id="hindu_temple" model="google.places.type">
+            <field name="code">hindu_temple</field>
+            <field name="name">Hindu temple</field>
+        </record>
+        <record id="home_goods_store" model="google.places.type">
+            <field name="code">home_goods_store</field>
+            <field name="name">Home goods store</field>
+        </record>
+        <record id="hospital" model="google.places.type">
+            <field name="code">hospital</field>
+            <field name="name">Hospital</field>
+        </record>
+        <record id="insurance_agency" model="google.places.type">
+            <field name="code">insurance_agency</field>
+            <field name="name">Insurance agency</field>
+        </record>
+        <record id="jewelry_store" model="google.places.type">
+            <field name="code">jewelry_store</field>
+            <field name="name">Jewelry store</field>
+        </record>
+        <record id="laundry" model="google.places.type">
+            <field name="code">laundry</field>
+            <field name="name">Laundry</field>
+        </record>
+        <record id="lawyer" model="google.places.type">
+            <field name="code">lawyer</field>
+            <field name="name">Lawyer</field>
+        </record>
+        <record id="library" model="google.places.type">
+            <field name="code">library</field>
+            <field name="name">Library</field>
+        </record>
+        <record id="light_rail_station" model="google.places.type">
+            <field name="code">light_rail_station</field>
+            <field name="name">Light rail station</field>
+        </record>
+        <record id="liquor_store" model="google.places.type">
+            <field name="code">liquor_store</field>
+            <field name="name">Liquor store</field>
+        </record>
+        <record id="local_government_office" model="google.places.type">
+            <field name="code">local_government_office</field>
+            <field name="name">Local government office</field>
+        </record>
+        <record id="locksmith" model="google.places.type">
+            <field name="code">locksmith</field>
+            <field name="name">Locksmith</field>
+        </record>
+        <record id="lodging" model="google.places.type">
+            <field name="code">lodging</field>
+            <field name="name">Lodging</field>
+        </record>
+        <record id="meal_delivery" model="google.places.type">
+            <field name="code">meal_delivery</field>
+            <field name="name">Meal delivery</field>
+        </record>
+        <record id="meal_takeaway" model="google.places.type">
+            <field name="code">meal_takeaway</field>
+            <field name="name">Meal takeaway</field>
+        </record>
+        <record id="mosque" model="google.places.type">
+            <field name="code">mosque</field>
+            <field name="name">Mosque</field>
+        </record>
+        <record id="movie_rental" model="google.places.type">
+            <field name="code">movie_rental</field>
+            <field name="name">Movie rental</field>
+        </record>
+        <record id="movie_theater" model="google.places.type">
+            <field name="code">movie_theater</field>
+            <field name="name">Movie theater</field>
+        </record>
+        <record id="moving_company" model="google.places.type">
+            <field name="code">moving_company</field>
+            <field name="name">Moving company</field>
+        </record>
+        <record id="museum" model="google.places.type">
+            <field name="code">museum</field>
+            <field name="name">Museum</field>
+        </record>
+        <record id="night_club" model="google.places.type">
+            <field name="code">night_club</field>
+            <field name="name">Night club</field>
+        </record>
+        <record id="painter" model="google.places.type">
+            <field name="code">painter</field>
+            <field name="name">Painter</field>
+        </record>
+        <record id="park" model="google.places.type">
+            <field name="code">park</field>
+            <field name="name">Park</field>
+        </record>
+        <record id="parking" model="google.places.type">
+            <field name="code">parking</field>
+            <field name="name">Parking</field>
+        </record>
+        <record id="pet_store" model="google.places.type">
+            <field name="code">pet_store</field>
+            <field name="name">Pet store</field>
+        </record>
+        <record id="pharmacy" model="google.places.type">
+            <field name="code">pharmacy</field>
+            <field name="name">Pharmacy</field>
+        </record>
+        <record id="physiotherapist" model="google.places.type">
+            <field name="code">physiotherapist</field>
+            <field name="name">Physiotherapist</field>
+        </record>
+        <record id="plumber" model="google.places.type">
+            <field name="code">plumber</field>
+            <field name="name">Plumber</field>
+        </record>
+        <record id="police" model="google.places.type">
+            <field name="code">police</field>
+            <field name="name">Police</field>
+        </record>
+        <record id="post_office" model="google.places.type">
+            <field name="code">post_office</field>
+            <field name="name">Post office</field>
+        </record>
+        <record id="primary_school" model="google.places.type">
+            <field name="code">primary_school</field>
+            <field name="name">Primary school</field>
+        </record>
+        <record id="real_estate_agency" model="google.places.type">
+            <field name="code">real_estate_agency</field>
+            <field name="name">Real estate agency</field>
+        </record>
+        <record id="restaurant" model="google.places.type">
+            <field name="code">restaurant</field>
+            <field name="name">Restaurant</field>
+        </record>
+        <record id="roofing_contractor" model="google.places.type">
+            <field name="code">roofing_contractor</field>
+            <field name="name">Roofing contractor</field>
+        </record>
+        <record id="rv_park" model="google.places.type">
+            <field name="code">rv_park</field>
+            <field name="name">Rv park</field>
+        </record>
+        <record id="school" model="google.places.type">
+            <field name="code">school</field>
+            <field name="name">School</field>
+        </record>
+        <record id="secondary_school" model="google.places.type">
+            <field name="code">secondary_school</field>
+            <field name="name">Secondary school</field>
+        </record>
+        <record id="shoe_store" model="google.places.type">
+            <field name="code">shoe_store</field>
+            <field name="name">Shoe store</field>
+        </record>
+        <record id="shopping_mall" model="google.places.type">
+            <field name="code">shopping_mall</field>
+            <field name="name">Shopping mall</field>
+        </record>
+        <record id="spa" model="google.places.type">
+            <field name="code">spa</field>
+            <field name="name">Spa</field>
+        </record>
+        <record id="stadium" model="google.places.type">
+            <field name="code">stadium</field>
+            <field name="name">Stadium</field>
+        </record>
+        <record id="storage" model="google.places.type">
+            <field name="code">storage</field>
+            <field name="name">Storage</field>
+        </record>
+        <record id="store" model="google.places.type">
+            <field name="code">store</field>
+            <field name="name">Store</field>
+        </record>
+        <record id="subway_station" model="google.places.type">
+            <field name="code">subway_station</field>
+            <field name="name">Subway station</field>
+        </record>
+        <record id="supermarket" model="google.places.type">
+            <field name="code">supermarket</field>
+            <field name="name">Supermarket</field>
+        </record>
+        <record id="synagogue" model="google.places.type">
+            <field name="code">synagogue</field>
+            <field name="name">Synagogue</field>
+        </record>
+        <record id="taxi_stand" model="google.places.type">
+            <field name="code">taxi_stand</field>
+            <field name="name">Taxi stand</field>
+        </record>
+        <record id="tourist_attraction" model="google.places.type">
+            <field name="code">tourist_attraction</field>
+            <field name="name">Tourist attraction</field>
+        </record>
+        <record id="train_station" model="google.places.type">
+            <field name="code">train_station</field>
+            <field name="name">Train station</field>
+        </record>
+        <record id="transit_station" model="google.places.type">
+            <field name="code">transit_station</field>
+            <field name="name">Transit station</field>
+        </record>
+        <record id="travel_agency" model="google.places.type">
+            <field name="code">travel_agency</field>
+            <field name="name">Travel agency</field>
+        </record>
+        <record id="veterinary_care" model="google.places.type">
+            <field name="code">veterinary_care</field>
+            <field name="name">Veterinary care</field>
+        </record>
+        <record id="zoo" model="google.places.type">
+            <field name="code">zoo</field>
+            <field name="name">Zoo</field>
+        </record>
+        <record id="administrative_area_level_1" model="google.places.type">
+            <field name="code">administrative_area_level_1</field>
+            <field name="name">Administrative area level 1</field>
+        </record>
+        <record id="administrative_area_level_2" model="google.places.type">
+            <field name="code">administrative_area_level_2</field>
+            <field name="name">Administrative area level 2</field>
+        </record>
+        <record id="administrative_area_level_3" model="google.places.type">
+            <field name="code">administrative_area_level_3</field>
+            <field name="name">Administrative area level 3</field>
+        </record>
+        <record id="administrative_area_level_4" model="google.places.type">
+            <field name="code">administrative_area_level_4</field>
+            <field name="name">Administrative area level 4</field>
+        </record>
+        <record id="administrative_area_level_5" model="google.places.type">
+            <field name="code">administrative_area_level_5</field>
+            <field name="name">Administrative area level 5</field>
+        </record>
+        <record id="colloquial_area" model="google.places.type">
+            <field name="code">colloquial_area</field>
+            <field name="name">Colloquial area</field>
+        </record>
+        <record id="country" model="google.places.type">
+            <field name="code">country</field>
+            <field name="name">Country</field>
+        </record>
+        <record id="establishment" model="google.places.type">
+            <field name="code">establishment</field>
+            <field name="name">Establishment</field>
+        </record>
+        <record id="finance" model="google.places.type">
+            <field name="code">finance</field>
+            <field name="name">Finance</field>
+        </record>
+        <record id="floor" model="google.places.type">
+            <field name="code">floor</field>
+            <field name="name">Floor</field>
+        </record>
+        <record id="food" model="google.places.type">
+            <field name="code">food</field>
+            <field name="name">Food</field>
+        </record>
+        <record id="general_contractor" model="google.places.type">
+            <field name="code">general_contractor</field>
+            <field name="name">General contractor</field>
+        </record>
+        <record id="geocode" model="google.places.type">
+            <field name="code">geocode</field>
+            <field name="name">Geocode</field>
+        </record>
+        <record id="health" model="google.places.type">
+            <field name="code">health</field>
+            <field name="name">Health</field>
+        </record>
+        <record id="intersection" model="google.places.type">
+            <field name="code">intersection</field>
+            <field name="name">Intersection</field>
+        </record>
+        <record id="locality" model="google.places.type">
+            <field name="code">locality</field>
+            <field name="name">Locality</field>
+        </record>
+        <record id="natural_feature" model="google.places.type">
+            <field name="code">natural_feature</field>
+            <field name="name">Natural feature</field>
+        </record>
+        <record id="neighborhood" model="google.places.type">
+            <field name="code">neighborhood</field>
+            <field name="name">Neighborhood</field>
+        </record>
+        <record id="place_of_worship" model="google.places.type">
+            <field name="code">place_of_worship</field>
+            <field name="name">Place of worship</field>
+        </record>
+        <record id="political" model="google.places.type">
+            <field name="code">political</field>
+            <field name="name">Political</field>
+        </record>
+        <record id="point_of_interest" model="google.places.type">
+            <field name="code">point_of_interest</field>
+            <field name="name">Point of interest</field>
+        </record>
+        <record id="post_box" model="google.places.type">
+            <field name="code">post_box</field>
+            <field name="name">Post box</field>
+        </record>
+        <record id="postal_code" model="google.places.type">
+            <field name="code">postal_code</field>
+            <field name="name">Postal code</field>
+        </record>
+        <record id="postal_code_prefix" model="google.places.type">
+            <field name="code">postal_code_prefix</field>
+            <field name="name">Postal code prefix</field>
+        </record>
+        <record id="postal_code_suffix" model="google.places.type">
+            <field name="code">postal_code_suffix</field>
+            <field name="name">Postal code suffix</field>
+        </record>
+        <record id="postal_town" model="google.places.type">
+            <field name="code">postal_town</field>
+            <field name="name">Postal town</field>
+        </record>
+        <record id="premise" model="google.places.type">
+            <field name="code">premise</field>
+            <field name="name">Premise</field>
+        </record>
+        <record id="room" model="google.places.type">
+            <field name="code">room</field>
+            <field name="name">Room</field>
+        </record>
+        <record id="route" model="google.places.type">
+            <field name="code">route</field>
+            <field name="name">Route</field>
+        </record>
+        <record id="street_address" model="google.places.type">
+            <field name="code">street_address</field>
+            <field name="name">Street address</field>
+        </record>
+        <record id="street_number" model="google.places.type">
+            <field name="code">street_number</field>
+            <field name="name">Street number</field>
+        </record>
+        <record id="sublocality" model="google.places.type">
+            <field name="code">sublocality</field>
+            <field name="name">Sublocality</field>
+        </record>
+        <record id="sublocality_level_4" model="google.places.type">
+            <field name="code">sublocality_level_4</field>
+            <field name="name">Sublocality level 4</field>
+        </record>
+        <record id="sublocality_level_5" model="google.places.type">
+            <field name="code">sublocality_level_5</field>
+            <field name="name">Sublocality level 5</field>
+        </record>
+        <record id="sublocality_level_3" model="google.places.type">
+            <field name="code">sublocality_level_3</field>
+            <field name="name">Sublocality level 3</field>
+        </record>
+        <record id="sublocality_level_2" model="google.places.type">
+            <field name="code">sublocality_level_2</field>
+            <field name="name">Sublocality level 2</field>
+        </record>
+        <record id="sublocality_level_1" model="google.places.type">
+            <field name="code">sublocality_level_1</field>
+            <field name="name">Sublocality level 1</field>
+        </record>
+        <record id="subpremise" model="google.places.type">
+            <field name="code">subpremise</field>
+            <field name="name">Subpremise</field>
+        </record>
+        <record id="university" model="google.places.type">
+            <field name="code">university</field>
+            <field name="name">University</field>
+        </record>
+    </data>
+</odoo>

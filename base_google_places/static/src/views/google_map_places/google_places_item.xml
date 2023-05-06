@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="base_google_places.PlaceItem" owl="1">
+        <div class="list-group-item list-group-item-action flex-column align-items-start" t-ref="root">
+            <t t-set="photo_url" t-value="handlePhoto(props.place.photos)"/>
+            <div class="d-flex w-100">
+                <span t-if="photo_url">
+                    <img t-att-src="photo_url" class="img-fluid img-thumbnail" t-att-alt="props.place.name"/>
+                </span>
+                <div class="d-flex flex-column flex-nowrap ml4" id="place-item" t-on-click.prevent="() => props.handlePointInMap(props.place)" t-attf-data-placeid="#{props.place.place_id}">
+                    <h5 class="mb-1">
+                        <t t-esc="props.place.name"/>
+                    </h5>
+                    <t t-if="props.place.rating">
+                        <div>
+                            <span>
+                                <t t-esc="props.place.rating"/>
+                            </span>
+                            <span class="place-stars" t-attf-style="--rating: {{props.place.rating}};" t-attf-title="Rating of this place is {{props.place.rating}} out of 5." t-attf-aria-label="Rating of this place is {{props.place.rating}} out of 5."></span>
+                            <span title="Number of user rating">(<t t-esc="props.place.user_ratings_total"/>)</span>
+                        </div>
+                    </t>
+                    <t t-else="">
+                        <div>
+                            <span>0</span>
+                            <span class="place-stars" t-attf-style="--rating: 0;" title="No rating" aria-label="No rating"></span>
+                            <span title="No user rating">(0)</span>
+                        </div>
+                    </t>
+                    <t t-if="props.place.business_status == 'CLOSED_TEMPORARILY'">
+                        <small style="color:red;">Temporarily closed</small>
+                    </t>
+                </div>
+            </div>
+            <t t-if="props.place.types">
+                <h6 class="card-subtitle mb-2 mt-2 text-muted">
+                    <t t-foreach="props.place.types" t-as="ptype" t-key="ptype">
+                        <span class="badge badge-pill badge-light">
+                            <t t-esc="ptype"/>
+                        </span>
+                    </t>
+                </h6>
+            </t>
+            <t t-if="props.place.vicinity">
+                <p>
+                    <i class="fa fa-map-pin"></i>
+                    <span> </span>
+                    <span t-esc="props.place.vicinity"/>
+                </p>
+            </t>
+            <t t-else="">
+                <p>
+                    <i class="fa fa-map-pin"></i>
+                    <span> </span>
+                    <span t-esc="props.place.formatted_address"/>
+                </p>
+            </t>
+            <div class="d-flex w-100 justify-content-around">
+                <a class="btn btn-sm btn-link" t-attf-href="https://www.google.com/maps/search/?api=1&amp;query={{props.place.formatted_address or props.place.name}}&amp;query_place_id={{props.place.place_id}}" target="_blank">
+                    <i class="fa fa-external-link-square"></i>
+                    <span> View on Google Maps</span>
+                </a>
+                <span class="btn btn-sm btn-primary" id="search-result-add" t-attf-data-placeid="#{props.place.place_id}" t-on-click.prevent="() => props.handleAdd(props.place)">
+                    <i class="fa fa-plus-circle"></i>
+                    <span> Add</span>
+                </span>
+            </div>
+        </div>
+    </t>
+</templates>

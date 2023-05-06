@@ -1,0 +1,3 @@
+"id","name","model_id:id","group_id:id","perm_read","perm_write","perm_create","perm_unlink"
+"access_google_place_type_administrator","access_google_place_type_administrator","model_google_places_type","base.group_system",1,1,1,1
+"access_google_place_type_user","access_google_place_type_user","model_google_places_type","base.group_user",1,0,0,0
