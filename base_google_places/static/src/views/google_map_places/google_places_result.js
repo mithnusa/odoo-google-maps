@@ -79,7 +79,6 @@ GooglePlacesResult.props = [
     'places',
     'googleMap',
     'markerInfoWindow',
-    'placeService',
     'centerMapToCurrentSearchResult',
     'actionPageNext',
     'searchHasNext',

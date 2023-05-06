@@ -7,7 +7,7 @@
             </div>
             <div class="search-result w-100" t-ref="searchResultBox">
                 <div class="content">
-                    <GooglePlacesResult places="state.places" googleMap="props.googleMap" markerInfoWindow="markerInfoWindow" placeService="placeService" centerMapToCurrentSearchResult.bind="centerMapToCurrentSearchResult" actionPageNext.bind="actionPageNext" searchHasNext="state.hasNextPage" actionShowPlace.bind="actionShowPlace" actionAddPlace.bind="actionAddPlace" handleAfterAction.bind="handleAfterAction" addPlace.bind="addPlace" handleClickItemAdd.bind="handleClickItemAdd"/>
+                    <GooglePlacesResult places="state.places" googleMap="props.googleMap" markerInfoWindow="markerInfoWindow" centerMapToCurrentSearchResult.bind="centerMapToCurrentSearchResult" actionPageNext.bind="actionPageNext" searchHasNext="state.hasNextPage" actionShowPlace.bind="actionShowPlace" actionAddPlace.bind="actionAddPlace" handleAfterAction.bind="handleAfterAction" addPlace.bind="addPlace" handleClickItemAdd.bind="handleClickItemAdd"/>
                 </div>
             </div>
         </div>
