@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_crm_lead_inherit_google_places" model="ir.ui.view">
+        <field name="name">view.crm.lead.inherit.google.places</field>
+        <field name="model">crm.lead</field>
+        <field name="inherit_id" ref="crm.crm_lead_view_form"/>
+        <field name="priority">1500</field>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='lead']/group" position="inside">
+                <group string="Google Places">
+                    <field name="gplace_formatted_address"/>
+                    <field name="gplace_vicinity"/>
+                    <label for="gplace_id"/>
+                    <div style="overflow-wrap: break-word; word-wrap: break-word; hyphens: auto;">
+                        <field name="gplace_id" class="oe_inline" placeholder="Place ID"/>
+                        <button name="google_action_update_place" type="object" string="Fetch Place Info" class="oe_link" icon="fa-cloud-download" attrs="{'invisible': [('gplace_id', '=', False)]}"/>
+                        <field name="gplace_url" class="oe_inline" placeholder="Place URL" widget="url"/>
+                    </div>
+                    <field name="gplace_type_ids" widget="many2many_tags"/>
+                    <field name="gplace_opening_hours"/>
+                    <label for="gplace_plus_code_compound" string="Plus code"/>
+                    <div>
+                        <field name="gplace_plus_code_global" invisible="1"/>
+                        <field name="gplace_plus_code_compound" nolabel="1" help="A plus code is like a street address for people or places that don't have one"/>
+                        <field name="gplace_plus_code_url" nolabel="1" widget="url"/>
+                    </div>
+                </group>
+            </xpath>
+            <xpath expr="//page[@name='extra']/group" position="inside">
+                <group string="Google Places">
+                    <field name="gplace_formatted_address"/>
+                    <field name="gplace_vicinity"/>
+                    <label for="gplace_id"/>
+                    <div style="overflow-wrap: break-word; word-wrap: break-word; hyphens: auto;">
+                        <field name="gplace_id" class="oe_inline" placeholder="Place ID"/>
+                        <button name="google_action_update_place" type="object" string="Fetch Place Info" class="oe_link" icon="fa-cloud-download" attrs="{'invisible': [('gplace_id', '=', False)]}"/>
+                        <field name="gplace_url" class="oe_inline" placeholder="Place URL" widget="url"/>
+                    </div>
+                    <field name="gplace_type_ids" widget="many2many_tags"/>
+                    <field name="gplace_opening_hours"/>
+                    <label for="gplace_plus_code_compound" string="Plus code"/>
+                    <div>
+                        <field name="gplace_plus_code_global" invisible="1"/>
+                        <field name="gplace_plus_code_compound" nolabel="1" help="A plus code is like a street address for people or places that don't have one"/>
+                        <field name="gplace_plus_code_url" nolabel="1" widget="url"/>
+                    </div>
+                </group>
+            </xpath>
+            <xpath expr="//page[@name='lead']/group/group/field[@name='partner_name']" position="attributes">
+                <attribute name="options">{
+                    'fillfields': {
+                        'general': {
+                            'partner_name': 'name',
+                            'website': 'website',
+                            'phone': ['international_phone_number', 'formatted_phone_number'],
+                            'gplace_id': 'place_id',
+                            'gplace_formatted_address': 'formatted_address',
+                            'gplace_url': 'url',
+                            'gplace_vicinity': 'vicinity',
+                        },
+                        'address': {
+                            'street': ['street_number', 'route'],
+                            'street2': [
+                                'administrative_area_level_3',
+                                'administrative_area_level_4',
+                                'administrative_area_level_5',
+                            ],
+                            'city': ['locality', 'administrative_area_level_2'],
+                            'zip': 'postal_code',
+                            'state_id': 'administrative_area_level_1',
+                            'country_id': 'country',
+                        },
+                        'geolocation': {
+                            'customer_latitude': 'latitude',
+                            'customer_longitude': 'longitude'
+                        }
+                    },
+                    'display_name': 'partner_name',
+                    'force_override': true
+                }</attribute>
+            </xpath>
+            <xpath expr="//sheet/group/group/field[@name='partner_name']" position="attributes">
+                <attribute name="options">{
+                    'fillfields': {
+                        'general': {
+                            'partner_name': 'name',
+                            'website': 'website',
+                            'phone': ['international_phone_number', 'formatted_phone_number'],
+                            'gplace_id': 'place_id',
+                            'gplace_formatted_address': 'formatted_address',
+                            'gplace_url': 'url',
+                            'gplace_vicinity': 'vicinity',
+                        },
+                        'address': {
+                            'street': ['street_number', 'route'],
+                            'street2': [
+                                'administrative_area_level_3',
+                                'administrative_area_level_4',
+                                'administrative_area_level_5',
+                            ],
+                            'city': ['locality', 'administrative_area_level_2'],
+                            'zip': 'postal_code',
+                            'state_id': 'administrative_area_level_1',
+                            'country_id': 'country',
+                        },
+                        'geolocation': {
+                            'customer_latitude': 'latitude',
+                            'customer_longitude': 'longitude'
+                        }
+                    },
+                    'display_name': 'partner_name',
+                    'force_override': true
+                }</attribute>
+            </xpath>
+            <xpath expr="//group[@name='lead_partner']" position="attributes">
+                <attribute name="attrs"></attribute>
+            </xpath>
+        </field>
+    </record>
+    <record id="view_crm_lead_google_map_inherit_google_places" model="ir.ui.view">
+        <field name="name">view.crm.lead.google.map.inherit.google.places</field>
+        <field name="model">crm.lead</field>
+        <field name="inherit_id" ref="crm_google_map.view_crm_lead_google_map"/>
+        <field name="priority">1000</field>
+        <field name="arch" type="xml">
+            <xpath expr="//google_map" position="attributes">
+                <attribute name="js_class">google_map_places</attribute>
+            </xpath>
+        </field>
+    </record>
+</odoo>
