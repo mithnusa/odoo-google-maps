@@ -1,0 +1,107 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* crm_google_places
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 16.0-20230430\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-05-06 13:10+0000\n"
+"PO-Revision-Date: 2023-05-06 13:10+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: crm_google_places
+#: model_terms:ir.ui.view,arch_db:crm_google_places.view_crm_lead_inherit_google_places
+msgid ""
+"A plus code is like a street address for people or places that don't have "
+"one"
+msgstr ""
+
+#. module: crm_google_places
+#: model:ir.model.fields,help:crm_google_places.field_crm_lead__gplace_vicinity
+msgid ""
+"A simplified address for the place, including the street name, street "
+"number, and locality, but not the province/state, postal code, or country"
+msgstr ""
+
+#. module: crm_google_places
+#: model:ir.model.fields,help:crm_google_places.field_crm_lead__gplace_id
+msgid "A textual identifier that uniquely identifies a place"
+msgstr ""
+
+#. module: crm_google_places
+#: model:ir.model.fields,field_description:crm_google_places.field_crm_lead__gplace_plus_code_compound
+msgid "Compound Code"
+msgstr ""
+
+#. module: crm_google_places
+#: model_terms:ir.ui.view,arch_db:crm_google_places.view_crm_lead_inherit_google_places
+msgid "Fetch Place Info"
+msgstr ""
+
+#. module: crm_google_places
+#: model:ir.model.fields,field_description:crm_google_places.field_crm_lead__gplace_plus_code_global
+msgid "Global Code"
+msgstr ""
+
+#. module: crm_google_places
+#: model:ir.model.fields,field_description:crm_google_places.field_crm_lead__gplace_formatted_address
+msgid "Google Address"
+msgstr ""
+
+#. module: crm_google_places
+#: model_terms:ir.ui.view,arch_db:crm_google_places.view_crm_lead_inherit_google_places
+msgid "Google Places"
+msgstr ""
+
+#. module: crm_google_places
+#: model:ir.model,name:crm_google_places.model_crm_lead
+msgid "Lead/Opportunity"
+msgstr ""
+
+#. module: crm_google_places
+#: model:ir.model.fields,field_description:crm_google_places.field_crm_lead__gplace_opening_hours
+msgid "Opening Hours"
+msgstr ""
+
+#. module: crm_google_places
+#: model:ir.model.fields,field_description:crm_google_places.field_crm_lead__gplace_plus_code_url
+msgid "PLus code URL"
+msgstr ""
+
+#. module: crm_google_places
+#: model:ir.model.fields,field_description:crm_google_places.field_crm_lead__gplace_photos_url
+msgid "Photos"
+msgstr ""
+
+#. module: crm_google_places
+#: model:ir.model.fields,field_description:crm_google_places.field_crm_lead__gplace_id
+#: model_terms:ir.ui.view,arch_db:crm_google_places.view_crm_lead_inherit_google_places
+msgid "Place ID"
+msgstr ""
+
+#. module: crm_google_places
+#: model:ir.model.fields,field_description:crm_google_places.field_crm_lead__gplace_url
+#: model_terms:ir.ui.view,arch_db:crm_google_places.view_crm_lead_inherit_google_places
+msgid "Place URL"
+msgstr ""
+
+#. module: crm_google_places
+#: model_terms:ir.ui.view,arch_db:crm_google_places.view_crm_lead_inherit_google_places
+msgid "Plus code"
+msgstr ""
+
+#. module: crm_google_places
+#: model:ir.model.fields,field_description:crm_google_places.field_crm_lead__gplace_type_ids
+msgid "Types"
+msgstr ""
+
+#. module: crm_google_places
+#: model:ir.model.fields,field_description:crm_google_places.field_crm_lead__gplace_vicinity
+msgid "Vicinity"
+msgstr ""

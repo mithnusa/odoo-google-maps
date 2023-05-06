@@ -1,0 +1,107 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* contacts_google_places
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 16.0-20230430\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-05-06 13:09+0000\n"
+"PO-Revision-Date: 2023-05-06 13:09+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: contacts_google_places
+#: model_terms:ir.ui.view,arch_db:contacts_google_places.view_partner_google_places_form_inherit
+msgid ""
+"A plus code is like a street address for people or places that don't have "
+"one"
+msgstr ""
+
+#. module: contacts_google_places
+#: model:ir.model.fields,help:contacts_google_places.field_res_partner__gplace_vicinity
+msgid ""
+"A simplified address for the place, including the street name, street "
+"number, and locality, but not the province/state, postal code, or country"
+msgstr ""
+
+#. module: contacts_google_places
+#: model:ir.model.fields,help:contacts_google_places.field_res_partner__gplace_id
+msgid "A textual identifier that uniquely identifies a place"
+msgstr ""
+
+#. module: contacts_google_places
+#: model:ir.model.fields,field_description:contacts_google_places.field_res_partner__gplace_plus_code_compound
+msgid "Compound Code"
+msgstr ""
+
+#. module: contacts_google_places
+#: model:ir.model,name:contacts_google_places.model_res_partner
+msgid "Contact"
+msgstr ""
+
+#. module: contacts_google_places
+#: model_terms:ir.ui.view,arch_db:contacts_google_places.view_partner_google_places_form_inherit
+msgid "Fetch Place Info"
+msgstr ""
+
+#. module: contacts_google_places
+#: model:ir.model.fields,field_description:contacts_google_places.field_res_partner__gplace_plus_code_global
+msgid "Global Code"
+msgstr ""
+
+#. module: contacts_google_places
+#: model:ir.model.fields,field_description:contacts_google_places.field_res_partner__gplace_formatted_address
+msgid "Google Address"
+msgstr ""
+
+#. module: contacts_google_places
+#: model_terms:ir.ui.view,arch_db:contacts_google_places.view_partner_google_places_form_inherit
+msgid "Google Place Information"
+msgstr ""
+
+#. module: contacts_google_places
+#: model:ir.model.fields,field_description:contacts_google_places.field_res_partner__gplace_opening_hours
+msgid "Opening Hours"
+msgstr ""
+
+#. module: contacts_google_places
+#: model:ir.model.fields,field_description:contacts_google_places.field_res_partner__gplace_plus_code_url
+msgid "PLus code URL"
+msgstr ""
+
+#. module: contacts_google_places
+#: model:ir.model.fields,field_description:contacts_google_places.field_res_partner__gplace_photos_url
+msgid "Photos"
+msgstr ""
+
+#. module: contacts_google_places
+#: model:ir.model.fields,field_description:contacts_google_places.field_res_partner__gplace_id
+#: model_terms:ir.ui.view,arch_db:contacts_google_places.view_partner_google_places_form_inherit
+msgid "Place ID"
+msgstr ""
+
+#. module: contacts_google_places
+#: model:ir.model.fields,field_description:contacts_google_places.field_res_partner__gplace_url
+#: model_terms:ir.ui.view,arch_db:contacts_google_places.view_partner_google_places_form_inherit
+msgid "Place URL"
+msgstr ""
+
+#. module: contacts_google_places
+#: model_terms:ir.ui.view,arch_db:contacts_google_places.view_partner_google_places_form_inherit
+msgid "Plus code"
+msgstr ""
+
+#. module: contacts_google_places
+#: model:ir.model.fields,field_description:contacts_google_places.field_res_partner__gplace_type_ids
+msgid "Types"
+msgstr ""
+
+#. module: contacts_google_places
+#: model:ir.model.fields,field_description:contacts_google_places.field_res_partner__gplace_vicinity
+msgid "Vicinity"
+msgstr ""
