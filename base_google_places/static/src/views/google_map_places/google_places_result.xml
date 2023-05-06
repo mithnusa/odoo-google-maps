@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="base_google_places.PlacesResult" owl="1">
+        <div class="mt-3" t-ref="root">
+            <t t-if="!isEmpty">
+                <div class="list-group mb-3">
+                    <t t-foreach="props.places" t-as="place" t-key="place.place_id">
+                        <GooglePlacesItem place="place" handlePointInMap.bind="handleClickItem" handleAdd.bind="props.handleClickItemAdd"/>
+                    </t>
+                </div>
+                <div class="d-grid" style="position:sticky;bottom:0;z-index:10;" t-if="props.searchHasNext">
+                    <button type="button" class="btn btn-lg btn-light" id="search-more" t-on-click.prevent="() => props.actionPageNext()">
+                        <span>Next page</span>
+                        <span> </span>
+                        <i class="fa fa-angle-right"></i>
+                    </button>
+                </div>
+            </t>
+            <t t-else="">
+                <div class="container text-center">
+                    <div class="row">
+                        <p class="text-muted">No places found<br/>
+Enter your search keyword</p>
+                    </div>
+                </div>
+            </t>
+        </div>
+    </t>
+</templates>

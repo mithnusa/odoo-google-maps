@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_google_places_type_tree" model="ir.ui.view">
+        <field name="name">view.google.places.type.tree</field>
+        <field name="model">google.places.type</field>
+        <field name="arch" type="xml">
+            <tree string="Google Places Types" editable="bottom">
+                <field name="code"/>
+                <field name="name"/>
+                <field name="active"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_google_places_type" model="ir.actions.act_window">
+        <field name="name">Google Places Type</field>
+        <field name="res_model">google.places.type</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+          <p class="o_view_nocontent_smiling_face">
+            Google places type
+          </p>
+        </field>
+    </record>
+
+    <menuitem
+        id="menu_google_configuration"
+        name="Google"
+        parent="base.menu_custom"
+        sequence="60"
+        groups="base.group_no_one"/>
+
+    <menuitem
+        id="menu_google_places_type"
+        parent="menu_google_configuration"
+        action="action_google_places_type"
+        groups="base.group_no_one"/>
+</odoo>
