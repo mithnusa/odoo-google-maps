@@ -7,7 +7,6 @@ import { GooglePlacesItem } from './google_places_item';
 
 export class GooglePlacesResult extends Component {
     setup() {
-        super.setup();
         this.notification = useService('notification');
         onRendered(() => this.handleOnRendered());
     }
