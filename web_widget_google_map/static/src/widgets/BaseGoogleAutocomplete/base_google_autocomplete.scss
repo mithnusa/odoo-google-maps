@@ -1,0 +1,4 @@
+/* put google places autocomplete dropdown results above the bootstrap modal 1055 zindex. */
+.pac-container {
+    z-index: 9999 !important;
+}

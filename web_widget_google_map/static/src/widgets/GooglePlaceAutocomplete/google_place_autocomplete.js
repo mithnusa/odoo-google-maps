@@ -1,18 +1,28 @@
 /** @odoo-module **/
 
-import { useRef } from '@odoo/owl';
+import { useRef, Component } from '@odoo/owl';
 import { registry } from '@web/core/registry';
 import { _lt } from '@web/core/l10n/translation';
 import { useInputField } from '@web/views/fields/input_field_hook';
 import { standardFieldProps } from '@web/views/fields/standard_field_props';
 import { formatChar } from '@web/views/fields/formatters';
 
-import { BaseGoogleAutocomplete } from '../base_google_autocomplete';
+import { useGoogleMapLoader } from '@base_google_map/utils/base_google_map';
+
+import { BaseGoogleAutocomplete } from '../BaseGoogleAutocomplete/base_google_autocomplete';
 
 export class GooglePlaceAutocomplete extends BaseGoogleAutocomplete {
     setup() {
         super.setup();
+
         this.input = useRef('input');
+
+        useGoogleMapLoader({
+            onLoad: (settings) => {
+                this.settings = { ...settings };
+                this.initialize();
+            },
+        });
 
         useInputField({
             getValue: () => this.props.value || '',
@@ -137,7 +147,7 @@ export class GooglePlaceAutocomplete extends BaseGoogleAutocomplete {
                 }
             }
             this.target_fields = this.getFillFieldsType();
-            this.initGplacesAutocomplete(this.input);
+            this.initGplacesAutocomplete();
         }
     }
 

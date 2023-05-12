@@ -1,5 +1,5 @@
 /** @odoo-module **/
-import { Component, onWillStart, useState } from '@odoo/owl';
+import { Component, useEffect, useState } from '@odoo/owl';
 import { _lt } from '@web/core/l10n/translation';
 import { useService } from '@web/core/utils/hooks';
 import { MAP_THEMES } from './themes';
@@ -13,6 +13,62 @@ export const LOADER_STATUS = {
     UNLOAD: 999, // custom status for internal usage
 };
 
+export function useGoogleMapLoader({
+    showLoading,
+    onLoad = (args) => {},
+    onError = (args) => {},
+}) {
+    showLoading = showLoading || false;
+    const rpc = useService('rpc');
+    const user = useService('user');
+    const ui = useService('ui');
+    let settings = {};
+    let loader = null;
+
+    const loadSetting = async (method) => {
+        const data = await rpc('/web/base_google_map/settings', {
+            context: user.context,
+        });
+        method(data);
+    };
+
+    useEffect(
+        (settings, loader) => {
+            if (Object.keys(settings).length <= 0 && !loader) {
+                showLoading && ui.block();
+                loadSetting((config) => {
+                    settings = { ...config };
+                    const loaderOptions = {
+                        apiKey: settings.api_key,
+                        version: settings.version,
+                        libraries: settings.libraries,
+                    };
+                    if (settings.region) {
+                        loaderOptions.region = settings.region;
+                    }
+                    if (settings.language) {
+                        loaderOptions.language = settings.language;
+                    }
+
+                    loader = new google.maps.plugins.loader.Loader(loaderOptions);
+                    loader.loadCallback((e) => {
+                        if (e) {
+                            showLoading && ui.unblock();
+                            onError(e);
+                        } else {
+                            delete settings.api_key;
+                            delete settings.version;
+                            showLoading && ui.unblock();
+                            onLoad(settings);
+                        }
+                    });
+                });
+            }
+        },
+        () => [settings, loader]
+    );
+}
+
 export class BaseGoogleMap extends Component {
     setup() {
         this.user = useService('user');
@@ -20,40 +76,38 @@ export class BaseGoogleMap extends Component {
 
         this.state = useState({ loaderStatus: LOADER_STATUS.UNLOAD });
 
-        this.loader = null;
         this.settings = {};
         this.isPlacesSearchEnable = null;
         this.markerPlacesSearch = null;
         this.googleMap = null;
         this.placesAutocomplete = null;
+        this.currentDatapointId = null;
 
-        onWillStart(this._onWillStart);
-    }
-
-    async _onWillStart() {
-        if (!this.loader) {
-            const settings = await this._fetchSettings();
-            this.settings = { ...settings };
-            const loaderOptions = {
-                apiKey: settings.api_key,
-                version: settings.version,
-                libraries: settings.libraries,
-            };
-            if (settings.region) {
-                loaderOptions.region = settings.region;
-            }
-            if (settings.language) {
-                loaderOptions.language = settings.language;
-            }
-            this.loader = new google.maps.plugins.loader.Loader(loaderOptions);
-        }
-    }
-
-    async _fetchSettings() {
-        const data = await this.rpc('/web/base_google_map/settings', {
-            context: this.user.context,
+        useGoogleMapLoader({
+            showLoading: true,
+            onLoad: (setting) => {
+                this.settings = { ...setting };
+                this._handleGoogleLoaderSuccess();
+                this.initialize();
+            },
+            onError: (msg) => {
+                this._handleGoogleLoaderError(msg);
+            },
         });
-        return data;
+    }
+
+    initialize() {
+        // not implemented
+        // start Google stuff here
+    }
+
+    _handleGoogleLoaderError(msg) {
+        console.error(msg);
+        this.state.loaderStatus = LOADER_STATUS.FAILURE;
+    }
+
+    _handleGoogleLoaderSuccess() {
+        this.state.loaderStatus = LOADER_STATUS.SUCCESS;
     }
 
     setMapTheme() {

@@ -41,6 +41,7 @@ export class GoogleMapDrawingRenderer extends GoogleMapRenderer {
      * @override
      */
     renderMap(isCentered) {
+        isCentered = isCentered || false;
         this.shapesBounds = new google.maps.LatLngBounds();
         this.renderShapes();
 
@@ -179,7 +180,7 @@ export class GoogleMapDrawingRenderer extends GoogleMapRenderer {
                     this._handleDrawCircle(record, options);
                 }
             } catch (error) {
-                console.warn(error);
+                console.error(error);
             }
         }
     }

@@ -16,7 +16,7 @@ export function getPlaceProperties(ormService, record_fields, place) {
     const odooFields = Object.keys(record_fields);
     const validateFields = placesFields.filter((v) => odooFields.includes(v));
 
-    if (validateFields.length === placesFields.length) {
+    if (validateFields.length > 0) {
         const res = {
             gplace_formatted_address: place.formatted_address || '',
             gplace_id: place.place_id || '',

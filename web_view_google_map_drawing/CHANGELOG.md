@@ -1,5 +1,13 @@
 # Change Log
-[16.0.1.3.1] -- 06/05/2023
+
+## [16.0.1.4.1] -- 12/05/2023
+### Added
+### Changed
+ - Moved the Google Drawing manager action buttons and the custom button to the top center of the map
+### Fixed
+
+
+## [16.0.1.3.1] -- 06/05/2023
 ### Added
 - Added indicator when a shape is modified or new shape is drawn
 
