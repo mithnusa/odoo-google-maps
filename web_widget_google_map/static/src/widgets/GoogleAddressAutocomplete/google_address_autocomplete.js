@@ -5,14 +5,24 @@ import { _lt } from '@web/core/l10n/translation';
 import { standardFieldProps } from '@web/views/fields/standard_field_props';
 import { useInputField } from '@web/views/fields/input_field_hook';
 import { formatChar } from '@web/views/fields/formatters';
-import { useRef, onMounted } from '@odoo/owl';
+import { useRef } from '@odoo/owl';
 
-import { BaseGoogleAutocomplete } from '../base_google_autocomplete';
+import { useGoogleMapLoader } from '@base_google_map/utils/base_google_map';
+
+import { BaseGoogleAutocomplete } from '../BaseGoogleAutocomplete/base_google_autocomplete';
 
 export class GoogleAddressAutocomplete extends BaseGoogleAutocomplete {
     setup() {
         super.setup();
+
         this.input = useRef('input');
+
+        useGoogleMapLoader({
+            onLoad: (settings) => {
+                this.settings = { ...settings };
+                this.initialize();
+            },
+        });
 
         useInputField({
             getValue: () => this.props.value || '',
@@ -106,7 +116,7 @@ export class GoogleAddressAutocomplete extends BaseGoogleAutocomplete {
         super.prepareOptions();
         if (!this.props.readonly) {
             this.target_fields = this.getFillFieldsType();
-            this.initGplacesAutocomplete(this.input);
+            this.initGplacesAutocomplete();
         }
     }
 

@@ -213,7 +213,7 @@ export class GooglePlacesAutocompleteSidebar extends Component {
             })
             .catch((err) => {
                 this.ui.unblock();
-                console.warn(err);
+                console.error(err);
                 this.notification.add(this.env._t('Failed to fetch place detail'), {
                     type: 'danger',
                 });

@@ -4,12 +4,8 @@ import { _lt } from '@web/core/l10n/translation';
 import { formatChar } from '@web/views/fields/formatters';
 import {
     Component,
-    onMounted,
-    onWillStart,
     onWillUnmount,
     onWillDestroy,
-    useState,
-    useEffect,
 } from '@odoo/owl';
 import { useService } from '@web/core/utils/hooks';
 import {
@@ -20,18 +16,13 @@ import {
     gmaps_populate_places,
     fetchCountryState,
 } from './utils';
-import { LOADER_STATUS } from '@base_google_map/utils/base_google_map';
 
 export class BaseGoogleAutocomplete extends Component {
     setup() {
         this.rpc = useService('rpc');
         this.user = useService('user');
 
-        this.state = useState({ loaderStatus: LOADER_STATUS.UNLOAD });
-
-        this.loader = null;
         this.settings = {};
-
         this.placesAutocomplete = false;
         this.component_form = GOOGLE_PLACES_COMPONENT_FORM;
         this.address_form = ADDRESS_FORM;
@@ -53,33 +44,6 @@ export class BaseGoogleAutocomplete extends Component {
         this.force_override = false;
         this.autocomplete_settings = null;
 
-        onWillStart(this._onWillStart);
-        useEffect(
-            () => {
-                if (this.state.loaderStatus === LOADER_STATUS.SUCCESS) {
-                    this.initialize();
-                }
-            },
-            () => [this.state.loaderStatus]
-        );
-        onMounted(() => {
-            const status = this.loader.status || this.state.loaderStatus;
-            if (
-                [LOADER_STATUS.UNLOAD, LOADER_STATUS.INITIALIZED].indexOf(status) >= 0
-            ) {
-                this.loader.loadCallback((e) => {
-                    if (e) {
-                        console.warn(e);
-                    } else {
-                        this.initialize();
-                    }
-                });
-            } else if (status === LOADER_STATUS.SUCCESS) {
-                if (!this.placesAutocomplete) {
-                    this.initialize();
-                }
-            }
-        });
         onWillUnmount(() => {
             // Reset the placeAutocomplete and remove the event listener attached
             if (this.placesAutocomplete) {
@@ -99,28 +63,9 @@ export class BaseGoogleAutocomplete extends Component {
         });
     }
 
-    async _onWillStart() {
-        if (!this.loader) {
-            const settings = await this._fetchSettings();
-            this.settings = { ...settings };
-            this.loader = new google.maps.plugins.loader.Loader({
-                apiKey: settings.api_key,
-                version: settings.version,
-                libraries: settings.libraries,
-            });
-        }
-    }
-
     initialize() {
         this.defaultFillField();
         this.prepareOptions();
-    }
-
-    async _fetchSettings() {
-        const data = await this.rpc('/web/base_google_map/settings', {
-            context: this.user.context,
-        });
-        return data;
     }
 
     defaultFillField() {
@@ -133,14 +78,16 @@ export class BaseGoogleAutocomplete extends Component {
         return ['address_components', 'name', 'geometry', 'formatted_address'];
     }
 
-    initGplacesAutocomplete(inputRef) {
-        if (!this.placesAutocomplete) {
+    initGplacesAutocomplete() {
+        if (!this.placesAutocomplete && this.input) {
             const google_fields = this.getGoogleFieldsRestriction();
-            this.state.loaderStatus = this.loader.status;
-            this.placesAutocomplete = new google.maps.places.Autocomplete(inputRef.el, {
-                types: this.autocomplete_types,
-                fields: google_fields,
-            });
+            this.placesAutocomplete = new google.maps.places.Autocomplete(
+                this.input.el,
+                {
+                    types: this.autocomplete_types,
+                    fields: google_fields,
+                }
+            );
 
             if (this.settings.language) {
                 this.placesAutocomplete.setOptions({

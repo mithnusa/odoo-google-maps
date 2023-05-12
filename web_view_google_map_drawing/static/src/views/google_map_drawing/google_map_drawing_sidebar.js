@@ -5,17 +5,17 @@ import { sprintf } from '@web/core/utils/strings';
 import { GoogleMapSidebar } from '@web_view_google_map/views/google_map/google_map_sidebar';
 
 export class GoogleMapsDrawingSidebar extends GoogleMapSidebar {
-    setup() {
-        onMounted(() => {
-            this.timer = setTimeout(() => {
-                this.render(true);
-            }, 500);
-        });
+    // setup() {
+    //     onMounted(() => {
+    //         this.timer = setTimeout(() => {
+    //             this.render(true);
+    //         }, 500);
+    //     });
 
-        onWillDestroy(() => {
-            clearTimeout(this.timer);
-        });
-    }
+    //     onWillDestroy(() => {
+    //         clearTimeout(this.timer);
+    //     });
+    // }
     getData(record) {
         let extras = [];
         const title = this._getTitle(record) || record.data.gshape_name;

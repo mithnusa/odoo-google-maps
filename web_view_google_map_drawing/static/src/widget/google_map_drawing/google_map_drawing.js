@@ -2,21 +2,29 @@
 
 import { registry } from '@web/core/registry';
 import { _lt } from '@web/core/l10n/translation';
-import { onWillUpdateProps } from '@odoo/owl';
+import { onWillUpdateProps, onWillDestroy } from '@odoo/owl';
+import { useService } from '@web/core/utils/hooks';
 import { useDebounced } from '@web/core/utils/timing';
 import { standardFieldProps } from '@web/views/fields/standard_field_props';
 import { renderToString } from '@web/core/utils/render';
+import { GoogleMapRenderer } from '@web_view_google_map/views/google_map/google_map_renderer';
 
-import { GoogleMapDrawingRenderer } from '../../views/google_map_drawing/google_map_drawing_renderer';
+import { LOADER_STATUS } from '@base_google_map/utils/base_google_map';
+import { MAP_THEMES } from '@base_google_map/utils/themes';
 
-export class GoogleMapDrawing extends GoogleMapDrawingRenderer {
+export class GoogleMapDrawing extends GoogleMapRenderer {
     setup() {
         super.setup();
+        this.notification = useService('notification');
 
         this.displayColor = '#006ee5';
+        this.editColor = '#ffa187';
+
+        this.drawingManager = null;
         this.customControl = null;
         this.selectedShape = null;
         this.isEditing = false;
+        this.shapes = {};
 
         this._handleDrawPolygonAddListenerDebounce = useDebounced(
             this._handlePolygonBoundsChanged,
@@ -46,15 +54,67 @@ export class GoogleMapDrawing extends GoogleMapDrawingRenderer {
             this.isEditing = false;
             this.toggleSaveButtonAnimation();
         });
+
+        onWillDestroy(() => {
+            if (this.shapes) {
+                Object.keys(this.shapes).forEach((key) =>
+                    this._deleteShapeInCache(key)
+                );
+            }
+        });
     }
 
     /**
-     * override
+     * @overwrite
      */
-    renderMap(_isCentered) {
+    handleOnPatched() {
+        // do nothing
+    }
+
+    /**
+     * @overwrite
+     */
+    handleOnRendered() {
+        if (this.state.loaderStatus === LOADER_STATUS.SUCCESS) {
+            this.renderMap();
+        }
+    }
+
+    /**
+     * @overwrite
+     */
+    renderMap() {
         if (!this.drawingManager) return;
         this._resetShape();
         this._handleLoadShape();
+    }
+
+    /**
+     * Initialize Google Map instance
+     */
+    initialize() {
+        super.initialize();
+        const mapThemeDrawing = new google.maps.StyledMapType(
+            MAP_THEMES['line_drawing'],
+            {
+                name: _lt('Drawing'),
+            }
+        );
+        this.googleMap.setOptions({
+            mapTypeControlOptions: {
+                style: google.maps.MapTypeControlStyle.DROPDOWN_MENU,
+                mapTypeIds: [
+                    'roadmap',
+                    'satellite',
+                    'hybrid',
+                    'terrain',
+                    'drawing',
+                    'styled_map',
+                ],
+            },
+        });
+        this.googleMap.mapTypes.set('drawing', mapThemeDrawing);
+        this.initializeDrawing();
     }
 
     /**
@@ -81,7 +141,7 @@ export class GoogleMapDrawing extends GoogleMapDrawingRenderer {
                     const shape = JSON.parse(value);
                     this._handleShapeToDraw(shape);
                 } catch (error) {
-                    console.warn(error);
+                    console.error(error);
                     this.notification.add(
                         this.env._t(
                             'Something went wrong, the shape cannot be drawn on the map. Please contact administrator'
@@ -177,9 +237,25 @@ export class GoogleMapDrawing extends GoogleMapDrawingRenderer {
         }
     }
 
-    _handleDrawPolygonPoints() {
+    _handleDrawPolygonPoints(lines) {
         this._cleanPolygonPoints();
-        super._handleDrawPolygonPoints(...arguments);
+        if (lines) {
+            let latLng;
+            const totalStop = Object.keys(lines).length;
+            Object.keys(lines).forEach((key) => {
+                if (key < totalStop) {
+                    latLng = lines[key].start;
+                } else {
+                    latLng = lines[key].stop;
+                }
+                this.polygonMarkers[key] = new google.maps.Marker({
+                    map: this.googleMap,
+                    position: latLng,
+                    label: key,
+                    animation: google.maps.Animation.DROP,
+                });
+            });
+        }
     }
 
     _handleDrawPolygon(shape) {
@@ -287,19 +363,23 @@ export class GoogleMapDrawing extends GoogleMapDrawingRenderer {
     }
 
     _getGeneralOptions() {
-        const options = super._getGeneralOptions();
         return {
-            ...options,
             fillColor: this.editColor,
             strokeColor: '#fc6c44',
+            strokeOpacity: 0.85,
+            strokeWeight: 2.0,
+            fillOpacity: 0.45,
+            editable: true,
         };
     }
 
     _getCircleOptions() {
-        const options = super._getCircleOptions();
         return {
-            ...options,
             fillColor: this.editColor,
+            fillOpacity: 0.45,
+            strokeWeight: 0,
+            editable: true,
+            zIndex: 1,
         };
     }
 
@@ -315,7 +395,7 @@ export class GoogleMapDrawing extends GoogleMapDrawingRenderer {
     }
 
     toggleSaveButtonAnimation() {
-        this.googleMap.controls[google.maps.ControlPosition.BOTTOM_CENTER].forEach(
+        this.googleMap.controls[google.maps.ControlPosition.TOP_CENTER].forEach(
             (element) => {
                 if (element.id === 'custom-control-drawing-buttons') {
                     let button = element.querySelector('#save');
@@ -323,11 +403,11 @@ export class GoogleMapDrawing extends GoogleMapDrawingRenderer {
                     if (button && floppyIcon) {
                         if (this.isEditing) {
                             button.classList.add('btn-success');
-                            button.classList.remove('btn-secondary');
+                            button.classList.remove('btn-light');
                             floppyIcon.classList.add('animate');
                         } else {
                             floppyIcon.classList.remove('btn-success');
-                            button.classList.add('btn-secondary');
+                            button.classList.add('btn-light');
                             floppyIcon.classList.remove('animate');
                         }
                     }
@@ -345,7 +425,7 @@ export class GoogleMapDrawing extends GoogleMapDrawingRenderer {
             this.customControl = new DOMParser()
                 .parseFromString(content, 'text/html')
                 .querySelector('div');
-            this.googleMap.controls[google.maps.ControlPosition.BOTTOM_CENTER].push(
+            this.googleMap.controls[google.maps.ControlPosition.TOP_CENTER].push(
                 this.customControl
             );
             this.customControl
@@ -566,7 +646,7 @@ export class GoogleMapDrawing extends GoogleMapDrawingRenderer {
                 this.drawingManager = new google.maps.drawing.DrawingManager({
                     drawingControl: !this.props.readonly,
                     drawingControlOptions: {
-                        position: google.maps.ControlPosition.BOTTOM_CENTER,
+                        position: google.maps.ControlPosition.TOP_CENTER,
                         drawingModes: [
                             google.maps.drawing.OverlayType.CIRCLE,
                             google.maps.drawing.OverlayType.POLYGON,
@@ -662,6 +742,17 @@ export class GoogleMapDrawing extends GoogleMapDrawingRenderer {
             this.selectedShape = null;
         }
         this.drawingManager.setDrawingMode(null);
+    }
+
+    _cleanPolygonPoints() {
+        if (this.polygonMarkers) {
+            Object.keys(this.polygonMarkers).forEach((lineAt) => {
+                this.polygonMarkers[lineAt].setMap(null);
+                delete this.polygonMarkers[lineAt];
+            });
+        } else {
+            this.polygonMarkers = {};
+        }
     }
 
     _handleCenterMap(paths, bounds) {

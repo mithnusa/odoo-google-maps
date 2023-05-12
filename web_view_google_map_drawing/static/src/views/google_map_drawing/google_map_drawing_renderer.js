@@ -179,7 +179,7 @@ export class GoogleMapDrawingRenderer extends GoogleMapRenderer {
                     this._handleDrawCircle(record, options);
                 }
             } catch (error) {
-                console.warn(error);
+                console.error(error);
             }
         }
     }

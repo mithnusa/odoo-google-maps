@@ -1,13 +1,6 @@
 /** @odoo-module **/
 
-import {
-    useRef,
-    useEffect,
-    useState,
-    onMounted,
-    onRendered,
-    onWillUpdateProps,
-} from '@odoo/owl';
+import { useRef, useState, onRendered, onWillUpdateProps, onPatched } from '@odoo/owl';
 import { Pager } from '@web/core/pager/pager';
 import { renderToString } from '@web/core/utils/render';
 import { Widget } from '@web/views/widgets/widget';
@@ -27,46 +20,38 @@ export class GoogleMapRenderer extends BaseGoogleMap {
 
         this.state = useState({ ...this.state, sidebarIsFolded: false });
 
-        useEffect(
-            () => {
-                if (this.state.loaderStatus === LOADER_STATUS.SUCCESS) {
-                    this.renderMap(true);
-                }
-            },
-            () => [this.state.loaderStatus]
-        );
+        // The following lifecycle hooks are to maintain the data rendered on the map
+        // When the same list ID is rendered, I won't re-render the markers and also won't change the current map center
+        onRendered(this.handleOnRendered);
+        onPatched(this.handleOnPatched);
+        onWillUpdateProps(this.handleOnWillUpdateProps);
+    }
 
-        onMounted(() => {
-            const status = this.loader.status || this.state.loaderStatus;
-            if (
-                [LOADER_STATUS.UNLOAD, LOADER_STATUS.INITIALIZED].indexOf(status) >= 0
-            ) {
-                this.loader.loadCallback((e) => {
-                    if (e) {
-                        console.warn(e);
-                    } else {
-                        this.initialize();
-                    }
-                });
-            } else if (status === LOADER_STATUS.SUCCESS) {
-                if (!this.googleMap) {
-                    this.initialize();
-                }
-            }
-        });
+    handleOnWillUpdateProps() {
+        // Reset the flag 'currentDatapointId' so that on the next render, lifecycle `onRendered` will do it's job
+        this.currentDatapointId = null;
+    }
 
-        onRendered(() => {
-            if (this.state.loaderStatus === LOADER_STATUS.SUCCESS) {
-                this.renderMap(false);
-            }
-        });
+    handleOnRendered() {
+        // I render the markers only when the GoogleLoader is success and new list ID is loaded
+        if (
+            this.state.loaderStatus === LOADER_STATUS.SUCCESS &&
+            this.currentDatapointId != this.props.list.id
+        ) {
+            this.currentDatapointId = this.props.list.id;
+            this.renderMap(true);
+        }
+    }
 
-        onWillUpdateProps((_nextProps) => {
+    handleOnPatched() {
+        // I keep the current map bounds unless new list ID is loaded
+        if (this.currentDatapointId != this.props.list.id) {
             this.centerMap();
-        });
+        }
     }
 
     renderMap(isCentered) {
+        isCentered = isCentered || false;
         this.clearMarkers();
         this.renderMarkers();
         this.renderMarkerClusterer();
@@ -105,8 +90,6 @@ export class GoogleMapRenderer extends BaseGoogleMap {
 
     _initializeGoogleMap() {
         if (!this.googleMap) {
-            // we update state loaderStatus
-            this.state.loaderStatus = this.loader.status;
             const options = this.getMapOptions();
             this.googleMap = new google.maps.Map(this.mapRef.el, options);
             this.setMapTheme();
@@ -291,10 +274,10 @@ export class GoogleMapRenderer extends BaseGoogleMap {
      * @param {Object} latLng
      * @param {Object} record
      * @param {String} color
-     * @returns {Object} Instance of Google maps marker
+     * @returns {Object} marker options
      */
-    createMarker(latLng, record, color) {
-        const options = {
+    _prepareMarkerOptions(latLng, record, color) {
+        const markerOptions = {
             position: latLng,
             map: this.googleMap,
             _odooRecord: record,
@@ -317,8 +300,17 @@ export class GoogleMapRenderer extends BaseGoogleMap {
             ? record.data[this.props.archInfo.sidebarTitleField]
             : record.data.name || record.data.display_name;
         if (title) {
-            options['title'] = title;
+            markerOptions['title'] = title;
         }
+        return markerOptions;
+    }
+
+    /**
+     *
+     * @param {*} options
+     * @returns Google marker instance
+     */
+    createMarker(options) {
         return new google.maps.Marker(options);
     }
 
@@ -327,6 +319,8 @@ export class GoogleMapRenderer extends BaseGoogleMap {
         let lng;
         let marker;
         let color;
+        let markerOptions;
+
         this.props.list.records.map((record) => {
             color = this.handleMarkerColor(record);
             lat =
@@ -338,7 +332,8 @@ export class GoogleMapRenderer extends BaseGoogleMap {
                     ? record.data[this.props.archInfo.longitudeField]
                     : 0.0;
             if (lat !== 0.0 || lng !== 0.0) {
-                marker = this.createMarker({ lat, lng }, record, color);
+                markerOptions = this._prepareMarkerOptions({ lat, lng }, record, color);
+                marker = this.createMarker(markerOptions);
                 record._marker = marker;
                 record._markerColor = color;
                 this.handleMarker(marker);

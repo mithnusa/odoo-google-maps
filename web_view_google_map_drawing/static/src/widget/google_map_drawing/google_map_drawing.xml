@@ -12,11 +12,11 @@
         </div>
     </t>
     <t t-name="web_view_google_map_drawing.ButtonActionDelete" owl="1">
-        <div style="border: 1px solid #cccccc; background-color: white;margin-bottom: 4.5px;height: 35px;border-radius: 2px;" id="custom-control-drawing-buttons">
-            <button class="btn btn-secondary" id="delete" style="margin-top: 1px;padding: 1px 6px 1px 6px;" type="button" data-toggle="tooltip" data-placement="bottom" title="Delete selected shape">
+        <div style="border: 0.5px solid #cccccc; background-color: white;margin-top: 4.5px;height: 35px;border-radius: 4px;" id="custom-control-drawing-buttons">
+            <button class="btn btn-light" id="delete" style="margin-top: 1px;padding: 1px 6px 1px 6px;" type="button" data-toggle="tooltip" data-placement="bottom" title="Delete selected shape">
                 <i class="fa fa-2x fa-trash-o"></i>
             </button>
-            <button class="btn btn-secondary" id="save" style="margin-top: 1px;padding: 1px 6px 1px 6px;" type="button" data-toggle="tooltip" data-placement="bottom" title="Save">
+            <button class="btn btn-light" id="save" style="margin-top: 1px;padding: 1px 6px 1px 6px;" type="button" data-toggle="tooltip" data-placement="bottom" title="Save">
                 <i class="fa fa-2x fa-floppy-o"></i>
             </button>
         </div>

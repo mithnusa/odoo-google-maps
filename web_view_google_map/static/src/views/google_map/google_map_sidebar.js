@@ -24,7 +24,7 @@ export class GoogleMapSidebar extends Component {
                 }
                 return default_display_name;
             }
-            console.warn(
+            console.error(
                 'Field "' +
                     fieldName +
                     '" not found in record. Field type supported are "many2one" and "char".'
@@ -49,7 +49,7 @@ export class GoogleMapSidebar extends Component {
                         default_display_name =
                             record.data[display_name_field].data.display_name;
                     } catch (error) {
-                        console.warn(error);
+                        console.error(error);
                     }
                 }
             }
