@@ -1,5 +1,13 @@
 # Change Log
 
+## [16.0.1.2.1] -- 12/05/2023
+### Added
+### Changed
+### Fixed
+* Bug fixes and improvement
+  - Add loading window
+  - Improved reactivity of the view `"google_map"` and it's sub-view
+
 ## [16.0.1.1.1] -- 12/04/2023
 ### Added
 
