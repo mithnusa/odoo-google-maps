@@ -41,6 +41,7 @@ export class GoogleMapDrawingRenderer extends GoogleMapRenderer {
      * @override
      */
     renderMap(isCentered) {
+        isCentered = isCentered || false;
         this.shapesBounds = new google.maps.LatLngBounds();
         this.renderShapes();
 
