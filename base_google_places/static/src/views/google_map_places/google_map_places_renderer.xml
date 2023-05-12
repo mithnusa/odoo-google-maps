@@ -5,7 +5,7 @@
         <xpath expr="//div[hasclass('o_google_map_view')]" position="before">
             <div t-attf-class="o_map_left_sidebar #{state.sidebarPlacesIsFolded ? 'closed': 'open'}">
                 <div class="sidebar-body">
-                    <GooglePlacesAutocompleteSidebar loader="loader" settings="settings" isComponentFolded="state.sidebarPlacesIsFolded" googleMap="googleMap" placeService="placeService"/>
+                    <GooglePlacesAutocompleteSidebar settings="settings" isComponentFolded="state.sidebarPlacesIsFolded" googleMap="googleMap" placeService="placeService"/>
                 </div>
                 <div class="toggle_left_sidebar">
                     <button data-toggle="tooltip" data-placement="right" title="Expand side panel" t-on-click.prevent="() => this.togglePlacesSidebar()"></button>

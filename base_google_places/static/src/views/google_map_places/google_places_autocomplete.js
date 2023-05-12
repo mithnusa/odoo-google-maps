@@ -598,7 +598,6 @@ GooglePlacesAutocompleteSidebar.template =
     'base_google_places.SidebarPlacesAutocomplete';
 GooglePlacesAutocompleteSidebar.components = { GooglePlacesResult };
 GooglePlacesAutocompleteSidebar.props = [
-    'loader',
     'settings',
     'isComponentFolded',
     'googleMap',
