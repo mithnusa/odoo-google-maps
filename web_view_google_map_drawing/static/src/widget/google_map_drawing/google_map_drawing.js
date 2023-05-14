@@ -87,6 +87,222 @@ export class GoogleMapDrawing extends GoogleMapRenderer {
         if (!this.drawingManager) return;
         this._resetShape();
         this._handleLoadShape();
+        this.dummyThreejs4();
+    }
+
+    dummyThreejs4() {
+        // create the map and overlay
+        const overlay = new google.maps.plugins.three.ThreeJSOverlayView({
+            map: this.googleMap,
+        });
+        const geometry = new THREE.BoxGeometry(15, 15, 15);
+        const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+        const cube = new THREE.Mesh(geometry, material);
+        overlay.scene.add(cube);
+    }
+
+    dummyThreejs3() {
+        // create the map and overlay
+        const overlay = new google.maps.plugins.three.ThreeJSOverlayView({
+            map: this.googleMap,
+        });
+
+        const coord = [
+            { lat: 45, lng: -90 },
+            { lat: 45, lng: 90 },
+            { lat: -45, lng: -90 },
+            { lat: -45, lng: 90 },
+        ];
+
+        coord.forEach((latLng) => {
+            // create a box mesh with origin on the ground, in z-up orientation
+            const geometry = new THREE.BoxGeometry(10, 50, 10)
+                .translate(0, 25, 0)
+                .rotateX(Math.PI / 2);
+
+            const box = new THREE.Mesh(geometry, new THREE.MeshMatcapMaterial());
+
+            // make it huge
+            box.scale.multiplyScalar(10000);
+
+            // set position at center of map
+            overlay.latLngAltitudeToVector3(latLng, box.position);
+
+            // add box mesh to the scene
+            overlay.scene.add(box);
+        });
+    }
+
+    dummyThreejs2() {
+        const coordinates = [
+            { lng: -121.9702904, lat: 37.4034362 },
+            { lng: -121.9698018, lat: 37.4027095 },
+            { lng: -121.9693109, lat: 37.402918 },
+            { lng: -121.969804, lat: 37.4036465 },
+        ];
+        const center = { lng: -121.9698032, lat: 37.4031777, altitude: 0 };
+
+        const DEFAULT_COLOR = 0xffffff;
+        const HIGHLIGHT_COLOR = 0xff0000;
+
+        const overlay = new google.maps.plugins.three.ThreeJSOverlayView({
+            map: this.googleMap,
+            anchor: center,
+            upAxis: 'Y',
+        });
+
+        const mapDiv = this.googleMap.getDiv();
+        const mousePosition = new THREE.Vector2();
+
+        this.googleMap.addListener('mousemove', (ev) => {
+            const domEvent = ev.domEvent;
+            const { left, top, width, height } = mapDiv.getBoundingClientRect();
+
+            const x = domEvent.clientX - left;
+            const y = domEvent.clientY - top;
+
+            mousePosition.x = 2 * (x / width) - 1;
+            mousePosition.y = 1 - 2 * (y / height);
+
+            // since the actual raycasting is performed when the next frame is
+            // rendered, we have to make sure that it will be called for the next frame.
+            overlay.requestRedraw();
+        });
+
+        // grid- and axes helpers to help with the orientation
+        const grid = new THREE.GridHelper(1);
+
+        grid.rotation.y = THREE.MathUtils.degToRad(28.1);
+        grid.scale.set(48.8, 0, 91.44);
+        overlay.scene.add(grid);
+        overlay.scene.add(new THREE.AxesHelper(20));
+
+        const meshes = coordinates.map((p) => {
+            const mesh = new THREE.Mesh(
+                new THREE.CylinderGeometry(2, 1, 20, 24, 1),
+                new THREE.MeshMatcapMaterial()
+            );
+            mesh.geometry.translate(0, mesh.geometry.parameters.height / 2, 0);
+            overlay.latLngAltitudeToVector3(p, mesh.position);
+
+            overlay.scene.add(mesh);
+
+            return mesh;
+        });
+
+        let highlightedObject = null;
+
+        overlay.onBeforeDraw = () => {
+            const intersections = overlay.raycast(mousePosition, meshes, {
+                recursive: false,
+            });
+
+            if (highlightedObject) {
+                // when there's a previously highlighted object, reset the highlighting
+                highlightedObject.material.color.setHex(DEFAULT_COLOR);
+            }
+
+            if (intersections.length === 0) {
+                // reset default cursor when no object is under the cursor
+                this.googleMap.setOptions({ draggableCursor: null });
+                highlightedObject = null;
+                return;
+            }
+
+            // change the color of the object and update the map-cursor to indicate
+            // the object is clickable.
+            highlightedObject = intersections[0].object;
+            highlightedObject.material.color.setHex(HIGHLIGHT_COLOR);
+            this.googleMap.setOptions({ draggableCursor: 'pointer' });
+        };
+        this.centerMap();
+    }
+
+    dummyThreejs1() {
+        const overlay = new google.maps.plugins.three.ThreeJSOverlayView({
+            map: this.googleMap,
+            upAxis: 'Y',
+            anchor: { lat: 35.6594945, lng: 139.6999859 },
+        });
+
+        // create a box mesh
+        const box = new THREE.Mesh(
+            new THREE.BoxGeometry(10, 50, 10),
+            new THREE.MeshMatcapMaterial()
+        );
+
+        // set position at center of map
+        const pos = overlay.latLngAltitudeToVector3({
+            lat: 35.6594945,
+            lng: 139.6999859,
+        });
+        box.position.copy(pos);
+
+        // set position vertically
+        box.position.z = 25;
+
+        // add box mesh to the scene
+        overlay.scene.add(box);
+
+        // rotate the box using requestAnimationFrame
+        const animate = () => {
+            box.rotateZ(THREE.MathUtils.degToRad(0.1));
+
+            requestAnimationFrame(animate);
+        };
+
+        requestAnimationFrame(animate);
+        this.centerMap();
+    }
+
+    centerMap() {
+        this.googleMap.setOptions({
+            zoom: 18,
+            center: { lng: -121.9698032, lat: 37.4031777, altitude: 0 },
+        });
+    }
+
+    customControlTilt() {
+        if (!this.controlTilt) {
+            const buttons = [
+                ['Rotate Left', 'rotate', 20, google.maps.ControlPosition.LEFT_CENTER],
+                [
+                    'Rotate Right',
+                    'rotate',
+                    -20,
+                    google.maps.ControlPosition.RIGHT_CENTER,
+                ],
+                ['Tilt Down', 'tilt', 20, google.maps.ControlPosition.TOP_CENTER],
+                ['Tilt Up', 'tilt', -20, google.maps.ControlPosition.BOTTOM_CENTER],
+            ];
+
+            buttons.forEach(([text, mode, amount, position]) => {
+                const controlDiv = document.createElement('div');
+                const controlUI = document.createElement('button');
+
+                controlUI.classList.add('btn', 'btn-secondary');
+                controlUI.innerText = `${text}`;
+                controlUI.addEventListener('click', () => {
+                    adjustMap(mode, amount);
+                });
+                controlDiv.appendChild(controlUI);
+                this.googleMap.controls[position].push(controlDiv);
+            });
+
+            const adjustMap = (mode, amount) => {
+                switch (mode) {
+                    case 'tilt':
+                        this.googleMap.setTilt(this.googleMap.getTilt() + amount);
+                        break;
+                    case 'rotate':
+                        this.googleMap.setHeading(this.googleMap.getHeading() + amount);
+                        break;
+                    default:
+                        break;
+                }
+            };
+            this.controlTilt = true;
+        }
     }
 
     /**
@@ -100,21 +316,81 @@ export class GoogleMapDrawing extends GoogleMapRenderer {
                 name: _lt('Drawing'),
             }
         );
-        this.googleMap.setOptions({
-            mapTypeControlOptions: {
-                style: google.maps.MapTypeControlStyle.DROPDOWN_MENU,
-                mapTypeIds: [
-                    'roadmap',
-                    'satellite',
-                    'hybrid',
-                    'terrain',
-                    'drawing',
-                    'styled_map',
-                ],
-            },
-        });
         this.googleMap.mapTypes.set('drawing', mapThemeDrawing);
         this.initializeDrawing();
+        this.customControlTilt();
+        // this._initializeWebGLOverlay();
+    }
+
+    _initializeWebGLOverlay() {
+        if (!this.webglOverlayView && this.googleMap) {
+            let scene, renderer, camera, loader;
+
+            this.webglOverlayView = new google.maps.WebGLOverlayView();
+
+            // this.webGLOverlayView.onAdd = () => {
+            //     scene = new THREE.Scene();
+            //     camera = new THREE.PerspectiveCamera();
+            //     const ambientLight = new THREE.AmbientLight(0xffffff, 0.75);
+            //     scene.add(ambientLight);
+            //     const directionalLight = new THREE.DirectionalLight(0xffffff, 0.25);
+            //     directionalLight.position.set(0.5, -1, 0.5);
+            //     scene.add(directionalLight);
+
+            //     loader = new GLTFLoader();
+            //     const source = './pin.gltf';
+            //     loader.load(source, (gltf) => {
+            //         gltf.scene.scale.set(25, 25, 25);
+            //         gltf.scene.rotation.x = (180 * Math.PI) / 180;
+            //         scene.add(gltf.scene);
+            //     });
+            // };
+
+            // this.webGLOverlayView.onContextRestored = ({ gl }) => {
+            //     renderer = new THREE.WebGLRenderer({
+            //         canvas: gl.canvas,
+            //         context: gl,
+            //         ...gl.getContextAttributes(),
+            //     });
+
+            //     renderer.autoClear = false;
+
+            //     loader.manager.onLoad = () => {
+            //         renderer.setAnimationLoop(() => {
+            //             map.moveCamera({
+            //                 tilt: mapOptions.tilt,
+            //                 heading: mapOptions.heading,
+            //                 zoom: mapOptions.zoom,
+            //             });
+
+            //             if (mapOptions.tilt < 67.5) {
+            //                 mapOptions.tilt += 0.5;
+            //             } else if (mapOptions.heading <= 360) {
+            //                 mapOptions.heading += 0.2;
+            //             } else {
+            //                 renderer.setAnimationLoop(null);
+            //             }
+            //         });
+            //     };
+            // };
+
+            // this.webGLOverlayView.onDraw = ({ gl, coordinateTransformer }) => {
+            //     const latLngAltitudeLiteral = {
+            //         lat: mapOptions.center.lat,
+            //         lng: mapOptions.center.lng,
+            //         altitude: 100,
+            //     };
+
+            //     const matrix = transformer.fromLatLngAltitude(latLngAltitudeLiteral);
+            //     camera.projectionMatrix = new THREE.Matrix4().fromArray(matrix);
+
+            //     webGLOverlayView.requestRedraw();
+            //     renderer.render(scene, camera);
+            //     renderer.resetState();
+            // };
+
+            this.webglOverlayView.setMap(this.googleMap);
+        }
     }
 
     /**
@@ -618,6 +894,25 @@ export class GoogleMapDrawing extends GoogleMapRenderer {
     }
 
     /**
+     * @override
+     */
+    setMapTheme() {
+        super.setMapTheme();
+        this.googleMap.setOptions({
+            mapTypeControlOptions: {
+                mapTypeIds: [
+                    'roadmap',
+                    'satellite',
+                    'hybrid',
+                    'terrain',
+                    'drawing',
+                    'styled_map',
+                ],
+            },
+        });
+    }
+
+    /**
      * Overwrite
      * @returns {}
      */
@@ -625,12 +920,15 @@ export class GoogleMapDrawing extends GoogleMapRenderer {
         return {
             mapTypeId: google.maps.MapTypeId.ROADMAP,
             center: { lat: 0, lng: 0 },
-            zoom: 4,
+            zoom: 16,
+            heading: 320,
+            tilt: 47.5,
             minZoom: 2,
             maxZoom: 22,
             fullscreenControl: true,
             mapTypeControl: true,
-            gestureHandling: 'cooperative',
+            mapId: 'bbca1a6f796902cf',
+            backgroundColor: 'transparent',
         };
     }
 

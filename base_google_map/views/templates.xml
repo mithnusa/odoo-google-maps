@@ -1,8 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
     <template id="assets_gmaps" name="Google Maps Assets">
+        <script async="1" src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
         <script src="https://unpkg.com/@googlemaps/js-api-loader@1.15.1/dist/index.min.js"></script>
         <script src="https://unpkg.com/@googlemaps/markerclusterer@2.0.15/dist/index.min.js"></script>
+        <script type="importmap">
+            {
+                "imports": {
+                    "three": "https://unpkg.com/three@0.129.0/build/three.module.js",
+                    "three/addons/": "https://unpkg.com/three@0.129.0/examples/jsm/"
+                }
+            }
+        </script>
+        <script src="https://unpkg.com/three@0.129.0/build/three.min.js"></script>
+        <script src="https://unpkg.com/@googlemaps/three@4.0.1/dist/index.min.js"></script>
     </template>
     <template id="webclient_bootstrap" name="webclient_bootstrap gmaps" inherit_id="web.webclient_bootstrap">
         <xpath expr="//t[@t-call-assets='web.assets_common']" position="before">

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_res_partner_google_map_inherit_webgl" model="ir.ui.view">
+        <field name="name">view.res.partner.google.map.inherit.webgl</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="contacts_google_map.view_res_partner_google_map"/>
+        <field name="priority">6000</field>
+        <field name="arch" type="xml">
+            <xpath expr="//google_map" position="attributes">
+                <attribute name="js_class">google_map_webgl</attribute>
+            </xpath>
+        </field>
+    </record>
+</odoo>

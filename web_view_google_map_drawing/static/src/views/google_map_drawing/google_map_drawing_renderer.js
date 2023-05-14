@@ -37,6 +37,59 @@ export class GoogleMapDrawingRenderer extends GoogleMapRenderer {
         });
     }
 
+    getMapOptions() {
+        const options = super.getMapOptions();
+        options.tilt = 0;
+        options.heading = 0;
+        options.zoom = 18;
+        options.mapId = 'bbca1a6f796902cf';
+        return options;
+    }
+
+    customControlTilt() {
+        if (!this.controlTilt) {
+            const buttons = [
+                ['Rotate Left', 'rotate', 20, google.maps.ControlPosition.LEFT_CENTER],
+                [
+                    'Rotate Right',
+                    'rotate',
+                    -20,
+                    google.maps.ControlPosition.RIGHT_CENTER,
+                ],
+                ['Tilt Down', 'tilt', 20, google.maps.ControlPosition.TOP_CENTER],
+                ['Tilt Up', 'tilt', -20, google.maps.ControlPosition.BOTTOM_CENTER],
+            ];
+
+            buttons.forEach(([text, mode, amount, position]) => {
+                const controlDiv = document.createElement('div');
+                const controlUI = document.createElement('button');
+
+                controlUI.classList.add('btn', 'btn-primary');
+                controlUI.innerText = `${text}`;
+                controlUI.addEventListener('click', () => {
+                    adjustMap(mode, amount);
+                });
+                controlDiv.appendChild(controlUI);
+                this.googleMap.controls[position].push(controlDiv);
+            });
+
+            const adjustMap = (mode, amount) => {
+                console.log({ mode, amount });
+                switch (mode) {
+                    case 'tilt':
+                        this.googleMap.setTilt(this.googleMap.getTilt() + amount);
+                        break;
+                    case 'rotate':
+                        this.googleMap.setHeading(this.googleMap.getHeading() + amount);
+                        break;
+                    default:
+                        break;
+                }
+            };
+            this.controlTilt = true;
+        }
+    }
+
     /**
      * @override
      */
@@ -82,6 +135,7 @@ export class GoogleMapDrawingRenderer extends GoogleMapRenderer {
         );
         this.googleMap.mapTypes.set('drawing', mapThemeDrawing);
         this.initializeDrawing();
+        this.customControlTilt();
     }
 
     _getGeneralOptions() {
