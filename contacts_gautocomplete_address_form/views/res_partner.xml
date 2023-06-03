@@ -12,6 +12,10 @@
                 <!-- <attribute name="options">{'lat': 'partner_latitude', 'lng': 'partner_longitude', 'fillfields': {'street': ['route', 'street_number']}}</attribute> -->
                 <attribute name="options">{'lat': 'partner_latitude', 'lng': 'partner_longitude'}</attribute>
             </xpath>
+            <xpath expr="//field[@name='child_ids']/form/sheet/group[1]/group/div/div/field[@name='street']" position="attributes">
+                <attribute name="widget">gplaces_address_autocomplete</attribute>
+                <attribute name="options">{'lat': 'partner_latitude', 'lng': 'partner_longitude'}</attribute>
+            </xpath>
         </field>
     </record>
 </odoo>

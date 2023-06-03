@@ -28,6 +28,17 @@
                     }
                 }</attribute>
             </xpath>
+            <xpath expr="//field[@name='child_ids']/form/sheet/group[1]/group/field[@name='name']" position="attributes">
+                <attribute name="widget">gplaces_autocomplete</attribute>
+                <attribute name="options">{
+                    'fillfields': {
+                        'geolocation': {
+                            'partner_latitude': 'latitude',
+                            'partner_longitude': 'longitude'
+                        }
+                    }
+                }</attribute>
+            </xpath>
         </field>
     </record>
 </odoo>
