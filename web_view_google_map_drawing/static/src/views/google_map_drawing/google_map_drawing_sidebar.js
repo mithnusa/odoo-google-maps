@@ -10,20 +10,19 @@ export class GoogleMapsDrawingSidebar extends GoogleMapSidebar {
         const subTitle = this._getSubtitle(record) || record.data.gshape_description;
         if (record.data.gshape_type === 'circle') {
             extras = [
-                sprintf(_lt('Radius: %s meter'), record.data.gshape_radius.toFixed(2)),
+                sprintf(_lt('Area: %s square meter'), record.data.gshape_area),
+                sprintf(_lt('Radius: %s meter'), record.data.gshape_radius),
             ];
         } else if (record.data.gshape_type === 'polygon') {
             extras = [
-                sprintf(
-                    _lt('Area: %s square meters'),
-                    record.data.gshape_area.toFixed(2)
-                ),
+                sprintf(_lt('Area: %s square meter'), record.data.gshape_area),
                 record.data.gshape_polygon_lines,
             ];
         } else if (record.data.gshape_type === 'rectangle') {
             extras = [
-                sprintf(_lt('Width: %s meter'), record.data.gshape_width.toFixed(2)),
-                sprintf(_lt('Height: %s meter'), record.data.gshape_height.toFixed(2)),
+                sprintf(_lt('Area: %s square meter'), record.data.gshape_area),
+                sprintf(_lt('Width: %s meter'), record.data.gshape_width),
+                sprintf(_lt('Height: %s meter'), record.data.gshape_height),
             ];
         }
 

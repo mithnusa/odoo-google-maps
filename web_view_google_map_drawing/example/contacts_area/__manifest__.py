@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'Partner Area (Google Maps Drawing demo implementation)',
-    'version': '16.0.1.0.0',
+    'version': '16.0.1.0.1',
     'author': 'Yopi Angi',
     'license': 'AGPL-3',
     'maintainer': 'Yopi Angi<yopiangi@gmail.com>',

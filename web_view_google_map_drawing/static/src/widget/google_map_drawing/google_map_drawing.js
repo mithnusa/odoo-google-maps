@@ -101,6 +101,7 @@ export class GoogleMapDrawing extends GoogleMapRenderer {
             }
         );
         this.googleMap.setOptions({
+            mapTypeId: google.maps.MapTypeId.SATELLITE,
             mapTypeControlOptions: {
                 style: google.maps.MapTypeControlStyle.DROPDOWN_MENU,
                 mapTypeIds: [
@@ -532,7 +533,7 @@ export class GoogleMapDrawing extends GoogleMapRenderer {
 
     _handleSavePolygon() {
         const paths = this.selectedShape.getPath();
-        const area = google.maps.geometry.spherical.computeArea(paths);
+        const area = this._calculateAreaPolygon(this.selectedShape);
         const values = {
             gshape_type: this.selectedShape.type,
             gshape_area: area,
@@ -558,10 +559,11 @@ export class GoogleMapDrawing extends GoogleMapRenderer {
     }
 
     _handleSaveRectangle() {
+        const area = this._calculateAreaRectangle(this.selectedShape);
         const values = {
             gshape_type: this.selectedShape.type,
             gshape_radius: 0.0,
-            gshape_area: 0.0,
+            gshape_area: area,
         };
         const bounds = this.selectedShape.getBounds();
         const directions = bounds.toJSON();
@@ -592,14 +594,53 @@ export class GoogleMapDrawing extends GoogleMapRenderer {
         values[this.props.name] = JSON.stringify(shape_paths);
         return values;
     }
+    /**
+     * Calculate circle square area (in meter)
+     * @param {*} circle
+     * @returns
+     */
+    _calculateAreaCircle(circle) {
+        const radius = circle.getRadius();
+        const area = Math.PI * radius * radius;
+        return area;
+    }
+    /**
+     * Calculate rectangle square area (in meter)
+     * @param {*} rectangle
+     * @returns
+     */
+    _calculateAreaRectangle(rectangle) {
+        const rectangleBound = rectangle.bounds.toJSON();
+        const height = google.maps.geometry.spherical.computeDistanceBetween(
+            new google.maps.LatLng(rectangleBound.north, rectangleBound.east),
+            new google.maps.LatLng(rectangleBound.south, rectangleBound.east)
+        );
+        const width = google.maps.geometry.spherical.computeDistanceBetween(
+            new google.maps.LatLng(rectangleBound.north, rectangleBound.east),
+            new google.maps.LatLng(rectangleBound.north, rectangleBound.west)
+        );
+        const area = height * width;
+        return area;
+    }
+    /**
+     * Calculate polygon square area (in meter)
+     * @param {*} polygon
+     * @returns
+     */
+    _calculateAreaPolygon(polygon) {
+        const paths = polygon.getPath();
+        const area = google.maps.geometry.spherical.computeArea(paths);
+        return area;
+    }
 
     _handleSaveCircle() {
         const radius = this.selectedShape.getRadius();
         const center = this.selectedShape.getCenter();
+        const area = this._calculateAreaCircle(this.selectedShape);
         const values = {
             gshape_type: this.selectedShape.type,
             gshape_radius: radius,
-            gshape_area: 0.0,
+            gshape_area: area,
             gshape_width: 0.0,
             gshape_height: 0.0,
         };
