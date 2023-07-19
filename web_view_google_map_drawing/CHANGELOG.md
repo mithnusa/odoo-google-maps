@@ -1,4 +1,12 @@
 # Change Log
+## [16.0.1.4.2] -- 19/07/2023
+### Added
+ - Calculate area for all shapes type (not just polygon)
+ - Improved the example module 'contacts_area'
+### Changed
+### Fixed
+ - Button 'save' on the widget 'google_map_drawing' does not animate
+
 
 ## [16.0.1.4.1] -- 12/05/2023
 ### Added

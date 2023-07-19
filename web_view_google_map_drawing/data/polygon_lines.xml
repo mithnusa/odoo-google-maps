@@ -19,7 +19,7 @@
                                 <td>Point <t t-esc="line.get('stop')"/>
                                 </td>
                                 <td>
-                                    <span class="fs-4 font-monospace" t-esc="line.get('distance')"/>
+                                    <span class="font-monospace" t-esc="line.get('distance')"/>
                                     <span>meter</span>
                                 </td>
                             </tr>

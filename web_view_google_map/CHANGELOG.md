@@ -1,5 +1,13 @@
 # Change Log
 
+## [16.0.1.2.2] -- 19/07/2023
+### Added
+
+### Changed
+
+### Fixed
+ - The Google search input placed inside the map becomes transparent.
+
 ## [16.0.1.2.1] -- 12/05/2023
 ### Added
 ### Changed

@@ -13,25 +13,26 @@
                         </group>
                         <group>
                             <field name="gshape_type" invisible="1"/>
-                            <label for="gshape_area" attrs="{'invisible':[('gshape_type', '!=', 'polygon')]}"/>
-                            <div attrs="{'invisible':[('gshape_type', '!=', 'polygon')]}">
+                            <label for="gshape_area"/>
+                            <div>
                                 <field name="gshape_area" class="oe_inline" nolabel="1"/>
-                                <span>square meters</span>
+                                <span>m</span>
+                                <sup>2</sup>
                             </div>
                             <label for="gshape_radius" attrs="{'invisible':[('gshape_type', '!=', 'circle')]}"/>
                             <div attrs="{'invisible':[('gshape_type', '!=', 'circle')]}">
                                 <field name="gshape_radius" class="oe_inline" nolabel="1"/>
-                                <span>meter</span>
+                                <span>m</span>
                             </div>
                             <label for="gshape_width" attrs="{'invisible':[('gshape_type', '!=', 'rectangle')]}"/>
                             <div attrs="{'invisible':[('gshape_type', '!=', 'rectangle')]}">
                                 <field name="gshape_width" nolabel="1" class="oe_inline"/>
-                                <span>meter</span>
+                                <span>m</span>
                             </div>
                             <label for="gshape_height" attrs="{'invisible':[('gshape_type', '!=', 'rectangle')]}"/>
                             <div attrs="{'invisible':[('gshape_type', '!=', 'rectangle')]}">
                                 <field name="gshape_height" nolabel="1" class="oe_inline"/>
-                                <span>meter</span>
+                                <span>m</span>
                             </div>
                         </group>
                     </group>
