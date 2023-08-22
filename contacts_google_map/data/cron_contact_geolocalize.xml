@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- A cron to geolocate existing contacts which doesn't geolocated yet -->
+    <record id="ir_cron_data_contact_geolocate" model="ir.cron">
+        <field name="name">Contact: geolocate</field>
+        <field name="model_id" ref="base.model_res_partner"/>
+        <field name="type">ir.actions.server</field>
+        <field name="state">code</field>
+        <field name="code">model.with_context(from_cron=True).action_cron_geolocalize()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="numbercall">-1</field>
+        <field name="active" eval="False"/>
+    </record>
+</odoo>

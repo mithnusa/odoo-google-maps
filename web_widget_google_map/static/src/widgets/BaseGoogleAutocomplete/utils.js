@@ -193,7 +193,7 @@ export function gmaps_populate_address(place, address_options, delimiter) {
 
     _.each(fields_to_fill, (value, key) => {
         dlmter = fields_delimiter[key] || ' ';
-        if (key == 'city') {
+        if (key === 'city') {
             result[key] = _.first(_.filter(value)) || '';
         } else {
             result[key] = _.filter(value).join(dlmter);

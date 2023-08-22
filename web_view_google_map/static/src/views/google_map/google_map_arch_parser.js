@@ -13,6 +13,8 @@ export class GoogleMapArchParser extends XMLParser {
         const action = xmlDoc.getAttribute('action');
         const type = xmlDoc.getAttribute('type');
         const markerColor = xmlDoc.getAttribute('color');
+        const markerIcon = xmlDoc.getAttribute('marker_icon');
+        const markerIconScale = xmlDoc.getAttribute('icon_scale') || 1.0;
         const latitudeField = xmlDoc.getAttribute('lat');
         const longitudeField = xmlDoc.getAttribute('lng');
         const sidebarTitleField = xmlDoc.getAttribute('sidebar_title');
@@ -72,6 +74,8 @@ export class GoogleMapArchParser extends XMLParser {
             openAction,
             gestureHandling,
             markerColor,
+            markerIcon,
+            markerIconScale,
             limit: limit && parseInt(limit, 10),
             examples: xmlDoc.getAttribute('examples'),
             __rawArch: arch,
