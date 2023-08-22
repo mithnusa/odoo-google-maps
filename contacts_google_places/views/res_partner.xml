@@ -25,12 +25,8 @@
                     <group>
                         <field name="gplace_formatted_address"/>
                         <field name="gplace_vicinity"/>
-                        <label for="gplace_id"/>
-                        <div style="overflow-wrap: break-word; word-wrap: break-word; hyphens: auto;">
-                            <field name="gplace_id" class="oe_inline" placeholder="Place ID"/>
-                            <button name="google_action_update_place" type="object" string="Fetch Place Info" class="oe_link" icon="fa-cloud-download" attrs="{'invisible': [('gplace_id', '=', False)]}"/>
-                            <field name="gplace_url" class="oe_inline" placeholder="Place URL" widget="url"/>
-                        </div>
+                        <field name="gplace_id" class="oe_inline" colspan="2" placeholder="Place ID" widget="GooglePlacesIdChar"/>
+                        <field name="gplace_url" class="oe_inline" colspan="2" placeholder="Place URL" widget="url"/>
                         <field name="gplace_type_ids" widget="many2many_tags"/>
                         <field name="gplace_opening_hours"/>
                         <label for="gplace_plus_code_compound" string="Plus code"/>
