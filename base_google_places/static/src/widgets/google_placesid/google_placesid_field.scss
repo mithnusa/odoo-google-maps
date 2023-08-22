@@ -1,0 +1,23 @@
+.o_field_GooglePlacesIdChar {
+    > div {
+        grid-template-columns: auto min-content;
+        border: 1px solid $primary;
+        font-size: $font-size-sm;
+        color: $o-brand-primary;
+        font-weight: $badge-font-weight;
+
+        > input {
+            margin-left: 4px;
+        }
+
+        > span:first-child, a {
+            margin-left: 4px;
+            margin-right: 4px;
+            align-self: center;
+            text-align: center;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+    }
+}

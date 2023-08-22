@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
 import base64
 import requests
-from requests.exceptions import HTTPError
 
-from odoo import api, exceptions, fields, models, _
+from odoo import api, fields, models, _
 
 PHOTO_MAX_WIDTH = 480
 
@@ -66,15 +65,6 @@ ADDRESS_FIELS_MAPPING = {
 }
 
 
-def google_place_by_id(api_key, place_id):
-    gfields = ','.join(PLACES_FIELDS)
-    request = 'json?key={0}&place_id={1}&fields={2}'.format(
-        api_key, place_id, gfields
-    )
-    url = GOOGLE_PLACE_URL.format(request)
-    return requests.get(url)
-
-
 class GooglePlacesMixin(models.AbstractModel):
     _name = 'google.places.mixin'
     _description = 'Google Places Mixin'
@@ -101,13 +91,19 @@ class GooglePlacesMixin(models.AbstractModel):
     def _get_mapping_component_address(self, mapping_fields):
         '''Mapping address fields with google component form'''
         values = {}
-        values[mapping_fields.get('street')] = ['route', 'street_number']
+        values[mapping_fields.get('street')] = [
+            'route',
+            'street_number',
+        ]
         values[mapping_fields.get('street2')] = [
             'administrative_area_level_3',
             'administrative_area_level_4',
             'administrative_area_level_5',
         ]
-        values[mapping_fields.get('city')] = ['locality']
+        values[mapping_fields.get('city')] = [
+            'locality',
+            'administrative_area_level_2',
+        ]
         values[mapping_fields.get('zip')] = ['postal_code']
         values[mapping_fields.get('state_id')] = [
             'administrative_area_level_1'
@@ -152,116 +148,6 @@ class GooglePlacesMixin(models.AbstractModel):
     )
     gplace_photos_url = fields.Text(string='Photos')
 
-    def google_action_update_place(self):
-        places = self.google_get_place_by_id()
-        if places:
-            for record in self:
-                record.update(places.get(record.id))
-
-    def google_get_place_by_id(self):
-        result = {}
-        google_api_key = (
-            self.env['ir.config_parameter']
-            .sudo()
-            .get_param('base_google_map.api_key', default='')
-        )
-        if not google_api_key:
-            return
-
-        for record in self:
-            if record.gplace_id:
-                try:
-                    response = google_place_by_id(
-                        google_api_key, record.gplace_id
-                    )
-                    # If the response was successful,
-                    # no Exception will be raised
-                    response.raise_for_status()
-                except HTTPError as http_err:
-                    raise exceptions.UserError(http_err)
-                except Exception as err:
-                    raise exceptions.UserError(err)
-                else:
-                    response_json = response.json()
-                    if response_json.get('error_message'):
-                        raise exceptions.UserError(
-                            '{}\n{}'.format(
-                                response_json.get('status'),
-                                response_json['error_message'],
-                            )
-                        )
-                    elif response_json.get('result'):
-                        place = response_json['result']
-                        result[record.id] = self._google_prepare_places(
-                            google_api_key, place
-                        )
-
-        return result
-
-    def _google_prepare_places(self, api_key, place_dict):
-        odoo_fields = self._get_mapping_odoo_fields()
-        values = {
-            'gplace_formatted_address': place_dict.get('formatted_address')
-            or '',
-            'gplace_url': place_dict.get('url'),
-            'gplace_vicinity': place_dict.get('vicinity') or '',
-            'name': place_dict.get('name'),
-        }
-
-        if place_dict.get('address_components'):
-            address_values = self._prepare_address_fields(
-                place_dict['address_components']
-            )
-            values.update(address_values)
-
-        if place_dict.get('photos'):
-            photos = []
-            # The response of a successful Place Photo request will be an image.
-            # The type of the image will depend upon the type of the originally
-            # submitted photo.
-            # If your request exceeds your available quota,
-            # the server will return an HTTP 403 status
-            # more on: https://developers.google.com/places/web-service/photos
-            for photo in place_dict['photos'][:3]:
-                photo_url = GOOGLE_PHOTO_URL.format(
-                    width=PHOTO_MAX_WIDTH,
-                    ref=photo['photo_reference'],
-                    key=api_key,
-                )
-                photos.append(photo_url)
-
-            values['gplace_photos_url'] = ','.join(photos)
-
-        if place_dict.get('types'):
-            place_types = self.env['google.places.type'].search(
-                [('code', 'in', place_dict['types'])]
-            )
-
-            values['gplace_type_ids'] = [(6, 0, place_types.ids)]
-
-        if place_dict.get('opening_hours'):
-            values['gplace_opening_hours'] = '\n'.join(
-                place_dict['opening_hours']['weekday_text']
-            )
-
-        if place_dict.get('plus_code'):
-            values.update(
-                {
-                    'gplace_plus_code_global': place_dict['plus_code'][
-                        'global_code'
-                    ],
-                    'gplace_plus_code_compound': place_dict['plus_code'][
-                        'compound_code'
-                    ],
-                }
-            )
-
-        location = (place_dict.get('geometry') or {}).get('location') or {}
-        # geometry
-        geo_values = self._prepare_geolocation_fields(odoo_fields, location)
-        values.update(geo_values)
-        return values
-
     def _prepare_geolocation_fields(self, odoo_fields, location_dict):
         values = {}
         if (
@@ -294,12 +180,22 @@ class GooglePlacesMixin(models.AbstractModel):
                             )
                         ]
 
+        street_delimiter = {'street': ' ', 'street2': ', '}
         for key, val in values.items():
-            values[key] = ' '.join(val)
+            if key == 'city':
+                try:
+                    values[key] = list(filter(None, val))[0]
+                except:
+                    values[key] = ' '.join(val)
+            else:
+                fields_delimeter = street_delimiter.get(key) or ' '
+                values[key] = fields_delimeter.join(val)
 
         return values
 
-    def _prepare_address_fields(self, address_components, field_mapping=None):
+    def _prepare_address_fields(
+        self, address_components, mode='create', field_mapping=None
+    ):
         if field_mapping is None:
             field_mapping = ADDRESS_FIELS_MAPPING
 
@@ -318,7 +214,13 @@ class GooglePlacesMixin(models.AbstractModel):
                 ]
             )
             if country_id:
-                address[country_field] = country_id.id
+                if mode == 'create':
+                    address[country_field] = country_id.id
+                elif mode == 'write':
+                    address[country_field] = [
+                        country_id.id,
+                        country_id.display_name,
+                    ]
             else:
                 address.pop(country_field, None)
 
@@ -326,14 +228,20 @@ class GooglePlacesMixin(models.AbstractModel):
             state_id = self.env['res.country.state'].search(
                 [
                     ('country_id', '=', country_id.id),
+                    '|',
+                    ('name', '=', address[state_field]),
                     ('code', '=', address[state_field]),
                 ],
                 limit=1,
             )
             if state_id:
-                address[state_field] = state_id.id
+                if mode == 'create':
+                    address[state_field] = state_id.id
+                elif mode == 'write':
+                    address[state_field] = [state_id.id, state_id.display_name]
             else:
                 address.pop(state_field, None)
+
         return address
 
     @api.model
@@ -358,7 +266,7 @@ class GooglePlacesMixin(models.AbstractModel):
         values.update(places_value)
 
         if values.get('gplace_type_ids'):
-            gplace_type_ids = values['gplace_type_ids'].get('ids')
+            gplace_type_ids = values['gplace_type_ids'].get('resIds') or []
             values['gplace_type_ids'] = [(6, 0, gplace_type_ids)]
 
         odoo_fields = self._get_mapping_odoo_fields()
@@ -407,6 +315,59 @@ class GooglePlacesMixin(models.AbstractModel):
             default_values['default_{}'.format(key)] = val
 
         return default_values
+
+    @api.model
+    def action_google_place_update(self, place_dict):
+        values = {}
+        place = place_dict.get('place')
+        address_components = place.get('address_components')
+
+        location = (place.get('geometry') or {}).get('location') or {}
+        place.pop('photos', None)
+
+        places_value = place_dict.get('values') or {}
+        values.update(places_value)
+
+        odoo_fields = self._get_mapping_odoo_fields()
+        if place:
+            if odoo_fields.get('name') and place.get('name'):
+                values[odoo_fields['name']] = place['name']
+
+            if odoo_fields.get('website') and place.get('website'):
+                values[odoo_fields['website']] = place['website']
+
+            if odoo_fields.get('phone') and place.get(
+                'international_phone_number'
+            ):
+                values[odoo_fields['phone']] = place[
+                    'international_phone_number'
+                ]
+
+            # address
+            if address_components:
+                address_values = self._prepare_address_fields(
+                    address_components,
+                    mode='write',
+                )
+                values.update(address_values)
+
+            # geolocation
+            if location:
+                geo_values = self._prepare_geolocation_fields(
+                    odoo_fields, location
+                )
+                values.update(geo_values)
+
+            if (
+                values.get('gplace_photos_url')
+                and 'image_1920' in self._fields
+            ):
+                photos = values['gplace_photos_url'].split(',')
+                image = self._google_get_place_image(photos[0])
+                if image:
+                    values['image_1920'] = image
+
+        return values
 
     def _google_get_place_image(self, photo_url):
         if photo_url:

@@ -49,7 +49,7 @@ export async function preparePlaces(orm, fields, place) {
                 ]);
                 res['gplace_type_ids'] = {
                     operation: 'REPLACE_WITH',
-                    ids: _.map(records, (val) => val.id),
+                    resIds: _.map(records, (val) => val.id),
                 };
             }
             resolve(res);

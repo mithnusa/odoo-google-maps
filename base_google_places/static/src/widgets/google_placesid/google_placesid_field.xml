@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="base_google_places.GooglePlacesIdCharField" owl="1">
+        <div class="d-grid rounded-2 overflow-hidden">
+            <Field t-props="props"/>
+            <button t-ref="button" class="text-nowrap btn btn-sm btn-primary o_google_places_id_button" t-on-click.stop="onClick" data-bs-toggle="tooltip" data-bs-placement="top" title="Fetch data from the Google Places Service">
+                <span class="fa fa-cloud-download mx-1"/>
+                <span>Fetch</span>
+            </button>
+        </div>
+    </t>
+
+</templates>
