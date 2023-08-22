@@ -38,7 +38,7 @@ Mandatory attributes:
 Optional attributes:
 - `string`: attribute to be used on a sidebar of map, as a head title
 - `sidebar_subtitle`: attribute to be used on a sidebar of map, to display secondary info that you would like to display (only support field `Char` and field `Many2one`)
-- `color`: attribute to define color of marker. You can assign color hex code or a field `Integer` in your model. When you assign a field to set marker color, make sure to use widget `color_picker` in `form` view.    
+- `color`: attribute to define color of marker. You can assign color hex code or a field `Integer` in your model. _When you assign a field to set marker color, be sure to paired it with widget `color_picker` in `form` view_.    
     Example: 
     1. Using color hex code
     ```xml
@@ -58,6 +58,22 @@ Optional attributes:
     <form>
         <field name="marker_color" widget="color_picker">
     </form>
+    ```
+- `marker_icon`: attribute to assign FontAwesome icon as marker.    
+Check this url https://fontawesome.com/v6/search?o=r&m=free&s=solid for list available icon that can be used.    
+Use the FontAwesome icon name without prefix `"fa"` for example, icon `"fa-flag"` (https://fontawesome.com/icons/flag?f=classic&s=solid) then in the `"marker_icon"` attribute just use `"flag"`.    
+Example:    
+    ```xml
+    <google_map marker_icon="flag">
+        ...
+    </google_map>
+    ```
+- `icon_scale`: attribute to set the scale of FontAwesome icon.    
+Example:    
+    ```xml
+    <google_map icon_scale="0.8">
+        ...
+    </google_map>
     ```
 
 #### Using `google_map` view inside `form` view
