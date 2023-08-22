@@ -54,19 +54,6 @@ export class GooglePlacesIdCharField extends Component {
             );
         }
     }
-    get gplacesFields() {
-        return [
-            'gplace_formatted_address',
-            'gplace_id',
-            'gplace_url',
-            'gplace_opening_hours',
-            'gplace_type_ids',
-            'gplace_plus_code_global',
-            'gplace_plus_code_compound',
-            'gplace_photos_url',
-            'gplace_vicinity',
-        ];
-    }
     async onClick() {
         if (!this.props.value) return;
         this._toogleAnimateButtonDisable();
