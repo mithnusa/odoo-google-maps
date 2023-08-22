@@ -8,7 +8,8 @@ import { Widget } from '@web/views/widgets/widget';
 import { BaseGoogleMap, LOADER_STATUS } from '@base_google_map/utils/base_google_map';
 
 import { GoogleMapSidebar } from './google_map_sidebar';
-import { MARKER_ICON_SVG_PATH, MARKER_ICON_HEIGHT, MARKER_ICON_WIDTH } from './utils';
+import { getFontAwesomeIcon  } from './utils';
+
 
 export class GoogleMapRenderer extends BaseGoogleMap {
     setup() {
@@ -277,22 +278,22 @@ export class GoogleMapRenderer extends BaseGoogleMap {
      * @returns {Object} marker options
      */
     _prepareMarkerOptions(latLng, record, color) {
+        const markerIcon = this.props.archInfo.markerIcon || '';
+        const markerIconScale = this.props.archInfo.markerIconScale || 1.0;
+        const iconFa = getFontAwesomeIcon(markerIcon);
         const markerOptions = {
             position: latLng,
             map: this.googleMap,
             _odooRecord: record,
             _odooMarkerColor: color,
             icon: {
-                path: MARKER_ICON_SVG_PATH,
+                path: iconFa[4],
                 fillColor: color,
                 fillOpacity: 1,
                 strokeWeight: 0.75,
                 strokeColor: '#444',
-                scale: 0.067,
-                anchor: new google.maps.Point(
-                    MARKER_ICON_WIDTH / 2,
-                    MARKER_ICON_HEIGHT
-                ),
+                scale: 0.067 * markerIconScale,
+                anchor: new google.maps.Point(iconFa[0] / 2, iconFa[1]),
             },
         };
 
