@@ -369,7 +369,7 @@ export class GooglePlacesAutocompleteSidebar extends Component {
         const places = this.placesAutocomplete.getPlaces();
         // reset the previous current search result
         this._cleanPlacesResult();
-        if (places) {
+        if (places && this.props.googleMap) {
             // update the current bounds of placesAutocomplete
             this.placesAutocomplete.bindTo('bounds', this.props.googleMap);
             // center the map
@@ -575,7 +575,7 @@ export class GooglePlacesAutocompleteSidebar extends Component {
     }
 
     centerMapToCurrentSearchResult() {
-        if (this.placesAutocomplete) {
+        if (this.placesAutocomplete && this.props.googleMap) {
             const places = this.placesAutocomplete.getPlaces();
             if (places) {
                 const bounds = new google.maps.LatLngBounds();

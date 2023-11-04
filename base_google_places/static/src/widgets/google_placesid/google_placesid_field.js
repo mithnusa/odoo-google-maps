@@ -19,7 +19,7 @@ export class GooglePlacesIdCharField extends Component {
         useGoogleMapLoader({
             showLoading: false,
             onLoad: (setting) => {
-                this.settings = { ...setting };
+                // this.settings = { ...setting };
                 this._handleGoogleLoaderSuccess();
                 this.initialize();
             },
