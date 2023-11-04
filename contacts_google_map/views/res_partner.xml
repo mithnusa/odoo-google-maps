@@ -14,6 +14,16 @@
             </google_map>
         </field>
     </record>
+    <record id="view_res_partner_google_map_form" model="ir.ui.view">
+        <field name="name">view.res.partner.google_map_form</field>
+        <field name="model">res.partner</field>
+        <field name="arch" type="xml">
+            <form js_class="google_map_form" string="Contact" lat="partner_latitude" lng="partner_longitude">
+                <field name="partner_latitude"/>
+                <field name="partner_longitude"/>
+            </form>
+        </field>
+    </record>
     <record id="base.action_partner_form" model="ir.actions.act_window">
         <field name="view_mode">kanban,tree,form,google_map</field>
     </record>
@@ -49,7 +59,8 @@
         <field name="priority">1000</field>
         <field name="arch" type="xml">
             <xpath expr="//form" position="attributes">
-                <attribute name="geo_field">{'lat': 'partner_latitude', 'lng': 'partner_longitude'}</attribute>
+                <attribute name="edit_lat_lng">1</attribute>
+                <!-- <attribute name="google_map_form_view_ref">contacts_google_map.view_res_partner_google_map_form</attribute> -->
             </xpath>
             <div name="button_box" position="inside">
                 <button name="%(contacts_google_map.action_view_res_partner_google_map)d" type="action" class="oe_stat_button" icon="fa-map-marker" string="Google Map" attrs="{'invisible': ['|',('partner_latitude', '=', 0.0), ('partner_longitude', '=', 0.0)]}"/>

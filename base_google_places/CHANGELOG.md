@@ -1,5 +1,8 @@
 # Change Log
 
+## 16.0.2.0.2
+* Bug fixes and improvement
+
 ## [16.0.2.0.1] -- 22/08/2023
 ### Added
  - New widget `GooglePlacesIdChar`.    

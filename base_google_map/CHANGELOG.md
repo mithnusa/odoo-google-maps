@@ -1,5 +1,8 @@
 # Change Log
 
+## 16.0.1.2.2    
+* Bugs fixes and improvement
+
 ## [16.0.1.2.1] -- 12/05/2023
 ### Added
   - Added a new custom hooks `"useGoogleMapLoader"`

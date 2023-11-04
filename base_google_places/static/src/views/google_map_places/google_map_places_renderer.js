@@ -27,7 +27,7 @@ export class GoogleMapPlacesRenderer extends GoogleMapRenderer {
 
     initialize() {
         super.initialize();
-        if (!this.placeService && this.googleMap) {
+        if (!this.placeService) {
             this.placeService = new google.maps.places.PlacesService(this.googleMap, {
                 fields: [
                     'business_status',

@@ -1,5 +1,6 @@
 /** @odoo-module **/
-import { Component, useEffect, useState } from '@odoo/owl';
+import { Component, useEffect, useState, onMounted } from '@odoo/owl';
+import { AlertDialog } from '@web/core/confirmation_dialog/confirmation_dialog';
 import { _lt } from '@web/core/l10n/translation';
 import { useService } from '@web/core/utils/hooks';
 import { MAP_THEMES } from './themes';
@@ -13,66 +14,74 @@ export const LOADER_STATUS = {
     UNLOAD: 999, // custom status for internal usage
 };
 
-export function useGoogleMapLoader({
-    showLoading,
-    onLoad = (args) => {},
-    onError = (args) => {},
-}) {
+export function useGoogleMapLoader({ showLoading, onLoad = () => {}, onError = () => {} }) {
     showLoading = showLoading || false;
     const rpc = useService('rpc');
     const user = useService('user');
     const ui = useService('ui');
-    let settings = {};
-    let loader = null;
 
-    const loadSetting = async (method) => {
-        const data = await rpc('/web/base_google_map/settings', {
-            context: user.context,
-        });
-        method(data);
-    };
+    onMounted(loadGoogleLoader);
 
-    useEffect(
-        (settings, loader) => {
-            if (Object.keys(settings).length <= 0 && !loader) {
-                showLoading && ui.block();
-                loadSetting((config) => {
-                    settings = { ...config };
-                    const loaderOptions = {
-                        apiKey: settings.api_key,
-                        version: settings.version,
-                        libraries: settings.libraries,
-                    };
-                    if (settings.region) {
-                        loaderOptions.region = settings.region;
-                    }
-                    if (settings.language) {
-                        loaderOptions.language = settings.language;
-                    }
+    function prepareOptions(settings) {
+        const loaderOptions = {
+            apiKey: settings.api_key,
+            version: settings.version,
+            libraries: settings.libraries,
+        };
+        if (settings.region) {
+            loaderOptions.region = settings.region;
+        }
+        if (settings.language) {
+            loaderOptions.language = settings.language;
+        }
+        return loaderOptions;
+    }
 
-                    loader = new google.maps.plugins.loader.Loader(loaderOptions);
-                    loader.loadCallback((e) => {
-                        if (e) {
+    async function loadGoogleLoader() {
+        try {
+            showLoading && ui.block();
+            const data = await rpc('/web/base_google_map/settings', {
+                context: user.context,
+            });
+            if (data) {
+                const settings = { ...data };
+                const loaderOptions = prepareOptions(settings);
+                try {
+                    const loader = new google.maps.plugins.loader.Loader(loaderOptions);
+                    loader
+                        .load()
+                        .then((_google) => {
                             showLoading && ui.unblock();
-                            onError(e);
-                        } else {
+                            window.google = _google;
                             delete settings.api_key;
                             delete settings.version;
-                            showLoading && ui.unblock();
                             onLoad(settings);
-                        }
-                    });
-                });
+                        })
+                        .catch((e) => {
+                            showLoading && ui.unblock();
+                            console.error(e);
+                            onError(e);
+                        });
+                } catch (error) {
+                    showLoading && ui.unblock();
+                    console.error(error);
+                    onError(error);
+                }
             }
-        },
-        () => [settings, loader]
-    );
+        } catch (error) {
+            showLoading && ui.unblock();
+            console.error(error);
+            onError(error);
+        }
+    }
 }
 
 export class BaseGoogleMap extends Component {
     setup() {
         this.user = useService('user');
         this.rpc = useService('rpc');
+        this.notification = useService('notification');
+        this.dialog = useService('dialog');
 
         this.state = useState({ loaderStatus: LOADER_STATUS.UNLOAD });
 
@@ -94,6 +103,20 @@ export class BaseGoogleMap extends Component {
                 this._handleGoogleLoaderError(msg);
             },
         });
+
+        useEffect(
+            () => {
+                if (this.state.loaderStatus === LOADER_STATUS.FAILURE) {
+                    this.dialog.add(AlertDialog, {
+                        title: this.env._t('Configuration'),
+                        body: this.env._t(
+                            'Something went wrong!\nGoogle Maps is not load correctly.\nSee the JavaScript console for technical details.'
+                        ),
+                    });
+                }
+            },
+            () => [this.state.loaderStatus]
+        );
     }
 
     initialize() {
@@ -112,10 +135,7 @@ export class BaseGoogleMap extends Component {
 
     setMapTheme() {
         const style = this.settings.theme || 'default';
-        if (
-            !Object.prototype.hasOwnProperty.call(MAP_THEMES, style) ||
-            style === 'default'
-        ) {
+        if (!Object.prototype.hasOwnProperty.call(MAP_THEMES, style) || style === 'default') {
             return;
         }
         const styledMapType = new google.maps.StyledMapType(MAP_THEMES[style], {
@@ -129,6 +149,26 @@ export class BaseGoogleMap extends Component {
         // Associate the styled map with the MapTypeId and set it to display.
         this.googleMap.mapTypes.set('styled_map', styledMapType);
         this.googleMap.setMapTypeId('styled_map');
+    }
+
+    getMapOptions() {
+        const gestureHandling =
+            ['cooperative', 'greedy', 'none', 'auto'].indexOf(
+                this.props.archInfo.gestureHandling
+            ) === -1
+                ? 'auto'
+                : this.props.archInfo.gestureHandling;
+
+        return {
+            mapTypeId: google.maps.MapTypeId.ROADMAP,
+            center: { lat: 0, lng: 0 },
+            zoom: 2,
+            minZoom: 2,
+            maxZoom: 22,
+            fullscreenControl: true,
+            mapTypeControl: true,
+            gestureHandling,
+        };
     }
 
     renderGooglePlaceSearch(searchRef, markerInfoWindow) {
@@ -151,9 +191,7 @@ export class BaseGoogleMap extends Component {
                     }
                 );
                 this.placesAutocomplete.bindTo('bounds', this.googleMap);
-                this.googleMap.controls[google.maps.ControlPosition.TOP_RIGHT].push(
-                    searchRef.el
-                );
+                this.googleMap.controls[google.maps.ControlPosition.TOP_RIGHT].push(searchRef.el);
                 google.maps.event.addListener(
                     this.placesAutocomplete,
                     'place_changed',
@@ -191,8 +229,12 @@ export class BaseGoogleMap extends Component {
     }
 
     handleSearchPlaceBounds() {
-        if (this.placesAutocomplete && this.googleMap) {
+        if (this.placesAutocomplete) {
             this.placesAutocomplete.bindTo('bounds', this.googleMap);
         }
+    }
+
+    get isLoaderSuccess() {
+        return this.state.loaderStatus === LOADER_STATUS.SUCCESS;
     }
 }
