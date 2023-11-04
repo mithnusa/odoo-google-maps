@@ -1,4 +1,7 @@
 # Change Log
+## 16.0.1.4.3
+* Bug fixes and improvement
+
 ## [16.0.1.4.2] -- 19/07/2023
 ### Added
  - Calculate area for all shapes type (not just polygon)

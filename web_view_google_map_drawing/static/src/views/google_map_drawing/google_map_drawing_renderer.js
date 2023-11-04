@@ -287,6 +287,7 @@ export class GoogleMapDrawingRenderer extends GoogleMapRenderer {
     }
 
     centerMap() {
+        if (!this.googleMap) return;
         const mapBounds = new google.maps.LatLngBounds();
         if (this.shapesBounds && !this.shapesBounds.isEmpty()) {
             mapBounds.union(this.shapesBounds);
@@ -307,6 +308,7 @@ export class GoogleMapDrawingRenderer extends GoogleMapRenderer {
     }
 
     pointInMap(shape) {
+        if (!this.googleMap) return;
         if (shape) {
             this.prevShapeSelected = this.currentShapeSelected;
             this.currentShapeSelected = shape;
