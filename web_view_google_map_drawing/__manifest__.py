@@ -14,7 +14,7 @@
     'website': 'https://github.com/mithnusa',
     'support': 'yopiangi@gmail.com',
     'category': 'Extra Tools',
-    'version': '16.0.1.4.2',
+    'version': '16.0.1.4.3',
     'depends': ['web_view_google_map'],
     'data': ['data/polygon_lines.xml', 'data/gmap_libraries.xml'],
     'assets': {

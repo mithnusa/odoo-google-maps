@@ -797,6 +797,7 @@ export class GoogleMapDrawing extends GoogleMapRenderer {
     }
 
     _handleCenterMap(paths, bounds) {
+        if (!this.googleMap) return;
         paths = paths || [];
         bounds = bounds || false;
         if (paths.length > 0) {
