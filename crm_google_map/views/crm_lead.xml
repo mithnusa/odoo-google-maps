@@ -13,6 +13,16 @@
             </google_map>
         </field>
     </record>
+    <record id="view_crm_lead_google_map_form" model="ir.ui.view">
+        <field name="name">view.crm.lead.google.map.form</field>
+        <field name="model">crm.lead</field>
+        <field name="arch" type="xml">
+            <form js_class="google_map_form" string="Lead" lat="customer_latitude" lng="customer_longitude">
+                <field name="customer_latitude"/>
+                <field name="customer_longitude"/>
+            </form>
+        </field>
+    </record>
     <record id="action_view_crm_lead_google_map" model="ir.actions.act_window">
         <field name="name">Google Map</field>
         <field name="res_model">crm.lead</field>
@@ -26,6 +36,10 @@
         <field name="inherit_id" ref="crm.crm_lead_view_form"/>
         <field name="priority">1000</field>
         <field name="arch" type="xml">
+            <xpath expr="//form" position="attributes">
+                <attribute name="edit_lat_lng">1</attribute>
+                <attribute name="google_map_form_view_ref">crm_google_map.view_crm_lead_google_map_form</attribute>
+            </xpath>
             <xpath expr="//div[@name='button_box']" position="inside">
                 <button name="%(crm_google_map.action_view_crm_lead_google_map)d" 
                     type="action" 
