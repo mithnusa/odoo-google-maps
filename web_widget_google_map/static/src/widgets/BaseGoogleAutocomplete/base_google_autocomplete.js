@@ -2,11 +2,7 @@
 
 import { _lt } from '@web/core/l10n/translation';
 import { formatChar } from '@web/views/fields/formatters';
-import {
-    Component,
-    onWillUnmount,
-    onWillDestroy,
-} from '@odoo/owl';
+import { Component, onWillUnmount, onWillDestroy } from '@odoo/owl';
 import { useService } from '@web/core/utils/hooks';
 import {
     GOOGLE_PLACES_COMPONENT_FORM,
@@ -52,6 +48,12 @@ export class BaseGoogleAutocomplete extends Component {
             if (this.placeAutocompleteListener) {
                 google.maps.event.removeListener(this.placeAutocompleteListener);
             }
+            // set display none for all pac-container residu on the dom
+            setTimeout(() => {
+                document.body.querySelectorAll('.pac-container').forEach((el) => {
+                    el.style.display = 'none';
+                });
+            }, 500);
         });
         onWillDestroy(() => {
             // set display none for all pac-container residu on the dom
@@ -59,7 +61,7 @@ export class BaseGoogleAutocomplete extends Component {
                 document.body.querySelectorAll('.pac-container').forEach((el) => {
                     el.style.display = 'none';
                 });
-            }, 150);
+            }, 500);
         });
     }
 
@@ -81,13 +83,10 @@ export class BaseGoogleAutocomplete extends Component {
     initGplacesAutocomplete() {
         if (!this.placesAutocomplete && this.input) {
             const google_fields = this.getGoogleFieldsRestriction();
-            this.placesAutocomplete = new google.maps.places.Autocomplete(
-                this.input.el,
-                {
-                    types: this.autocomplete_types,
-                    fields: google_fields,
-                }
-            );
+            this.placesAutocomplete = new google.maps.places.Autocomplete(this.input.el, {
+                types: this.autocomplete_types,
+                fields: google_fields,
+            });
 
             if (this.settings.language) {
                 this.placesAutocomplete.setOptions({
@@ -131,11 +130,7 @@ export class BaseGoogleAutocomplete extends Component {
                     if (this.force_override) {
                         this.address_form = options.address_form;
                     } else {
-                        this.address_form = _.defaults(
-                            {},
-                            options.address_form,
-                            this.address_form
-                        );
+                        this.address_form = _.defaults({}, options.address_form, this.address_form);
                     }
                 }
                 if (options.hasOwnProperty('display_name')) {
@@ -143,9 +138,7 @@ export class BaseGoogleAutocomplete extends Component {
                 }
                 if (options.hasOwnProperty('mode')) {
                     this.address_mode =
-                        ADDRESS_MODE.indexOf(options.mode) != -1
-                            ? options.mode
-                            : 'address_format';
+                        ADDRESS_MODE.indexOf(options.mode) != -1 ? options.mode : 'address_format';
                 }
             }
         }
@@ -184,10 +177,8 @@ export class BaseGoogleAutocomplete extends Component {
 
     _prepareAddress(place, fill_fields, delimiter) {
         place = typeof place !== 'undefined' ? place : false;
-        fill_fields =
-            typeof fill_fields !== 'undefined' ? fill_fields : this.fillfields;
-        delimiter =
-            typeof delimiter !== 'undefined' ? delimiter : this.fillfields_delimiter;
+        fill_fields = typeof fill_fields !== 'undefined' ? fill_fields : this.fillfields;
+        delimiter = typeof delimiter !== 'undefined' ? delimiter : this.fillfields_delimiter;
         return gmaps_populate_address(place, fill_fields, delimiter);
     }
 
