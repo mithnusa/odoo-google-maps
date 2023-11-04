@@ -1,0 +1,17 @@
+.o_form_view_container {
+    .o_google_map_form {
+        display: contents;
+        .o_google_map_renderer {
+            height: 100%;
+        }
+    }
+}
+
+.o_dialog {
+    .o_google_map_form {
+        .o_google_map_renderer {
+            height: 600px;
+            min-height: 600px;
+        }
+    }
+}

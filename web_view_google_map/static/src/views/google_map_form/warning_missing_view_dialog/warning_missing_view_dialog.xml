@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+  <t t-name="web_view_google_map.WarningMissingGoogleMapFormViewDialog" owl="1">
+    <Dialog size="props.size" title="title">
+        <div class="o_warning_missing_google_form_view_dialog">
+            <div class="container">
+                <span class="fs-4">No view for Google Map Form were found!</span>
+                <br/>
+                <span>Following example view of how to create one</span>
+                <pre class="o_dark px-5">
+                    <code class="o_codeview fs-6" t-out="googleMapFormSample"/>
+                </pre>
+            </div>
+        </div>
+        <t t-set-slot="footer">
+            <button class="btn btn-primary" t-on-click="props.close">Dismiss</button>
+        </t>
+    </Dialog>
+  </t>
+</templates>
