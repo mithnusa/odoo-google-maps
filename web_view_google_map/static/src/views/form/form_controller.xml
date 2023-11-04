@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-inherit="web.FormView" t-inherit-mode="extension">
+        <xpath expr="//t[@t-if='canCreate']" position="after">
+            <t t-if="canEdit and state.showEditGeolocation">
+                <button type="button" class="btn btn-light o_form_button_edit_geo" data-hotkey="e" t-on-click.stop="editGeolocation" t-att-disabled="state.isDisabled" title="Edit geolocation">
+                    <i class="fa fa-map-marker" aria-hidden="true"></i>
+                    <span> Edit</span>
+                </button>
+            </t>
+        </xpath>
+    </t>
+
+</templates>

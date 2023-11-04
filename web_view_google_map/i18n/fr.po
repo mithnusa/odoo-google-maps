@@ -13,12 +13,13 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
+"Language: fr\n"
 "Plural-Forms: \n"
 
 #. module: web_view_google_map
 #: model:ir.model,name:web_view_google_map.model_ir_actions_act_window_view
 msgid "Action Window View"
-msgstr ""
+msgstr "Vue de la fenêtre d'action"
 
 #. module: web_view_google_map
 #. odoo-python
@@ -26,13 +27,15 @@ msgstr ""
 #, python-format
 msgid "Attribute %(attribute)s evaluation expects a boolean, got %(value)s"
 msgstr ""
+"L'évaluation de l'attribut %(attribute)s attend un boolean, obtient "
+"%(value)s"
 
 #. module: web_view_google_map
 #. odoo-javascript
 #: code:addons/web_view_google_map/static/src/fields/x2many/google_map_x2many_field.xml:0
 #, python-format
 msgid "CENTER MAP"
-msgstr ""
+msgstr "CARTE CENTRALE"
 
 #. module: web_view_google_map
 #. odoo-javascript
@@ -40,35 +43,35 @@ msgstr ""
 #: code:addons/web_view_google_map/static/src/views/google_map/google_map_controller.xml:0
 #, python-format
 msgid "Center Map"
-msgstr ""
+msgstr "Carte Centrale"
 
 #. module: web_view_google_map
 #. odoo-javascript
 #: code:addons/web_view_google_map/static/src/views/google_map_form/warning_missing_view_dialog/warning_missing_view_dialog.js:0
 #, python-format
 msgid "Configuration: Missing Required Google Map Form View"
-msgstr ""
+msgstr "Configuration : Absence d'affichage du formulaire Google Map requis"
 
 #. module: web_view_google_map
 #. odoo-javascript
 #: code:addons/web_view_google_map/static/src/fields/x2many/google_map_x2many_field.xml:0
 #, python-format
 msgid "Control panel buttons"
-msgstr ""
+msgstr "Boutons du panneau de commande"
 
 #. module: web_view_google_map
 #. odoo-javascript
 #: code:addons/web_view_google_map/static/src/fields/x2many/google_map_x2many_field.xml:0
 #, python-format
 msgid "Create record"
-msgstr ""
+msgstr "Créer un enregistrement"
 
 #. module: web_view_google_map
 #. odoo-javascript
 #: code:addons/web_view_google_map/static/src/views/google_map_form/warning_missing_view_dialog/warning_missing_view_dialog.xml:0
 #, python-format
 msgid "Dismiss"
-msgstr ""
+msgstr "Annuler"
 
 #. module: web_view_google_map
 #. odoo-python
@@ -78,13 +81,15 @@ msgid ""
 "Domain on non-relational field \"%(name)s\" makes no sense "
 "(domain:%(domain)s)"
 msgstr ""
+"Le domaine du champ non-relationnel \"%(name)s\" n'a pas de sens (domaine : "
+"%(domain)s)"
 
 #. module: web_view_google_map
 #. odoo-javascript
 #: code:addons/web_view_google_map/static/src/views/form/form_controller.xml:0
 #, python-format
 msgid "Edit"
-msgstr ""
+msgstr "Modifier"
 
 #. module: web_view_google_map
 #. odoo-javascript
@@ -92,42 +97,42 @@ msgstr ""
 #: code:addons/web_view_google_map/static/src/views/form/form_controller.js:0
 #, python-format
 msgid "Edit Geolocation"
-msgstr ""
+msgstr "Modifier la géolocalisation"
 
 #. module: web_view_google_map
 #. odoo-javascript
 #: code:addons/web_view_google_map/static/src/views/form/form_controller.xml:0
 #, python-format
 msgid "Edit geolocation"
-msgstr ""
+msgstr "Modifier la géolocalisation"
 
 #. module: web_view_google_map
 #. odoo-javascript
 #: code:addons/web_view_google_map/static/src/views/google_map/google_map_renderer.xml:0
 #, python-format
 msgid "Expand side panel"
-msgstr ""
+msgstr "Extension du panneau latéral"
 
 #. module: web_view_google_map
 #. odoo-python
 #: code:addons/web_view_google_map/models/ir_ui_view.py:0
 #, python-format
 msgid "Field \"%(field_name)s\" does not exist in model \"%(model_name)s\""
-msgstr ""
+msgstr "Le champ \"%(field_name)s\" n'existe pas dans le modèle \"%(model_name)s\""
 
 #. module: web_view_google_map
 #. odoo-python
 #: code:addons/web_view_google_map/models/ir_ui_view.py:0
 #, python-format
 msgid "Field tag must have a \"name\" attribute defined"
-msgstr ""
+msgstr "L'étiquette de champ doit avoir un attribut \"name\" défini"
 
 #. module: web_view_google_map
 #. odoo-javascript
 #: code:addons/web_view_google_map/static/src/views/google_map_form/warning_missing_view_dialog/warning_missing_view_dialog.xml:0
 #, python-format
 msgid "Following example view of how to create one"
-msgstr ""
+msgstr "Voici un exemple de création"
 
 #. module: web_view_google_map
 #: model:ir.model.fields.selection,name:web_view_google_map.selection__ir_actions_act_window_view__view_mode__google_map
@@ -147,78 +152,78 @@ msgstr ""
 #: code:addons/web_view_google_map/static/src/views/google_map/google_map_controller.xml:0
 #, python-format
 msgid "Main actions"
-msgstr ""
+msgstr "Actions principales"
 
 #. module: web_view_google_map
 #. odoo-javascript
 #: code:addons/web_view_google_map/static/src/views/google_map/google_map_renderer.xml:0
 #, python-format
 msgid "Navigate to"
-msgstr ""
+msgstr "Aller à"
 
 #. module: web_view_google_map
 #. odoo-javascript
 #: code:addons/web_view_google_map/static/src/views/google_map/google_map_renderer.xml:0
 #, python-format
 msgid "Navigate to this location"
-msgstr ""
+msgstr "Naviguer jusqu'à cet emplacement"
 
 #. module: web_view_google_map
 #. odoo-javascript
 #: code:addons/web_view_google_map/static/src/views/google_map/google_map_controller.xml:0
 #, python-format
 msgid "New"
-msgstr ""
+msgstr "Nouveau"
 
 #. module: web_view_google_map
 #. odoo-javascript
 #: code:addons/web_view_google_map/static/src/views/google_map_form/warning_missing_view_dialog/warning_missing_view_dialog.xml:0
 #, python-format
 msgid "No view for Google Map Form were found!"
-msgstr ""
+msgstr "Aucune vue pour Google Map Form n'a été trouvée !"
 
 #. module: web_view_google_map
 #. odoo-javascript
 #: code:addons/web_view_google_map/static/src/views/google_map/google_map_renderer.xml:0
 #, python-format
 msgid "Open"
-msgstr ""
+msgstr "Ouvrir"
 
 #. module: web_view_google_map
 #. odoo-javascript
 #: code:addons/web_view_google_map/static/src/views/google_map/google_map_sidebar.xml:0
 #, python-format
 msgid "Open form"
-msgstr ""
+msgstr "Forme ouverte"
 
 #. module: web_view_google_map
 #. odoo-javascript
 #: code:addons/web_view_google_map/static/src/views/google_map/google_map_renderer.xml:0
 #, python-format
 msgid "Open form view"
-msgstr ""
+msgstr "Ouvrir l'affichage du formulaire"
 
 #. module: web_view_google_map
 #: model:ir.model,name:web_view_google_map.model_ir_ui_view
 msgid "View"
-msgstr ""
+msgstr "Vue"
 
 #. module: web_view_google_map
 #: model:ir.model.fields,field_description:web_view_google_map.field_ir_actions_act_window_view__view_mode
 #: model:ir.model.fields,field_description:web_view_google_map.field_ir_ui_view__type
 msgid "View Type"
-msgstr ""
+msgstr "Type de Vue"
 
 #. module: web_view_google_map
 #. odoo-javascript
 #: code:addons/web_view_google_map/static/src/views/google_map/google_map_renderer.xml:0
 #, python-format
 msgid "View on Google Maps"
-msgstr ""
+msgstr "Afficher sur Google Maps"
 
 #. module: web_view_google_map
 #. odoo-javascript
 #: code:addons/web_view_google_map/static/src/views/google_map/google_map_renderer.xml:0
 #, python-format
 msgid "View on Google Maps website"
-msgstr ""
+msgstr "Voir sur le site de Google Maps"

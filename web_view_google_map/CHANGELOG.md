@@ -1,5 +1,51 @@
 # Change Log
 
+## 16.0.3.2.2
+### Added
+## "Edit Geolocation" on form view    
+![google_map](./static/img/form_button_edit_geolocation.png)    
+New subview of form view `"google_map_form"`. This subview is designed specifically to edit geolocation fields (latitude and longitude).    
+To activate the button, there are four new attributes:    
+  1. `"edit_lat_lng"`    
+     An attribute to show the button
+  2. `"google_map_form_view_ref"` (optional)    
+     An attribute to tell Odoo which view to render. If you have multiple views for `"google_map_form"` (should be a rare case), this attribute would be very helpful.
+  3. `"lat"`    
+     An attribute to let the view know the latitude field
+  4. `"lng"`    
+     An attribute to let the view know the longitude field
+
+  Example:    
+  ```xml
+    <!-- google_map form view -->
+    <record id="view_my_google_map_form" model="ir.ui.view">
+        <field name="name">view.my.google.map.form</field>
+        <field name="model">res.partner</field>
+        <field name="arch" type="xml">
+            <form js_class="google_map_form" string="Contact" lat="partner_latitude" lng="partner_longitude">
+                <field name="partner_latitude"/>
+                <field name="partner_longitude"/>
+            </form>
+        </field>
+    </record>
+
+    <!-- the form view -->
+    <recod id="view_my_form" model="ir.ui.view">
+        <field name="name">view.my.form</field>
+        <field name="model">res.partner</field>
+        <field name="arch" type="xml">
+            <form string="My Form" edit_lat_lng="1" google_map_form_view_ref="my_module.view_my_google_map_form">
+                ...
+            </form>
+        </field>
+    </record>
+  ```
+  Note: cannot re-use or share the existing form view for the google_map form or create only one form view for both.
+
+### Changed
+### Fixed
+
+
 ## [16.0.2.2.2] -- 22/08/2023
 ### Added
 - FontAwesome icon as marker    

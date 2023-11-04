@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from lxml.builder import E
 
-from odoo import _, fields, models
+from odoo import _, api, fields, models
 from odoo.addons.base.models.ir_ui_view import transfer_field_to_modifiers
 from odoo.tools import str2bool, safe_eval
 
@@ -10,6 +10,12 @@ class IrUiView(models.Model):
     _inherit = 'ir.ui.view'
 
     type = fields.Selection(selection_add=[('google_map', 'Google Maps')])
+
+    @api.model
+    def get_google_form_view_id(self, model_name):
+        domain = [('arch_db', 'ilike', 'js_class="google_map_form"'), ('model', '=', model_name)]
+        view = self.sudo().search_read(domain, [], limit=1)
+        return view and view[0]['id']
 
     '''
     The following overwrite methods aims to allow render google_map view

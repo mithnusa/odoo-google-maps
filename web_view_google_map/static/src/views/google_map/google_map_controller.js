@@ -3,23 +3,23 @@
 import { Layout } from '@web/search/layout';
 import { useModel } from '@web/views/model';
 import { usePager } from '@web/search/pager_hook';
-import { useService } from '@web/core/utils/hooks';
 import { standardViewProps } from '@web/views/standard_view_props';
 import { useSetupView } from '@web/views/view_hook';
 import { Component, useRef } from '@odoo/owl';
 
 export class GoogleMapController extends Component {
     setup() {
-        this.actionService = useService('action');
         const rootRef = useRef('root');
 
         const { Model, resModel, fields, archInfo, limit, state } = this.props;
         const { rootState } = state || {};
 
         this.model = useModel(Model, {
-            fields,
+            resId: this.props.resId || false,
+            resIds: this.props.resIds,
             resModel,
             rootState,
+            fields,
             activeFields: archInfo.activeFields,
             handleField: archInfo.handleField,
             limit: archInfo.limit || limit,

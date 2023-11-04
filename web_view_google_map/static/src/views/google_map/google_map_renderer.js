@@ -1,9 +1,7 @@
 /** @odoo-module **/
 
 import { useRef, useState, onRendered, onWillUpdateProps, onPatched } from '@odoo/owl';
-import { Pager } from '@web/core/pager/pager';
 import { renderToString } from '@web/core/utils/render';
-import { Widget } from '@web/views/widgets/widget';
 
 import { BaseGoogleMap, LOADER_STATUS } from '@base_google_map/utils/base_google_map';
 
@@ -61,26 +59,6 @@ export class GoogleMapRenderer extends BaseGoogleMap {
         }
     }
 
-    getMapOptions() {
-        const gestureHandling =
-            ['cooperative', 'greedy', 'none', 'auto'].indexOf(
-                this.props.archInfo.gestureHandling
-            ) === -1
-                ? 'auto'
-                : this.props.archInfo.gestureHandling;
-
-        return {
-            mapTypeId: google.maps.MapTypeId.ROADMAP,
-            center: { lat: 0, lng: 0 },
-            zoom: 2,
-            minZoom: 2,
-            maxZoom: 22,
-            fullscreenControl: true,
-            mapTypeControl: true,
-            gestureHandling,
-        };
-    }
-
     /**
      * Initialize Google Map instance & Google search places (if enabled)
      */
@@ -115,6 +93,7 @@ export class GoogleMapRenderer extends BaseGoogleMap {
      * Center the map
      */
     centerMap() {
+        if (!this.googleMap) return;
         const mapBounds = new google.maps.LatLngBounds();
         this.markers.forEach((marker) => {
             mapBounds.extend(marker.getPosition());
@@ -391,7 +370,6 @@ export class GoogleMapRenderer extends BaseGoogleMap {
 }
 
 GoogleMapRenderer.template = 'web_view_google_map.GoogleMapRenderer';
-GoogleMapRenderer.components = { Pager, Widget };
 GoogleMapRenderer.props = [
     'archInfo',
     'openRecord',
