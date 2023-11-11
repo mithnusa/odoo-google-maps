@@ -1,6 +1,6 @@
 /** @odoo-module **/
 
-import { addFieldDependencies, getActiveActions } from '@web/views/utils';
+import { addFieldDependencies, getActiveActions, archParseBoolean } from '@web/views/utils';
 import { XMLParser } from '@web/core/utils/xml';
 import { Field } from '@web/views/fields/field';
 
@@ -21,6 +21,10 @@ export class GoogleMapArchParser extends XMLParser {
         const sidebarSubtitleField = xmlDoc.getAttribute('sidebar_subtitle');
         const onCreate = xmlDoc.getAttribute('on_create');
         const gestureHandling = xmlDoc.getAttribute('gesture_handling') || false;
+        const disableMarkerCluster = archParseBoolean(
+            xmlDoc.getAttribute('disable_cluster_marker'),
+            false
+        );
 
         const activeActions = {
             ...getActiveActions(xmlDoc),
@@ -76,6 +80,7 @@ export class GoogleMapArchParser extends XMLParser {
             markerColor,
             markerIcon,
             markerIconScale,
+            disableMarkerCluster,
             limit: limit && parseInt(limit, 10),
             examples: xmlDoc.getAttribute('examples'),
             __rawArch: arch,

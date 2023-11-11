@@ -81,7 +81,7 @@ export class GoogleMapRenderer extends BaseGoogleMap {
      * Reset the markers
      */
     clearMarkers() {
-        if (this.markerCluster) {
+        if (this.markerCluster && !this.props.archInfo.disableMarkerCluster) {
             this.markerCluster.clearMarkers();
             this.markerCluster.setMap(null);
         }
@@ -130,6 +130,7 @@ export class GoogleMapRenderer extends BaseGoogleMap {
     }
 
     renderMarkerClusterer() {
+        if (this.props.archInfo.disableMarkerCluster) return;
         const markers = this.markers;
         if (!this.markerCluster) {
             this.markerCluster = new markerClusterer.MarkerClusterer({
@@ -270,11 +271,15 @@ export class GoogleMapRenderer extends BaseGoogleMap {
                 fillColor: color,
                 fillOpacity: 1,
                 strokeWeight: 0.75,
-                strokeColor: '#444',
+                strokeColor: '#f5f5f5',
                 scale: 0.067 * markerIconScale,
                 anchor: new google.maps.Point(iconFa[0] / 2, iconFa[1]),
             },
         };
+
+        if (markerIcon && markerIcon.includes('circle')) {
+            markerOptions.icon.strokeWeight = 2;
+        }
 
         const title = this.props.archInfo.sidebarTitleField
             ? record.data[this.props.archInfo.sidebarTitleField]

@@ -469,11 +469,14 @@ export class GooglePlacesAutocompleteSidebar extends Component {
             {
                 name: sprintf(this.env._t('New Place: %s'), display_name),
                 type: 'ir.actions.act_window',
-                res_model: this.env.model.env.searchModel.resModel,
+                res_model: this.env.model.root.resModel,
                 views: [[false, 'form']],
                 view_mode: 'form',
                 target: 'new',
-                context: values,
+                context: {
+                    ...this.env.model.user.context,
+                    ...values
+                },
             },
             {
                 props: {
