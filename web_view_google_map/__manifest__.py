@@ -10,18 +10,22 @@
         leaving Odoo
     ''',
     'license': 'AGPL-3',
-    'author': 'Yopi Angi',
+    'author': 'Yopi Angi (Mithnusa), Brian McMaster (McMaster Lawn & Pest Services)',
     'website': 'https://github.com/mithnusa',
     'support': 'yopiangi@gmail.com',
     'category': 'Extra Tools',
-    'version': '16.0.3.2.2',
+    'version': '16.0.4.0.0',
     'depends': ['base_google_map'],
     'data': ['data/gmap_libraries.xml'],
     'assets': {
         'web.assets_backend': [
             'web_view_google_map/static/src/views/**/*',
             'web_view_google_map/static/src/fields/**/*',
-        ]
+            ('remove', 'web_view_google_map/static/src/views/**/*.dark.scss'),
+        ],
+        'web.dark_mode_assets_backend': [
+            'web_view_google_map/static/src/views/**/*.dark.scss'
+        ],
     },
     'demo': [],
     'installable': True,

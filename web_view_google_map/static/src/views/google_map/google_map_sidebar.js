@@ -1,21 +1,26 @@
 /** @odoo-module **/
 
 import { Component } from '@odoo/owl';
+import { CheckBox } from '@web/core/checkbox/checkbox';
 
 export class GoogleMapSidebar extends Component {
+    hasGeolocation(record) {
+        return record._hasGeolocation || this.env.hasGeolocation(record);
+    }
+
+    getMarkerColor(record) {
+        return record._markerColor || this.env.getMarkerColor(record);
+    }
+
     _getDisplayName(record, fieldName, defaultLabel) {
         let default_display_name = defaultLabel || 'Unknown';
         if (fieldName) {
             if (record.fields.hasOwnProperty(fieldName)) {
-                if (
-                    record.fields[fieldName].type === 'many2one' &&
-                    record.data[fieldName]
-                ) {
+                if (record.fields[fieldName].type === 'many2one' && record.data[fieldName]) {
                     if (Array.isArray(record.data[fieldName])) {
                         default_display_name = record.data[fieldName][1];
                     } else if (record.data[fieldName] instanceof Array) {
-                        default_display_name =
-                            record.data[fieldName].display_name || '-';
+                        default_display_name = record.data[fieldName].display_name || '-';
                     } else {
                         default_display_name = JSON.stringify(record.data[fieldName]);
                     }
@@ -42,12 +47,10 @@ export class GoogleMapSidebar extends Component {
                 record.fields['display_name'].hasOwnProperty('depends') &&
                 record.fields['display_name'].depends.length > 0
             ) {
-                display_name_field =
-                    record.fields[record.fields['display_name'].depends[0]];
+                display_name_field = record.fields[record.fields['display_name'].depends[0]];
                 if (display_name_field) {
                     try {
-                        default_display_name =
-                            record.data[display_name_field].data.display_name;
+                        default_display_name = record.data[display_name_field].data.display_name;
                     } catch (error) {
                         console.error(error);
                     }
@@ -66,6 +69,10 @@ export class GoogleMapSidebar extends Component {
         };
     }
 
+    selectRecord(record) {
+        this.props.handleToggleRecordSelection(record, true);
+    }
+
     _getTitle(record) {
         return this._getDisplayName(record, this.props.fieldTitle, ' - ');
     }
@@ -80,6 +87,7 @@ export class GoogleMapSidebar extends Component {
 }
 
 GoogleMapSidebar.template = 'web_view_google_map.GoogleMapSidebar';
+GoogleMapSidebar.components = { CheckBox };
 GoogleMapSidebar.props = [
     'string',
     'handleOpenRecord',
@@ -87,4 +95,9 @@ GoogleMapSidebar.props = [
     'records',
     'fieldTitle',
     'fieldSubtitle',
+    'handleToggleSelection',
+    'handleCanSelectRecord',
+    'handleSelectAll',
+    'handleToggleRecordSelection',
+    'allowSelectors',
 ];

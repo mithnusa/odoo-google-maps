@@ -26,6 +26,7 @@ export class GoogleMapDrawingRenderer extends GoogleMapRenderer {
                     this._deleteShapeInCache(key)
                 );
             }
+            this._cleanPolygonPoints();
         });
 
         onWillUpdateProps(() => {
@@ -34,18 +35,19 @@ export class GoogleMapDrawingRenderer extends GoogleMapRenderer {
                     this._deleteShapeInCache(key)
                 );
             }
+            this._cleanPolygonPoints();
         });
     }
 
     /**
-     * @override
+     * @overwrite
      */
-    renderMap(isCentered) {
-        isCentered = isCentered || false;
+    renderMap() {
         this.shapesBounds = new google.maps.LatLngBounds();
         this.renderShapes();
 
-        if (isCentered) {
+        const noMapCenter = this.noMapCenter || false;
+        if (!noMapCenter || typeof this.noMapCenter === 'undefined') {
             this.centerMap();
         }
     }
@@ -57,14 +59,7 @@ export class GoogleMapDrawingRenderer extends GoogleMapRenderer {
         super.setMapTheme();
         this.googleMap.setOptions({
             mapTypeControlOptions: {
-                mapTypeIds: [
-                    'roadmap',
-                    'satellite',
-                    'hybrid',
-                    'terrain',
-                    'drawing',
-                    'styled_map',
-                ],
+                mapTypeIds: ['roadmap', 'satellite', 'hybrid', 'terrain', 'drawing', 'styled_map'],
             },
         });
     }
@@ -74,12 +69,9 @@ export class GoogleMapDrawingRenderer extends GoogleMapRenderer {
      */
     initialize() {
         super.initialize();
-        const mapThemeDrawing = new google.maps.StyledMapType(
-            MAP_THEMES['line_drawing'],
-            {
-                name: _lt('Drawing'),
-            }
-        );
+        const mapThemeDrawing = new google.maps.StyledMapType(MAP_THEMES['line_drawing'], {
+            name: _lt('Drawing'),
+        });
         this.googleMap.mapTypes.set('drawing', mapThemeDrawing);
         this.initializeDrawing();
     }
@@ -259,9 +251,7 @@ export class GoogleMapDrawingRenderer extends GoogleMapRenderer {
                 const data = ev.target.getAttribute('data-record') || null;
                 if (data) {
                     const values = JSON.parse(data);
-                    const record = this.props.list.records.find(
-                        (r) => r.id === values.id
-                    );
+                    const record = this.props.list.records.find((r) => r.id === values.id);
                     if (record) {
                         this.props.showRecord(record);
                     }
@@ -346,8 +336,6 @@ export class GoogleMapDrawingRenderer extends GoogleMapRenderer {
                 this.polygonMarkers[lineAt].setMap(null);
                 delete this.polygonMarkers[lineAt];
             });
-        } else {
-            this.polygonMarkers = {};
         }
     }
 
@@ -355,6 +343,9 @@ export class GoogleMapDrawingRenderer extends GoogleMapRenderer {
         if (lines) {
             let latLng;
             const totalStop = Object.keys(lines).length;
+            if (typeof this.polygonMarkers === 'undefined') {
+                this.polygonMarkers = {};
+            }
             Object.keys(lines).forEach((key) => {
                 if (key < totalStop) {
                     latLng = lines[key].start;
@@ -371,19 +362,12 @@ export class GoogleMapDrawingRenderer extends GoogleMapRenderer {
         }
     }
 
-    get sidebarComponent() {
-        return GoogleMapsDrawingSidebar;
-    }
-
     get sidebarProps() {
-        return {
-            handleOpenRecord: this.props.openRecord.bind(this),
-            handlePointInMap: this.pointInMap.bind(this),
-            string: this.props.archInfo.viewTitle,
-            records: this.props.list.records,
-            shapes: this.shapes,
-            fieldTitle: this.props.archInfo.sidebarTitleField,
-            fieldSubtitle: this.props.archInfo.sidebarSubtitleField,
-        };
+        return Object.assign({ shapes: this.shapes }, super.sidebarProps);
     }
 }
+
+GoogleMapDrawingRenderer.components = {
+    ...GoogleMapRenderer.components,
+    Sidebar: GoogleMapsDrawingSidebar,
+};

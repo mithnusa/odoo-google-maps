@@ -7,7 +7,19 @@
                 <t t-set-slot="layout-buttons">
                     <t t-call="{{ props.buttonTemplate }}"/>
                 </t>
-                <t t-component="props.Renderer" list="model.root" archInfo="props.archInfo" readonly="true" openRecord.bind="openRecord" onAdd.bind="createRecord" showRecord.bind="showRecord"/>
+                <t t-set-slot="control-panel-bottom-left">
+                    <t t-if="props.info.actionMenus and model.root.selection.length and hasSelectors">
+                        <ActionMenus
+                            getActiveIds="() => model.root.selection.map((r) => r.resId)"
+                            context="props.context"
+                            domain="props.domain"
+                            items="getActionMenuItems()"
+                            isDomainSelected="model.root.isDomainSelected"
+                            resModel="model.root.resModel"
+                            onActionExecuted="() => model.load()"/>
+                    </t>
+                </t>
+                <t t-component="props.Renderer" list="model.root" archInfo="props.archInfo" activeActions="activeActions" allowSelectors="props.allowSelectors" readonly="true" openRecord.bind="openRecord" onAdd.bind="createRecord" showRecord.bind="showRecord"/>
             </Layout>
         </div>
     </t>
@@ -22,7 +34,28 @@
             <button type="button" class="btn btn-link btn-secondary o-google_map-button-center-map" t-on-click.prevent="() => this.centerMap()">
                 Center Map
             </button>
+            <t t-if="nbTotal and !nbSelected and activeActions.exportXlsx and isExportEnable and !env.isSmall">
+                <button type="button" class="btn btn-secondary fa fa-download o_list_export_xlsx" data-tooltip="Export All" aria-label="Export All" t-on-click="onDirectExportData"/>
+            </t>
         </div>
+        <t t-if="nbSelected">
+            <t t-if="!env.isSmall">
+                <div class="o_list_selection_box alert alert-info d-inline-flex align-items-center ps-0 px-lg-2 py-0 mb-0 ms-0 ms-md-2" role="alert">
+                    <t t-if="env.isSmall">
+                        <button class="btn btn-link py-0 o_discard_selection" t-on-click="discardSelection">
+                            <span class="fa-2x">&#215;</span>
+                        </button>
+                    </t>
+                    <span t-if="isDomainSelected">All <span class="font-monospace" t-esc="nbTotal"/> selected</span>
+                    <t t-else="">
+                        <span class="font-monospace me-1" t-esc="nbSelected"/> selected
+                        <a t-if="isPageSelected and nbTotal > nbSelected" href="#" class="o_list_select_domain ms-2 btn btn-sm btn-info px-2 py-1 border-0 fw-normal" t-on-click="onSelectDomain">
+                            <i class="fa fa-arrow-right"/> Select all <span class="font-monospace" t-esc="nbTotal"/>
+                        </a>
+                    </t>
+                </div>
+            </t>
+        </t>
     </t>
 
 </templates>

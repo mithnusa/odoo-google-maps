@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates id="template" xml:space="preserve">
+    <t t-name="web_view_google_map_selector_area.ButtonActions" owl="1">
+        <div style="background-color: white;margin-bottom: 5px;height: 25px;">
+            <button class="btn btn-default" style="margin-bottom: 5px;padding: 1px 8px 2px 8px;" type="button" data-toggle="tooltip" data-placement="bottom" title="Delete selected shape">
+                <i class="fa fa-trash-o"></i>
+            </button>
+        </div>
+    </t>
+</templates>

@@ -5,10 +5,6 @@ import { GoogleMapRenderer } from '@web_view_google_map/views/google_map/google_
 import { GoogleMapSidebarContactAvatar } from './google_map_sidebar';
 
 export class GoogleMapRendererContactAvatar extends GoogleMapRenderer {
-    get sidebarComponent() {
-        return GoogleMapSidebarContactAvatar;
-    }
-
     /**
      * Override
      * @param {*} record
@@ -16,12 +12,8 @@ export class GoogleMapRendererContactAvatar extends GoogleMapRenderer {
      * @returns
      */
     getMarkerContent(record, isMulti) {
-        const {
-            latitudeField,
-            longitudeField,
-            sidebarTitleField,
-            sidebarSubtitleField,
-        } = this.props.archInfo;
+        const { latitudeField, longitudeField, sidebarTitleField, sidebarSubtitleField } =
+            this.props.archInfo;
         const content = renderToString('contacts_google_map.MarkerInfoWindow', {
             record: JSON.stringify({
                 id: record.id,
@@ -59,3 +51,8 @@ export class GoogleMapRendererContactAvatar extends GoogleMapRenderer {
         );
     }
 }
+
+GoogleMapRendererContactAvatar.components = {
+    ...GoogleMapRenderer.components,
+    Sidebar: GoogleMapSidebarContactAvatar,
+};

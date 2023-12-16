@@ -37,12 +37,4 @@ export class GoogleMapsDrawingSidebar extends GoogleMapSidebar {
 }
 
 GoogleMapsDrawingSidebar.template = 'web_view_google_map_drawing.GoogleMapSidebar';
-GoogleMapsDrawingSidebar.props = [
-    'string',
-    'handleOpenRecord',
-    'handlePointInMap',
-    'records',
-    'shapes',
-    'fieldTitle',
-    'fieldSubtitle',
-];
+GoogleMapsDrawingSidebar.props = [...GoogleMapSidebar.props, 'shapes'];

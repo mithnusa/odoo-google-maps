@@ -1,5 +1,42 @@
 # Change Log
 
+## 16.0.4.0.0
+- Support selection.
+    - Added the ability to select marker(s) in the view and trigger an action. You can select markers by using the checkbox in the map sidebar or by holding the 'Shift' key and clicking on the desired markers.    
+      Note: Existing actions need to be modified to make them visible in the view, or new actions need to be created to be accessible in the view.    
+      Example:    
+      In the contacts "list" view, there is an action called "Send email" defined as shown in the code snippet below.
+      ```xml
+      <record id="action_partner_mass_mail" model="ir.actions.act_window">
+            <field name="name">Send email</field>
+            <field name="res_model">mail.compose.message</field>
+            <field name="view_mode">form</field>
+            <field name="target">new</field>
+            <field name="context" eval="{
+                'default_composition_mode': 'mass_mail',
+                'default_partner_to': '{{ object.id or \'\' }}',
+                'default_use_template': False,
+                'default_reply_to_force_new': True,
+            }"/>
+            <field name="binding_model_id" ref="base.model_res_partner"/>
+            <field name="binding_view_types">list</field>
+        </record>
+      ```
+      In order to make the action visible in the `"google_map"` view. One need to modify by add `"google_map"` to the property `"binding_view_types"` like so
+      ```xml
+      <record ...>
+        <field name="binding_view_types">list,google_map</field>
+      </record>
+      ```
+      or if you want to make it visible only to `"google_map"` view
+      ```xml
+      <record ...>
+        <field name="binding_view_types">google_map</field>
+      </record>
+      ``` 
+- Support dark mode.
+- Support export.
+
 ## 16.0.3.2.2
 ### Added
 ## "Edit Geolocation" on form view    

@@ -1,5 +1,10 @@
 # Change Log
 
+## 16.0.1.2.3
+* A small improvement and bug fixes    
+    Fixed the in map search Google places input appears in a random location that supposed be to hidden.
+* Updated markerclusterer to version 2.5.2
+
 ## 16.0.1.2.2    
 * Bugs fixes and improvement
 

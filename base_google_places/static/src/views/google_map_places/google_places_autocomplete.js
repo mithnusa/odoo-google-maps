@@ -1,13 +1,6 @@
 /** @odoo-module **/
 
-import {
-    Component,
-    useRef,
-    onRendered,
-    useState,
-    onWillUnmount,
-    useEffect,
-} from '@odoo/owl';
+import { Component, useRef, onRendered, useState, onWillUnmount, useEffect } from '@odoo/owl';
 import { renderToString } from '@web/core/utils/render';
 import { sprintf } from '@web/core/utils/strings';
 import { useService } from '@web/core/utils/hooks';
@@ -27,8 +20,8 @@ export class GooglePlacesAutocompleteSidebar extends Component {
         this.placesAutocomplete = null;
 
         useEffect(
-            () => {
-                if (!this.props.isComponentFolded) {
+            (isComponentFolded) => {
+                if (!isComponentFolded) {
                     this.searchBoxRef.el.querySelector('input#searchinputbox').focus();
                 }
             },
@@ -56,17 +49,14 @@ export class GooglePlacesAutocompleteSidebar extends Component {
         }
 
         if (!this.mapClickAddIndicatorContent) {
-            const content = renderToString(
-                'base_google_places.PlaceCreationIndicator',
-                {}
-            );
+            const content = renderToString('base_google_places.PlaceCreationIndicator', {});
             this.mapClickAddIndicatorContent = new DOMParser()
                 .parseFromString(content, 'text/html')
                 .querySelector('div');
 
-            this.props.googleMap.controls[
-                google.maps.ControlPosition.RIGHT_BOTTOM
-            ].push(this.mapClickAddIndicatorContent);
+            this.props.googleMap.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(
+                this.mapClickAddIndicatorContent
+            );
 
             this.listenerClickAddIndicator = this.props.googleMap.addListener(
                 'idle',
@@ -167,23 +157,17 @@ export class GooglePlacesAutocompleteSidebar extends Component {
     }
 
     _handleGetPlaceDetails(event) {
-        this.props.placeService.getDetails(
-            { placeId: event.placeId },
-            (place, status) => {
-                this.ui.unblock();
-                if (status === google.maps.places.PlacesServiceStatus.OK) {
-                    this.addPlace(place);
-                } else {
-                    console.warn(status);
-                    this.notification.add(
-                        this.env._t('Failed to fetch place detail.'),
-                        {
-                            type: 'warning',
-                        }
-                    );
-                }
+        this.props.placeService.getDetails({ placeId: event.placeId }, (place, status) => {
+            this.ui.unblock();
+            if (status === google.maps.places.PlacesServiceStatus.OK) {
+                this.addPlace(place);
+            } else {
+                console.warn(status);
+                this.notification.add(this.env._t('Failed to fetch place detail.'), {
+                    type: 'warning',
+                });
             }
-        );
+        });
     }
 
     _handlePlaceReverseGeocoding(event) {
@@ -199,10 +183,9 @@ export class GooglePlacesAutocompleteSidebar extends Component {
                     if (result.place_id) {
                         this.handleClickItemAdd(result);
                     } else {
-                        this.notification.add(
-                            this.env._t('Failed to fetch place detail'),
-                            { type: 'warning' }
-                        );
+                        this.notification.add(this.env._t('Failed to fetch place detail'), {
+                            type: 'warning',
+                        });
                     }
                 } else {
                     console.warn(status);
@@ -229,10 +212,7 @@ export class GooglePlacesAutocompleteSidebar extends Component {
             !this.props.isComponentFolded &&
             this.state.places.length
         ) {
-            const content = renderToString(
-                'base_google_places.PlacesSearchUpdateBounds',
-                {}
-            );
+            const content = renderToString('base_google_places.PlacesSearchUpdateBounds', {});
             this.updateSearchContent = new DOMParser()
                 .parseFromString(content, 'text/html')
                 .querySelector('div');
@@ -257,37 +237,36 @@ export class GooglePlacesAutocompleteSidebar extends Component {
      * Nearby search, search within 3km radius of the current map center
      */
     actionUpdateSearch() {
-        const search_terms =
-            this.searchBoxRef.el.querySelector('input#searchinputbox').value;
-        if (search_terms) {
+        const searchInput = this.searchBoxRef.el.querySelector('input#searchinputbox');
+        const searchTerms = searchInput.value.trim();
+
+        if (searchTerms) {
             const request = {
-                keyword: search_terms.trim(),
+                keyword: searchTerms,
                 bounds: this.props.googleMap.getBounds(),
                 radius: 3000, // within radius 3 km
             };
-            this.props.placeService.nearbySearch(
-                request,
-                (places, status, pagination) => {
-                    if (status !== 'OK' || !places) {
-                        this.notification.add(
-                            this.env._t(
-                                'Search failed. No places found in the current search area'
-                            ),
-                            { type: 'warning' }
-                        );
-                        return;
-                    }
-                    this.placesAutocomplete.set('places', places);
-                    this.state.hasNextPage = pagination.hasNextPage;
-                    if (pagination && pagination.hasNextPage) {
-                        this.funcGetNextPage = () => {
-                            pagination.nextPage();
-                        };
-                    } else {
-                        this.funcGetNextPage = null;
-                    }
+
+            this.props.placeService.nearbySearch(request, (places, status, pagination) => {
+                if (status !== 'OK' || !places) {
+                    this.notification.add(
+                        this.env._t('Search failed. No places found in the current search area'),
+                        { type: 'warning' }
+                    );
+                    return;
                 }
-            );
+
+                this.placesAutocomplete.set('places', places);
+                this.state.hasNextPage = pagination.hasNextPage;
+
+                if (pagination && pagination.hasNextPage) {
+                    this.funcGetNextPage = () => {
+                        pagination.nextPage();
+                    };
+                } else {
+                    this.funcGetNextPage = null;
+                }
+            });
         }
     }
 
@@ -341,17 +320,17 @@ export class GooglePlacesAutocompleteSidebar extends Component {
             this.props.googleMap.controls.forEach instanceof Function
         ) {
             let indexSearchAction = -1;
-            this.props.googleMap.controls[
-                google.maps.ControlPosition.TOP_CENTER
-            ].forEach((element, index) => {
-                if (element.id === 'custom-control-search-places') {
-                    indexSearchAction = index;
+            this.props.googleMap.controls[google.maps.ControlPosition.TOP_CENTER].forEach(
+                (element, index) => {
+                    if (element.id === 'custom-control-search-places') {
+                        indexSearchAction = index;
+                    }
                 }
-            });
+            );
             if (indexSearchAction > -1) {
-                this.props.googleMap.controls[
-                    google.maps.ControlPosition.TOP_CENTER
-                ].removeAt(indexSearchAction);
+                this.props.googleMap.controls[google.maps.ControlPosition.TOP_CENTER].removeAt(
+                    indexSearchAction
+                );
             }
         }
     }
@@ -432,17 +411,14 @@ export class GooglePlacesAutocompleteSidebar extends Component {
      */
     actionShowPlace(record) {
         this.notification.add(
-            sprintf(
-                this.env._t('The place "%s" was already created'),
-                record.display_name
-            ),
+            sprintf(this.env._t('The place "%s" was already created'), record.display_name),
             { type: 'info' }
         );
         this.env.model.action.doAction(
             {
                 name: sprintf(this.env._t('Update Place: %s'), record.display_name),
                 type: 'ir.actions.act_window',
-                res_model: this.env.model.env.searchModel.resModel,
+                res_model: this.env.model.root.resModel,
                 res_id: record.id,
                 views: [[false, 'form']],
                 view_mode: 'form',
@@ -465,6 +441,7 @@ export class GooglePlacesAutocompleteSidebar extends Component {
      */
     actionAddPlace(values) {
         const display_name = values.default_name || values.name;
+        const context = Object.assign({}, this.env.model.user.context, values);
         this.env.model.action.doAction(
             {
                 name: sprintf(this.env._t('New Place: %s'), display_name),
@@ -473,7 +450,7 @@ export class GooglePlacesAutocompleteSidebar extends Component {
                 views: [[false, 'form']],
                 view_mode: 'form',
                 target: 'new',
-                context: values,
+                context,
             },
             {
                 props: {
@@ -502,15 +479,13 @@ export class GooglePlacesAutocompleteSidebar extends Component {
             setTimeout(() => {
                 this.centerMapToCurrentSearchResult();
                 if (mode === 'create') {
-                    this.notification.add(
-                        this.env._t('New place is created successfully'),
-                        { type: 'success' }
-                    );
+                    this.notification.add(this.env._t('New place is created successfully'), {
+                        type: 'success',
+                    });
                 } else if (mode === 'write') {
-                    this.notification.add(
-                        this.env._t('Place is updated successfully'),
-                        { type: 'success' }
-                    );
+                    this.notification.add(this.env._t('Place is updated successfully'), {
+                        type: 'success',
+                    });
                 }
             }, 500);
         }
@@ -532,11 +507,7 @@ export class GooglePlacesAutocompleteSidebar extends Component {
             const record = isExists[0];
             this.actionShowPlace(record);
         } else {
-            const values = await preparePlaces(
-                this.env.model.orm,
-                this.env.fields,
-                place
-            );
+            const values = await preparePlaces(this.env.model.orm, this.env.fields, place);
 
             if (values) {
                 const data = await this.env.model.orm.call(
@@ -562,12 +533,9 @@ export class GooglePlacesAutocompleteSidebar extends Component {
                         await this.addPlace(place);
                     } else {
                         console.warn(status);
-                        this.notification.add(
-                            this.env._t('Failed to fetch place detail'),
-                            {
-                                type: 'warning',
-                            }
-                        );
+                        this.notification.add(this.env._t('Failed to fetch place detail'), {
+                            type: 'warning',
+                        });
                     }
                 }
             );
@@ -594,8 +562,7 @@ export class GooglePlacesAutocompleteSidebar extends Component {
     }
 }
 
-GooglePlacesAutocompleteSidebar.template =
-    'base_google_places.SidebarPlacesAutocomplete';
+GooglePlacesAutocompleteSidebar.template = 'base_google_places.SidebarPlacesAutocomplete';
 GooglePlacesAutocompleteSidebar.components = { GooglePlacesResult };
 GooglePlacesAutocompleteSidebar.props = [
     'settings',

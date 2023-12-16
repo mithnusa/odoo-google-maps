@@ -11,4 +11,7 @@ export const googleMapFormView = {
     Renderer: GoogleMapFormRenderer,
 };
 
+/**
+ * google_map view extension for form view, to be able to edit geolocation
+ */
 registry.category('views').add('google_map_form', googleMapFormView);

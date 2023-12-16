@@ -10,7 +10,7 @@ How to create the view?
     <field name="name">view.res.partner.google_map</field>
     <field name="model">res.partner</field>
     <field name="arch" type="xml">
-        <google_map string="Contacts" lat="partner_latitude" color="marker_color" lng="partner_longitude" sidebar_title="display_name" sidebar_subtitle="contact_address">
+        <google_map string="Contacts" lat="partner_latitude" color="marker_color" lng="partner_longitude" sidebar_title="display_name" sidebar_subtitle="contact_address" disable_cluster_marker="1">
             <field name="partner_latitude"/>
             <field name="partner_longitude"/>
             <field name="color"/>
@@ -72,6 +72,13 @@ Example:
 Example:    
     ```xml
     <google_map icon_scale="0.8">
+        ...
+    </google_map>
+    ```
+- `disable_cluster_marker`: attribute to disable marker clustering. By default, markers on the map are clustered. Use this option to disable clustering if desired.
+Example:
+    ```xml
+    <google_map disable_cluster_marker="1">
         ...
     </google_map>
     ```
