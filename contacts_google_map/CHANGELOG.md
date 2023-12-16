@@ -1,5 +1,8 @@
 # Change Log
 
+## 16.0.2.1.3    
+ - Adapted the module to incorporate the improvements made in `web_view_google_map`
+
 ## [16.0.1.1.2] -- 22/08/2023
 ### Added
  - A new scheduled action "Contact: geolocate". An action to geolocate existing contact(s) that does not geolocated yet.    
