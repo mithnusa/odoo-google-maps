@@ -1,5 +1,9 @@
 # Change Log
 
+## 16.0.2.0.3    
+* Bug fixes and improvement    
+    - Added support for dark mode. All elements in the Google Map view, specifically Google Places elements, will now adapt to the current active theme. This fixes an issue where the view would crash when switching to dark mode.
+
 ## 16.0.2.0.2
 * Bug fixes and improvement
 

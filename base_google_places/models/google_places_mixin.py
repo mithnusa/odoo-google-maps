@@ -310,7 +310,7 @@ class GooglePlacesMixin(models.AbstractModel):
         if exists:
             return values
 
-        default_values = self.env.context.copy()
+        default_values = {}
         for key, val in values.items():
             default_values['default_{}'.format(key)] = val
 

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'Base Google Places',
-    'version': '16.0.2.0.2',
+    'version': '16.0.2.0.3',
     'author': 'Yopi Angi',
     'license': 'AGPL-3',
     'maintainer': 'Yopi Angi<yopiangi@gmail.com>',
@@ -11,8 +11,8 @@
 Base of Google Places integration
 =================================
 
-A base module for Google Places integration.
-Extension of Google Maps Odoo integration focusing on Google Places service.
+A base module for integrating Google Places into Odoo.
+This module extends the Google Maps Odoo integration and focuses specifically on integrating with the Google Places service.
     ''',
     'depends': ['web_view_google_map'],
     'data': [
