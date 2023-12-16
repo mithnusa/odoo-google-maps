@@ -5,11 +5,6 @@
         <script src="https://unpkg.com/@googlemaps/markerclusterer@2.5.2/dist/index.min.js"></script>
     </template>
     <template id="webclient_bootstrap" name="webclient_bootstrap gmaps" inherit_id="web.webclient_bootstrap">
-        <xpath expr="//t[@t-call-assets='web.assets_common']" position="before">
-            <t t-call="base_google_map.assets_gmaps"/>
-        </xpath>
-    </template>
-    <template id="webclient_bootstrap" name="webclient_bootstrap gmaps" inherit_id="web.webclient_bootstrap">
         <xpath expr="//t[@t-set='head_web']" position="inside">
             <t t-call="base_google_map.assets_gmaps"/>
         </xpath>
