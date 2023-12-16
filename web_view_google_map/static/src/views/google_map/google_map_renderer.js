@@ -90,15 +90,6 @@ export class GoogleMapRenderer extends BaseGoogleMap {
         }
     }
 
-    handleClearMarkers() {
-        if (this.resetMarkers || typeof this.resetMarkers === 'undefined') {
-            this.clearMarkers();
-        } else if (this.markerCluster && !this.props.archInfo.disableMarkerCluster) {
-            this.markerCluster.clearMarkers();
-            this.markerCluster.setMap(null);
-        }
-    }
-
     /**
      * Renders the map and markers
      * Any markers selected won't trigger the map to be re-rendered
@@ -107,7 +98,7 @@ export class GoogleMapRenderer extends BaseGoogleMap {
         if (this.isMarkerSelected) {
             return;
         } else {
-            this.handleClearMarkers();
+            this.clearMarkers();
             this.renderMarkers();
             this.renderMarkerClusterer();
             const noMapCenter = this.noMapCenter || false;
