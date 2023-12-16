@@ -13,9 +13,14 @@ patch(GoogleMapRenderer.prototype, 'web_view_google_map_selector_area', {
     },
     initialize() {
         this._super(...arguments);
-        const xml = new DOMParser().parseFromString(this.props.archInfo.arch, "text/xml");
-        const js_class = xml.documentElement.getAttribute("js_class");
-        if (js_class === 'google_map_drawing') {
+        let js_class;
+        if (this.props.archInfo && this.props.archInfo.arch) {
+            const xml = new DOMParser().parseFromString(this.props.archInfo.arch, 'text/xml');
+            js_class = xml.documentElement.getAttribute('js_class') || '';
+        }
+
+        // prevent initialize area selector in view google map drawing or widget google maps drawing
+        if (js_class === 'google_map_drawing' || (this.props.id && this.props.name)) {
             return;
         } else {
             this._initializeGoogleMapDrawing();
@@ -108,7 +113,7 @@ patch(GoogleMapRenderer.prototype, 'web_view_google_map_selector_area', {
         if (this.selectedShape || Object.keys(this.shapes).length) {
             return;
         } else {
-            this._super()
+            this._super();
         }
     },
 
