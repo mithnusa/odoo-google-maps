@@ -4,11 +4,8 @@ import { renderToString } from '@web/core/utils/render';
 import { GoogleMapPlacesRenderer } from '@base_google_places/views/google_map_places/google_map_places_renderer';
 import { GoogleMapSidebarContactAvatar } from '@contacts_google_map/views/google_map/google_map_sidebar';
 
-export class GoogleMapPlacesContactsAvatarRenderer extends GoogleMapPlacesRenderer {
-    get sidebarComponent() {
-        return GoogleMapSidebarContactAvatar;
-    }
 
+export class GoogleMapPlacesContactsAvatarRenderer extends GoogleMapPlacesRenderer {
     /**
      * Override
      * @param {*} record
@@ -58,4 +55,10 @@ export class GoogleMapPlacesContactsAvatarRenderer extends GoogleMapPlacesRender
             super.sidebarProps
         );
     }
+}
+
+
+GoogleMapPlacesContactsAvatarRenderer.components = {
+    ...GoogleMapPlacesRenderer.components,
+    Sidebar: GoogleMapSidebarContactAvatar,
 }
