@@ -7,6 +7,7 @@ import { useBus, useService } from '@web/core/utils/hooks';
 import { BaseGoogleMap, LOADER_STATUS } from '@base_google_map/utils/base_google_map';
 
 import { GoogleMapSidebar } from './google_map_sidebar';
+import { GoogleMapGeolocate } from './geolocate/geolocate';
 import { getFontAwesomeIcon } from './utils';
 
 export class GoogleMapRenderer extends BaseGoogleMap {
@@ -525,7 +526,7 @@ export class GoogleMapRenderer extends BaseGoogleMap {
 }
 
 GoogleMapRenderer.template = 'web_view_google_map.GoogleMapRenderer';
-GoogleMapRenderer.components = { Sidebar: GoogleMapSidebar };
+GoogleMapRenderer.components = { Geolocate: GoogleMapGeolocate, Sidebar: GoogleMapSidebar };
 GoogleMapRenderer.props = [
     'archInfo',
     'openRecord',

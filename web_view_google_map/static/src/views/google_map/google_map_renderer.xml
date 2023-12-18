@@ -8,7 +8,9 @@
                     <i class="fa fa-search"></i>
                 </span>
             </div>
-            <div class="o_google_map_view" t-ref="map"></div>
+            <div class="o_google_map_view" t-ref="map">
+                <Geolocate googleMap="googleMap"/>
+            </div>
             <div t-attf-class="o_map_right_sidebar #{state.sidebarIsFolded ? 'closed': 'open'}">
                 <div class="content">
                     <Sidebar t-props="sidebarProps"/>

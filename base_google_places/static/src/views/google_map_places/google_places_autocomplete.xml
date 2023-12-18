@@ -29,7 +29,7 @@
     <t t-name="base_google_places.PlaceCreationIndicator" owl="1">
         <div id="custom-control-add-places-indicator" class="place-creation-indicator">
             <div class="place_creation_indicator">
-                <button class="btn btn-sm btn-light mt2" disabled="1" type="button" title="Zoom in until the color changed to yellow. Yellow means you can add any location or place to your record simply by click the location">
+                <button class="btn btn-sm btn-light" type="button" title="Zoom in until the color changes to yellow. Yellow means that you can add any location or place to your record by simply clicking on the location.">
                     <i class="fa fa-lightbulb-o fa-2x"></i>
                 </button>
             </div>
