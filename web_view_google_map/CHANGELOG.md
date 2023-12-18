@@ -36,6 +36,8 @@
       ``` 
 - Support dark mode.
 - Support export.
+- Added a geolocate button.    
+Button to pin-point current location in the map
 
 ## 16.0.3.2.2
 ### Added
