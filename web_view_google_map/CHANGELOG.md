@@ -69,6 +69,9 @@ To activate the button, there are four new attributes:
     </record>
 
     <!-- the form view -->
+    <!-- On the main form view, there are two new custom attributes: `edit_lat_lng` and `google_map_form_view_ref` -->
+    <!-- `edit_lat_lng`: attribute to activate the Edit button (a new one to modify geolocation fields) -->
+    <!-- `google_map_form_view_ref`: optional attribute, to specify which google_map form view to render -->
     <recod id="view_my_form" model="ir.ui.view">
         <field name="name">view.my.form</field>
         <field name="model">res.partner</field>
@@ -79,7 +82,8 @@ To activate the button, there are four new attributes:
         </field>
     </record>
   ```
-  Note: cannot re-use or share the existing form view for the google_map form or create only one form view for both.
+  Note:    
+  For form `js_class="google_map_form"`, please create a dedicated form view instead. At the end, there will be two form view. One for the main form view and the other is for the google_map.
 
 ### Changed
 ### Fixed
