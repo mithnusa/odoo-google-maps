@@ -13,7 +13,7 @@
     'website': 'https://github.com/mithnusa',
     'support': 'yopiangi@gmail.com',
     'category': 'Sales/CRM',
-    'version': '16.0.2.1.2',
+    'version': '16.0.2.1.3',
     'depends': [
         'base_geolocalize',
         'contacts',
@@ -22,7 +22,7 @@
     'data': ['data/cron_contact_geolocalize.xml', 'views/res_partner.xml'],
     'assets': {
         'web.assets_backend': [
-            'contacts_google_map/static/src/views/google_map/*',
+            'contacts_google_map/static/src/views/**/*',
         ]
     },
     'demo': [],
