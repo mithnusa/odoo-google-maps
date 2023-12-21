@@ -5,7 +5,7 @@
         min-height: 600px;
 
         .o_google_map_view {
-            border: 1px solid #cccccc;
+            border: 1px solid $o-view-background-color;
 
             .animate {
                 animation: notification 1.5s infinite;
