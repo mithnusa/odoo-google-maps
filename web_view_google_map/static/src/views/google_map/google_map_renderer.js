@@ -1,13 +1,14 @@
 /** @odoo-module **/
 
-import { useRef, useState, onRendered, onWillUpdateProps, onPatched } from '@odoo/owl';
+import { useRef, useState, useSubEnv, onRendered, onWillUpdateProps, useEffect } from '@odoo/owl';
 import { renderToString } from '@web/core/utils/render';
+import { useBus, useService } from '@web/core/utils/hooks';
 
 import { BaseGoogleMap, LOADER_STATUS } from '@base_google_map/utils/base_google_map';
 
 import { GoogleMapSidebar } from './google_map_sidebar';
-import { getFontAwesomeIcon  } from './utils';
-
+import { GoogleMapGeolocate } from './geolocate/geolocate';
+import { getFontAwesomeIcon } from './utils';
 
 export class GoogleMapRenderer extends BaseGoogleMap {
     setup() {
@@ -15,47 +16,96 @@ export class GoogleMapRenderer extends BaseGoogleMap {
         this.mapRef = useRef('map');
         this.searchPlacesRef = useRef('searchPlaces');
         this.markerCluster = null;
-        this.markers = [];
+        this.cache = new Map();
 
         this.state = useState({ ...this.state, sidebarIsFolded: false });
+
+        if (this.props.allowSelectors) {
+            const ui = useService('ui');
+            useBus(ui.bus, 'google-map-center-map', this.centerMap);
+        }
+
+        useSubEnv({
+            getRecordMarker: (recordId) => {
+                return this.cache.get(recordId);
+            },
+            hasGeolocation: (record) => this.getLatLng(record),
+            getMarkerColor: (record) => this.getMarkerColor(record),
+        });
+
+        useEffect(
+            (mapEl, loaderStatus) => {
+                // Allow you to select a marker in the map, by pressing a Shift key + click the marker
+                if (mapEl && loaderStatus === LOADER_STATUS.SUCCESS) {
+                    mapEl.addEventListener('keydown', this.onMapKeydown.bind(this));
+                    mapEl.addEventListener('keyup', this.onMapKeyup.bind(this));
+                    return () => {
+                        mapEl.removeEventListener('keydown', this.onMapKeydown.bind(this));
+                        mapEl.removeEventListener('keyup', this.onMapKeyup.bind(this));
+                    };
+                }
+            },
+            () => [this.mapRef.el, this.state.loaderStatus]
+        );
 
         // The following lifecycle hooks are to maintain the data rendered on the map
         // When the same list ID is rendered, I won't re-render the markers and also won't change the current map center
         onRendered(this.handleOnRendered);
-        onPatched(this.handleOnPatched);
-        onWillUpdateProps(this.handleOnWillUpdateProps);
+        onWillUpdateProps((nextProps) => {
+            if (
+                this.props.hasOwnProperty('list') &&
+                nextProps.hasOwnProperty('list') &&
+                nextProps.allowSelectors
+            ) {
+                // flag to prevent re-render the map when a marker is selected
+                this.isMarkerSelected = nextProps.list.selection.length > 0;
+                // flag to prevent clearing the markers when the list is not changed
+                this.resetMarkers = this.props.list.id !== nextProps.list.id;
+                // flag to prevent changing the map center when the list is not changed
+                this.noMapCenter = this.props.list.id === nextProps.list.id;
+            } else {
+                this.isMarkerSelected = false;
+                this.noMapCenter = false;
+                this.resetMarkers = true;
+            }
+        });
     }
 
-    handleOnWillUpdateProps() {
-        // Reset the flag 'currentDatapointId' so that on the next render, lifecycle `onRendered` will do it's job
-        this.currentDatapointId = null;
+    onMapKeydown(ev) {
+        if (ev.keyCode === 16 || ev.which === 16) {
+            ev.preventDefault();
+            this.isShiftKeyPressed = true;
+        }
+    }
+
+    onMapKeyup(ev) {
+        if (ev.keyCode === 16 || ev.which === 16) {
+            ev.preventDefault();
+            this.isShiftKeyPressed = false;
+        }
     }
 
     handleOnRendered() {
-        // I render the markers only when the GoogleLoader is success and new list ID is loaded
-        if (
-            this.state.loaderStatus === LOADER_STATUS.SUCCESS &&
-            this.currentDatapointId != this.props.list.id
-        ) {
-            this.currentDatapointId = this.props.list.id;
-            this.renderMap(true);
+        if (this.state.loaderStatus === LOADER_STATUS.SUCCESS) {
+            this.renderMap();
         }
     }
 
-    handleOnPatched() {
-        // I keep the current map bounds unless new list ID is loaded
-        if (this.currentDatapointId != this.props.list.id) {
-            this.centerMap();
-        }
-    }
-
-    renderMap(isCentered) {
-        isCentered = isCentered || false;
-        this.clearMarkers();
-        this.renderMarkers();
-        this.renderMarkerClusterer();
-        if (isCentered) {
-            this.centerMap();
+    /**
+     * Renders the map and markers
+     * Any markers selected won't trigger the map to be re-rendered
+     */
+    renderMap() {
+        if (this.isMarkerSelected) {
+            return;
+        } else {
+            this.clearMarkers();
+            this.renderMarkers();
+            this.renderMarkerClusterer();
+            const noMapCenter = this.noMapCenter || false;
+            if (!noMapCenter || typeof this.noMapCenter === 'undefined') {
+                this.centerMap();
+            }
         }
     }
 
@@ -81,12 +131,12 @@ export class GoogleMapRenderer extends BaseGoogleMap {
      * Reset the markers
      */
     clearMarkers() {
-        if (this.markerCluster) {
+        if (this.markerCluster && !this.props.archInfo.disableMarkerCluster) {
             this.markerCluster.clearMarkers();
             this.markerCluster.setMap(null);
         }
-        this.markers.forEach((marker) => marker.setMap(null));
-        this.markers.splice(0);
+        this.cache.forEach((marker) => marker.setMap(null));
+        this.cache.clear();
     }
 
     /**
@@ -95,9 +145,7 @@ export class GoogleMapRenderer extends BaseGoogleMap {
     centerMap() {
         if (!this.googleMap) return;
         const mapBounds = new google.maps.LatLngBounds();
-        this.markers.forEach((marker) => {
-            mapBounds.extend(marker.getPosition());
-        });
+        this.cache.forEach((marker) => mapBounds.extend(marker.getPosition()));
         this.googleMap.fitBounds(mapBounds);
         google.maps.event.addListenerOnce(this.googleMap, 'idle', () => {
             google.maps.event.trigger(this.googleMap, 'resize');
@@ -106,22 +154,21 @@ export class GoogleMapRenderer extends BaseGoogleMap {
     }
 
     /**
-     * Add event 'click' listener to marker and
-     * manage marker located at the same coordinate
+     * Add event 'click' listener to marker and manage marker located at the same coordinate
      * @param {Object} marker
      */
-    handleMarker(marker) {
+    handleMarker(recordId, marker) {
         const otherRecords = [];
-        if (this.markers.length > 0) {
+        if (this.cache.size) {
             const position = marker.getPosition();
-            this.markers.forEach((_cMarker) => {
+            this.cache.forEach((_cMarker) => {
                 if (position && position.equals(_cMarker.getPosition())) {
                     marker.setMap(null);
                     otherRecords.push(_cMarker._odooRecord);
                 }
             });
         }
-        this.markers.push(marker);
+        this.cache.set(recordId, marker);
         google.maps.event.addListener(
             marker,
             'click',
@@ -129,8 +176,13 @@ export class GoogleMapRenderer extends BaseGoogleMap {
         );
     }
 
+    /**
+     * Load markers in cluster
+     * @returns
+     */
     renderMarkerClusterer() {
-        const markers = this.markers;
+        if (this.props.archInfo.disableMarkerCluster) return;
+        const markers = Array.from(this.cache.values());
         if (!this.markerCluster) {
             this.markerCluster = new markerClusterer.MarkerClusterer({
                 map: this.googleMap,
@@ -152,12 +204,8 @@ export class GoogleMapRenderer extends BaseGoogleMap {
      * @returns {HTMLElement} Marker content
      */
     getMarkerContent(record, isMulti) {
-        const {
-            latitudeField,
-            longitudeField,
-            sidebarTitleField,
-            sidebarSubtitleField,
-        } = this.props.archInfo;
+        const { latitudeField, longitudeField, sidebarTitleField, sidebarSubtitleField } =
+            this.props.archInfo;
         const content = renderToString('web_view_google_map.MarkerInfoWindow', {
             record: JSON.stringify({
                 id: record.id,
@@ -209,6 +257,10 @@ export class GoogleMapRenderer extends BaseGoogleMap {
 
         this.markerInfoWindow.setContent(bodyContent);
         this.markerInfoWindow.open(this.googleMap, marker);
+
+        if (this.isShiftKeyPressed && marker._odooRecord) {
+            this.toggleRecordSelection(marker._odooRecord);
+        }
     }
 
     /**
@@ -216,12 +268,12 @@ export class GoogleMapRenderer extends BaseGoogleMap {
      * @param {Object} record
      * @returns {String} color of marker
      */
-    handleMarkerColor(record) {
+    getMarkerColor(record) {
         // color can be a hex color
         // or integer (an index) represent color from widget `color_picker`
         const color =
-            record.data[this.props.archInfo.markerColor] ||
-            this.props.archInfo.markerColor;
+            record.data[this.props.archInfo.markerColor] || this.props.archInfo.markerColor;
+
         let markerColor = 'red';
         if (typeof color === 'number') {
             const ColorList = [
@@ -239,11 +291,7 @@ export class GoogleMapRenderer extends BaseGoogleMap {
                 '#9365B8', // Purple
             ];
             markerColor = ColorList[color] || markerColor;
-        } else if (
-            /(?:#|0x)(?:[a-f0-9]{3}|[a-f0-9]{6})\b|(?:rgb|hsl)a?\([^\)]*\)/gi.test(
-                color
-            )
-        ) {
+        } else if (/(?:#|0x)(?:[a-f0-9]{3}|[a-f0-9]{6})\b|(?:rgb|hsl)a?\([^\)]*\)/gi.test(color)) {
             markerColor = color;
         }
         return markerColor;
@@ -270,17 +318,21 @@ export class GoogleMapRenderer extends BaseGoogleMap {
                 fillColor: color,
                 fillOpacity: 1,
                 strokeWeight: 0.75,
-                strokeColor: '#444',
+                strokeColor: '#f5f5f5',
                 scale: 0.067 * markerIconScale,
                 anchor: new google.maps.Point(iconFa[0] / 2, iconFa[1]),
             },
         };
 
+        if (markerIcon && markerIcon.includes('circle')) {
+            markerOptions.icon.strokeWeight = 2;
+        }
+
         const title = this.props.archInfo.sidebarTitleField
             ? record.data[this.props.archInfo.sidebarTitleField]
             : record.data.name || record.data.display_name;
         if (title) {
-            markerOptions['title'] = title;
+            markerOptions.title = title;
         }
         return markerOptions;
     }
@@ -294,30 +346,52 @@ export class GoogleMapRenderer extends BaseGoogleMap {
         return new google.maps.Marker(options);
     }
 
-    renderMarkers() {
-        let lat;
-        let lng;
-        let marker;
-        let color;
-        let markerOptions;
+    /**
+     * Get latitude and longitude value from the record
+     * @param {Object} record
+     * @returns
+     */
+    getLatLng(record) {
+        const { latitudeField, longitudeField } = this.props.archInfo;
+        const lat =
+            typeof record.data[latitudeField] === 'number' ? record.data[latitudeField] : 0.0;
+        const lng =
+            typeof record.data[longitudeField] === 'number' ? record.data[longitudeField] : 0.0;
+        if (lat !== 0.0 || lng !== 0.0) {
+            return { lat, lng };
+        } else {
+            return false;
+        }
+    }
 
-        this.props.list.records.map((record) => {
-            color = this.handleMarkerColor(record);
-            lat =
-                typeof record.data[this.props.archInfo.latitudeField] === 'number'
-                    ? record.data[this.props.archInfo.latitudeField]
-                    : 0.0;
-            lng =
-                typeof record.data[this.props.archInfo.longitudeField] === 'number'
-                    ? record.data[this.props.archInfo.longitudeField]
-                    : 0.0;
-            if (lat !== 0.0 || lng !== 0.0) {
-                markerOptions = this._prepareMarkerOptions({ lat, lng }, record, color);
-                marker = this.createMarker(markerOptions);
+    /**
+     * Create marker if not existed yet
+     * @param {Object} record
+     */
+    createMarkerIfNotExists(record) {
+        let hasGeolocation = false;
+        let markerColor = null;
+        if (!this.cache.has(record.id)) {
+            const latLng = this.getLatLng(record);
+            if (latLng) {
+                hasGeolocation = true;
+                markerColor = this.getMarkerColor(record);
+                const markerOptions = this._prepareMarkerOptions(latLng, record, markerColor);
+                const marker = this.createMarker(markerOptions);
                 record._marker = marker;
-                record._markerColor = color;
-                this.handleMarker(marker);
+                this.handleMarker(record.id, marker);
             }
+        }
+        record._markerColor = markerColor;
+        record._hasGeolocation = hasGeolocation;
+    }
+
+    /**
+     * Create marker(s) from record(s)
+     */
+    renderMarkers() {
+        this.props.list.records.map((record) => {
+            this.createMarkerIfNotExists(record);
             return record;
         });
     }
@@ -329,10 +403,13 @@ export class GoogleMapRenderer extends BaseGoogleMap {
     }
 
     toggleSidebar() {
+        this.resetMarkers = false;
+        this.noMapCenter = true;
         this.state.sidebarIsFolded = !this.state.sidebarIsFolded;
     }
 
-    pointInMap(marker) {
+    pointInMap(recordId) {
+        const marker = this.cache.get(recordId);
         if (marker) {
             const position = marker.getPosition();
             this.markerInfoWindow.close();
@@ -349,14 +426,6 @@ export class GoogleMapRenderer extends BaseGoogleMap {
         return this.props.list.records.length <= 0;
     }
 
-    get sidebarKey() {
-        return Math.random().toString(36).substring(2, 12);
-    }
-
-    get sidebarComponent() {
-        return GoogleMapSidebar;
-    }
-
     get sidebarProps() {
         return {
             handleOpenRecord: this.props.openRecord.bind(this),
@@ -365,11 +434,99 @@ export class GoogleMapRenderer extends BaseGoogleMap {
             records: this.props.list.records,
             fieldTitle: this.props.archInfo.sidebarTitleField,
             fieldSubtitle: this.props.archInfo.sidebarSubtitleField,
+            handleToggleRecordSelection: this.toggleRecordSelection.bind(this),
+            handleToggleSelection: this.toggleSelectionAll.bind(this),
+            handleCanSelectRecord: this.canSelectRecord,
+            handleSelectAll: this.props.allowSelectors ? this.selectAll : false,
+            allowSelectors: this.props.allowSelectors,
         };
+    }
+
+    toggleSelectionAll() {
+        const list = this.props.list;
+        if (!this.canSelectRecord) {
+            return;
+        }
+        if (list.selection.length === list.records.length) {
+            list.records.forEach((record) => {
+                record.toggleSelection(false);
+                list.selectDomain(false);
+                this.toggleSelectRecord(record);
+            });
+        } else {
+            list.records.forEach((record) => {
+                record.toggleSelection(true);
+                this.toggleSelectRecord(record);
+            });
+        }
+    }
+
+    get canSelectRecord() {
+        return !this.props.list.editedRecord && !this.props.list.model.useSampleModel;
+    }
+
+    get selectAll() {
+        const list = this.props.list;
+        const nbDisplayedRecords = list.records.length;
+        if (list.isDomainSelected) {
+            return true;
+        } else {
+            return nbDisplayedRecords > 0 && list.selection.length === nbDisplayedRecords;
+        }
+    }
+
+    selectRecord(record) {
+        this._selectMarker(record._marker);
+    }
+
+    deselectRecord(record) {
+        this._deselectMarker(record._marker);
+    }
+
+    toggleSelectRecord(record) {
+        if (record.selected) {
+            this._selectMarker(record._marker);
+        } else {
+            this._deselectMarker(record._marker);
+        }
+    }
+
+    _selectMarker(marker) {
+        if (!marker) return;
+
+        const _originIcon = marker.get('_originIcon');
+        const iconOriginal = marker.getIcon();
+
+        const icon = _originIcon ? _originIcon : Object.assign({}, iconOriginal);
+
+        const selectedIcon = Object.assign({}, iconOriginal);
+        selectedIcon.fillOpacity = 0.7;
+        selectedIcon.strokeColor = '#e31705'; // '#714b67';
+        selectedIcon.strokeWeight = 3;
+
+        marker.setOptions({ _originIcon: icon, icon: selectedIcon });
+    }
+
+    _deselectMarker(marker) {
+        if (!marker) return;
+        const _originIcon = marker.get('_originIcon');
+        const icon = _originIcon ? _originIcon : marker.getIcon();
+        marker.setIcon(icon);
+    }
+
+    toggleRecordSelection(record, pointInMap = false) {
+        this.markerInfoWindow.close();
+        record.toggleSelection();
+        this.props.list.selectDomain(false);
+        this.toggleSelectRecord(record);
+        if (pointInMap && record._marker) {
+            this.googleMap.panTo(record._marker.getPosition());
+        }
     }
 }
 
 GoogleMapRenderer.template = 'web_view_google_map.GoogleMapRenderer';
+GoogleMapRenderer.components = { Geolocate: GoogleMapGeolocate, Sidebar: GoogleMapSidebar };
 GoogleMapRenderer.props = [
     'archInfo',
     'openRecord',
@@ -377,4 +534,6 @@ GoogleMapRenderer.props = [
     'readonly',
     'list',
     'onAdd?',
+    'activeActions?',
+    'allowSelectors',
 ];

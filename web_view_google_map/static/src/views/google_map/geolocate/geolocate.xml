@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="web_view_google_map.Geolocate" owl="1">
+        <span></span>
+    </t>
+    <t t-name="web_view_google_map.GeolocateBtn" owl="1">
+        <div id="custom-control-geolocate" class="button-geolocate-user">
+            <div class="button_geolocate_user">
+                <button class="btn btn-sm btn-light my-2" type="button" title="Current location">
+                    <i class="fa fa-map-pin fa-2x text-info"></i>
+                </button>
+            </div>
+        </div>
+    </t>
+</templates>

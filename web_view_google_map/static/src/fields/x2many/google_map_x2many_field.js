@@ -10,12 +10,14 @@ export class X2ManyFieldGoogleMap extends X2ManyField {
             const archInfo = this.activeField.views[this.viewMode];
             if (!archInfo.gestureHandling) {
                 archInfo.gestureHandling = 'cooperative';
+                archInfo.allowSelectors = false;
             }
             const props = {
                 archInfo,
                 list: this.list,
                 openRecord: this.openRecord.bind(this),
                 showRecord: this.openRecord.bind(this),
+                allowSelectors: false,
             };
             props.readonly = this.props.readonly;
             return props;

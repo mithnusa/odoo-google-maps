@@ -1,6 +1,6 @@
 /** @odoo-module **/
 
-import { addFieldDependencies, getActiveActions } from '@web/views/utils';
+import { addFieldDependencies, getActiveActions, archParseBoolean } from '@web/views/utils';
 import { XMLParser } from '@web/core/utils/xml';
 import { Field } from '@web/views/fields/field';
 
@@ -21,10 +21,10 @@ export class GoogleMapArchParser extends XMLParser {
         const sidebarSubtitleField = xmlDoc.getAttribute('sidebar_subtitle');
         const onCreate = xmlDoc.getAttribute('on_create');
         const gestureHandling = xmlDoc.getAttribute('gesture_handling') || false;
-
-        const activeActions = {
-            ...getActiveActions(xmlDoc),
-        };
+        const disableMarkerCluster = archParseBoolean(
+            xmlDoc.getAttribute('disable_cluster_marker'),
+            false
+        );
 
         const fieldNodes = {};
 
@@ -32,6 +32,11 @@ export class GoogleMapArchParser extends XMLParser {
 
         const openAction = action && type ? { action, type } : null;
         const activeFields = {};
+
+        const googleMapAttr = {};
+
+        const columns = [];
+        let nextId = 0;
 
         // Root level of the template
         this.visitXML(xmlDoc, (node) => {
@@ -52,6 +57,31 @@ export class GoogleMapArchParser extends XMLParser {
                     models[modelName],
                     fieldInfo.FieldComponent.fieldDependencies
                 );
+                if (this.isColumnVisible(fieldInfo.modifiers.column_invisible)) {
+                    const label = fieldInfo.FieldComponent.label;
+                    columns.push({
+                        ...fieldInfo,
+                        id: `column_${nextId++}`,
+                        className: node.getAttribute('class'), // for oe_edit_only and oe_read_only
+                        optional: node.getAttribute('optional') || false,
+                        type: 'field',
+                        hasLabel: !(fieldInfo.noLabel || fieldInfo.FieldComponent.noLabel),
+                        label: (fieldInfo.widget && label && label.toString()) || fieldInfo.string,
+                    });
+                }
+            } else if (node.tagName === 'google_map') {
+                const activeActions = {
+                    ...getActiveActions(xmlDoc),
+                    exportXlsx: archParseBoolean(xmlDoc.getAttribute('export_xlsx'), true),
+                };
+                googleMapAttr.activeActions = activeActions;
+                googleMapAttr.multiEdit = activeActions.edit
+                    ? archParseBoolean(node.getAttribute('multi_edit') || '')
+                    : false;
+                // custom open action when clicking on record row
+                const action = xmlDoc.getAttribute('action');
+                const type = xmlDoc.getAttribute('type');
+                googleMapAttr.openAction = action && type ? { action, type } : null;
             }
         });
 
@@ -61,8 +91,8 @@ export class GoogleMapArchParser extends XMLParser {
 
         return {
             arch,
-            activeActions,
             activeFields,
+            columns,
             className,
             fieldNodes,
             latitudeField,
@@ -76,9 +106,14 @@ export class GoogleMapArchParser extends XMLParser {
             markerColor,
             markerIcon,
             markerIconScale,
+            disableMarkerCluster,
+            ...googleMapAttr,
             limit: limit && parseInt(limit, 10),
             examples: xmlDoc.getAttribute('examples'),
             __rawArch: arch,
         };
+    }
+    isColumnVisible(columnInvisibleModifier) {
+        return columnInvisibleModifier !== true;
     }
 }

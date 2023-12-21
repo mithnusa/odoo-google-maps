@@ -8,10 +8,12 @@
                     <i class="fa fa-search"></i>
                 </span>
             </div>
-            <div class="o_google_map_view" t-ref="map"></div>
+            <div class="o_google_map_view" t-ref="map">
+                <Geolocate googleMap="googleMap"/>
+            </div>
             <div t-attf-class="o_map_right_sidebar #{state.sidebarIsFolded ? 'closed': 'open'}">
                 <div class="content">
-                    <t t-component="sidebarComponent" t-props="sidebarProps" t-key="sidebarKey" />
+                    <Sidebar t-props="sidebarProps"/>
                 </div>
                 <div class="toggle_right_sidenav">
                     <button data-toggle="tooltip" data-placement="right" title="Expand side panel" t-on-click="() => this.toggleSidebar()"></button>
@@ -20,7 +22,7 @@
         </div>
     </t>
     <t t-name="web_view_google_map.MarkerInfoWindow" owl="1">
-        <div>
+        <div class="infoWindow">
             <hr t-if="isMulti"/>
             <div class="d-flex flex-grow-1 flex-md-shrink-1 flex-shrink-0">
                 <div class="o_kanban_record d-flex">

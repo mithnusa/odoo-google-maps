@@ -4,6 +4,7 @@ import { patch } from '@web/core/utils/patch';
 import { useService } from '@web/core/utils/hooks';
 import { onRendered, useState } from '@odoo/owl';
 import { FormController } from '@web/views/form/form_controller';
+import { archParseBoolean } from '@web/views/utils';
 import { WarningMissingGoogleMapFormViewDialog } from '../google_map_form/warning_missing_view_dialog/warning_missing_view_dialog';
 
 patch(FormController.prototype, 'web_view_google_map', {
@@ -13,17 +14,25 @@ patch(FormController.prototype, 'web_view_google_map', {
         this.actionService = useService('action');
         onRendered(() => {
             const js_class = this.archInfo.xmlDoc.getAttribute('js_class') || '';
+            const editGeolocation = archParseBoolean(
+                this.archInfo.xmlDoc.getAttribute('edit_lat_lng'),
+                false
+            );
             if (js_class === 'google_map_form') {
                 this.state.showEditGeolocation = false;
-            } else if (this.archInfo.activeActions.editGeolocation) {
+            } else if (editGeolocation) {
                 this.state.showEditGeolocation = true;
             }
         });
     },
     async editGeolocation() {
         const context = this.props.context;
-        if (this.props.archInfo.googleMapFormViewRef) {
-            context['form_view_ref'] = this.props.archInfo.googleMapFormViewRef;
+        const googleMapFormViewRef = archParseBoolean(
+            this.archInfo.xmlDoc.getAttribute('google_map_form_view_ref'),
+            false
+        );
+        if (googleMapFormViewRef) {
+            context['form_view_ref'] = googleMapFormViewRef;
             return this.model.actionService.doAction({
                 name: this.env._t('Edit Geolocation'),
                 type: 'ir.actions.act_window',
@@ -43,7 +52,7 @@ patch(FormController.prototype, 'web_view_google_map', {
             this.dialogService.add(WarningMissingGoogleMapFormViewDialog, {});
             return;
         }
-        this.model.actionService.doAction({
+        return this.model.actionService.doAction({
             name: this.env._t('Edit Geolocation'),
             type: 'ir.actions.act_window',
             views: [[viewId, 'form']],
