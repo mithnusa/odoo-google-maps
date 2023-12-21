@@ -28,7 +28,7 @@ export class GooglePlacesResult extends Component {
         const displayAddress = place.vicinity || place.formatted_address;
         const content = new DOMParser()
             .parseFromString(
-                '<div><div style="font-weight:400;width:350px;font-size:14px;"><h5>' +
+                '<div class="infoWindow p-3"><div style="font-weight:400;width:350px;font-size:14px;"><h5>' +
                     place.name +
                     '</h5><p>' +
                     displayAddress +

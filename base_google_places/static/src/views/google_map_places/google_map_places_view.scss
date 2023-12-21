@@ -49,7 +49,7 @@
         bottom: 0;
         position: absolute;
         z-index: 3;
-        background-color: #f7f8f9;
+        // background-color: #f7f8f9;
         box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
 
         .content {
@@ -101,6 +101,9 @@
         }
 
         .sidebar-body {
+            input {
+                border-radius: 0.6rem;
+            }
             .search-result {
                 overflow-y: auto;
                 position: absolute;
@@ -120,14 +123,14 @@
                 cursor: pointer;
                 // border: none;
 
-                border-right: 1.5px solid #ddd;
-                border-top: 1.5px solid #ddd;
-                border-bottom: 1.5px solid #ddd;
+                border-right: 1.5px solid $o-view-background-color;
+                border-top: 1.5px solid $o-view-background-color;
+                border-bottom: 1.5px solid $o-view-background-color;
                 border-left: 0px;
-                box-shadow: 0px 1px 0px #989898;
+                box-shadow: 0px 1px 0px $o-view-background-color;
                 border-radius: 0px 4px 4px 0px;
                 font-size: 20px;
-                background-color: rgb(248, 248, 248);
+                // background-color: rgb(248, 248, 248);
             }
 
             button:focus {
