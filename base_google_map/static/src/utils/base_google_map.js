@@ -93,7 +93,7 @@ export class BaseGoogleMap extends Component {
         this.currentDatapointId = null;
 
         useGoogleMapLoader({
-            showLoading: true,
+            showLoading: false,
             onLoad: (setting) => {
                 this.settings = { ...setting };
                 this._handleGoogleLoaderSuccess();
@@ -105,8 +105,8 @@ export class BaseGoogleMap extends Component {
         });
 
         useEffect(
-            () => {
-                if (this.state.loaderStatus === LOADER_STATUS.FAILURE) {
+            (loaderStatus) => {
+                if (loaderStatus === LOADER_STATUS.FAILURE) {
                     this.dialog.add(AlertDialog, {
                         title: this.env._t('Configuration'),
                         body: this.env._t(
@@ -198,6 +198,8 @@ export class BaseGoogleMap extends Component {
                     this.handleSearchPlaceResult.bind(this, markerInfoWindow)
                 );
             }
+        } else {
+            searchRef.el.style.display = 'none';
         }
     }
 
