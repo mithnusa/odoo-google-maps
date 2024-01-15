@@ -9,7 +9,7 @@
             <xpath expr="//field[@name='street']" position="attributes">
                 <attribute name="widget">gplaces_address_autocomplete</attribute>
                 <!-- the same for address_form widget -->
-                <!-- <attribute name="options">{'lat': 'partner_latitude', 'lng': 'partner_longitude', 'fillfields': {'street': ['route', 'street_number']}}</attribute> -->
+                <!-- <attribute name="options">{'lat': 'partner_latitude', 'lng': 'partner_longitude', 'address_form': {'street': 'street', 'street2': 'street2', 'city': 'city', 'zip': 'zip', 'state_id': 'state_id', 'country_id': 'country_id'}}</attribute> -->
                 <attribute name="options">{'lat': 'partner_latitude', 'lng': 'partner_longitude'}</attribute>
             </xpath>
             <xpath expr="//field[@name='child_ids']/form/sheet/group[1]/group/div/div/field[@name='street']" position="attributes">

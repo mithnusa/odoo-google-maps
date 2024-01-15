@@ -2,7 +2,7 @@
 <templates xml:space="preserve">
     <t t-name="web_view_google_map.GoogleMapRenderer" owl="1">
         <div class="o_google_map_renderer" t-ref="root">
-            <div class="input-group google_search_places" t-ref="searchPlaces">
+            <div class="input-group google_search_places" t-ref="searchPlaces" style="visibility:hidden;">
                 <input type="text" class="form-control form-control-lg" id="search" />
                 <span class="input-group-text" id="group-search" title="Google places search">
                     <i class="fa fa-search"></i>

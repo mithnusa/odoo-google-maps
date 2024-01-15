@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_res_country_form_inherit" model="ir.ui.view">
+        <field name="name">view.res.country.form.inherit</field>
+        <field name="model">res.country</field>
+        <field name="inherit_id" ref="base.view_country_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//group[@name='advanced_address_formatting']" position="after">
+                <group name="google_address_format" string="Google Address Format" groups="base.group_no_one">
+                    <group>
+                        <field name="google_street"/>
+                        <field name="google_street2"/>
+                        <field name="google_city"/>
+                        <field name="google_state"/>
+                        <field name="google_zip"/>
+                        <field name="google_country"/>
+                    </group>
+                    <div class="d-flex text-muted">
+                        <div>
+                            <p>In order to construct an address, you need to pair each part of the address with <span class="fst-italic">types</span> (see <a href="https://developers.google.com/maps/documentation/geocoding/requests-geocoding#Types" target="_blank">Address Component Types</a>)</p>
+                            <p>
+                                <span>Valid separator</span>
+                                <ul>
+                                    <li>
+                                        <div class="fw-light">Space ( )</div>
+                                        <span>Each <span class="fst-italic">types</span> must be separated by space</span>
+                                    </li>
+                                    <li>
+                                        <div class="fw-light">Comma ( , )</div>
+                                        <span>If you want to combine several <span class="fst-italic">types</span>, please use comma</span>
+                                    </li>
+                                    <li>
+                                        <div class="fw-light">Pipe ( | )</div>
+                                        <span>Use this separator for conditional <span class="fst-italic">types</span>.</span>
+                                        <br/>
+                                        <span>Please note that only the first one of the <span class="fst-italic">types</span> found will be taken, the rest will be ignored.</span>
+                                    </li>
+                                </ul>
+                                <span class="fw-bold">Note: comma and pipe cannot be used together</span>
+                            </p>
+                            <p>
+                                <span>References</span>
+                                <ul>
+                                    <li><a href="https://developers.google.com/maps/documentation/geocoding/requests-geocoding#Types" target="_blank">Address Component Types</a></li>
+                                    <li><a href="https://developers.google.com/maps/documentation/javascript/examples/geocoding-simple" target="_blank">Geocoding Service</a></li>
+                                </ul>
+                            </p>
+                        </div>
+                    </div>
+                </group>
+            </xpath>
+        </field>
+    </record>
+</odoo>

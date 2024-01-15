@@ -1,8 +1,13 @@
 # Web Widget Google Maps
 
-There are two widgets:
+## There are two widgets:
 - `gplaces_autocomplete`
 - `gplaces_address_autocomplete`
+
+## New setting added on res.country    
+A setting to construct an address returned by Google Services (service used by the two new widgets)
+![country_google_address_format](./static/img/country_google_address_format.png)
+
 
 ### 1. Widget `gplaces_autocomplete`
 This widget uses Google places autocomplete API [https://developers.google.com/maps/documentation/javascript/examples/places-autocomplete](https://developers.google.com/maps/documentation/javascript/examples/places-autocomplete)
@@ -12,8 +17,8 @@ Example:
 ```xml
 <field name="name" widget="gplaces_autocomplete" options="{'fillfields': {
     'geolocation': {
-        'partner_latitude': 'latitude',
-        'partner_longitude': 'longitude'
+        'lat': 'partner_latitude',
+        'lng': 'partner_longitude'
     }
 }}"/>
 ```
@@ -26,17 +31,21 @@ Available option `fillfields` that you can customize:
         ...
     },
     address: {
-        ODOO_FIELD: [GOOGLE_PLACES_FIELDS],
-        ...
+        street: ODOO_FIELD,
+        street2: ODOO_FIELD,
+        city: ODOO_FIELD,
+        zip: ODOO_FIELD,
+        state_id: ODOO_FIELD,
+        country_id: ODOO_FIELD,
     },
     geolocation: {
-        ODOO_FIELD_LATITUDE: [GOOGLE_PLACES_FIELDS]
-        ODOO_FIELD_LONGITUDE: [GOOGLE_PLACES_FIELDS]
+        lat: [GOOGLE_PLACES_FIELDS]
+        lng: [GOOGLE_PLACES_FIELDS]
     },
 }
 ```
-Replace `ODOO_FIELD` with field in your model    
-Replace `GOOGLE_PLACES_FIELDS` with Google autocomplete component form (address section) and Google places field name (general section), and Google geocode (geolocation section), you can assigned multiple values
+`ODOO_FIELD`: model field.    
+`GOOGLE_PLACES_FIELDS`: Google autocomplete component form (address section) and Google places field name (general section), and Google geocode (geolocation section), you can assigned multiple values
 
 The option are devided into three sections:
 - `general`    
@@ -57,21 +66,19 @@ Example:
         website: 'website',
         phone: ['international_phone_number', 'formatted_phone_number'],
     },
+    // address fields in res.partner model
     address: {
-        street: ['street_number', 'route'],
-        street2: [
-            'administrative_area_level_3',
-            'administrative_area_level_4',
-            'administrative_area_level_5',
-        ],
-        city: ['locality', 'administrative_area_level_2'],
-        zip: 'postal_code',
-        state_id: 'administrative_area_level_1',
-        country_id: 'country',
+        street: 'street',
+        street2: 'street2',
+        city: 'city',
+        zip: 'zip',
+        state_id: 'state_id',
+        country_id: 'country_id',
     },
+    // geolocation fields in res.partner model
     geolocation: {
-        latitude: 'partner_latitude',
-        longitude: 'partner_longitude',
+        lat: 'partner_latitude',
+        lng: 'partner_longitude',
     },
 }
 ```
@@ -87,16 +94,12 @@ For options `fillfields`, the default values are
         phone: ['international_phone_number', 'formatted_phone_number'],
     },
     address: {
-        street: ['street_number', 'route'],
-        street2: [
-            'administrative_area_level_3',
-            'administrative_area_level_4',
-            'administrative_area_level_5',
-        ],
-        city: ['locality', 'administrative_area_level_2'],
-        zip: 'postal_code',
-        state_id: 'administrative_area_level_1',
-        country_id: 'country',
+        street: 'street',
+        street2: 'street2',
+        city: 'city',
+        zip: 'zip',
+        state_id: 'state_id',
+        country_id: 'country_id',
     },
 },
 ```
@@ -113,7 +116,7 @@ How to use?
 Example: 
 ```xml
 <field name="name" widget="gplaces_address_autocomplete" options="{
-    fillfields: {
+    address_form: {
         street: 'street',
         street2: 'street2',
         city: 'city',
@@ -129,9 +132,13 @@ Example:
 Available option `fillfields` that you can customize:
 ```javascript
 {
-    fillfields: {
-        ODOO_FIELD: [ADDRESS_COMPONENTS],
-        ...
+    address_form: {
+        street: ODOO_FIELD,
+        street2: ODOO_FIELD,
+        city: ODOO_FIELD,
+        zip: ODOO_FIELD,
+        state_id: ODOO_FIELD,
+        country_id: ODOO_FIELD,
     },
     lat: ODOO_FIELD,
     lng: ODOO_FIELD 
@@ -141,7 +148,7 @@ Available option `fillfields` that you can customize:
 Example:
 ```javascript
 {
-    fillfields: {
+    address_form: {
         street: 'street',
         street2: 'street2',
         city: 'city',
@@ -155,7 +162,7 @@ Example:
 ```
 
 Notes:    
-For options `fillfields`, the default value are 
+For options `address_form`, the default value are 
 ```javascript
 {
     street: 'street',
@@ -173,5 +180,6 @@ If the address fields in your model are defined like the address fields in `res.
 Useful links:
 - [https://developers.google.com/maps/documentation/javascript/place-data-fields](https://developers.google.com/maps/documentation/javascript/place-data-fields)
 - [https://developers.google.com/maps/documentation/geocoding/requests-geocoding#Types](https://developers.google.com/maps/documentation/geocoding/requests-geocoding#Types)
+- [https://developers.google.com/maps/documentation/javascript/examples/geocoding-simple](https://developers.google.com/maps/documentation/javascript/examples/geocoding-simple)
 
-If you have difficulties implement or use these widget on your custom module, please do not hesitate to open an issue.
+If you have any difficulties implementing or using this widget in your custom module, please do not hesitate to open an issue.

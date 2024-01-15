@@ -1,5 +1,11 @@
 # Change Log
 
+## 16.0.2.0.0
+* Bugs fixes and improvement    
+New setting added on res.country    
+A setting to construct an address returned by Google Services (service used by the two new widgets)
+![country_google_address_format](./static/img/country_google_address_format.png)
+
 ## 16.0.1.1.3
 * Bugs fixes and improvement
 

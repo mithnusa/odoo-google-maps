@@ -173,6 +173,7 @@ export class BaseGoogleMap extends Component {
 
     renderGooglePlaceSearch(searchRef, markerInfoWindow) {
         if (this.settings.is_places_search_enable) {
+            searchRef.el.style.visiblity = 'visible';
             if (!this.markerPlacesSearch) {
                 this.markerPlacesSearch = new google.maps.Marker({
                     map: this.googleMap,
@@ -198,35 +199,38 @@ export class BaseGoogleMap extends Component {
                     this.handleSearchPlaceResult.bind(this, markerInfoWindow)
                 );
             }
-        } else {
-            searchRef.el.style.display = 'none';
         }
     }
 
     handleSearchPlaceResult(markerInfoWindow) {
-        const place = this.placesAutocomplete.getPlace();
-        if (place) {
-            if (place.geometry.hasOwnProperty('viewport') && place.geometry.viewport) {
-                this.googleMap.fitBounds(place.geometry.viewport);
-            } else {
-                this.googleMap.panTo(place.geometry.location);
+        try {
+            const place = this.placesAutocomplete.getPlace();
+            if (place) {
+                if (place.geometry.hasOwnProperty('viewport') && place.geometry.viewport) {
+                    this.googleMap.fitBounds(place.geometry.viewport);
+                } else {
+                    this.googleMap.panTo(place.geometry.location);
+                }
+                this.markerPlacesSearch.setPosition(place.geometry.location);
+                this.markerPlacesSearch.setVisible(true);
+
+                const para = document.createElement('p');
+                const node = document.createTextNode(place.formatted_address);
+                para.appendChild(node);
+
+                const divContent = document.createElement('div');
+                divContent.appendChild(para);
+
+                markerInfoWindow.setContent(divContent);
+                markerInfoWindow.open(this.googleMap, this.markerPlacesSearch);
+
+                markerInfoWindow.addListener('closeclick', () => {
+                    this.markerPlacesSearch.setVisible(false);
+                });
             }
-            this.markerPlacesSearch.setPosition(place.geometry.location);
-            this.markerPlacesSearch.setVisible(true);
-
-            const para = document.createElement('p');
-            const node = document.createTextNode(place.formatted_address);
-            para.appendChild(node);
-
-            const divContent = document.createElement('div');
-            divContent.appendChild(para);
-
-            markerInfoWindow.setContent(divContent);
-            markerInfoWindow.open(this.googleMap, this.markerPlacesSearch);
-
-            markerInfoWindow.addListener('closeclick', () => {
-                this.markerPlacesSearch.setVisible(false);
-            });
+        } catch (error) {
+            // a catch when user hit enter without selecting any place
+            console.error(error);
         }
     }
 

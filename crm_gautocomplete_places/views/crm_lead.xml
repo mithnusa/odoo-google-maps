@@ -11,8 +11,8 @@
                 <attribute name="options">{
                     'fillfields': {
                         'geolocation': {
-                            'customer_latitude': 'latitude',
-                            'customer_longitude': 'longitude'
+                            'lat': 'customer_latitude',
+                            'lng': 'customer_longitude'
                         }
                     }
                 }</attribute>
@@ -22,8 +22,8 @@
                 <attribute name="options">{
                     'fillfields': {
                         'geolocation': {
-                            'customer_latitude': 'latitude',
-                            'customer_longitude': 'longitude'
+                            'lat': 'customer_latitude',
+                            'lng': 'customer_longitude'
                         }
                     }
                 }</attribute>

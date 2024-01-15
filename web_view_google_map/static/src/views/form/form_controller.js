@@ -27,11 +27,8 @@ patch(FormController.prototype, 'web_view_google_map', {
     },
     async editGeolocation() {
         const context = this.props.context;
-        const googleMapFormViewRef = archParseBoolean(
-            this.archInfo.xmlDoc.getAttribute('google_map_form_view_ref'),
-            false
-        );
-        if (googleMapFormViewRef) {
+        const googleMapFormViewRef = this.archInfo.xmlDoc.getAttribute('google_map_form_view_ref');
+        if (googleMapFormViewRef && typeof googleMapFormViewRef === 'string') {
             context['form_view_ref'] = googleMapFormViewRef;
             return this.model.actionService.doAction({
                 name: this.env._t('Edit Geolocation'),
