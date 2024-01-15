@@ -11,9 +11,9 @@
                 <attribute name="options">{
                     'fillfields': {
                         'geolocation': {
-                            'partner_latitude': 'latitude',
-                            'partner_longitude': 'longitude'
-                        }
+                            'lat': 'partner_latitude',
+                            'lng': 'partner_longitude'
+                        },
                     }
                 }</attribute>
             </xpath>
@@ -22,9 +22,9 @@
                 <attribute name="options">{
                     'fillfields': {
                         'geolocation': {
-                            'partner_latitude': 'latitude',
-                            'partner_longitude': 'longitude'
-                        }
+                            'lat': 'partner_latitude',
+                            'lng': 'partner_longitude'
+                        },
                     }
                 }</attribute>
             </xpath>
@@ -33,9 +33,9 @@
                 <attribute name="options">{
                     'fillfields': {
                         'geolocation': {
-                            'partner_latitude': 'latitude',
-                            'partner_longitude': 'longitude'
-                        }
+                            'lat': 'partner_latitude',
+                            'lng': 'partner_longitude'
+                        },
                     }
                 }</attribute>
             </xpath>

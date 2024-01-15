@@ -3,7 +3,6 @@
 import { _lt } from '@web/core/l10n/translation';
 import { formatChar } from '@web/views/fields/formatters';
 import { Component, onWillUnmount, onWillDestroy } from '@odoo/owl';
-import { useService } from '@web/core/utils/hooks';
 import {
     GOOGLE_PLACES_COMPONENT_FORM,
     ADDRESS_FORM,
@@ -15,9 +14,6 @@ import {
 
 export class BaseGoogleAutocomplete extends Component {
     setup() {
-        this.rpc = useService('rpc');
-        this.user = useService('user');
-
         this.settings = {};
         this.placesAutocomplete = false;
         this.component_form = GOOGLE_PLACES_COMPONENT_FORM;
@@ -48,7 +44,7 @@ export class BaseGoogleAutocomplete extends Component {
             if (this.placeAutocompleteListener) {
                 google.maps.event.removeListener(this.placeAutocompleteListener);
             }
-            // set display none for all pac-container residu on the dom
+            // set display none for all pac-container left over on the dom
             setTimeout(() => {
                 document.body.querySelectorAll('.pac-container').forEach((el) => {
                     el.style.display = 'none';
@@ -56,7 +52,7 @@ export class BaseGoogleAutocomplete extends Component {
             }, 500);
         });
         onWillDestroy(() => {
-            // set display none for all pac-container residu on the dom
+            // set display none for all pac-container left over on the dom
             setTimeout(() => {
                 document.body.querySelectorAll('.pac-container').forEach((el) => {
                     el.style.display = 'none';
@@ -104,42 +100,37 @@ export class BaseGoogleAutocomplete extends Component {
 
     async prepareOptions() {
         const { readonly, options } = this.props;
-        if (!readonly) {
-            if (options) {
-                if (options.hasOwnProperty('component_form')) {
-                    this.component_form = _.defaults(
-                        {},
-                        options.component_form,
-                        this.component_form
-                    );
+        if (!readonly && options) {
+            this.force_override = options.force_override || false;
+            if (options.hasOwnProperty('component_form')) {
+                this.component_form = _.defaults({}, options.component_form, this.component_form);
+            }
+            if (options.hasOwnProperty('delimiter')) {
+                this.fillfields_delimiter = _.defaults(
+                    {},
+                    options.delimiter,
+                    this.fillfields_delimiter
+                );
+            }
+            if (options.hasOwnProperty('lat')) {
+                this.fieldLat = options.lat;
+            }
+            if (options.hasOwnProperty('lng')) {
+                this.fieldLng = options.lng;
+            }
+            if (options.hasOwnProperty('address_form')) {
+                if (this.force_override) {
+                    this.address_form = options.address_form;
+                } else {
+                    this.address_form = _.defaults({}, options.address_form, this.address_form);
                 }
-                if (options.hasOwnProperty('delimiter')) {
-                    this.fillfields_delimiter = _.defaults(
-                        {},
-                        options.delimiter,
-                        this.fillfields_delimiter
-                    );
-                }
-                if (options.hasOwnProperty('lat')) {
-                    this.fieldLat = options.lat;
-                }
-                if (options.hasOwnProperty('lng')) {
-                    this.fieldLng = options.lng;
-                }
-                if (options.hasOwnProperty('address_form')) {
-                    if (this.force_override) {
-                        this.address_form = options.address_form;
-                    } else {
-                        this.address_form = _.defaults({}, options.address_form, this.address_form);
-                    }
-                }
-                if (options.hasOwnProperty('display_name')) {
-                    this.display_name = options.display_name;
-                }
-                if (options.hasOwnProperty('mode')) {
-                    this.address_mode =
-                        ADDRESS_MODE.indexOf(options.mode) != -1 ? options.mode : 'address_format';
-                }
+            }
+            if (options.hasOwnProperty('display_name')) {
+                this.display_name = options.display_name;
+            }
+            if (options.hasOwnProperty('mode')) {
+                this.address_mode =
+                    ADDRESS_MODE.indexOf(options.mode) != -1 ? options.mode : 'address_format';
             }
         }
     }
@@ -195,6 +186,15 @@ export class BaseGoogleAutocomplete extends Component {
             const value = { [this.address_form.state_id]: Object.values(result) };
             this._update(value);
         }
+    }
+
+    async prepareAddressFields(place) {
+        const address = await this.env.model.orm.call('res.country', 'prepare_google_address', [
+            [],
+            place.address_components,
+            this.address_form,
+        ]);
+        return address;
     }
 
     async populateAddress() {

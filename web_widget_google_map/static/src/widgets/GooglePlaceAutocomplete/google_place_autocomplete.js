@@ -1,14 +1,11 @@
 /** @odoo-module **/
 
-import { useRef, Component } from '@odoo/owl';
+import { useRef } from '@odoo/owl';
 import { registry } from '@web/core/registry';
 import { _lt } from '@web/core/l10n/translation';
 import { useInputField } from '@web/views/fields/input_field_hook';
 import { standardFieldProps } from '@web/views/fields/standard_field_props';
-import { formatChar } from '@web/views/fields/formatters';
-
 import { useGoogleMapLoader } from '@base_google_map/utils/base_google_map';
-
 import { BaseGoogleAutocomplete } from '../BaseGoogleAutocomplete/base_google_autocomplete';
 
 export class GooglePlaceAutocomplete extends BaseGoogleAutocomplete {
@@ -31,10 +28,7 @@ export class GooglePlaceAutocomplete extends BaseGoogleAutocomplete {
     }
 
     async onKeydownListener(ev) {
-        if (
-            ev.key === this.dynamicPlaceholder.TRIGGER_KEY &&
-            ev.target === this.input.el
-        ) {
+        if (ev.key === this.dynamicPlaceholder.TRIGGER_KEY && ev.target === this.input.el) {
             const baseModel = this.props.record.data.mailing_model_real;
             if (baseModel) {
                 await this.dynamicPlaceholder.open(this.input.el, baseModel, {
@@ -47,17 +41,12 @@ export class GooglePlaceAutocomplete extends BaseGoogleAutocomplete {
 
     onDynamicPlaceholderValidate(chain, defaultValue) {
         if (chain) {
-            const triggerKeyReplaceRegex = new RegExp(
-                `${this.dynamicPlaceholder.TRIGGER_KEY}$`
-            );
+            const triggerKeyReplaceRegex = new RegExp(`${this.dynamicPlaceholder.TRIGGER_KEY}$`);
             let dynamicPlaceholder = '{{object.' + chain.join('.');
             dynamicPlaceholder +=
-                defaultValue && defaultValue !== ''
-                    ? ` or '''${defaultValue}'''}}`
-                    : '}}';
+                defaultValue && defaultValue !== '' ? ` or '''${defaultValue}'''}}` : '}}';
             this.props.update(
-                this.input.el.value.replace(triggerKeyReplaceRegex, '') +
-                    dynamicPlaceholder
+                this.input.el.value.replace(triggerKeyReplaceRegex, '') + dynamicPlaceholder
             );
         }
     }
@@ -69,42 +58,37 @@ export class GooglePlaceAutocomplete extends BaseGoogleAutocomplete {
     defaultFillField() {
         super.defaultFillField();
         this.fillfields = {
+            // mapping general fields
+            // key: odoo field
+            // value: google place field
             general: {
                 name: 'name',
                 website: 'website',
                 phone: ['international_phone_number', 'formatted_phone_number'],
             },
+            // mapping address fields
+            // key: alias
+            // value: odoo field name
             address: {
-                street: ['street_number', 'route'],
-                street2: [
-                    'administrative_area_level_3',
-                    'administrative_area_level_4',
-                    'administrative_area_level_5',
-                ],
-                city: ['locality', 'administrative_area_level_2'],
-                zip: 'postal_code',
-                state_id: 'administrative_area_level_1',
-                country_id: 'country',
+                street: 'street',
+                street2: 'street2',
+                city: 'city',
+                zip: 'zip',
+                state_id: 'state_id',
+                country_id: 'country_id',
             },
+            // mapping geolocation fields
+            // key: alias
+            // value: odoo field name
+
+            // valid key(alias): lat & lng
+            // example:
+            // geolocation: {
+            //     lat: 'partner_latitude',
+            //     lng: 'partner_longitude',
+            // }
             geolocation: {},
         };
-    }
-
-    getFillFieldsType() {
-        if (!this.props.readonly && this.address_mode === 'address_format') {
-            const fieldsType = [];
-            Object.values(this.fillfields).forEach((option) => {
-                Object.keys(option).forEach((field) => {
-                    fieldsType.push({
-                        name: field,
-                        type: this.props.record.fields[field].type,
-                        relation: this.props.record.fields[field].relation,
-                    });
-                });
-            });
-            return fieldsType;
-        }
-        return [];
     }
 
     async prepareOptions() {
@@ -112,20 +96,19 @@ export class GooglePlaceAutocomplete extends BaseGoogleAutocomplete {
         const { readonly, options } = this.props;
         if (!readonly) {
             if (options) {
-                if (options.hasOwnProperty('force_override')) {
-                    this.force_override = true;
-                }
-
                 if (options.hasOwnProperty('fillfields')) {
                     if (options.fillfields.hasOwnProperty('address')) {
                         if (this.force_override) {
+                            this.address_form = options.fillfields.address;
                             this.fillfields['address'] = options.fillfields.address;
                         } else {
-                            this.fillfields['address'] = _.defaults(
+                            const address_fields = _.defaults(
                                 {},
                                 options.fillfields.address,
                                 this.fillfields.address
                             );
+                            this.address_form = address_fields;
+                            this.fillfields['address'] = address_fields;
                         }
                     }
 
@@ -146,7 +129,6 @@ export class GooglePlaceAutocomplete extends BaseGoogleAutocomplete {
                     }
                 }
             }
-            this.target_fields = this.getFillFieldsType();
             this.initGplacesAutocomplete();
         }
     }
@@ -163,77 +145,31 @@ export class GooglePlaceAutocomplete extends BaseGoogleAutocomplete {
     }
 
     _prepareGeolocation(lat, lng) {
-        const res = {};
+        const values = {};
         if (this.fillfields.geolocation) {
-            Object.keys(this.fillfields.geolocation).forEach((alias) => {
-                if (this.fillfields.geolocation[alias] === 'latitude') {
-                    res[alias] = lat;
-                }
-                if (this.fillfields.geolocation[alias] === 'longitude') {
-                    res[alias] = lng;
-                }
-            });
+            if (this.fillfields.geolocation.lat) {
+                values[this.fillfields.geolocation.lat] = lat;
+            }
+            if (this.fillfields.geolocation.lng) {
+                values[this.fillfields.geolocation.lng] = lng;
+            }
         }
-        return res;
+        return values;
     }
 
     async populateAddress(place) {
-        const requests = [];
-        let index_of_state = _.findIndex(
-            this.target_fields,
-            (f) => f.name === this.address_form.state_id
-        );
-        const target_fields = this.target_fields.slice();
-        const field_state =
-            index_of_state > -1 ? target_fields.splice(index_of_state, 1)[0] : false;
-
-        const google_address = this._prepareAddress(
-            place,
-            this.fillfields.address,
-            this.fillfields_delimiter
-        );
+        // address
+        const google_address = await this.prepareAddressFields(place);
+        // general info
         const google_place = this._preparePlace(place, this.fillfields.general);
+        // geolocation
         const google_geolocation = this._prepareGeolocation(
             place.geometry.location.lat(),
             place.geometry.location.lng()
         );
-        const values = Object.assign(google_address, google_place, google_geolocation);
-
-        target_fields.forEach((field) => {
-            requests.push(
-                this._prepareValue(field.relation, field.name, values[field.name])
-            );
-        });
-
-        const result = await Promise.all(requests);
-        const changes = {};
-
-        result.forEach((vals) => {
-            Object.keys(vals).forEach((key) => {
-                if (this.props.record.fields.hasOwnProperty(key)) {
-                    if (this.props.record.fields[key].type === 'char') {
-                        changes[key] = formatChar(vals[key]);
-                    } else if (this.props.record.fields[key].type === 'many2one') {
-                        changes[key] = Object.values(vals[key]);
-                    } else {
-                        changes[key] = vals[key];
-                    }
-                } else {
-                    changes[key] = vals[key];
-                }
-            });
-        });
-        changes[this.props.name] = changes[this.display_name] || place.name;
-        this._update(changes);
-        if (field_state) {
-            const country = Object.keys(changes).includes(this.address_form.country_id)
-                ? changes[this.address_form.country_id]
-                    ? changes[this.address_form.country_id][0]
-                    : false
-                : false;
-            const state_code = google_address[this.address_form.state_id];
-            await this.setCountryState(field_state.relation, country, state_code);
-        }
+        const values = Object.assign({}, google_address, google_place, google_geolocation);
+        values[this.props.name] = place.name;
+        this._update(values);
     }
 }
 

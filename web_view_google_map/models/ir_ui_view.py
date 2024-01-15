@@ -15,7 +15,7 @@ class IrUiView(models.Model):
     def get_google_form_view_id(self, model_name):
         domain = [('arch_db', 'ilike', 'js_class="google_map_form"'), ('model', '=', model_name)]
         view = self.sudo().search_read(domain, [], limit=1)
-        return view and view[0]['id']
+        return view and view[0]['id'] or False
 
     '''
     The following overwrite methods aims to allow render google_map view

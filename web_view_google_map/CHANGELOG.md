@@ -1,5 +1,8 @@
 # Change Log
 
+## 16.0.4.0.1
+- Bugs fixes and improvement
+
 ## 16.0.4.0.0
 - Support selection.
     - Added the ability to select marker(s) in the view and trigger an action. You can select markers by using the checkbox in the map sidebar or by holding the 'Shift' key and clicking on the desired markers.    
