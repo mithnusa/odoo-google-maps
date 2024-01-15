@@ -66,7 +66,7 @@ export class GoogleAddressAutocomplete extends BaseGoogleAutocomplete {
     _prepareGeolocation(lat, lng) {
         const values = {};
         const geoFields = [this.fieldLat, this.fieldLng];
-        if (Object.keys(this.props.record.fields).filter(field => geoFields.includes(field).length === 2)) {
+        if (Object.keys(this.props.record.fields).filter(field => geoFields.includes(field)).length === geoFields.length) {
             values[this.fieldLat] = lat;
             values[this.fieldLng] = lng;
         }
