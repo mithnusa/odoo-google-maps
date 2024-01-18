@@ -49,7 +49,61 @@ class ResCountry(models.Model):
         default=lambda self: self._default_google_country(),
     )
 
+    def _parse_google_address_settings(self, address_component, google_address):
+        """
+        Parse the Google address settings based on the given address component and Google address.
+
+        Args:
+            address_component (str): The address component to parse.
+            google_address (dict): The Google address dictionary.
+
+        Returns:
+            str: The parsed address based on the address component and Google address.
+        """
+        pattern = re.compile(r'[\|\ \,]')
+        separator = '++'
+        if not address_component or not isinstance(address_component, str):
+            return None
+
+        values = re.sub(pattern, separator, address_component.strip()).split(separator)
+        address = list(filter(None, [google_address.get(f) for f in values]))
+
+        if not address:
+            return None
+
+        if '|' in address_component:
+            return address and address[0] or ''
+        elif ',' in address_component:
+            return ', '.join(address)
+        else:
+            return ' '.join(address)
+
     def prepare_google_address(self, address_components, field_mapping):
+        """
+        Prepare the address dictionary based on the given address components and field mapping.
+
+        Args:
+            address_components (list): A list of address components returned by the Google Maps API.
+            field_mapping (dict): A dictionary mapping field names to corresponding keys in the address dictionary.
+
+        Returns:
+            dict: The prepared address dictionary.
+
+        """
+        if (
+            not address_components
+            or not isinstance(address_components, list)
+            or not field_mapping
+            or not isinstance(field_mapping, dict)
+        ):
+            return {}
+
+        if not all(
+            f in field_mapping.keys()
+            for f in ['street', 'street2', 'city', 'zip', 'state_id', 'country_id']
+        ):
+            return {}
+
         country_long_name = ''
         country_short_name = ''
 
@@ -86,78 +140,38 @@ class ResCountry(models.Model):
                     country_id.id,
                     country_id.name,
                 ]
-
-                pattern = re.compile(r'[\|\ \,]')
-                separator = '++'
-
-                # state
-                state_id = self.env['res.country.state'].search(
-                    [
-                        ('country_id', '=', country_id.id),
-                        '|',
-                        ('code', '=', state_short_name),
-                        ('name', '=', state_long_name),
-                    ],
-                    limit=1,
-                )
-                if state_id:
-                    address[field_mapping['state_id']] = [
-                        state_id.id,
-                        state_id.name,
-                    ]
+                if state_long_name or state_short_name:
+                    # state
+                    state_id = self.env['res.country.state'].search(
+                        [
+                            ('country_id', '=', country_id.id),
+                            '|',
+                            ('code', '=', state_short_name),
+                            ('name', '=', state_long_name),
+                        ],
+                        limit=1,
+                    )
+                    if state_id:
+                        address[field_mapping['state_id']] = [
+                            state_id.id,
+                            state_id.name,
+                        ]
 
                 # street
-                street = re.sub(
-                    pattern, separator, country_id.google_street.strip()
-                ).split(separator)
-                street_vals = list(
-                    filter(None, [google_address.get(f) for f in street])
+                address[field_mapping['street']] = self._parse_google_address_settings(
+                    country_id.google_street, google_address
                 )
-
-                if '|' in country_id.google_street:
-                    address[field_mapping['street']] = (
-                        street_vals and street_vals[0] or ''
-                    )
-                else:
-                    address[field_mapping['street']] = ' '.join(street_vals)
-
                 # street2
-                street2 = re.sub(
-                    pattern, separator, country_id.google_street2.strip()
-                ).split(separator)
-                street2_vals = list(
-                    filter(
-                        None, [google_address.get(f) or '' for f in street2]
-                    )
+                address[field_mapping['street2']] = self._parse_google_address_settings(
+                    country_id.google_street2, google_address
                 )
-
-                if '|' in country_id.google_street2:
-                    address[field_mapping['street2']] = (
-                        street2_vals and street2_vals[0] or ''
-                    )
-                elif ',' in country_id.google_street2:
-                    address[field_mapping['street2']] = ', '.join(street2_vals)
-                else:
-                    address[field_mapping['street2']] = ' '.join(street2_vals)
-
                 # city
-                city = re.sub(
-                    pattern, separator, country_id.google_city.strip()
-                ).split(separator)
-                city_vals = list(
-                    filter(None, [google_address.get(f) or '' for f in city])
+                address[field_mapping['city']] = self._parse_google_address_settings(
+                    country_id.google_city, google_address
                 )
-                address[field_mapping['city']] = (
-                    city_vals and city_vals[0] or ''
-                )
-
                 # zip
-                zip = re.sub(
-                    pattern, separator, country_id.google_zip.strip()
-                ).split(separator)
-                zip_vals = list(
-                    filter(None, [google_address.get(f) or '' for f in zip])
+                address[field_mapping['zip']] = self._parse_google_address_settings(
+                    country_id.google_zip, google_address
                 )
-                address[field_mapping['zip']] = zip_vals and zip_vals[0] or ''
 
         return address
