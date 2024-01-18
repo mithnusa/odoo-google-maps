@@ -1,5 +1,10 @@
 # Change Log
 
+## 16.0.2.0.4
+* Improvement    
+Update manifest, added module `web_widget_google_map`.
+
+
 ## 16.0.2.0.3    
 * Bug fixes and improvement    
     - Added support for dark mode. All elements in the Google Map view, specifically Google Places elements, will now adapt to the current active theme. This fixes an issue where the view would crash when switching to dark mode.
