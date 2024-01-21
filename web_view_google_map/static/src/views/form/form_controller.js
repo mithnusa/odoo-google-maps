@@ -1,17 +1,15 @@
 /** @odoo-module */
-
+import { _t } from '@web/core/l10n/translation';
 import { patch } from '@web/core/utils/patch';
-import { useService } from '@web/core/utils/hooks';
 import { onRendered, useState } from '@odoo/owl';
 import { FormController } from '@web/views/form/form_controller';
 import { archParseBoolean } from '@web/views/utils';
 import { WarningMissingGoogleMapFormViewDialog } from '../google_map_form/warning_missing_view_dialog/warning_missing_view_dialog';
 
-patch(FormController.prototype, 'web_view_google_map', {
+patch(FormController.prototype, {
     setup() {
-        this._super();
+        super.setup(...arguments);
         this.state = useState({ ...this.state, showEditGeolocation: false });
-        this.actionService = useService('action');
         onRendered(() => {
             const js_class = this.archInfo.xmlDoc.getAttribute('js_class') || '';
             const editGeolocation = archParseBoolean(
@@ -33,14 +31,14 @@ patch(FormController.prototype, 'web_view_google_map', {
         );
         if (googleMapFormViewRef) {
             context['form_view_ref'] = googleMapFormViewRef;
-            return this.model.actionService.doAction({
-                name: this.env._t('Edit Geolocation'),
+            return this.model.action.doAction({
+                name: _t('Edit Geolocation'),
                 type: 'ir.actions.act_window',
                 views: [[false, 'form']],
                 view_mode: 'form',
                 res_model: this.props.resModel,
-                res_id: this.model.root.data.id,
-                target: 'current',
+                res_id: this.model.root.resId,
+                target: 'new',
                 context,
             });
         }
@@ -52,15 +50,27 @@ patch(FormController.prototype, 'web_view_google_map', {
             this.dialogService.add(WarningMissingGoogleMapFormViewDialog, {});
             return;
         }
-        return this.model.actionService.doAction({
-            name: this.env._t('Edit Geolocation'),
+        return this.model.action.doAction({
+            name: _t('Edit Geolocation'),
             type: 'ir.actions.act_window',
             views: [[viewId, 'form']],
             view_mode: 'form',
             res_model: this.props.resModel,
-            res_id: this.model.root.data.id,
-            target: 'current',
+            res_id: this.model.root.resId,
+            target: 'new',
             context,
         });
+    },
+
+    getStaticActionMenuItems() {
+        const menuItems = super.getStaticActionMenuItems();
+        menuItems.editGeolocation = {
+            callback: () => this.editGeolocation(),
+            description: _t('Geolocate'),
+            icon: 'fa fa-map-marker',
+            isAvailable: () => this.state.showEditGeolocation,
+            sequence: 50,
+        };
+        return menuItems;
     },
 });

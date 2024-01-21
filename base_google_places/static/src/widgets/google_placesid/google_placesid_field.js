@@ -1,7 +1,7 @@
 /** @odoo-module **/
 
 import { registry } from '@web/core/registry';
-import { _lt } from '@web/core/l10n/translation';
+import { _t } from '@web/core/l10n/translation';
 import { standardFieldProps } from '@web/views/fields/standard_field_props';
 import { CharField } from '@web/views/fields/char/char_field';
 import { Component, useRef } from '@odoo/owl';
@@ -10,6 +10,12 @@ import { useGoogleMapLoader } from '@base_google_map/utils/base_google_map';
 import { preparePlaces } from '../../views/utils';
 
 export class GooglePlacesIdCharField extends Component {
+    static template = 'base_google_places.GooglePlacesIdCharField';
+    static components = { Field: CharField };
+    static props = {
+        ...standardFieldProps,
+        placeholder: { type: String, optional: true },
+    };
     setup() {
         this.button = useRef('button');
         this.rpc = useService('rpc');
@@ -55,58 +61,50 @@ export class GooglePlacesIdCharField extends Component {
         }
     }
     async onClick() {
-        if (!this.props.value) return;
+        if (!this.props.record.data[this.props.name]) return;
         this._toogleAnimateButtonDisable();
-        this.placeService.getDetails(
-            { placeId: this.props.value },
-            async (place, status) => {
-                this._toogleAnimateButtonEnable();
-                if (status === google.maps.places.PlacesServiceStatus.OK) {
-                    const values = await preparePlaces(
-                        this.env.model.orm,
-                        this.props.record.activeFields,
-                        place
-                    );
-                    const data = await this.env.model.orm.call(
-                        this.props.record.resModel,
-                        'action_google_place_update',
-                        [{ place, values }]
-                    );
-                    if (data) {
-                        await this.props.record.update(data);
-                    }
-                } else {
-                    this.notification.add(
-                        this.env._t('Failed to fetch Google place detail'),
-                        {
-                            type: 'warning',
-                        }
-                    );
+        this.placeService.getDetails({ placeId: this.props.record.data[this.props.name] }, async (place, status) => {
+            this._toogleAnimateButtonEnable();
+            if (status === google.maps.places.PlacesServiceStatus.OK) {
+                const values = await preparePlaces(
+                    this.env.model.orm,
+                    this.props.record.activeFields,
+                    place
+                );
+                const data = await this.env.model.orm.call(
+                    this.props.record.resModel,
+                    'action_google_place_update',
+                    [{ place, values }]
+                );
+                if (data) {
+                    await this.props.record.update(data);
                 }
+            } else {
+                this.notification.add(_t('Failed to fetch Google place detail'), {
+                    type: 'warning',
+                });
             }
-        );
+        });
     }
     _toogleAnimateButtonDisable() {
         this.button.el.classList.toggle('disabled', true);
         this.button.el.querySelector('.fa').classList.remove('fa-cloud-download');
-        this.button.el
-            .querySelector('.fa')
-            .classList.add('fa-spin', 'fa-circle-o-notch');
+        this.button.el.querySelector('.fa').classList.add('fa-spin', 'fa-circle-o-notch');
     }
     _toogleAnimateButtonEnable() {
         this.button.el.classList.toggle('disabled', false);
         this.button.el.querySelector('.fa').classList.add('fa-cloud-download');
-        this.button.el
-            .querySelector('.fa')
-            .classList.remove('fa-spin', 'fa-circle-o-notch');
+        this.button.el.querySelector('.fa').classList.remove('fa-spin', 'fa-circle-o-notch');
     }
 }
-GooglePlacesIdCharField.template = 'base_google_places.GooglePlacesIdCharField';
-GooglePlacesIdCharField.components = { Field: CharField };
-GooglePlacesIdCharField.displayName = _lt('Google Places ID');
-GooglePlacesIdCharField.supportedTypes = ['char'];
-GooglePlacesIdCharField.props = {
-    ...standardFieldProps,
+
+export const googlePlacesIdCharField = {
+    component: GooglePlacesIdCharField,
+    displayName: _t('Google Places ID'),
+    supportedTypes: ['char'],
+    extractProps: ({ attrs }) => ({
+        placeholder: attrs.placeholder,
+    }),
 };
 
-registry.category('fields').add('GooglePlacesIdChar', GooglePlacesIdCharField);
+registry.category('fields').add('GooglePlacesIdChar', googlePlacesIdCharField);

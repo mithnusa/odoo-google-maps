@@ -1,5 +1,6 @@
 /** @odoo-module **/
 
+import { _t } from '@web/core/l10n/translation';
 import { Component, useRef, onRendered, useState, onWillUnmount, useEffect } from '@odoo/owl';
 import { renderToString } from '@web/core/utils/render';
 import { sprintf } from '@web/core/utils/strings';
@@ -8,6 +9,10 @@ import { GooglePlacesResult } from './google_places_result';
 import { preparePlaces } from '../utils';
 
 export class GooglePlacesAutocompleteSidebar extends Component {
+    static template = 'base_google_places.SidebarPlacesAutocomplete';
+    static components = { GooglePlacesResult };
+    static props = ['settings', 'isComponentFolded', 'googleMap', 'placeService'];
+
     setup() {
         this.searchBoxRef = useRef('searchBox');
         this.searchResultRef = useRef('searchResultBox');
@@ -163,7 +168,7 @@ export class GooglePlacesAutocompleteSidebar extends Component {
                 this.addPlace(place);
             } else {
                 console.warn(status);
-                this.notification.add(this.env._t('Failed to fetch place detail.'), {
+                this.notification.add(_t('Failed to fetch place detail.'), {
                     type: 'warning',
                 });
             }
@@ -183,13 +188,13 @@ export class GooglePlacesAutocompleteSidebar extends Component {
                     if (result.place_id) {
                         this.handleClickItemAdd(result);
                     } else {
-                        this.notification.add(this.env._t('Failed to fetch place detail'), {
+                        this.notification.add(_t('Failed to fetch place detail'), {
                             type: 'warning',
                         });
                     }
                 } else {
                     console.warn(status);
-                    this.notification.add(this.env._t('Failed to fetch place detail'), {
+                    this.notification.add(_t('Failed to fetch place detail'), {
                         type: 'warning',
                     });
                 }
@@ -197,7 +202,7 @@ export class GooglePlacesAutocompleteSidebar extends Component {
             .catch((err) => {
                 this.ui.unblock();
                 console.error(err);
-                this.notification.add(this.env._t('Failed to fetch place detail'), {
+                this.notification.add(_t('Failed to fetch place detail'), {
                     type: 'danger',
                 });
             });
@@ -250,7 +255,7 @@ export class GooglePlacesAutocompleteSidebar extends Component {
             this.props.placeService.nearbySearch(request, (places, status, pagination) => {
                 if (status !== 'OK' || !places) {
                     this.notification.add(
-                        this.env._t('Search failed. No places found in the current search area'),
+                        _t('Search failed. No places found in the current search area'),
                         { type: 'warning' }
                     );
                     return;
@@ -367,7 +372,7 @@ export class GooglePlacesAutocompleteSidebar extends Component {
             // update places state
             this.state.places = [...this.placesResult];
         } else {
-            this.notification.add(this.env._t('No places is found'), {
+            this.notification.add(_t('No places is found'), {
                 type: 'warning',
             });
         }
@@ -411,12 +416,12 @@ export class GooglePlacesAutocompleteSidebar extends Component {
      */
     actionShowPlace(record) {
         this.notification.add(
-            sprintf(this.env._t('The place "%s" was already created'), record.display_name),
+            sprintf(_t('The place "%s" was already created'), record.display_name),
             { type: 'info' }
         );
         this.env.model.action.doAction(
             {
-                name: sprintf(this.env._t('Update Place: %s'), record.display_name),
+                name: sprintf(_t('Update Place: %s'), record.display_name),
                 type: 'ir.actions.act_window',
                 res_model: this.env.model.root.resModel,
                 res_id: record.id,
@@ -444,7 +449,7 @@ export class GooglePlacesAutocompleteSidebar extends Component {
         const context = Object.assign({}, this.env.model.user.context, values);
         this.env.model.action.doAction(
             {
-                name: sprintf(this.env._t('New Place: %s'), display_name),
+                name: sprintf(_t('New Place: %s'), display_name),
                 type: 'ir.actions.act_window',
                 res_model: this.env.model.env.searchModel.resModel,
                 views: [[false, 'form']],
@@ -479,11 +484,11 @@ export class GooglePlacesAutocompleteSidebar extends Component {
             setTimeout(() => {
                 this.centerMapToCurrentSearchResult();
                 if (mode === 'create') {
-                    this.notification.add(this.env._t('New place is created successfully'), {
+                    this.notification.add(_t('New place is created successfully'), {
                         type: 'success',
                     });
                 } else if (mode === 'write') {
-                    this.notification.add(this.env._t('Place is updated successfully'), {
+                    this.notification.add(_t('Place is updated successfully'), {
                         type: 'success',
                     });
                 }
@@ -533,7 +538,7 @@ export class GooglePlacesAutocompleteSidebar extends Component {
                         await this.addPlace(place);
                     } else {
                         console.warn(status);
-                        this.notification.add(this.env._t('Failed to fetch place detail'), {
+                        this.notification.add(_t('Failed to fetch place detail'), {
                             type: 'warning',
                         });
                     }
@@ -561,12 +566,3 @@ export class GooglePlacesAutocompleteSidebar extends Component {
         }
     }
 }
-
-GooglePlacesAutocompleteSidebar.template = 'base_google_places.SidebarPlacesAutocomplete';
-GooglePlacesAutocompleteSidebar.components = { GooglePlacesResult };
-GooglePlacesAutocompleteSidebar.props = [
-    'settings',
-    'isComponentFolded',
-    'googleMap',
-    'placeService',
-];

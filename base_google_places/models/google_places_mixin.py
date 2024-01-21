@@ -51,19 +51,6 @@ PLACES_FIELDS = [
     'url',
 ]
 
-ADDRESS_FIELS_MAPPING = {
-    'street': ['route', 'street_number'],
-    'street2': [
-        'administrative_area_level_3',
-        'administrative_area_level_4',
-        'administrative_area_level_5',
-    ],
-    'city': ['administrative_area_level_2', 'locality'],
-    'zip': ['postal_code'],
-    'state_id': ['administrative_area_level_1'],
-    'country_id': ['country'],
-}
-
 
 class GooglePlacesMixin(models.AbstractModel):
     _name = 'google.places.mixin'
@@ -193,56 +180,19 @@ class GooglePlacesMixin(models.AbstractModel):
 
         return values
 
-    def _prepare_address_fields(
-        self, address_components, mode='create', field_mapping=None
-    ):
-        if field_mapping is None:
-            field_mapping = ADDRESS_FIELS_MAPPING
-
-        address = self._mapping_address(address_components, field_mapping)
-        country_id = None
-
+    def _prepare_address_fields(self, address_components, mode='create'):
         odoo_fields = self._get_mapping_odoo_fields()
-        country_field = odoo_fields.get('country_id')
-        state_field = odoo_fields.get('state_id')
-        if address.get(country_field):
-            country_id = self.env['res.country'].search(
-                [
-                    '|',
-                    ('name', '=', address[country_field]),
-                    ('code', '=', address[country_field]),
-                ]
-            )
-            if country_id:
-                if mode == 'create':
-                    address[country_field] = country_id.id
-                elif mode == 'write':
-                    address[country_field] = [
-                        country_id.id,
-                        country_id.display_name,
-                    ]
-            else:
-                address.pop(country_field, None)
+        google_address = self.env['res.country'].prepare_google_address(
+            address_components, odoo_fields
+        )
 
-        if address.get(state_field) and country_id:
-            state_id = self.env['res.country.state'].search(
-                [
-                    ('country_id', '=', country_id.id),
-                    '|',
-                    ('name', '=', address[state_field]),
-                    ('code', '=', address[state_field]),
-                ],
-                limit=1,
-            )
-            if state_id:
-                if mode == 'create':
-                    address[state_field] = state_id.id
-                elif mode == 'write':
-                    address[state_field] = [state_id.id, state_id.display_name]
-            else:
-                address.pop(state_field, None)
+        if mode == 'create':
+            if google_address.get('country_id'):
+                google_address['country_id'] = google_address['country_id'][0]
+            if google_address.get('state_id'):
+                google_address['state_id'] = google_address['state_id'][0]
 
-        return address
+        return google_address
 
     @api.model
     def action_google_place_quick_create(self, place_dict):
@@ -259,18 +209,13 @@ class GooglePlacesMixin(models.AbstractModel):
             values = self.default_get(self._fields.keys())
 
         place = place_dict.get('place')
-        address_components = place.get('address_components')
-        location = (place.get('geometry') or {}).get('location') or {}
         place.pop('photos', None)
+
         places_value = place_dict.get('values') or {}
         values.update(places_value)
 
-        if values.get('gplace_type_ids'):
-            gplace_type_ids = values['gplace_type_ids'].get('resIds') or []
-            values['gplace_type_ids'] = [(6, 0, gplace_type_ids)]
-
-        odoo_fields = self._get_mapping_odoo_fields()
         if place:
+            odoo_fields = self._get_mapping_odoo_fields()
             if odoo_fields.get('name') and place.get('name'):
                 values[odoo_fields['name']] = place['name']
 
@@ -285,6 +230,7 @@ class GooglePlacesMixin(models.AbstractModel):
                 ]
 
             # address
+            address_components = place.get('address_components')
             if address_components:
                 address_values = self._prepare_address_fields(
                     address_components
@@ -292,6 +238,7 @@ class GooglePlacesMixin(models.AbstractModel):
                 values.update(address_values)
 
             # geolocation
+            location = (place.get('geometry') or {}).get('location') or {}
             if location:
                 geo_values = self._prepare_geolocation_fields(
                     odoo_fields, location
@@ -320,9 +267,6 @@ class GooglePlacesMixin(models.AbstractModel):
     def action_google_place_update(self, place_dict):
         values = {}
         place = place_dict.get('place')
-        address_components = place.get('address_components')
-
-        location = (place.get('geometry') or {}).get('location') or {}
         place.pop('photos', None)
 
         places_value = place_dict.get('values') or {}
@@ -344,6 +288,7 @@ class GooglePlacesMixin(models.AbstractModel):
                 ]
 
             # address
+            address_components = place.get('address_components')
             if address_components:
                 address_values = self._prepare_address_fields(
                     address_components,
@@ -352,6 +297,7 @@ class GooglePlacesMixin(models.AbstractModel):
                 values.update(address_values)
 
             # geolocation
+            location = (place.get('geometry') or {}).get('location') or {}
             if location:
                 geo_values = self._prepare_geolocation_fields(
                     odoo_fields, location
@@ -366,6 +312,12 @@ class GooglePlacesMixin(models.AbstractModel):
                 image = self._google_get_place_image(photos[0])
                 if image:
                     values['image_1920'] = image
+
+            if place.get('types'):
+                types_ids = self.env['google.places.type'].search(
+                    [('code', 'in', place['types'])]
+                )
+                values['gplace_type_ids'] = [(6, 0, types_ids.ids)]
 
         return values
 

@@ -1,11 +1,14 @@
 /** @odoo-module **/
 
 import { registry } from '@web/core/registry';
-import { _lt } from '@web/core/l10n/translation';
-import { GoogleAddressAutocomplete } from '@web_widget_google_map/widgets/GoogleAddressAutocomplete/google_address_autocomplete';
+import { _t } from '@web/core/l10n/translation';
+import {
+    GoogleAddressAutocompleteField,
+    googleAddressAutocompleteField,
+} from '@web_widget_google_map/widgets/GoogleAddressAutocomplete/google_address_autocomplete';
 import { getPlaceProperties } from '../utils';
 
-export class GoogleAddressAutocompleteExtended extends GoogleAddressAutocomplete {
+export class GoogleAddressAutocompleteExtendedField extends GoogleAddressAutocompleteField {
     getGoogleFieldsRestriction() {
         const fields = super.getGoogleFieldsRestriction();
         return fields.concat([
@@ -28,10 +31,13 @@ export class GoogleAddressAutocompleteExtended extends GoogleAddressAutocomplete
         this._update(gplaces);
     }
 }
-GoogleAddressAutocompleteExtended.displayName = _lt(
-    'Google Address Form Autocomplete Extended'
-);
+
+export const googleAddressAutocompleteExtendedField = {
+    ...googleAddressAutocompleteField,
+    component: GoogleAddressAutocompleteExtendedField,
+    displayName: _t('Google Address Form Autocomplete Extended'),
+};
 
 registry
     .category('fields')
-    .add('gplaces_address_autocomplete_extended', GoogleAddressAutocompleteExtended);
+    .add('gplaces_address_autocomplete_extended', googleAddressAutocompleteExtendedField);

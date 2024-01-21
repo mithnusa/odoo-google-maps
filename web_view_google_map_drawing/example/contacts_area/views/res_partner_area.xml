@@ -19,26 +19,26 @@
                                 <span>m</span>
                                 <sup>2</sup>
                             </div>
-                            <label for="gshape_radius" attrs="{'invisible':[('gshape_type', '!=', 'circle')]}"/>
-                            <div attrs="{'invisible':[('gshape_type', '!=', 'circle')]}">
+                            <label for="gshape_radius" invisible="gshape_type != 'circle'"/>
+                            <div invisible="gshape_type != 'circle'">
                                 <field name="gshape_radius" class="oe_inline" nolabel="1"/>
                                 <span>m</span>
                             </div>
-                            <label for="gshape_width" attrs="{'invisible':[('gshape_type', '!=', 'rectangle')]}"/>
-                            <div attrs="{'invisible':[('gshape_type', '!=', 'rectangle')]}">
+                            <label for="gshape_width" invisible="gshape_type != 'rectangle'"/>
+                            <div invisible="gshape_type != 'rectangle'">
                                 <field name="gshape_width" nolabel="1" class="oe_inline"/>
                                 <span>m</span>
                             </div>
-                            <label for="gshape_height" attrs="{'invisible':[('gshape_type', '!=', 'rectangle')]}"/>
-                            <div attrs="{'invisible':[('gshape_type', '!=', 'rectangle')]}">
+                            <label for="gshape_height" invisible="gshape_type != 'rectangle'"/>
+                            <div invisible="gshape_type != 'rectangle'">
                                 <field name="gshape_height" nolabel="1" class="oe_inline"/>
                                 <span>m</span>
                             </div>
                         </group>
                     </group>
                     <field name="gshape_description" placeholder="Description"/>
-                    <separator string="Polygon Lines" attrs="{'invisible':[('gshape_type', '!=', 'polygon')]}"/>
-                    <field nolabel="1" class="oe_inline" name="gshape_polygon_lines" attrs="{'invisible':[('gshape_type', '!=', 'polygon')]}"/>
+                    <separator string="Polygon Lines" invisible="gshape_type != 'polygon'"/>
+                    <field nolabel="1" class="oe_inline" name="gshape_polygon_lines" invisible="gshape_type != 'polygon'"/>
                     <field name="gshape_paths" widget="google_map_drawing"/>
                 </sheet>
             </form>

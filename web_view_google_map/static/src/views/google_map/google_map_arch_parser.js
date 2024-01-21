@@ -1,46 +1,26 @@
 /** @odoo-module **/
 
-import { addFieldDependencies, getActiveActions, archParseBoolean } from '@web/views/utils';
-import { XMLParser } from '@web/core/utils/xml';
+import { visitXML } from '@web/core/utils/xml';
 import { Field } from '@web/views/fields/field';
+import { stringToOrderBy } from '@web/search/utils/order_by';
+import { getActiveActions, archParseBoolean, processButton } from '@web/views/utils';
 
-export class GoogleMapArchParser extends XMLParser {
-    parse(arch, models, modelName) {
-        const xmlDoc = this.parseXML(arch);
+export class GoogleMapArchParser {
+    parse(xmlDoc, models, modelName) {
         const className = xmlDoc.getAttribute('class') || null;
-        const limit = xmlDoc.getAttribute('limit');
         const jsClass = xmlDoc.getAttribute('js_class');
-        const action = xmlDoc.getAttribute('action');
-        const type = xmlDoc.getAttribute('type');
-        const markerColor = xmlDoc.getAttribute('color');
-        const markerIcon = xmlDoc.getAttribute('marker_icon');
-        const markerIconScale = xmlDoc.getAttribute('icon_scale') || 1.0;
-        const latitudeField = xmlDoc.getAttribute('lat');
-        const longitudeField = xmlDoc.getAttribute('lng');
-        const sidebarTitleField = xmlDoc.getAttribute('sidebar_title');
-        const sidebarSubtitleField = xmlDoc.getAttribute('sidebar_subtitle');
-        const onCreate = xmlDoc.getAttribute('on_create');
-        const gestureHandling = xmlDoc.getAttribute('gesture_handling') || false;
-        const disableMarkerCluster = archParseBoolean(
-            xmlDoc.getAttribute('disable_cluster_marker'),
-            false
-        );
-
-        const fieldNodes = {};
 
         const viewTitle = xmlDoc.getAttribute('string') || 'Google Map';
 
-        const openAction = action && type ? { action, type } : null;
-        const activeFields = {};
-
+        const fieldNodes = {};
         const googleMapAttr = {};
+        const fieldNextIds = {};
+        const creates = [];
 
-        const columns = [];
         let nextId = 0;
+        const columns = [];
 
-        // Root level of the template
-        this.visitXML(xmlDoc, (node) => {
-            // Case: field node
+        visitXML(xmlDoc, (node) => {
             if (node.tagName === 'field') {
                 const fieldInfo = Field.parseFieldNode(
                     node,
@@ -49,26 +29,41 @@ export class GoogleMapArchParser extends XMLParser {
                     'google_map',
                     jsClass
                 );
-                const name = fieldInfo.name;
-                fieldNodes[name] = fieldInfo;
-                node.setAttribute('field_id', name);
-                addFieldDependencies(
-                    activeFields,
-                    models[modelName],
-                    fieldInfo.FieldComponent.fieldDependencies
-                );
-                if (this.isColumnVisible(fieldInfo.modifiers.column_invisible)) {
-                    const label = fieldInfo.FieldComponent.label;
-                    columns.push({
-                        ...fieldInfo,
-                        id: `column_${nextId++}`,
-                        className: node.getAttribute('class'), // for oe_edit_only and oe_read_only
-                        optional: node.getAttribute('optional') || false,
-                        type: 'field',
-                        hasLabel: !(fieldInfo.noLabel || fieldInfo.FieldComponent.noLabel),
-                        label: (fieldInfo.widget && label && label.toString()) || fieldInfo.string,
-                    });
+                if (!(fieldInfo.name in fieldNextIds)) {
+                    fieldNextIds[fieldInfo.name] = 0;
                 }
+                const fieldId = `${fieldInfo.name}_${fieldNextIds[fieldInfo.name]++}`;
+                fieldNodes[fieldId] = fieldInfo;
+                node.setAttribute('field_id', fieldId);
+                const label = fieldInfo.field.label;
+                columns.push({
+                    ...fieldInfo,
+                    id: `column_${nextId++}`,
+                    className: node.getAttribute('class'), // for oe_edit_only and oe_read_only
+                    optional: node.getAttribute('optional') || false,
+                    type: 'field',
+                    hasLabel: !(
+                        archParseBoolean(fieldInfo.attrs.nolabel) || fieldInfo.field.noLabel
+                    ),
+                    label: (fieldInfo.widget && label && label.toString()) || fieldInfo.string,
+                });
+                return false;
+            } else if (node.tagName === 'control') {
+                for (const childNode of node.children) {
+                    if (childNode.tagName === 'button') {
+                        creates.push({
+                            type: 'button',
+                            ...processButton(childNode),
+                        });
+                    } else if (childNode.tagName === 'create') {
+                        creates.push({
+                            type: 'create',
+                            context: childNode.getAttribute('context'),
+                            string: childNode.getAttribute('string'),
+                        });
+                    }
+                }
+                return false;
             } else if (node.tagName === 'google_map') {
                 const activeActions = {
                     ...getActiveActions(xmlDoc),
@@ -78,42 +73,64 @@ export class GoogleMapArchParser extends XMLParser {
                 googleMapAttr.multiEdit = activeActions.edit
                     ? archParseBoolean(node.getAttribute('multi_edit') || '')
                     : false;
+
+                const limitAttr = node.getAttribute('limit');
+                googleMapAttr.limit = limitAttr && parseInt(limitAttr, 10);
+
+                const countLimitAttr = node.getAttribute('count_limit');
+                googleMapAttr.countLimit = countLimitAttr && parseInt(countLimitAttr, 10);
+
+                googleMapAttr.defaultOrder = stringToOrderBy(
+                    xmlDoc.getAttribute('default_order') || null
+                );
+
                 // custom open action when clicking on record row
                 const action = xmlDoc.getAttribute('action');
                 const type = xmlDoc.getAttribute('type');
                 googleMapAttr.openAction = action && type ? { action, type } : null;
+
+                const markerColor = xmlDoc.getAttribute('color');
+                googleMapAttr.markerColor = markerColor;
+
+                const markerIcon = xmlDoc.getAttribute('marker_icon');
+                googleMapAttr.markerIcon = markerIcon;
+
+                const markerIconScale = xmlDoc.getAttribute('icon_scale') || 1.0;
+                googleMapAttr.markerIconScale = markerIconScale;
+
+                const latitudeField = xmlDoc.getAttribute('lat');
+                googleMapAttr.latitudeField = latitudeField;
+
+                const longitudeField = xmlDoc.getAttribute('lng');
+                googleMapAttr.longitudeField = longitudeField;
+
+                const sidebarTitleField = xmlDoc.getAttribute('sidebar_title');
+                googleMapAttr.sidebarTitleField = sidebarTitleField;
+
+                const sidebarSubtitleField = xmlDoc.getAttribute('sidebar_subtitle');
+                googleMapAttr.sidebarSubtitleField = sidebarSubtitleField;
+
+                const onCreate = xmlDoc.getAttribute('on_create');
+                googleMapAttr.onCreate = onCreate;
+
+                const gestureHandling = xmlDoc.getAttribute('gesture_handling') || false;
+                googleMapAttr.gestureHandling = gestureHandling;
+
+                const disableMarkerCluster = archParseBoolean(
+                    xmlDoc.getAttribute('disable_cluster_marker'),
+                    false
+                );
+                googleMapAttr.disableMarkerCluster = disableMarkerCluster;
             }
         });
-
-        for (const [key, field] of Object.entries(fieldNodes)) {
-            activeFields[key] = field; // TODO process
-        }
-
         return {
-            arch,
-            activeFields,
+            creates,
             columns,
             className,
             fieldNodes,
-            latitudeField,
-            longitudeField,
-            sidebarTitleField,
-            sidebarSubtitleField,
             viewTitle,
-            onCreate,
-            openAction,
-            gestureHandling,
-            markerColor,
-            markerIcon,
-            markerIconScale,
-            disableMarkerCluster,
+            xmlDoc,
             ...googleMapAttr,
-            limit: limit && parseInt(limit, 10),
-            examples: xmlDoc.getAttribute('examples'),
-            __rawArch: arch,
         };
-    }
-    isColumnVisible(columnInvisibleModifier) {
-        return columnInvisibleModifier !== true;
     }
 }

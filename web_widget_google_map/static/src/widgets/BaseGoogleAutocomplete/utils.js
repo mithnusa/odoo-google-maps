@@ -52,13 +52,7 @@ export const ADDRESS_FORM = {
 };
 
 export const ADDRESS_MODE = ['address_format', 'no_address_format'];
-export const AUTOCOMPLETE_TYPES = [
-    'geocode',
-    'address',
-    'establishment',
-    'regions',
-    'cities',
-];
+export const AUTOCOMPLETE_TYPES = ['geocode', 'address', 'establishment', 'regions', 'cities'];
 
 /**
  *
@@ -99,12 +93,7 @@ export function fetchCountryState(ormService, model, country, state) {
         return new Promise(async (resolve) => {
             const data = await ormService.searchRead(
                 model,
-                [
-                    ['country_id', '=', country],
-                    '|',
-                    ['code', '=', state],
-                    ['name', '=', state],
-                ],
+                [['country_id', '=', country], '|', ['code', '=', state], ['name', '=', state]],
                 ['display_name'],
                 { limit: 1 }
             );
@@ -141,16 +130,22 @@ export function gmaps_get_geolocation(place, options) {
  * @param {*} place_options
  */
 export function gmaps_populate_places(place, place_options) {
-    if (!place) return {};
-
     const values = {};
-    let vals;
-    _.each(place_options, (option, field) => {
-        if (option instanceof Array && !_.has(values, field)) {
-            vals = _.filter(_.map(option, (opt) => place[opt] || false));
-            values[field] = _.first(vals) || '';
+    if (!place) {
+        return values;
+    }
+    Object.keys(place_options).forEach((key) => {
+        if (Array.isArray(place_options[key])) {
+            let vals = [];
+            place_options[key].forEach((opt) => {
+                let val = place[opt] || false;
+                if (val) {
+                    vals.push(val);
+                }
+            });
+            values[key] = vals.length > 0 ? vals[0] : false;
         } else {
-            values[field] = place[option] || '';
+            values[key] = place[place_options[key]] || false;
         }
     });
     return values;

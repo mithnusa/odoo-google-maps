@@ -30,16 +30,17 @@ export function getPlaceProperties(ormService, record_fields, place) {
             res['gplace_plus_code_global'] = place.plus_code.global_code;
             res['gplace_plus_code_compound'] = place.plus_code.compound_code;
         }
-        if (place.photos) {
-            const photos = [];
-            _.map(place.photos, (photo, idx) => {
-                if (idx < 3) {
-                    const photo_url = photo.getUrl({ maxWidth: 480 });
-                    photos.push(photo_url);
-                }
-            });
-            res['gplace_photos_url'] = photos.join(',');
-        }
+        // Uncomment this if you want to store the photos url in the database
+        // if (place.photos) {
+        //     const photos = [];
+        //     _.map(place.photos, (photo, idx) => {
+        //         if (idx < 3) {
+        //             const photo_url = photo.getUrl({ maxWidth: 480 });
+        //             photos.push(photo_url);
+        //         }
+        //     });
+        //     res['gplace_photos_url'] = photos.join(',');
+        // }
         return new Promise(async (resolve) => {
             if (place.types) {
                 const records = await ormService.searchRead(
@@ -47,10 +48,7 @@ export function getPlaceProperties(ormService, record_fields, place) {
                     [['code', 'in', place.types]],
                     ['display_name']
                 );
-                res['gplace_type_ids'] = {
-                    operation: 'REPLACE_WITH',
-                    resIds: records.map((v) => v.id),
-                };
+                res['gplace_type_ids'] = [[6, false, records.map((v) => v.id)]];
             }
             resolve(res);
         });

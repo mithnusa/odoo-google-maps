@@ -1,7 +1,7 @@
 /** @odoo-module **/
+import { _t } from '@web/core/l10n/translation';
 import { Component, useEffect, useState, onMounted } from '@odoo/owl';
 import { AlertDialog } from '@web/core/confirmation_dialog/confirmation_dialog';
-import { _lt } from '@web/core/l10n/translation';
 import { useService } from '@web/core/utils/hooks';
 import { MAP_THEMES } from './themes';
 
@@ -108,8 +108,8 @@ export class BaseGoogleMap extends Component {
             (loaderStatus) => {
                 if (loaderStatus === LOADER_STATUS.FAILURE) {
                     this.dialog.add(AlertDialog, {
-                        title: this.env._t('Configuration'),
-                        body: this.env._t(
+                        title: _t('Configuration'),
+                        body: _t(
                             'Something went wrong!\nGoogle Maps is not load correctly.\nSee the JavaScript console for technical details.'
                         ),
                     });
@@ -139,7 +139,7 @@ export class BaseGoogleMap extends Component {
             return;
         }
         const styledMapType = new google.maps.StyledMapType(MAP_THEMES[style], {
-            name: _lt('Custom'),
+            name: _t('Custom'),
         });
         this.googleMap.setOptions({
             mapTypeControlOptions: {
@@ -173,6 +173,7 @@ export class BaseGoogleMap extends Component {
 
     renderGooglePlaceSearch(searchRef, markerInfoWindow) {
         if (this.settings.is_places_search_enable) {
+            searchRef.el.style.visibility = 'visible';
             if (!this.markerPlacesSearch) {
                 this.markerPlacesSearch = new google.maps.Marker({
                     map: this.googleMap,
@@ -198,8 +199,6 @@ export class BaseGoogleMap extends Component {
                     this.handleSearchPlaceResult.bind(this, markerInfoWindow)
                 );
             }
-        } else {
-            searchRef.el.style.display = 'none';
         }
     }
 

@@ -32,7 +32,7 @@ export async function preparePlaces(orm, fields, place) {
         }
         if (place.photos) {
             const photos = [];
-            _.map(place.photos, (photo, idx) => {
+            place.photos.forEach((photo, idx) => {
                 if (idx < 3) {
                     const photo_url = photo.getUrl({ maxWidth: 480 });
                     photos.push(photo_url);
@@ -47,10 +47,7 @@ export async function preparePlaces(orm, fields, place) {
                     [['code', 'in', place.types]],
                     ['display_name'],
                 ]);
-                res['gplace_type_ids'] = {
-                    operation: 'REPLACE_WITH',
-                    resIds: _.map(records, (val) => val.id),
-                };
+                res['gplace_type_ids'] = [[6, false, records.map((val) => val.id)]];
             }
             resolve(res);
         });

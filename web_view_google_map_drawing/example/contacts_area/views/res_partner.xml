@@ -10,7 +10,7 @@
                 <page string="Area">
                     <field name="shape_line_ids" widget="google_map_drawing_one2many" mode="google_map">
                         <google_map js_class="google_map_drawing" string="Areas" sidebar_title="gshape_name" sidebar_subtitle="partner_id">
-                            <field name="partner_id" invisible="1"/>
+                            <field name="partner_id"/>
                             <field name="gshape_name"/>
                             <field name="gshape_description"/>
                             <field name="gshape_type"/>

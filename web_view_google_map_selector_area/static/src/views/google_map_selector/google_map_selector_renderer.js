@@ -4,23 +4,21 @@ import { patch } from '@web/core/utils/patch';
 import { renderToString } from '@web/core/utils/render';
 import { GoogleMapRenderer } from '@web_view_google_map/views/google_map/google_map_renderer';
 
-patch(GoogleMapRenderer.prototype, 'web_view_google_map_selector_area', {
+patch(GoogleMapRenderer.prototype, {
     setup() {
-        this._super(...arguments);
+        super.setup(...arguments);
         this.shapes = {};
         this.markerInAreaSelected = new Set();
         this.editColor = '#fca2a2';
     },
     initialize() {
-        this._super(...arguments);
-        let js_class;
-        if (this.props.archInfo && this.props.archInfo.arch) {
-            const xml = new DOMParser().parseFromString(this.props.archInfo.arch, 'text/xml');
-            js_class = xml.documentElement.getAttribute('js_class') || '';
+        super.initialize(...arguments);
+        let js_class = null;
+        if (this.props.archInfo && this.props.archInfo.xmlDoc) {
+            js_class = this.props.archInfo.xmlDoc.getAttribute('js_class') || false;
         }
-
         // prevent initialize area selector in view google map drawing or widget google maps drawing
-        if (js_class === 'google_map_drawing' || (this.props.id && this.props.name)) {
+        if (js_class === 'google_map_drawing' || (!!this.props.id && !!this.props.name)) {
             return;
         } else {
             this._initializeGoogleMapDrawing();
@@ -55,7 +53,7 @@ patch(GoogleMapRenderer.prototype, 'web_view_google_map_selector_area', {
             } catch (error) {
                 isDrawingEnabled = false;
                 this.notification.add(
-                    this.env._t(
+                    _t(
                         'Google Maps drawing failed to load, please update the setting by add "drawing" in the Libraries'
                     ),
                     { type: 'warning' }
@@ -113,7 +111,7 @@ patch(GoogleMapRenderer.prototype, 'web_view_google_map_selector_area', {
         if (this.selectedShape || Object.keys(this.shapes).length) {
             return;
         } else {
-            this._super();
+            super.renderMap(...arguments);
         }
     },
 

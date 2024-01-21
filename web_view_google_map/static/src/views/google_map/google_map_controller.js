@@ -1,61 +1,103 @@
 /** @odoo-module **/
 
+import { _t } from '@web/core/l10n/translation';
 import { Layout } from '@web/search/layout';
-import { useModel } from '@web/views/model';
+import { useModelWithSampleData } from '@web/model/model';
+import { extractFieldsFromArchInfo } from '@web/model/relational_model/utils';
 import { usePager } from '@web/search/pager_hook';
 import { useService } from '@web/core/utils/hooks';
-import { sprintf } from '@web/core/utils/strings';
 import { unique } from '@web/core/utils/arrays';
 import { ExportDataDialog } from '@web/views/view_dialogs/export_data_dialog';
 import { download } from '@web/core/network/download';
-import { ConfirmationDialog } from '@web/core/confirmation_dialog/confirmation_dialog';
-import { ActionMenus } from '@web/search/action_menus/action_menus';
+import {
+    ConfirmationDialog,
+    deleteConfirmationMessage,
+} from '@web/core/confirmation_dialog/confirmation_dialog';
+import { omit } from '@web/core/utils/objects';
+import { ActionMenus, STATIC_ACTIONS_GROUP_NUMBER } from '@web/search/action_menus/action_menus';
 import { standardViewProps } from '@web/views/standard_view_props';
 import { useSetupView } from '@web/views/view_hook';
-import { Component, useRef, onWillStart, markRaw } from '@odoo/owl';
+import { session } from '@web/session';
+import { SearchBar } from '@web/search/search_bar/search_bar';
+import { useSearchBarToggler } from '@web/search/search_bar/search_bar_toggler';
+import { ViewButton } from '@web/views/view_button/view_button';
+import { executeButtonCallback } from '@web/views/view_button/view_button_hook';
+import { CogMenu } from '@web/search/cog_menu/cog_menu';
+
+import {
+    Component,
+    useRef,
+    onWillStart,
+    useState,
+    useSubEnv,
+    useEffect,
+    onWillPatch,
+} from '@odoo/owl';
 
 export class GoogleMapController extends Component {
+    static template = 'web_view_google_map.GoogleMapView';
+    static components = { Layout, ActionMenus, SearchBar, ViewButton, CogMenu };
+    static props = {
+        ...standardViewProps,
+        Model: Function,
+        Renderer: Function,
+        buttonTemplate: String,
+        archInfo: Object,
+        showButtons: { type: Boolean, optional: true },
+        allowSelectors: { type: Boolean, optional: true },
+        onSelectionChanged: { type: Function, optional: true },
+    };
+    static defaultProps = {
+        createRecord: () => {},
+        selectRecord: () => {},
+        centerMap: () => {},
+        showButtons: true,
+        allowSelectors: true,
+    };
+
     setup() {
-        const rootRef = useRef('root');
         this.ui = useService('ui');
         this.dialogService = useService('dialog');
+        this.actionService = useService('action');
         this.notificationService = useService('notification');
         this.rpc = useService('rpc');
         this.userService = useService('user');
 
-        const { Model, resModel, fields, archInfo, limit, state } = this.props;
-        const { rootState } = state || {};
+        this.rootRef = useRef('root');
 
-        this.activeActions = archInfo.activeActions;
-        this.multiEdit = archInfo.multiEdit;
-
-        this.model = useModel(Model, {
-            resId: this.props.resId || false,
-            resIds: this.props.resIds,
-            resModel,
-            rootState,
-            fields,
-            activeFields: archInfo.activeFields,
-            handleField: archInfo.handleField,
-            limit: archInfo.limit || limit,
-            onCreate: archInfo.onCreate,
-            viewMode: 'google_map',
-            multiEdit: this.multiEdit,
-        });
+        this.archInfo = this.props.archInfo;
+        this.activeActions = this.props.archInfo.activeActions;
+        this.multiEdit = this.props.archInfo.multiEdit;
+        this.model = useState(useModelWithSampleData(this.props.Model, this.modelParams));
 
         this.archiveEnabled =
-            'active' in fields
-                ? !fields.active.readonly
-                : 'x_active' in fields
-                ? !fields.x_active.readonly
+            'active' in this.props.fields
+                ? !this.props.fields.active.readonly
+                : 'x_active' in this.props.fields
+                ? !this.props.fields.x_active.readonly
                 : false;
 
         onWillStart(async () => {
             this.isExportEnable = await this.userService.hasGroup('base.group_allow_export');
         });
 
+        useSubEnv({ model: this.model });
+
         useSetupView({
-            rootRef,
+            rootRef: this.rootRef,
+            beforeLeave: async () => {
+                return this.model.root.leaveEditMode();
+            },
+            beforeUnload: async (ev) => {
+                const editedRecord = this.model.root.editedRecord;
+                if (editedRecord) {
+                    const isValid = await editedRecord.urgentSave();
+                    if (!isValid) {
+                        ev.preventDefault();
+                        ev.returnValue = 'Unsaved changes';
+                    }
+                }
+            },
             getGlobalState: () => {
                 return {
                     resIds: this.model.root.records.map((rec) => rec.resId),
@@ -63,29 +105,80 @@ export class GoogleMapController extends Component {
             },
             getLocalState: () => {
                 return {
-                    rootState: this.model.root.exportState(),
+                    modelState: this.model.exportState(),
                 };
             },
         });
 
         usePager(() => {
-            const root = this.model.root;
-            const { count, hasLimitedCount, limit, offset } = root;
+            const { count, hasLimitedCount, isGrouped, limit, offset } = this.model.root;
             return {
                 offset: offset,
                 limit: limit,
                 total: count,
                 onUpdate: async ({ offset, limit }) => {
-                    this.model.root.offset = offset;
-                    this.model.root.limit = limit;
-                    await this.model.root.load();
-                    await this.onUpdatedPager();
-                    this.render(true);
+                    if (this.model.root.editedRecord) {
+                        if (!(await this.model.root.editedRecord.save())) {
+                            return;
+                        }
+                    }
+                    await this.model.root.load({ limit, offset });
                 },
-                updateTotal: hasLimitedCount ? () => root.fetchCount() : undefined,
+                updateTotal:
+                    !isGrouped && hasLimitedCount ? () => this.model.root.fetchCount() : undefined,
             };
         });
+
+        useEffect(
+            () => {
+                if (this.props.onSelectionChanged) {
+                    const resIds = this.model.root.selection.map((record) => record.resId);
+                    this.props.onSelectionChanged(resIds);
+                }
+            },
+            () => [this.model.root.selection.length]
+        );
+        this.searchBarToggler = useSearchBarToggler();
+        this.firstLoad = true;
+        onWillPatch(() => {
+            this.firstLoad = false;
+        });
     }
+
+    get modelParams() {
+        const { activeFields, fields } = extractFieldsFromArchInfo(
+            this.archInfo,
+            this.props.fields
+        );
+
+        const modelConfig = this.props.state?.modelState?.config || {
+            resModel: this.props.resModel,
+            fields,
+            activeFields,
+            openGroupsByDefault: false,
+        };
+
+        return {
+            config: modelConfig,
+            state: this.props.state?.modelState,
+            groupByInfo: {},
+            limit: this.archInfo.limit || this.props.limit,
+            countLimit: this.archInfo.countLimit,
+            defaultOrderBy: this.archInfo.defaultOrder,
+            defaultGroupBy: false,
+            groupsLimit: this.archInfo.groupsLimit,
+            multiEdit: this.archInfo.multiEdit,
+            activeIdsLimit: session.active_ids_limit,
+            hooks: {
+                onRecordSaved: this.onRecordSaved.bind(this),
+                onWillSaveRecord: this.onWillSaveRecord.bind(this),
+            },
+        };
+    }
+
+    async onRecordSaved(record) {}
+
+    async onWillSaveRecord(record) {}
 
     async onDeleteSelectedRecords() {
         this.dialogService.add(ConfirmationDialog, this.deleteConfirmationDialogProps);
@@ -97,8 +190,96 @@ export class GoogleMapController extends Component {
         });
     }
 
+    async beforeExecuteActionButton(clickParams) {
+        if (clickParams.special !== 'cancel' && this.model.root.editedRecord) {
+            return this.model.root.editedRecord.save();
+        }
+    }
+
+    async afterExecuteActionButton(clickParams) {}
+
     getSelectedResIds() {
         return this.model.root.getResIds(true);
+    }
+
+    async duplicateRecords() {
+        return this.model.root.duplicateRecords();
+    }
+
+    getStaticActionMenuItems() {
+        const list = this.model.root;
+        const isM2MGrouped = list.groupBy.some((groupBy) => {
+            const fieldName = groupBy.split(':')[0];
+            return list.fields[fieldName].type === 'many2many';
+        });
+        return {
+            export: {
+                isAvailable: () => this.isExportEnable,
+                sequence: 10,
+                icon: 'fa fa-upload',
+                description: _t('Export'),
+                callback: () => this.onExportData(),
+            },
+            archive: {
+                isAvailable: () => this.archiveEnabled && !isM2MGrouped,
+                sequence: 20,
+                icon: 'oi oi-archive',
+                description: _t('Archive'),
+                callback: () => {
+                    this.dialogService.add(ConfirmationDialog, this.archiveDialogProps);
+                },
+            },
+            unarchive: {
+                isAvailable: () => this.archiveEnabled && !isM2MGrouped,
+                sequence: 30,
+                icon: 'oi oi-unarchive',
+                description: _t('Unarchive'),
+                callback: () => this.toggleArchiveState(false),
+            },
+            duplicate: {
+                isAvailable: () => this.activeActions.duplicate && !isM2MGrouped,
+                sequence: 35,
+                icon: 'fa fa-clone',
+                description: _t('Duplicate'),
+                callback: () => this.duplicateRecords(),
+            },
+            delete: {
+                isAvailable: () => this.activeActions.delete && !isM2MGrouped,
+                sequence: 40,
+                icon: 'fa fa-trash-o',
+                description: _t('Delete'),
+                callback: () => this.onDeleteSelectedRecords(),
+            },
+        };
+    }
+
+    get archiveDialogProps() {
+        return {
+            body: _t('Are you sure that you want to archive all the selected records?'),
+            confirmLabel: _t('Archive'),
+            confirm: () => {
+                this.toggleArchiveState(true);
+            },
+            cancel: () => {},
+        };
+    }
+
+    get actionMenuItems() {
+        const { actionMenus } = this.props.info;
+        const staticActionItems = Object.entries(this.getStaticActionMenuItems())
+            .filter(([key, item]) => item.isAvailable === undefined || item.isAvailable())
+            .sort(([k1, item1], [k2, item2]) => (item1.sequence || 0) - (item2.sequence || 0))
+            .map(([key, item]) =>
+                Object.assign(
+                    { key, groupNumber: STATIC_ACTIONS_GROUP_NUMBER },
+                    omit(item, 'isAvailable')
+                )
+            );
+
+        return {
+            action: [...staticActionItems, ...(actionMenus.action || [])],
+            print: actionMenus.print,
+        };
     }
 
     getActionMenuItems() {
@@ -107,20 +288,18 @@ export class GoogleMapController extends Component {
         if (this.isExportEnable) {
             otherActionItems.push({
                 key: 'export',
-                description: this.env._t('Export'),
+                description: _t('Export'),
                 callback: () => this.onExportData(),
             });
         }
         if (this.archiveEnabled && !isM2MGrouped) {
             otherActionItems.push({
                 key: 'archive',
-                description: this.env._t('Archive'),
+                description: _t('Archive'),
                 callback: () => {
                     const dialogProps = {
-                        body: this.env._t(
-                            'Are you sure that you want to archive all the selected records?'
-                        ),
-                        confirmLabel: this.env._t('Archive'),
+                        body: _t('Are you sure that you want to archive all the selected records?'),
+                        confirmLabel: _t('Archive'),
                         confirm: () => {
                             this.toggleArchiveState(true);
                         },
@@ -131,14 +310,14 @@ export class GoogleMapController extends Component {
             });
             otherActionItems.push({
                 key: 'unarchive',
-                description: this.env._t('Unarchive'),
+                description: _t('Unarchive'),
                 callback: () => this.toggleArchiveState(false),
             });
         }
         if (this.activeActions.delete && !isM2MGrouped) {
             otherActionItems.push({
                 key: 'delete',
-                description: this.env._t('Delete'),
+                description: _t('Delete'),
                 callback: () => this.onDeleteSelectedRecords(),
             });
         }
@@ -146,11 +325,24 @@ export class GoogleMapController extends Component {
     }
 
     async onSelectDomain() {
-        this.model.root.selectDomain(true);
+        await this.model.root.selectDomain(true);
         if (this.props.onSelectionChanged) {
             const resIds = await this.model.root.getResIds(true);
             this.props.onSelectionChanged(resIds);
         }
+    }
+
+    onUnselectAll() {
+        this.model.root.selection.forEach((record) => {
+            if ('_toggleMarkerSelection' in record) {
+                record.toggleSelection(false).then(() => {
+                    record._toggleMarkerSelection(record);
+                });
+            } else {
+                record.toggleSelection(false);
+            }
+        });
+        this.model.root.selectDomain(false);
     }
 
     async onExportData() {
@@ -177,7 +369,10 @@ export class GoogleMapController extends Component {
             type: field.field_type || field.type,
         }));
         if (import_compat) {
-            exportedFields.unshift({ name: 'id', label: this.env._t('External ID') });
+            exportedFields.unshift({
+                name: 'id',
+                label: _t('External ID'),
+            });
         }
         await download({
             data: {
@@ -194,6 +389,7 @@ export class GoogleMapController extends Component {
             url: `/web/export/${format}`,
         });
     }
+
     async getExportedFields(model, import_compat, parentParams) {
         return await this.rpc('/web/export/get_fields', {
             ...parentParams,
@@ -201,65 +397,30 @@ export class GoogleMapController extends Component {
             import_compat,
         });
     }
+
     async toggleArchiveState(archive) {
-        let resIds;
-        const isDomainSelected = this.model.root.isDomainSelected;
-        const total = this.model.root.count;
         if (archive) {
-            resIds = await this.model.root.archive(true);
-        } else {
-            resIds = await this.model.root.unarchive(true);
+            return this.model.root.archive(true);
         }
-        if (
-            isDomainSelected &&
-            resIds.length === session.active_ids_limit &&
-            resIds.length < total
-        ) {
-            this.notificationService.add(
-                sprintf(
-                    this.env._t(
-                        'Of the %d records selected, only the first %d have been archived/unarchived.'
-                    ),
-                    resIds.length,
-                    total
-                ),
-                { title: this.env._t('Warning') }
-            );
-        }
+        return this.model.root.unarchive(true);
     }
 
     get deleteConfirmationDialogProps() {
         const root = this.model.root;
-        const body =
-            root.isDomainSelected || root.selection.length > 1
-                ? this.env._t('Are you sure you want to delete these records?')
-                : this.env._t('Are you sure you want to delete this record?');
+        let body = deleteConfirmationMessage;
+        if (root.isDomainSelected || root.selection.length > 1) {
+            body = _t('Are you sure you want to delete these records?');
+        }
         return {
+            title: _t('Bye-bye, record!'),
             body,
-            confirm: async () => {
-                const total = root.count;
-                const resIds = await this.model.root.deleteRecords();
-                this.model.notify();
-                if (
-                    root.isDomainSelected &&
-                    resIds.length === session.active_ids_limit &&
-                    resIds.length < total
-                ) {
-                    this.notificationService.add(
-                        sprintf(
-                            this.env._t(
-                                `Only the first %s records have been deleted (out of %s selected)`
-                            ),
-                            resIds.length,
-                            total
-                        ),
-                        { title: this.env._t('Warning') }
-                    );
-                }
-            },
+            confirmLabel: _t('Delete'),
+            confirm: () => this.model.root.deleteRecords(),
             cancel: () => {},
+            cancelLabel: _t('No, keep it'),
         };
     }
+
     async onDirectExportData() {
         await this.downloadExport(this.defaultExportList, false, 'xlsx');
     }
@@ -295,7 +456,7 @@ export class GoogleMapController extends Component {
             type: field.field_type || field.type,
         }));
         if (import_compat) {
-            exportedFields.unshift({ name: 'id', label: this.env._t('External ID') });
+            exportedFields.unshift({ name: 'id', label: _t('External ID') });
         }
         await download({
             data: {
@@ -326,9 +487,27 @@ export class GoogleMapController extends Component {
      * @param {Object} record
      * @param {String} mode
      */
-    async openRecord(record, mode) {
-        const activeIds = this.model.root.records.map((datapoint) => datapoint.resId);
-        this.props.selectRecord(record.resId, { activeIds, mode });
+    async openRecord(record) {
+        if (this.archInfo.openAction) {
+            this.actionService.doActionButton({
+                name: this.archInfo.openAction.action,
+                type: this.archInfo.openAction.type,
+                resModel: record.resModel,
+                resId: record.resId,
+                resIds: record.resIds,
+                context: record.context,
+                onClose: async () => {
+                    await record.model.root.load();
+                },
+            });
+        } else {
+            const activeIds = this.model.root.records.map((datapoint) => datapoint.resId);
+            this.props.selectRecord(record.resId, { activeIds });
+        }
+    }
+
+    async onClickCreate() {
+        return executeButtonCallback(this.rootRef.el, () => this.createRecord());
     }
 
     /**
@@ -395,7 +574,17 @@ export class GoogleMapController extends Component {
     }
 
     get display() {
-        return this.props.display;
+        const { controlPanel } = this.props.display;
+        if (!controlPanel) {
+            return this.props.display;
+        }
+        return {
+            ...this.props.display,
+            controlPanel: {
+                ...controlPanel,
+                layoutActions: !this.nbSelected,
+            },
+        };
     }
 
     get canCreate() {
@@ -417,7 +606,8 @@ export class GoogleMapController extends Component {
     }
 
     get nbTotal() {
-        return this.model.root.count;
+        const list = this.model.root;
+        return list.isGrouped ? list.recordCount : list.count;
     }
 
     get hasSelectors() {
@@ -426,23 +616,3 @@ export class GoogleMapController extends Component {
 
     async onUpdatedPager() {}
 }
-
-GoogleMapController.template = 'web_view_google_map.GoogleMapView';
-GoogleMapController.components = { Layout, ActionMenus };
-GoogleMapController.props = {
-    ...standardViewProps,
-    showButtons: { type: Boolean, optional: true },
-    Model: Function,
-    Renderer: Function,
-    buttonTemplate: String,
-    archInfo: Object,
-    allowSelectors: { type: Boolean, optional: true },
-    onSelectionChanged: { type: Function, optional: true },
-};
-GoogleMapController.defaultProps = {
-    createRecord: () => {},
-    selectRecord: () => {},
-    centerMap: () => {},
-    showButtons: true,
-    allowSelectors: true,
-};

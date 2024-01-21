@@ -1,61 +1,54 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates xml:space="preserve">
 
-    <t t-name="web_view_google_map.GoogleMapView" owl="1">
+    <t t-name="web_view_google_map.GoogleMapView">
         <div t-att-class="className" t-ref="root">
-            <Layout className="model.useSampleModel ? 'o_view_sample_data' : ''" display="props.display">
+            <Layout className="model.useSampleModel ? 'o_view_sample_data' : ''" display="display">
+                <t t-set-slot="control-panel-create-button">
+                    <t t-if="!model.root.editedRecord and activeActions.create and !env.inDialog">
+                        <button type="button" class="btn btn-primary o_list_button_add" data-hotkey="c" t-on-click="onClickCreate" data-bounce-button="">
+                            New
+                        </button>
+                    </t>
+                </t>
                 <t t-set-slot="layout-buttons">
                     <t t-call="{{ props.buttonTemplate }}"/>
                 </t>
-                <t t-set-slot="control-panel-bottom-left">
-                    <t t-if="props.info.actionMenus and model.root.selection.length and hasSelectors">
-                        <ActionMenus
-                            getActiveIds="() => model.root.selection.map((r) => r.resId)"
-                            context="props.context"
-                            domain="props.domain"
-                            items="getActionMenuItems()"
-                            isDomainSelected="model.root.isDomainSelected"
-                            resModel="model.root.resModel"
-                            onActionExecuted="() => model.load()"/>
-                    </t>
+                <t t-set-slot="layout-actions">
+                    <SearchBar t-if="searchBarToggler.state.showSearchBar" autofocus="firstLoad"/>
+                </t>
+                <t t-set-slot="control-panel-navigation-additional">
+                    <t t-component="searchBarToggler.component" t-props="searchBarToggler.props"/>
+                </t>
+                <t t-set-slot="control-panel-additional-actions">
+                    <CogMenu t-if="!nbSelected"/>
+                </t>
+                <t t-set-slot="control-panel-selection-actions">
+                    <div t-if="nbSelected" class="d-flex gap-1">
+                        <t t-call="web.ListView.Selection"/>
+                        <t t-if="props.info.actionMenus">
+                            <ActionMenus
+                                getActiveIds="() => model.root.selection.map((r) => r.resId)"
+                                context="props.context"
+                                domain="props.domain"
+                                items="actionMenuItems"
+                                isDomainSelected="model.root.isDomainSelected"
+                                resModel="model.root.resModel"
+                                onActionExecuted="() => model.load()"/>
+                        </t>
+                    </div>
                 </t>
                 <t t-component="props.Renderer" list="model.root" archInfo="props.archInfo" activeActions="activeActions" allowSelectors="props.allowSelectors" readonly="true" openRecord.bind="openRecord" onAdd.bind="createRecord" showRecord.bind="showRecord"/>
             </Layout>
         </div>
     </t>
 
-    <t t-name="web_view_google_map.GoogleMapView.Buttons" owl="1">
-        <div t-if="props.showButtons" class="o_cp_buttons d-flex align-items-baseline" role="toolbar" aria-label="Main actions">
-            <t t-if="canCreate">
-                <button type="button" class="btn btn-primary o-google_map-button-new" accesskey="c" t-on-click="() => this.createRecord()">
-                    New
-                </button>
-            </t>
-            <button type="button" class="btn btn-link btn-secondary o-google_map-button-center-map" t-on-click.prevent="() => this.centerMap()">
+    <t t-name="web_view_google_map.GoogleMapView.Buttons">
+        <div t-if="props.showButtons" class="o_list_buttons d-flex gap-1 d-empty-none align-items-baseline" role="toolbar" aria-label="Main actions">
+            <button type="button" class="btn btn-outline-secondary o-google_map-button-center-map" t-on-click="centerMap">
                 Center Map
             </button>
-            <t t-if="nbTotal and !nbSelected and activeActions.exportXlsx and isExportEnable and !env.isSmall">
-                <button type="button" class="btn btn-secondary fa fa-download o_list_export_xlsx" data-tooltip="Export All" aria-label="Export All" t-on-click="onDirectExportData"/>
-            </t>
         </div>
-        <t t-if="nbSelected">
-            <t t-if="!env.isSmall">
-                <div class="o_list_selection_box alert alert-info d-inline-flex align-items-center ps-0 px-lg-2 py-0 mb-0 ms-0 ms-md-2" role="alert">
-                    <t t-if="env.isSmall">
-                        <button class="btn btn-link py-0 o_discard_selection" t-on-click="discardSelection">
-                            <span class="fa-2x">&#215;</span>
-                        </button>
-                    </t>
-                    <span t-if="isDomainSelected">All <span class="font-monospace" t-esc="nbTotal"/> selected</span>
-                    <t t-else="">
-                        <span class="font-monospace me-1" t-esc="nbSelected"/> selected
-                        <a t-if="isPageSelected and nbTotal > nbSelected" href="#" class="o_list_select_domain ms-2 btn btn-sm btn-info px-2 py-1 border-0 fw-normal" t-on-click="onSelectDomain">
-                            <i class="fa fa-arrow-right"/> Select all <span class="font-monospace" t-esc="nbTotal"/>
-                        </a>
-                    </t>
-                </div>
-            </t>
-        </t>
     </t>
 
 </templates>

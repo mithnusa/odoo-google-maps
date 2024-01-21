@@ -1,11 +1,14 @@
 /** @odoo-module **/
 
 import { registry } from '@web/core/registry';
-import { _lt } from '@web/core/l10n/translation';
-import { GooglePlaceAutocomplete } from '@web_widget_google_map/widgets/GooglePlaceAutocomplete/google_place_autocomplete';
+import { _t } from '@web/core/l10n/translation';
+import {
+    GooglePlaceAutocompleteField,
+    googlePlaceAutocompleteField,
+} from '@web_widget_google_map/widgets/GooglePlaceAutocomplete/google_place_autocomplete';
 import { getPlaceProperties } from '../utils';
 
-export class GooglePlaceAutocompleteExtended extends GooglePlaceAutocomplete {
+export class GooglePlaceAutocompleteExtendedField extends GooglePlaceAutocompleteField {
     getGoogleFieldsRestriction() {
         const fields = super.getGoogleFieldsRestriction();
         return fields.concat([
@@ -28,10 +31,13 @@ export class GooglePlaceAutocompleteExtended extends GooglePlaceAutocomplete {
         this._update(gplaces);
     }
 }
-GooglePlaceAutocompleteExtended.displayName = _lt(
-    'Google Places Autocomplete Extended'
-);
+
+export const googlePlaceAutocompleteExtendedField = {
+    ...googlePlaceAutocompleteField,
+    component: GooglePlaceAutocompleteExtendedField,
+    displayName: _t('Google Places Autocomplete Extended'),
+};
 
 registry
     .category('fields')
-    .add('gplaces_autocomplete_extended', GooglePlaceAutocompleteExtended);
+    .add('gplaces_autocomplete_extended', googlePlaceAutocompleteExtendedField);

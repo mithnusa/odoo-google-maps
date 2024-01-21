@@ -1,5 +1,5 @@
 /** @odoo-module **/
-
+import { _t } from '@web/core/l10n/translation';
 import { Component, onRendered } from '@odoo/owl';
 import { useService } from '@web/core/utils/hooks';
 import { renderToString } from '@web/core/utils/render';
@@ -38,7 +38,7 @@ export class GoogleMapGeolocate extends Component {
                 { enableHighAccuracy: true }
             );
         } else {
-            this.notification.add(this.env._t('Geolocation is not supported by this browser.'), {
+            this.notification.add(_t('Geolocation is not supported by this browser.'), {
                 type: 'warning',
             });
         }
@@ -53,7 +53,7 @@ export class GoogleMapGeolocate extends Component {
             });
             const content = new DOMParser()
                 .parseFromString(
-                    '<div class="infoWindow p-3">' + this.env._t('Your location') + '</div>',
+                    '<div class="infoWindow p-3">' + _t('Your location') + '</div>',
                     'text/html'
                 )
                 .querySelector('div');
@@ -82,19 +82,19 @@ export class GoogleMapGeolocate extends Component {
     }
     _geolocationFailed(error) {
         let message = '';
-        console.log({ error });
+        console.error(error);
         switch (error.code) {
             case error.PERMISSION_DENIED:
-                message = this.env._t('User denied the request for Geolocation.');
+                message = _t('User denied the request for Geolocation.');
                 break;
             case error.POSITION_UNAVAILABLE:
-                message = this.env._t('Location information is unavailable.');
+                message = _t('Location information is unavailable.');
                 break;
             case error.TIMEOUT:
-                message = this.env._t('The request to get user location timed out.');
+                message = _t('The request to get user location timed out.');
                 break;
             case error.UNKNOWN_ERROR:
-                message = this.env._t('An unknown error occurred.');
+                message = _t('An unknown error occurred.');
                 break;
         }
         this.notification.add(message, { type: 'warning' });

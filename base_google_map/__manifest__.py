@@ -13,7 +13,7 @@
     'website': 'https://github.com/mithnusa',
     'support': 'yopiangi@gmail.com',
     'category': 'Extra Tools',
-    'version': '16.0.1.2.3',
+    'version': '17.0.1.0.0',
     'depends': ['base_setup'],
     'data': [
         'data/google_map.xml',

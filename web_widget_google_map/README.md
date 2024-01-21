@@ -58,20 +58,16 @@ Example:
         phone: ['international_phone_number', 'formatted_phone_number'],
     },
     address: {
-        street: ['street_number', 'route'],
-        street2: [
-            'administrative_area_level_3',
-            'administrative_area_level_4',
-            'administrative_area_level_5',
-        ],
-        city: ['locality', 'administrative_area_level_2'],
-        zip: 'postal_code',
-        state_id: 'administrative_area_level_1',
-        country_id: 'country',
+        street: 'street',
+        street2: 'street2',
+        city: 'city',
+        zip: 'zip',
+        state_id: 'state_id',
+        country_id: 'country_id',
     },
     geolocation: {
-        latitude: 'partner_latitude',
-        longitude: 'partner_longitude',
+        lat: 'partner_latitude',
+        lng: 'partner_longitude',
     },
 }
 ```
@@ -87,16 +83,12 @@ For options `fillfields`, the default values are
         phone: ['international_phone_number', 'formatted_phone_number'],
     },
     address: {
-        street: ['street_number', 'route'],
-        street2: [
-            'administrative_area_level_3',
-            'administrative_area_level_4',
-            'administrative_area_level_5',
-        ],
-        city: ['locality', 'administrative_area_level_2'],
-        zip: 'postal_code',
-        state_id: 'administrative_area_level_1',
-        country_id: 'country',
+        street: 'street',
+        street2: 'street2',
+        city: 'city',
+        zip: 'zip',
+        state_id: 'state_id',
+        country_id: 'country_id',
     },
 },
 ```

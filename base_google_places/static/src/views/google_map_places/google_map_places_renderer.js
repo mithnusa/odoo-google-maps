@@ -6,6 +6,11 @@ import { GooglePlacesAutocompleteSidebar } from './google_places_autocomplete';
 import { GoogleMapRenderer } from '@web_view_google_map/views/google_map/google_map_renderer';
 
 export class GoogleMapPlacesRenderer extends GoogleMapRenderer {
+    static template = 'base_google_places.GoogleMapRenderer';
+    static components = {
+        ...GoogleMapRenderer.components,
+        GooglePlacesAutocompleteSidebar,
+    };
     setup() {
         super.setup();
         this.state = useState({
@@ -48,9 +53,3 @@ export class GoogleMapPlacesRenderer extends GoogleMapRenderer {
         }
     }
 }
-
-GoogleMapPlacesRenderer.template = 'base_google_places.GoogleMapRenderer';
-GoogleMapPlacesRenderer.components = {
-    ...GoogleMapRenderer.components,
-    GooglePlacesAutocompleteSidebar,
-};

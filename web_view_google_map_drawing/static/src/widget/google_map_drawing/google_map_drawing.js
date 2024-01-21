@@ -1,8 +1,9 @@
 /** @odoo-module **/
 
 import { registry } from '@web/core/registry';
-import { _lt } from '@web/core/l10n/translation';
+import { _t } from '@web/core/l10n/translation';
 import { onWillUpdateProps, onWillDestroy } from '@odoo/owl';
+import { useInputField } from '@web/views/fields/input_field_hook';
 import { useService } from '@web/core/utils/hooks';
 import { useDebounced } from '@web/core/utils/timing';
 import { standardFieldProps } from '@web/views/fields/standard_field_props';
@@ -12,7 +13,14 @@ import { GoogleMapRenderer } from '@web_view_google_map/views/google_map/google_
 import { LOADER_STATUS } from '@base_google_map/utils/base_google_map';
 import { MAP_THEMES } from '@base_google_map/utils/themes';
 
-export class GoogleMapDrawing extends GoogleMapRenderer {
+export class GoogleMapDrawingField extends GoogleMapRenderer {
+    static components = {};
+    static template = 'web_view_google_map_drawing.GoogleDrawingField';
+    static props = {
+        ...standardFieldProps,
+        options: { type: Object, optional: true },
+    };
+
     setup() {
         super.setup();
         this.notification = useService('notification');
@@ -57,10 +65,13 @@ export class GoogleMapDrawing extends GoogleMapRenderer {
 
         onWillDestroy(() => {
             if (this.shapes) {
-                Object.keys(this.shapes).forEach((key) =>
-                    this._deleteShapeInCache(key)
-                );
+                Object.keys(this.shapes).forEach((key) => this._deleteShapeInCache(key));
             }
+        });
+
+        useInputField({
+            getValue: () => this.props.record.data[this.props.name] || '',
+            parse: (v) => this.parse(v),
         });
     }
 
@@ -94,24 +105,14 @@ export class GoogleMapDrawing extends GoogleMapRenderer {
      */
     initialize() {
         super.initialize();
-        const mapThemeDrawing = new google.maps.StyledMapType(
-            MAP_THEMES['line_drawing'],
-            {
-                name: _lt('Drawing'),
-            }
-        );
+        const mapThemeDrawing = new google.maps.StyledMapType(MAP_THEMES['line_drawing'], {
+            name: _t('Drawing'),
+        });
         this.googleMap.setOptions({
-            mapTypeId: google.maps.MapTypeId.SATELLITE,
+            mapTypeId: google.maps.MapTypeId.HYBRID,
             mapTypeControlOptions: {
                 style: google.maps.MapTypeControlStyle.DROPDOWN_MENU,
-                mapTypeIds: [
-                    'roadmap',
-                    'satellite',
-                    'hybrid',
-                    'terrain',
-                    'drawing',
-                    'styled_map',
-                ],
+                mapTypeIds: ['roadmap', 'satellite', 'hybrid', 'terrain', 'drawing', 'styled_map'],
             },
         });
         this.googleMap.mapTypes.set('drawing', mapThemeDrawing);
@@ -122,7 +123,7 @@ export class GoogleMapDrawing extends GoogleMapRenderer {
      * Load the shape from cache if any, otherwise create a new one
      */
     _handleLoadShape() {
-        const value = this.props.value;
+        const value = this.props.record.data[this.props.name];
         if (value) {
             if (this.shapes[value]) {
                 const shape = this.shapes[value];
@@ -144,7 +145,7 @@ export class GoogleMapDrawing extends GoogleMapRenderer {
                 } catch (error) {
                     console.error(error);
                     this.notification.add(
-                        this.env._t(
+                        _t(
                             'Something went wrong, the shape cannot be drawn on the map. Please contact administrator'
                         ),
                         { type: 'danger' }
@@ -348,14 +349,8 @@ export class GoogleMapDrawing extends GoogleMapRenderer {
     }
 
     _handleDrawCircleAddListener(circle) {
-        circle.addListener(
-            'radius_changed',
-            this._handleCircleBoundsChangedDebounce.bind(this)
-        );
-        circle.addListener(
-            'center_changed',
-            this._handleCircleBoundsChangedDebounce.bind(this)
-        );
+        circle.addListener('radius_changed', this._handleCircleBoundsChangedDebounce.bind(this));
+        circle.addListener('center_changed', this._handleCircleBoundsChangedDebounce.bind(this));
     }
 
     _handleCircleBoundsChanged() {
@@ -396,33 +391,28 @@ export class GoogleMapDrawing extends GoogleMapRenderer {
     }
 
     toggleSaveButtonAnimation() {
-        this.googleMap.controls[google.maps.ControlPosition.TOP_CENTER].forEach(
-            (element) => {
-                if (element.id === 'custom-control-drawing-buttons') {
-                    let button = element.querySelector('#save');
-                    let floppyIcon = element.querySelector('.fa-floppy-o');
-                    if (button && floppyIcon) {
-                        if (this.isEditing) {
-                            button.classList.add('btn-success');
-                            button.classList.remove('btn-light');
-                            floppyIcon.classList.add('animate');
-                        } else {
-                            floppyIcon.classList.remove('btn-success');
-                            button.classList.add('btn-light');
-                            floppyIcon.classList.remove('animate');
-                        }
+        this.googleMap.controls[google.maps.ControlPosition.TOP_CENTER].forEach((element) => {
+            if (element.id === 'custom-control-drawing-buttons') {
+                let button = element.querySelector('#save');
+                let floppyIcon = element.querySelector('.fa-floppy-o');
+                if (button && floppyIcon) {
+                    if (this.isEditing) {
+                        button.classList.add('btn-success');
+                        button.classList.remove('btn-light');
+                        floppyIcon.classList.add('animate');
+                    } else {
+                        floppyIcon.classList.remove('btn-success');
+                        button.classList.add('btn-light');
+                        floppyIcon.classList.remove('animate');
                     }
                 }
             }
-        );
+        });
     }
 
     _renderMapCustomControl() {
         if (!this.customControl) {
-            const content = renderToString(
-                'web_view_google_map_drawing.ButtonActionDelete',
-                {}
-            );
+            const content = renderToString('web_view_google_map_drawing.ButtonActionDelete', {});
             this.customControl = new DOMParser()
                 .parseFromString(content, 'text/html')
                 .querySelector('div');
@@ -443,13 +433,11 @@ export class GoogleMapDrawing extends GoogleMapRenderer {
             this.selectedShape.setMap(null);
             this.selectedShape = null;
         } else {
-            this.notification.add(this.env._t('No shape selected to delete'), {
+            this.notification.add(_t('No shape selected to delete'), {
                 type: 'warning',
             });
             this.notification.add(
-                this.env._t(
-                    'Click on one of the shapes you have drawn to select a shape'
-                ),
+                _t('Click on one of the shapes you have drawn to select a shape'),
                 { type: 'info' }
             );
         }
@@ -457,11 +445,11 @@ export class GoogleMapDrawing extends GoogleMapRenderer {
 
     _actionSave() {
         if (!this.selectedShape) {
-            this.notification.add(this.env._t('There is no shape to save'), {
+            this.notification.add(_t('There is no shape to save'), {
                 type: 'danger',
             });
             this.notification.add(
-                this.env._t(
+                _t(
                     'Please click on one of the shapes that you have drawn and that you would like to save.'
                 ),
                 { type: 'info' }
@@ -482,17 +470,14 @@ export class GoogleMapDrawing extends GoogleMapRenderer {
     async _saveChanges(values) {
         if (values) {
             this._storeInCache(this.selectedShape);
-            const paths = values[this.props.name];
-            delete values[this.props.name];
-            this.props.update(paths);
-            await this.props.record.update(values);
             this.selectedShape.setOptions({
                 editable: false,
                 strokeColor: this.displayColor,
                 fillColor: this.displayColor,
             });
+            await this.props.record.update(values);
             this.drawingManager.setDrawingMode(null);
-            this.notification.add(this.env._t('The shape has been recorded'), {
+            this.notification.add(_t('The shape has been recorded'), {
                 type: 'info',
             });
             this.selectedShape = null;
@@ -542,9 +527,7 @@ export class GoogleMapDrawing extends GoogleMapRenderer {
             gshape_height: 0.0,
         };
 
-        const linePaths = paths
-            .getArray()
-            .map((item) => ({ lat: item.lat(), lng: item.lng() }));
+        const linePaths = paths.getArray().map((item) => ({ lat: item.lat(), lng: item.lng() }));
 
         const lines = this._computePolygonLines(linePaths);
         const shape_paths = {
@@ -713,7 +696,7 @@ export class GoogleMapDrawing extends GoogleMapRenderer {
             } catch (error) {
                 console.error(error);
                 this.notification.add(
-                    this.env._t(
+                    _t(
                         'Google Maps DrawingManager could not be loaded. Please make sure "drawing" is configured on Google Maps Libraries settings'
                     ),
                     { type: 'danger' }
@@ -727,11 +710,11 @@ export class GoogleMapDrawing extends GoogleMapRenderer {
         const shape = event.overlay;
         if (this.selectedShape) {
             shape.setMap(null);
-            this.notification.add(this.env._t('Only one shape allowed'), {
+            this.notification.add(_t('Only one shape allowed'), {
                 type: 'warning',
             });
             this.notification.add(
-                this.env._t(
+                _t(
                     'If you want to change the shape, you will need to delete the shape that you are currently drawing'
                 ),
                 { type: 'info' }
@@ -812,22 +795,13 @@ export class GoogleMapDrawing extends GoogleMapRenderer {
     }
 }
 
-GoogleMapDrawing.components = {};
-GoogleMapDrawing.template = 'web_view_google_map_drawing.GoogleDrawingField';
-GoogleMapDrawing.defaultProps = {
-    dynamicPlaceholder: false,
-    shouldTrim: true,
+export const googleMapDrawingField = {
+    component: GoogleMapDrawingField,
+    displayName: _t('Google Maps Drawing'),
+    supportedTypes: ['text'],
+    extractProps: ({ options }) => ({
+        options,
+    }),
 };
-GoogleMapDrawing.props = {
-    ...standardFieldProps,
-    dynamicPlaceholder: { type: Boolean, optional: true },
-    options: { type: Object, optional: true },
-};
-GoogleMapDrawing.extractProps = ({ attrs }) => ({
-    options: attrs.options,
-    dynamicPlaceholder: attrs.options.dynamic_placeholder,
-});
-GoogleMapDrawing.displayName = _lt('Google Maps Drawing');
-GoogleMapDrawing.supportedTypes = ['text'];
 
-registry.category('fields').add('google_map_drawing', GoogleMapDrawing);
+registry.category('fields').add('google_map_drawing', googleMapDrawingField);

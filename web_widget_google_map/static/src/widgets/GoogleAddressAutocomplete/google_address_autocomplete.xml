@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates xml:space="preserve">
-    <t t-name="web_widget_google_map.GoogleAddressAutocomplete" owl="1">
+    <t t-name="web_widget_google_map.GoogleAddressAutocomplete">
         <t t-if="props.readonly">
             <span t-esc="formattedValue" />
         </t>
@@ -13,10 +13,8 @@
                 autocomplete="off"
                 t-att-maxlength="props.maxLength > 0 and props.maxLength"
                 t-att-placeholder="props.placeholder"
-                t-att-required="props.required"
                 t-ref="input"
             />
         </t>
     </t>
-
 </templates>

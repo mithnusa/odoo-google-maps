@@ -1,9 +1,11 @@
 /** @odoo-module **/
 
+import { _t } from '@web/core/l10n/translation';
 import { useRef, onWillUnmount } from '@odoo/owl';
 import { BaseGoogleMap } from '@base_google_map/utils/base_google_map';
 
 export class GoogleMapFormRenderer extends BaseGoogleMap {
+    static template = 'web_view_google_map.GoogleMapFormRenderer';
     setup() {
         super.setup();
         this.mapRef = useRef('map');
@@ -75,14 +77,13 @@ export class GoogleMapFormRenderer extends BaseGoogleMap {
         }
     }
 
-    _handleMarkerDragend() {
+    async _handleMarkerDragend() {
         this.googleMap.panTo(this.marker.getPosition());
         const position = this.marker.getPosition();
-        this.props.record.update({
+        const values = {
             [this.fieldLat]: position.lat(),
             [this.fieldLng]: position.lng(),
-        });
+        };
+        await this.props.record.update(values);
     }
 }
-
-GoogleMapFormRenderer.template = 'web_view_google_map.GoogleMapFormRenderer';

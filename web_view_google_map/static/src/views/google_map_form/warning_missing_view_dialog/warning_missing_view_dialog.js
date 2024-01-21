@@ -1,4 +1,5 @@
 /** @odoo-module */
+import { _t } from '@web/core/l10n/translation';
 import { Dialog } from '@web/core/dialog/dialog';
 
 import { Component } from '@odoo/owl';
@@ -6,7 +7,7 @@ import { Component } from '@odoo/owl';
 export class WarningMissingGoogleMapFormViewDialog extends Component {
     setup() {
         super.setup();
-        this.title = this.env._t('Configuration: Missing Required Google Map Form View');
+        this.title = _t('Configuration: Missing Required Google Map Form View');
     }
 
     get googleMapFormSample() {

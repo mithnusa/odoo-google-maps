@@ -26,14 +26,9 @@
                                 <span class="text-muted m-1" t-esc="data.subTitle" t-if="data.subTitle"/>
                             </div>
                             <t t-if="data.extras">
-                                <p>
-                                    <a class="btn btn-light btn-sm" data-bs-toggle="collapse" t-attf-href="#extras_{{ record.id }}" role="button" aria-expanded="false" t-attf-aria-controls="extras_{{ record.id }}">see more</a>
-                                </p>
-                                <div class="collapse" t-attf-id="extras_{{ record.id }}">
-                                    <t t-foreach="data.extras" t-as="extra" t-key="extra_index">
-                                        <span class="badge bg-light text-wrap m-1 fs-6 font-monospace" t-out="extra"/>
-                                    </t>
-                                </div>
+                                <t t-foreach="data.extras" t-as="extra" t-key="extra_index">
+                                    <small class="badge rounded-pill bg-300 text-dark" t-out="extra"/>
+                                </t>
                             </t>
                         </div>
                         <button type="button" class="btn btn-sm btn-light" id="open-record" data-toggle="tooltip" title="Open form" t-on-click.prevent="() => props.handleOpenRecord(record)">

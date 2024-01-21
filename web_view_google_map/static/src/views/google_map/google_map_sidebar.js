@@ -4,6 +4,22 @@ import { Component } from '@odoo/owl';
 import { CheckBox } from '@web/core/checkbox/checkbox';
 
 export class GoogleMapSidebar extends Component {
+    static template = 'web_view_google_map.GoogleMapSidebar';
+    static components = { CheckBox };
+    static props = [
+        'string',
+        'handleOpenRecord',
+        'handlePointInMap',
+        'records',
+        'fieldTitle',
+        'fieldSubtitle',
+        'handleToggleSelection',
+        'handleCanSelectRecord',
+        'handleSelectAll',
+        'handleToggleRecordSelection',
+        'allowSelectors',
+    ];
+
     hasGeolocation(record) {
         return record._hasGeolocation || this.env.hasGeolocation(record);
     }
@@ -85,19 +101,3 @@ export class GoogleMapSidebar extends Component {
         return title;
     }
 }
-
-GoogleMapSidebar.template = 'web_view_google_map.GoogleMapSidebar';
-GoogleMapSidebar.components = { CheckBox };
-GoogleMapSidebar.props = [
-    'string',
-    'handleOpenRecord',
-    'handlePointInMap',
-    'records',
-    'fieldTitle',
-    'fieldSubtitle',
-    'handleToggleSelection',
-    'handleCanSelectRecord',
-    'handleSelectAll',
-    'handleToggleRecordSelection',
-    'allowSelectors',
-];

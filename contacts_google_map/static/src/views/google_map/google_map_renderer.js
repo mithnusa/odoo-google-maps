@@ -5,6 +5,10 @@ import { GoogleMapRenderer } from '@web_view_google_map/views/google_map/google_
 import { GoogleMapSidebarContactAvatar } from './google_map_sidebar';
 
 export class GoogleMapRendererContactAvatar extends GoogleMapRenderer {
+    static components = {
+        ...GoogleMapRenderer.components,
+        Sidebar: GoogleMapSidebarContactAvatar,
+    };
     /**
      * Override
      * @param {*} record
@@ -51,8 +55,3 @@ export class GoogleMapRendererContactAvatar extends GoogleMapRenderer {
         );
     }
 }
-
-GoogleMapRendererContactAvatar.components = {
-    ...GoogleMapRenderer.components,
-    Sidebar: GoogleMapSidebarContactAvatar,
-};

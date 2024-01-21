@@ -1,7 +1,7 @@
 /** @odoo-module **/
 
 import { renderToString } from '@web/core/utils/render';
-import { _lt } from '@web/core/l10n/translation';
+import { _t } from '@web/core/l10n/translation';
 import { onWillDestroy, onWillUpdateProps } from '@odoo/owl';
 import { useService } from '@web/core/utils/hooks';
 import { GoogleMapRenderer } from '@web_view_google_map/views/google_map/google_map_renderer';
@@ -9,6 +9,11 @@ import { GoogleMapsDrawingSidebar } from './google_map_drawing_sidebar';
 import { MAP_THEMES } from '@base_google_map/utils/themes';
 
 export class GoogleMapDrawingRenderer extends GoogleMapRenderer {
+    static components = {
+        ...GoogleMapRenderer.components,
+        Sidebar: GoogleMapsDrawingSidebar,
+    };
+
     setup() {
         super.setup();
         this.notification = useService('notification');
@@ -22,27 +27,20 @@ export class GoogleMapDrawingRenderer extends GoogleMapRenderer {
 
         onWillDestroy(() => {
             if (this.shapes) {
-                Object.keys(this.shapes).forEach((key) =>
-                    this._deleteShapeInCache(key)
-                );
+                Object.keys(this.shapes).forEach((key) => this._deleteShapeInCache(key));
             }
             this._cleanPolygonPoints();
         });
 
         onWillUpdateProps(() => {
             if (this.shapes) {
-                Object.keys(this.shapes).forEach((key) =>
-                    this._deleteShapeInCache(key)
-                );
+                Object.keys(this.shapes).forEach((key) => this._deleteShapeInCache(key));
             }
             this._cleanPolygonPoints();
         });
     }
 
-    /**
-     * @overwrite
-     */
-    renderMap() {
+    _renderMapAllowSelector() {
         this.shapesBounds = new google.maps.LatLngBounds();
         this.renderShapes();
 
@@ -50,6 +48,12 @@ export class GoogleMapDrawingRenderer extends GoogleMapRenderer {
         if (!noMapCenter || typeof this.noMapCenter === 'undefined') {
             this.centerMap();
         }
+    }
+
+    _renderMapNoAllowSelector() {
+        this.shapesBounds = new google.maps.LatLngBounds();
+        this.renderShapes();
+        this.centerMap();
     }
 
     /**
@@ -70,7 +74,7 @@ export class GoogleMapDrawingRenderer extends GoogleMapRenderer {
     initialize() {
         super.initialize();
         const mapThemeDrawing = new google.maps.StyledMapType(MAP_THEMES['line_drawing'], {
-            name: _lt('Drawing'),
+            name: _t('Drawing'),
         });
         this.googleMap.mapTypes.set('drawing', mapThemeDrawing);
         this.initializeDrawing();
@@ -140,7 +144,7 @@ export class GoogleMapDrawingRenderer extends GoogleMapRenderer {
             } catch (error) {
                 console.log(error);
                 this.notification.add(
-                    this.env._t(
+                    _t(
                         'Google Maps DrawingManager could not be loaded. Please make sure "drawing" is configured on Google Maps Libraries settings'
                     ),
                     { type: 'danger' }
@@ -366,8 +370,3 @@ export class GoogleMapDrawingRenderer extends GoogleMapRenderer {
         return Object.assign({ shapes: this.shapes }, super.sidebarProps);
     }
 }
-
-GoogleMapDrawingRenderer.components = {
-    ...GoogleMapRenderer.components,
-    Sidebar: GoogleMapsDrawingSidebar,
-};

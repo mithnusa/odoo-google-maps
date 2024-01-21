@@ -45,7 +45,7 @@
                     type="action" 
                     class="oe_stat_button" 
                     icon="fa-map-marker" string="Google Map" 
-                    attrs="{'invisible': ['|',('customer_latitude', '=', 0.0), ('customer_longitude', '=', 0.0)]}"/>
+                    invisible="customer_latitude == 0 or customer_longitude == 0"/>
             </xpath>
             <xpath expr="//notebook" position="inside">
                 <page string="Geolocation" name="geo_location">
@@ -59,8 +59,8 @@
                                 <span>Long: <field name="customer_longitude" nolabel="1" class="oe_inline"/>
                                 </span>
                                 <br/>
-                                <button attrs="{'invisible': ['|', ('customer_latitude', '!=', 0), ('customer_longitude', '!=', 0)]}" icon="fa-gear" string="Compute based on address" title="Compute Localization" name="geo_localize" type="object" class="btn btn-link p-0"/>
-                                <button attrs="{'invisible': [('customer_latitude', '=', 0), ('customer_longitude', '=', 0)]}" icon="fa-refresh" string="Refresh" title="Refresh Localization" name="geo_localize" type="object" class="btn btn-link p-0"/>
+                                <button invisible="customer_latitude != 0 or customer_longitude != 0" icon="fa-gear" string="Compute based on address" title="Compute Localization" name="geo_localize" type="object" class="btn btn-link p-0"/>
+                                <button invisible="customer_latitude == 0 or customer_longitude == 0" icon="fa-refresh" string="Refresh" title="Refresh Localization" name="geo_localize" type="object" class="btn btn-link p-0"/>
                             </div>
                             <field name="marker_color" widget="color_picker"/>
                         </group>

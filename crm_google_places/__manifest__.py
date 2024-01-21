@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'CRM Google Places',
-    'version': '16.0.1.0.1',
+    'version': '17.0.1.0.0',
     'author': 'Yopi Angi',
     'license': 'AGPL-3',
     'maintainer': 'Yopi Angi<yopiangi@gmail.com>',

@@ -13,7 +13,7 @@
     'website': 'https://github.com/mithnusa',
     'support': 'yopiangi@gmail.com',
     'category': 'Extra Tools',
-    'version': '16.0.1.0.0',
+    'version': '17.0.1.0.0',
     'depends': [
         'contacts_gautocomplete_address_form',
         'web_widget_google_places',

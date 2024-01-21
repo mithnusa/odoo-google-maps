@@ -50,21 +50,9 @@
                             'gplace_url': 'url',
                             'gplace_vicinity': 'vicinity',
                         },
-                        'address': {
-                            'street': ['street_number', 'route'],
-                            'street2': [
-                                'administrative_area_level_3',
-                                'administrative_area_level_4',
-                                'administrative_area_level_5',
-                            ],
-                            'city': ['locality', 'administrative_area_level_2'],
-                            'zip': 'postal_code',
-                            'state_id': 'administrative_area_level_1',
-                            'country_id': 'country',
-                        },
                         'geolocation': {
-                            'customer_latitude': 'latitude',
-                            'customer_longitude': 'longitude'
+                            'lat': 'customer_latitude',
+                            'lng': 'customer_longitude'
                         }
                     },
                     'display_name': 'partner_name',
@@ -83,30 +71,18 @@
                             'gplace_url': 'url',
                             'gplace_vicinity': 'vicinity',
                         },
-                        'address': {
-                            'street': ['street_number', 'route'],
-                            'street2': [
-                                'administrative_area_level_3',
-                                'administrative_area_level_4',
-                                'administrative_area_level_5',
-                            ],
-                            'city': ['locality', 'administrative_area_level_2'],
-                            'zip': 'postal_code',
-                            'state_id': 'administrative_area_level_1',
-                            'country_id': 'country',
-                        },
                         'geolocation': {
-                            'customer_latitude': 'latitude',
-                            'customer_longitude': 'longitude'
+                            'lat': 'customer_latitude',
+                            'lng': 'customer_longitude'
                         }
                     },
                     'display_name': 'partner_name',
                     'force_override': true
                 }</attribute>
             </xpath>
-            <xpath expr="//group[@name='lead_partner']" position="attributes">
+            <!-- <xpath expr="//group[@name='lead_partner']" position="attributes">
                 <attribute name="attrs"></attribute>
-            </xpath>
+            </xpath> -->
         </field>
     </record>
     <record id="view_crm_lead_google_map_inherit_google_places" model="ir.ui.view">
