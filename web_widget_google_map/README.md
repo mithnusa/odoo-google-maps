@@ -12,8 +12,8 @@ Example:
 ```xml
 <field name="name" widget="gplaces_autocomplete" options="{'fillfields': {
     'geolocation': {
-        'partner_latitude': 'latitude',
-        'partner_longitude': 'longitude'
+        'lat': 'partner_latitude',
+        'lng': 'partner_longitude'
     }
 }}"/>
 ```
@@ -26,12 +26,16 @@ Available option `fillfields` that you can customize:
         ...
     },
     address: {
-        ODOO_FIELD: [GOOGLE_PLACES_FIELDS],
-        ...
+        street: ODOO_FIELD,
+        street2: ODOO_FIELD,
+        city: ODOO_FIELD,
+        zip: ODOO_FIELD,
+        state_id: ODOO_FIELD,
+        country_id: ODOO_FIELD,
     },
     geolocation: {
-        ODOO_FIELD_LATITUDE: [GOOGLE_PLACES_FIELDS]
-        ODOO_FIELD_LONGITUDE: [GOOGLE_PLACES_FIELDS]
+        lat: ODOO_FIELD,
+        lng: ODOO_FIELD,
     },
 }
 ```

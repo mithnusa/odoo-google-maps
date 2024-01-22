@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from pprint import pprint
 import warnings
 from lxml import etree
 from lxml.builder import E
@@ -21,29 +20,31 @@ class IrUiView(models.Model):
         view = self.sudo().search_read(domain, [], limit=1)
         return view and view[0]['id']
 
-    @api.model
-    def _get_default_google_map_view(self):
-        element = E.field(name=self._rec_name_fallback())
-        return E.google_map(element, string=self._description)
-
-    def _postprocess_tag_google_map(self, node, name_manager, node_info):
-        print('\n\t _postprocess_tag_google_map')
-        pprint({
-            'node': node,
-            'name_manager': name_manager,
-            'node_info': node_info,
-        })
-        # reuse form view post-processing
-        self._postprocess_tag_form(node, name_manager, node_info)
-
-    def _editable_tag_google_map(self, node, name_manager):
-        return node.get('editable') or node.get('multi_edit')
-
-    def _onchange_able_view_google_map(self, node):
-        return True
-
     def _validate_tag_google_map(self, node, name_manager, node_info):
-        pass
+        if not node_info['validate']:
+            return
+
+        att_js_class = node.get('js_class')
+        att_lat = node.get('lat')
+        att_lng = node.get('lng')
+        att_sidebar_title = node.get('sidebar_title')
+
+        if not att_sidebar_title:
+            self._raise_view_error(_('Attribute "sidebar_title" is required on tag "google_map"'), node)
+
+        if ((att_js_class and not 'drawing' in att_js_class) or (not att_js_class)) and not att_lat and not att_lng:
+            self._raise_view_error(_('Missing mandatory attribute for google_map view: "lat" and "lng"'), node)
+
+        fields_name = [child.get('name') for child in node.iterchildren(tag=etree.Element) if child.tag == 'field']
+
+        if att_lat and not att_lat in fields_name:
+            self._raise_view_error(_('Field %(name)s assigned to attribute "lat" does not exist. All fields used in google_map view attribute must be loaded', name=att_lat), node)
+
+        if att_lng and not att_lng in fields_name:
+            self._raise_view_error(_('Field %(name)s assigned to attribute "lng" does not exist. All fields used in google_map view attribute must be loaded', name=att_lng), node)
+
+        if att_sidebar_title and not att_sidebar_title in fields_name:
+            self._raise_view_error(_('Field %(name)s assigned to attribute "sidebar_title" does not exist. All fields used in google_map view attribute must be loaded', name=att_sidebar_title), node)
 
     def _postprocess_tag_field(self, node, name_manager, node_info):
         '''This is a copy-paste code with a small modification in order to allow to render google_map inside a form view'''
