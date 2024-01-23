@@ -1,7 +1,5 @@
 # Odoo and Google Maps integration
 
-All the modules related to Javascript (views and widgets) are already written using the new Odoo Javascript Framework, [OWL Framework](https://odoo.github.io/owl/)
-
 ## Modules
 
 | Module | Version | Description |
