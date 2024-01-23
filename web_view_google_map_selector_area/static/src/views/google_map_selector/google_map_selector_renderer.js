@@ -3,6 +3,7 @@
 import { patch } from '@web/core/utils/patch';
 import { renderToString } from '@web/core/utils/render';
 import { GoogleMapRenderer } from '@web_view_google_map/views/google_map/google_map_renderer';
+import { StaticList } from '@web/model/relational_model/static_list';
 
 patch(GoogleMapRenderer.prototype, {
     setup() {
@@ -17,8 +18,12 @@ patch(GoogleMapRenderer.prototype, {
         if (this.props.archInfo && this.props.archInfo.xmlDoc) {
             js_class = this.props.archInfo.xmlDoc.getAttribute('js_class') || false;
         }
-        // prevent initialize area selector in view google map drawing or widget google maps drawing
-        if (js_class === 'google_map_drawing' || (!!this.props.id && !!this.props.name)) {
+        // prevent initiallize area selector in view google map drawing or widget google maps drawing
+        if (
+            js_class === 'google_map_drawing' ||
+            (!!this.props.id && !!this.props.name) ||
+            (this.props.list && this.props.list instanceof StaticList)
+        ) {
             return;
         } else {
             this._initializeGoogleMapDrawing();

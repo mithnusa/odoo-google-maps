@@ -4,16 +4,26 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo Server 16.0-20230430\n"
+"Project-Id-Version: Odoo Server 17.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-05-06 13:08+0000\n"
-"PO-Revision-Date: 2023-05-06 13:08+0000\n"
+"POT-Creation-Date: 2024-01-23 13:07+0000\n"
+"PO-Revision-Date: 2024-01-23 13:07+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: \n"
+
+#. module: base_google_map
+#: model_terms:ir.ui.view,arch_db:base_google_map.res_config_settings_view_form
+msgid "API Key"
+msgstr ""
+
+#. module: base_google_map
+#: model_terms:ir.ui.view,arch_db:base_google_map.res_config_settings_view_form
+msgid "API Key:"
+msgstr ""
 
 #. module: base_google_map
 #: model:ir.model.fields.selection,name:base_google_map.selection__res_config_settings__google_maps_lang_localization__af
@@ -28,11 +38,6 @@ msgstr ""
 #. module: base_google_map
 #: model:ir.model.fields.selection,name:base_google_map.selection__res_config_settings__google_maps_lang_localization__am
 msgid "Amharic"
-msgstr ""
-
-#. module: base_google_map
-#: model_terms:ir.ui.view,arch_db:base_google_map.res_config_settings_view_form
-msgid "Api key :"
 msgstr ""
 
 #. module: base_google_map
@@ -128,6 +133,13 @@ msgstr ""
 #. module: base_google_map
 #: model:ir.model,name:base_google_map.model_res_config_settings
 msgid "Config Settings"
+msgstr ""
+
+#. module: base_google_map
+#. odoo-javascript
+#: code:addons/base_google_map/static/src/utils/base_google_map.js:0
+#, python-format
+msgid "Configuration"
 msgstr ""
 
 #. module: base_google_map
@@ -245,8 +257,18 @@ msgid "German"
 msgstr ""
 
 #. module: base_google_map
+#: model_terms:ir.ui.view,arch_db:base_google_map.res_config_settings_view_form
+msgid "Google API Key and Map Localization"
+msgstr ""
+
+#. module: base_google_map
 #: model:ir.model.fields,field_description:base_google_map.field_res_config_settings__google_autocomplete_lang_restrict
 msgid "Google Autocomplete Language Restriction"
+msgstr ""
+
+#. module: base_google_map
+#: model_terms:ir.ui.view,arch_db:base_google_map.res_config_settings_view_form
+msgid "Google Maps"
 msgstr ""
 
 #. module: base_google_map
@@ -257,11 +279,6 @@ msgstr ""
 #. module: base_google_map
 #: model:ir.model.fields,field_description:base_google_map.field_res_config_settings__google_maps_region_localization
 msgid "Google Maps Region Localization"
-msgstr ""
-
-#. module: base_google_map
-#: model_terms:ir.ui.view,arch_db:base_google_map.res_config_settings_view_form
-msgid "Google Maps View"
 msgstr ""
 
 #. module: base_google_map
@@ -354,7 +371,7 @@ msgstr ""
 
 #. module: base_google_map
 #: model_terms:ir.ui.view,arch_db:base_google_map.res_config_settings_view_form
-msgid "Language :"
+msgid "Language"
 msgstr ""
 
 #. module: base_google_map
@@ -369,12 +386,8 @@ msgstr ""
 
 #. module: base_google_map
 #: model:ir.model.fields,field_description:base_google_map.field_res_config_settings__google_maps_libraries
-msgid "Libraries"
-msgstr ""
-
-#. module: base_google_map
 #: model_terms:ir.ui.view,arch_db:base_google_map.res_config_settings_view_form
-msgid "Libraries :"
+msgid "Libraries"
 msgstr ""
 
 #. module: base_google_map
@@ -464,7 +477,7 @@ msgstr ""
 
 #. module: base_google_map
 #: model_terms:ir.ui.view,arch_db:base_google_map.res_config_settings_view_form
-msgid "Region :"
+msgid "Region"
 msgstr ""
 
 #. module: base_google_map
@@ -485,11 +498,6 @@ msgstr ""
 #. module: base_google_map
 #: model:ir.model.fields.selection,name:base_google_map.selection__res_config_settings__google_maps_lang_localization__sr
 msgid "Serbian"
-msgstr ""
-
-#. module: base_google_map
-#: model_terms:ir.ui.view,arch_db:base_google_map.res_config_settings_view_form
-msgid "Set Google API key and map localization"
 msgstr ""
 
 #. module: base_google_map
@@ -515,6 +523,16 @@ msgstr ""
 #. module: base_google_map
 #: model:ir.model.fields.selection,name:base_google_map.selection__res_config_settings__google_maps_lang_localization__sl
 msgid "Slovenian"
+msgstr ""
+
+#. module: base_google_map
+#. odoo-javascript
+#: code:addons/base_google_map/static/src/utils/base_google_map.js:0
+#, python-format
+msgid ""
+"Something went wrong!\n"
+"Google Maps is not load correctly.\n"
+"See the JavaScript console for technical details."
 msgstr ""
 
 #. module: base_google_map
@@ -613,7 +631,7 @@ msgstr ""
 
 #. module: base_google_map
 #: model_terms:ir.ui.view,arch_db:base_google_map.res_config_settings_view_form
-msgid "Visit the"
+msgid "Visit this page"
 msgstr ""
 
 #. module: base_google_map

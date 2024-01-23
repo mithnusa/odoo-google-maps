@@ -1,6 +1,6 @@
 # Web View Google Maps
 
-#### A new `google_map` view to display geolocation data using Google Maps
+### A new `google_map` view to display geolocation data using Google Maps
 
 How to create the view?
 
@@ -83,13 +83,17 @@ Example:
     </google_map>
     ```
 
-#### Using `google_map` view inside `form` view
-You can use the view inside `form` view
+### Using `google_map` view inside `form` view
+You can use the view inside `form` view.
+
+There are two available widget and it's a mandatory:
+1. One2many relation: `google_map_one2many`
+2. Many2many relations: `google_map_many2many`
 
 Example:
 ```xml
 <field name="partner_ids" mode="google_map">
-    <google_map string="Contacts" lat="partner_latitude" color="marker_color" lng="partner_longitude" sidebar_title="display_name" sidebar_subtitle="contact_address">
+    <google_map string="Contacts" widget="google_map_one2many" lat="partner_latitude" color="marker_color" lng="partner_longitude" sidebar_title="display_name" sidebar_subtitle="contact_address">
         <field name="partner_latitude"/>
         <field name="partner_longitude"/>
         <field name="color"/>

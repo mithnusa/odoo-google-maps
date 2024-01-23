@@ -5,6 +5,9 @@ import { useService } from '@web/core/utils/hooks';
 import { renderToString } from '@web/core/utils/render';
 
 export class GoogleMapGeolocate extends Component {
+    static template = 'web_view_google_map.Geolocate';
+    static props = ['googleMap'];
+
     setup() {
         this.notification = useService('notification');
         onRendered(this._onRendered);
@@ -85,21 +88,18 @@ export class GoogleMapGeolocate extends Component {
         console.error(error);
         switch (error.code) {
             case error.PERMISSION_DENIED:
-                message = _t('User denied the request for Geolocation.');
+                message = 'Unable to access your location. Please allow location access to use this feature.';
                 break;
             case error.POSITION_UNAVAILABLE:
-                message = _t('Location information is unavailable.');
+                message = 'Your location information is currently unavailable.';
                 break;
             case error.TIMEOUT:
-                message = _t('The request to get user location timed out.');
+                message = 'The request to get your location timed out. Please try again later.';
                 break;
             case error.UNKNOWN_ERROR:
-                message = _t('An unknown error occurred.');
+                message = 'An unknown error occurred while trying to get your location.';
                 break;
         }
         this.notification.add(message, { type: 'warning' });
     }
 }
-
-GoogleMapGeolocate.template = 'web_view_google_map.Geolocate';
-GoogleMapGeolocate.props = ['googleMap'];

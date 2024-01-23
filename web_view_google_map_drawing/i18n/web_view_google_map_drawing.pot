@@ -4,10 +4,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo Server 16.0-20230430\n"
+"Project-Id-Version: Odoo Server 17.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-05-06 13:11+0000\n"
-"PO-Revision-Date: 2023-05-06 13:11+0000\n"
+"POT-Creation-Date: 2024-01-23 14:58+0000\n"
+"PO-Revision-Date: 2024-01-23 14:58+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -28,12 +28,15 @@ msgstr ""
 #. module: web_view_google_map_drawing
 #. odoo-javascript
 #: code:addons/web_view_google_map_drawing/static/src/views/google_map_drawing/google_map_drawing_sidebar.js:0
+#: code:addons/web_view_google_map_drawing/static/src/views/google_map_drawing/google_map_drawing_sidebar.js:0
+#: code:addons/web_view_google_map_drawing/static/src/views/google_map_drawing/google_map_drawing_sidebar.js:0
 #, python-format
-msgid "Area: %s square meters"
+msgid "Area: %s square meter"
 msgstr ""
 
 #. module: web_view_google_map_drawing
 #: model:ir.model.fields.selection,name:web_view_google_map_drawing.selection__google_drawing_shape__gshape_type__circle
+#: model:ir.model.fields.selection,name:web_view_google_map_drawing.selection__res_partner_area__gshape_type__circle
 msgid "Circle"
 msgstr ""
 
@@ -69,6 +72,7 @@ msgstr ""
 #. module: web_view_google_map_drawing
 #. odoo-javascript
 #: code:addons/web_view_google_map_drawing/static/src/views/google_map_drawing/google_map_drawing_renderer.js:0
+#: code:addons/web_view_google_map_drawing/static/src/widget/google_map_drawing/google_map_drawing.js:0
 #, python-format
 msgid "Drawing"
 msgstr ""
@@ -126,13 +130,6 @@ msgstr ""
 msgid ""
 "If you want to change the shape, you will need to delete the shape that you "
 "are currently drawing"
-msgstr ""
-
-#. module: web_view_google_map_drawing
-#. odoo-javascript
-#: code:addons/web_view_google_map_drawing/static/src/views/google_map_drawing/google_map_drawing_controller.xml:0
-#, python-format
-msgid "Import GeoJSON"
 msgstr ""
 
 #. module: web_view_google_map_drawing
@@ -196,6 +193,7 @@ msgstr ""
 
 #. module: web_view_google_map_drawing
 #: model:ir.model.fields.selection,name:web_view_google_map_drawing.selection__google_drawing_shape__gshape_type__polygon
+#: model:ir.model.fields.selection,name:web_view_google_map_drawing.selection__res_partner_area__gshape_type__polygon
 msgid "Polygon"
 msgstr ""
 
@@ -213,6 +211,7 @@ msgstr ""
 
 #. module: web_view_google_map_drawing
 #: model:ir.model.fields.selection,name:web_view_google_map_drawing.selection__google_drawing_shape__gshape_type__rectangle
+#: model:ir.model.fields.selection,name:web_view_google_map_drawing.selection__res_partner_area__gshape_type__rectangle
 msgid "Rectangle"
 msgstr ""
 
@@ -276,11 +275,4 @@ msgstr ""
 #: code:addons/web_view_google_map_drawing/static/src/views/google_map_drawing/google_map_drawing_sidebar.js:0
 #, python-format
 msgid "Width: %s meter"
-msgstr ""
-
-#. module: web_view_google_map_drawing
-#. odoo-javascript
-#: code:addons/web_view_google_map_drawing/static/src/views/google_map_drawing/google_map_drawing_sidebar.xml:0
-#, python-format
-msgid "see more"
 msgstr ""

@@ -164,7 +164,10 @@ For options `fillfields`, the default value are
 ```
 If the address fields in your model are defined like the address fields in `res.partner` model than no need to set it.
 
-
+## New setting "Google Address Format" on res.country    
+A setting to construct an address returned by Google Services (service used by the two new widgets)
+![country_google_address_format](./static/img/country_google_address_format.png)
+Note: needs developer mode enabled to see the setting.
 
 Useful links:
 - [https://developers.google.com/maps/documentation/javascript/place-data-fields](https://developers.google.com/maps/documentation/javascript/place-data-fields)

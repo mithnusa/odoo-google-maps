@@ -4,10 +4,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo Server 16.0-20230430\n"
+"Project-Id-Version: Odoo Server 17.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-05-06 13:08+0000\n"
-"PO-Revision-Date: 2023-05-06 13:08+0000\n"
+"POT-Creation-Date: 2024-01-23 14:56+0000\n"
+"PO-Revision-Date: 2024-01-23 14:56+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -88,6 +88,13 @@ msgstr ""
 
 #. module: base_google_places
 #. odoo-javascript
+#: code:addons/base_google_places/static/src/widgets/google_placesid/google_placesid_field.js:0
+#, python-format
+msgid "Failed to fetch Google place detail"
+msgstr ""
+
+#. module: base_google_places
+#. odoo-javascript
 #: code:addons/base_google_places/static/src/views/google_map_places/google_places_autocomplete.js:0
 #: code:addons/base_google_places/static/src/views/google_map_places/google_places_autocomplete.js:0
 #: code:addons/base_google_places/static/src/views/google_map_places/google_places_autocomplete.js:0
@@ -104,6 +111,20 @@ msgid "Failed to fetch place detail."
 msgstr ""
 
 #. module: base_google_places
+#. odoo-javascript
+#: code:addons/base_google_places/static/src/widgets/google_placesid/google_placesid_field.xml:0
+#, python-format
+msgid "Fetch"
+msgstr ""
+
+#. module: base_google_places
+#. odoo-javascript
+#: code:addons/base_google_places/static/src/widgets/google_placesid/google_placesid_field.xml:0
+#, python-format
+msgid "Fetch data from the Google Places Service"
+msgstr ""
+
+#. module: base_google_places
 #: model:ir.model.fields,field_description:base_google_places.field_google_places_mixin__gplace_plus_code_global
 msgid "Global Code"
 msgstr ""
@@ -116,6 +137,13 @@ msgstr ""
 #. module: base_google_places
 #: model:ir.model.fields,field_description:base_google_places.field_google_places_mixin__gplace_formatted_address
 msgid "Google Address"
+msgstr ""
+
+#. module: base_google_places
+#. odoo-javascript
+#: code:addons/base_google_places/static/src/widgets/google_placesid/google_placesid_field.js:0
+#, python-format
+msgid "Google Places ID"
 msgstr ""
 
 #. module: base_google_places
@@ -143,11 +171,6 @@ msgstr ""
 #. module: base_google_places
 #: model:ir.model.fields,field_description:base_google_places.field_google_places_type__id
 msgid "ID"
-msgstr ""
-
-#. module: base_google_places
-#: model:ir.model.fields,field_description:base_google_places.field_google_places_type____last_update
-msgid "Last Modified on"
 msgstr ""
 
 #. module: base_google_places

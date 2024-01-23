@@ -17,7 +17,6 @@ export const LOADER_STATUS = {
 export function useGoogleMapLoader({ showLoading, onLoad = () => {}, onError = () => {} }) {
     showLoading = showLoading || false;
     const rpc = useService('rpc');
-    const user = useService('user');
     const ui = useService('ui');
 
     onMounted(loadGoogleLoader);
@@ -40,9 +39,7 @@ export function useGoogleMapLoader({ showLoading, onLoad = () => {}, onError = (
     async function loadGoogleLoader() {
         try {
             showLoading && ui.block();
-            const data = await rpc('/web/base_google_map/settings', {
-                context: user.context,
-            });
+            const data = await rpc('/web/base_google_map/settings');
             if (data) {
                 const settings = { ...data };
                 const loaderOptions = prepareOptions(settings);
