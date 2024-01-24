@@ -86,7 +86,7 @@ export class GooglePlacesAutocompleteSidebar extends Component {
                             button.classList.add('btn-warning', 'animate');
                         }
                     } else {
-                        button.classList.remove('animate');
+                        button.classList.remove('btn-warning', 'animate');
                         if (!button.classList.contains('btn-light')) {
                             button.classList.toggle('btn-light');
                         }

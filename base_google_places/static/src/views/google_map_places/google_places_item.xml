@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates xml:space="preserve">
-    <t t-name="base_google_places.PlaceItem" owl="1">
+    <t t-name="base_google_places.PlaceItem">
         <div class="list-group-item list-group-item-action flex-column align-items-start" t-ref="root">
             <t t-set="photo_url" t-value="handlePhoto(props.place.photos)"/>
             <div class="d-flex w-100">
