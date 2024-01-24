@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates xml:space="preserve">
-    <t t-name="web_view_google_map_drawing.ShapeInfoWindow" owl="1">
+    <t t-name="web_view_google_map_drawing.ShapeInfoWindow">
         <div class="o_kanban_record d-flex flex-grow-1 flex-md-shrink-1 flex-shrink-0">
             <div class="o_kanban_record d-flex">
                 <div class="oe_kanban_card d-flex flex-column">

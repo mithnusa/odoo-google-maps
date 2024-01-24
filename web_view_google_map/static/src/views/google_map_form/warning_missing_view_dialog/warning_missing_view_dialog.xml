@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates xml:space="preserve">
-  <t t-name="web_view_google_map.WarningMissingGoogleMapFormViewDialog" owl="1">
+  <t t-name="web_view_google_map.WarningMissingGoogleMapFormViewDialog">
     <Dialog size="props.size" title="title">
         <div class="o_warning_missing_google_form_view_dialog">
             <div class="container">

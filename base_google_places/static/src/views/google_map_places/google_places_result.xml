@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates xml:space="preserve">
-    <t t-name="base_google_places.PlacesResult" owl="1">
+    <t t-name="base_google_places.PlacesResult">
         <div class="mt-3" t-ref="root">
             <t t-if="!isEmpty">
                 <div class="list-group mb-3">

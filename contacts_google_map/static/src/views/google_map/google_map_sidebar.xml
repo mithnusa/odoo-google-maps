@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates xml:space="preserve">
-    <t t-name="contacts_google_map.GoogleMapSidebarAvatar" t-inherit="web_view_google_map.GoogleMapSidebar" t-inherit-mode="primary" owl="1">
+    <t t-name="contacts_google_map.GoogleMapSidebarAvatar" t-inherit="web_view_google_map.GoogleMapSidebar" t-inherit-mode="primary">
         <xpath expr="//a[hasclass('o_map_sidebar_record')]" position="before">
             <div class="o_kanban_record_has_image_fill mx-3">
                 <img t-att-src="data.avatarUrl" class="o_kanban_image_fill_left o_kanban_image_full o_image_40_cover" alt="Avatar"/>
