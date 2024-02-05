@@ -104,9 +104,6 @@
                     'force_override': true
                 }</attribute>
             </xpath>
-            <xpath expr="//group[@name='lead_partner']" position="attributes">
-                <attribute name="attrs"></attribute>
-            </xpath>
         </field>
     </record>
     <record id="view_crm_lead_google_map_inherit_google_places" model="ir.ui.view">
