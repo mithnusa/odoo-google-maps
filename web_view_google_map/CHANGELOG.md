@@ -1,7 +1,10 @@
 # Change Log
 
+## 16.0.4.0.2
+- google_map_x2many_field bug fixes
+
 ## 16.0.4.0.1
-- Bugs fixes and improvement
+- Bug fixes and improvement
 
 ## 16.0.4.0.0
 - Support selection.

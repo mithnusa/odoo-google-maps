@@ -1,5 +1,8 @@
 # Change Log
 
+## 16.0.1.0.2
+ - Fixed duplicated Customer on crm.lead form view
+
 ## [16.0.1.0.1] -- 22/08/2023
 ### Added
 ### Changed

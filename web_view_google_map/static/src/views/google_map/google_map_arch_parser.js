@@ -1,6 +1,6 @@
 /** @odoo-module **/
 
-import { addFieldDependencies, getActiveActions, archParseBoolean } from '@web/views/utils';
+import { addFieldDependencies, getActiveActions, archParseBoolean, processButton } from '@web/views/utils';
 import { XMLParser } from '@web/core/utils/xml';
 import { Field } from '@web/views/fields/field';
 
@@ -36,6 +36,7 @@ export class GoogleMapArchParser extends XMLParser {
         const googleMapAttr = {};
 
         const columns = [];
+        const creates = [];
         let nextId = 0;
 
         // Root level of the template
@@ -69,6 +70,22 @@ export class GoogleMapArchParser extends XMLParser {
                         label: (fieldInfo.widget && label && label.toString()) || fieldInfo.string,
                     });
                 }
+            } else if (node.tagName === "control") {
+                for (const childNode of node.children) {
+                    if (childNode.tagName === "button") {
+                        creates.push({
+                            type: "button",
+                            ...processButton(childNode),
+                        });
+                    } else if (childNode.tagName === "create") {
+                        creates.push({
+                            type: "create",
+                            context: childNode.getAttribute("context"),
+                            string: childNode.getAttribute("string"),
+                        });
+                    }
+                }
+                return false;
             } else if (node.tagName === 'google_map') {
                 const activeActions = {
                     ...getActiveActions(xmlDoc),
@@ -92,6 +109,7 @@ export class GoogleMapArchParser extends XMLParser {
         return {
             arch,
             activeFields,
+            creates,
             columns,
             className,
             fieldNodes,
