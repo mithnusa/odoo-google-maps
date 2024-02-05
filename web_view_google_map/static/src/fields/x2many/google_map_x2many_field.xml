@@ -5,6 +5,9 @@
         <xpath expr="//ListRenderer" position="after">
             <GoogleMapRenderer t-elif="viewMode === 'google_map'" t-props="rendererProps"/>
         </xpath>
+        <xpath expr="//KanbanRenderer" position="replace">
+            <KanbanRenderer t-elif="viewMode === 'kanban'" t-props="rendererProps" />
+        </xpath>
         <xpath expr="//t[@t-if='displayAddButton']" position="replace">
             <div class="o_cp_buttons" role="toolbar" aria-label="Control panel buttons" t-ref="buttons">
                 <div class="pb-2">
