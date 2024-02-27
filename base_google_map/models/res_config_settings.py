@@ -150,6 +150,35 @@ class ResConfigSettings(models.TransientModel):
         string='Version',
         config_parameter='base_google_map.version',
     )
+    google_autocomplete_country_restrict = fields.Boolean(
+        string='Google Autocomplete Country Restriction',
+        config_parameter='base_google_map.autocomplete_country_restrict',
+    )
+    google_autocomplete_country_restriction = fields.Many2many(
+        comodel_name='res.country',
+        string='Countries',
+        compute='_compute_country_restriction',
+        inverse='_inverse_country_restriction_str',
+    )
+    google_autocomplete_country_restriction_str = fields.Char(
+        string='Country Restriction',
+        config_parameter='base_google_map.autocomplete_country_restriction',
+    )
+
+    @api.depends('google_autocomplete_country_restriction_str')
+    def _compute_country_restriction(self):
+        for setting in self:
+            if setting.google_autocomplete_country_restriction_str:
+                country_codes = setting.google_autocomplete_country_restriction_str.split(',')
+                setting.google_autocomplete_country_restriction = self.env['res.country'].search([('code', 'in', country_codes)])
+            else:
+                setting.google_autocomplete_country_restriction = False
+
+    def _inverse_country_restriction_str(self):
+        for setting in self:
+            setting.google_autocomplete_country_restriction_str = ','.join(
+                setting.google_autocomplete_country_restriction.mapped('code')
+            )
 
     @api.onchange('google_maps_lang_localization')
     def onchange_lang_localization(self):
