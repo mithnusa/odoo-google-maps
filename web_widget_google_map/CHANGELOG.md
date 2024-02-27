@@ -1,5 +1,8 @@
 # Change Log
 
+## 16.0.2.0.2
+* A new settings added on Settings > General Settings: Google Map View, a settings to restrict Google Autocomplete search result.
+
 ## 16.0.2.0.1
 * Bug fixes
     - Leaving one of the address fields blank in the Google address format for country results in an error 

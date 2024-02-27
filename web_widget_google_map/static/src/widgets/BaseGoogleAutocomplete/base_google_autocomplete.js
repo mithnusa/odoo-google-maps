@@ -90,6 +90,12 @@ export class BaseGoogleAutocomplete extends Component {
                 });
             }
 
+            if (this.settings.autocomplete_countries_restriction) {
+                this.placesAutocomplete.setComponentRestrictions({
+                    country: this.settings.autocomplete_countries_restriction,
+                });
+            }
+
             this.placeAutocompleteListener = this.placesAutocomplete.addListener(
                 'place_changed',
                 this.handlePopulateAddress.bind(this)
