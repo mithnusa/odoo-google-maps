@@ -60,6 +60,8 @@ class Main(http.Controller):
                 'base_google_map.autocomplete_country_restriction', default=''
             )
             if country_codes:
-                values['autocomplete_countries_restriction'] = country_codes.lower().split(',')
+                country_codes_list = country_codes.lower().split(',')
+                # Support up to 5 countries (https://developers.google.com/maps/documentation/javascript/place-autocomplete#restrict-predictions-to-a-specific-country)
+                values['autocomplete_countries_restriction'] = country_codes_list[:5]
 
         return values
