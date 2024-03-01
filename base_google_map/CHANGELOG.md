@@ -1,5 +1,8 @@
 # Change Log
 
+## 16.0.1.2.5
+* A new settings added on Settings > General Settings: Google Map View, a settings to restrict Google Autocomplete search result.
+
 ## 16.0.1.2.4
 * Bugs fixes
 

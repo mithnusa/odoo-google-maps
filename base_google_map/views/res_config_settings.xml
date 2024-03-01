@@ -65,6 +65,20 @@
                                     </div>
                                 </div>
                             </div>
+                            <div class="col-12 col-lg-6 o_setting_box" id="google_autocomplete_country_restrict">
+                                <div class="o_setting_left_pane">
+                                    <field name="google_autocomplete_country_restrict"/>
+                                </div>
+                                <div class="o_setting_right_pane">
+                                    <label for="google_autocomplete_country_restrict" />
+                                    <div class="text-muted">
+                                        Restrict search results to a specific country. This is especially helpful if you want restrict the search within a country. Support up to 5 countries.
+                                    </div>
+                                    <field name="google_autocomplete_country_restriction_str" invisible="1"/>
+                                    <label for="google_autocomplete_country_restriction" string="Countries : " attrs="{'invisible': [('google_autocomplete_country_restrict', '=', False)]}"/>
+                                    <field name="google_autocomplete_country_restriction" widget="many2many_tags" attrs="{'invisible': [('google_autocomplete_country_restrict', '=', False)]}"/>
+                                </div>
+                            </div>
                             <div class="col-12 col-lg-6 o_setting_box" id="google_map_enable_place_search">
                                 <div class="o_setting_left_pane">
                                     <field name="google_enable_map_place_search"/>

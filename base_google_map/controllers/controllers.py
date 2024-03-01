@@ -42,11 +42,26 @@ class Main(http.Controller):
         language = IrParam.get_param(
             'base_google_map.lang_localization', default=''
         )
+        if is_restrict_language and language:
+            values['language'] = language
 
         values['theme'] = theme
         values['is_places_search_enable'] = is_places_search_enable
 
-        if is_restrict_language and language:
-            values['language'] = language
+        # Autocomplete country restriction
+        is_restrict_country = safe_eval(
+            IrParam.get_param(
+                'base_google_map.autocomplete_country_restrict', default='False'
+            )
+        )
+
+        if is_restrict_country:
+            country_codes = IrParam.get_param(
+                'base_google_map.autocomplete_country_restriction', default=''
+            )
+            if country_codes:
+                country_codes_list = country_codes.lower().split(',')
+                # Support up to 5 countries (https://developers.google.com/maps/documentation/javascript/place-autocomplete#restrict-predictions-to-a-specific-country)
+                values['autocomplete_countries_restriction'] = country_codes_list[:5]
 
         return values

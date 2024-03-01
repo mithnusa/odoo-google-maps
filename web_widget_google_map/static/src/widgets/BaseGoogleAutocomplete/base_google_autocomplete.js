@@ -79,14 +79,23 @@ export class BaseGoogleAutocomplete extends Component {
     initGplacesAutocomplete() {
         if (!this.placesAutocomplete && this.input) {
             const google_fields = this.getGoogleFieldsRestriction();
-            this.placesAutocomplete = new google.maps.places.Autocomplete(this.input.el, {
+            const options = {
                 types: this.autocomplete_types,
                 fields: google_fields,
-            });
+            };
 
+            // On this section, only set the country restriction if there is only one country configured in the settings
+            if (this.settings.autocomplete_countries_restriction && this.settings.autocomplete_countries_restriction.length === 1) {
+                options.componentRestrictions = { country: this.settings.autocomplete_countries_restriction[0] };
+            }
             if (this.settings.language) {
-                this.placesAutocomplete.setOptions({
-                    language: this.settings.language,
+                options.language = this.settings.language;
+            }
+            this.placesAutocomplete = new google.maps.places.Autocomplete(this.input.el, options);
+
+            if (this.settings.autocomplete_countries_restriction && this.settings.autocomplete_countries_restriction.length > 1) {
+                this.placesAutocomplete.setComponentRestrictions({
+                    country: this.settings.autocomplete_countries_restriction,
                 });
             }
 
