@@ -35,10 +35,15 @@
                         <setting id="google_autocomplete_lang_restrict" help="The language code, indicating in which language the results should be returned, if possible. Searches are also biased to the selected language; results in the selected language may be given a higher ranking.">
                             <field name="google_autocomplete_lang_restrict"/>
                         </setting>
-                        <setting id="google_enable_map_place_search">
+                        <setting id="google_enable_map_place_search" help="Enable Google Places Search Autocomplete in Google map. This feature required the &#8220;Places API&#8221; to be enabled in your Google API key.">
                             <field name="google_enable_map_place_search"/>
+                        </setting>
+                        <setting id="google_autocomplete_country_restrict" help="Restrict search results to a specific country. This is especially helpful if you want restrict the search within a country. Support up to 5 countries.">
+                            <field name="google_autocomplete_country_restrict"/>
                             <div class="content-group">
-                                <div class="mt16 text-muted">Enable Google Places Search Autocomplete in Google map. This feature required the &#8220;Places API&#8221; to be enabled in your Google API key.</div>
+                                <field name="google_autocomplete_country_restriction_str" invisible="1"/>
+                                <label for="google_autocomplete_country_restriction" string="Countries : " invisible="not google_autocomplete_country_restrict"/>
+                                <field name="google_autocomplete_country_restriction" widget="many2many_tags" invisible="not google_autocomplete_country_restrict"/>
                             </div>
                         </setting>
                     </block>

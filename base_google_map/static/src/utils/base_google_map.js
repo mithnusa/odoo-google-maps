@@ -105,7 +105,7 @@ export class BaseGoogleMap extends Component {
             (loaderStatus) => {
                 if (loaderStatus === LOADER_STATUS.FAILURE) {
                     this.dialog.add(AlertDialog, {
-                        title: _t('Configuration'),
+                        title: _t('Google Maps'),
                         body: _t(
                             'Something went wrong!\nGoogle Maps is not load correctly.\nSee the JavaScript console for technical details.'
                         ),
