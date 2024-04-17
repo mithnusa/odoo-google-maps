@@ -1,5 +1,10 @@
 # Change Log
 
+
+## 16.0.1.2.6
+* Bump js-api-loader to version 1.16.6
+* Bump markerclusterer to version 2.5.3
+
 ## 16.0.1.2.5
 * A new settings added on Settings > General Settings: Google Map View, a settings to restrict Google Autocomplete search result.
 

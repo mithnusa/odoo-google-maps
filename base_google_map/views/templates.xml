@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
     <template id="assets_gmaps" name="Google Maps Assets">
-        <script src="https://unpkg.com/@googlemaps/js-api-loader@1.15.1/dist/index.min.js"></script>
-        <script src="https://unpkg.com/@googlemaps/markerclusterer@2.5.2/dist/index.min.js"></script>
+        <script src="https://unpkg.com/@googlemaps/js-api-loader@1.16.6/dist/index.min.js"></script>
+        <script src="https://unpkg.com/@googlemaps/markerclusterer@2.5.3/dist/index.min.js"></script>
     </template>
     <template id="webclient_bootstrap" name="webclient_bootstrap gmaps" inherit_id="web.webclient_bootstrap">
         <xpath expr="//t[@t-set='head_web']" position="inside">
