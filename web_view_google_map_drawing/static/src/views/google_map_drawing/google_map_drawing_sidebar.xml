@@ -15,7 +15,7 @@
             <ul class="list-group">
                 <t t-foreach="props.records" t-as="record" t-key="record.id">
                     <t t-set="data" t-value="this.getData(record)"/>
-                    <li t-attf-class="list-group-item d-flex justify-content-between align-items-center pb-1 pt-1 #{data.hasShape ? '' : 'list-group-item-dark'} #{record.selected ? 'list-group-item-info': ''}">
+                    <li t-attf-class="list-group-item d-flex justify-content-between align-items-center pb-1 pt-1 #{data.hasShape ? '' : 'bg-100'} #{record.selected ? 'list-group-item-info': ''}">
                         <t t-if="props.allowSelectors">
                             <CheckBox disabled="!props.handleCanSelectRecord" value="record.selected" onChange.alike="() => this.selectRecord(record)"/>
                         </t>
