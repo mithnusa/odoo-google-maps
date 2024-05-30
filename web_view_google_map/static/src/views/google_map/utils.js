@@ -60,4 +60,10 @@ export function getFontAwesomeIcon(iconName) {
     }
     return iconFa;
 }
-return { getFontAwesomeIcon: getFontAwesomeIcon };
+
+export function getCurrentActionId() {
+    let url = new URL(window.location.href);
+    let hashParams = new URLSearchParams(url.hash.slice(1));
+    let actionId = parseInt(hashParams.get('action'));
+    return isNaN(actionId) ? null : actionId;
+}
