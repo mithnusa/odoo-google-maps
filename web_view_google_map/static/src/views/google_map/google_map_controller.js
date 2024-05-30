@@ -23,6 +23,7 @@ import { useSearchBarToggler } from '@web/search/search_bar/search_bar_toggler';
 import { ViewButton } from '@web/views/view_button/view_button';
 import { executeButtonCallback } from '@web/views/view_button/view_button_hook';
 import { CogMenu } from '@web/search/cog_menu/cog_menu';
+import { getCurrentActionId } from './utils';
 
 import {
     Component,
@@ -510,6 +511,14 @@ export class GoogleMapController extends Component {
         return executeButtonCallback(this.rootRef.el, () => this.createRecord());
     }
 
+    async _getActionFormView(actionId, resId) {
+        if (!actionId) return;
+        return await this.model.orm.call('google.map.view.mixins', 'handle_find_action_form_view', [
+            actionId,
+            resId,
+        ]);
+    }
+
     /**
      * Open form view in a dialog window
      * @param {Object} values
@@ -518,9 +527,17 @@ export class GoogleMapController extends Component {
         if (values && values.resId) {
             const record = this.model.root.records.find((rec) => rec.resId === values.resId);
             if (record) {
-                const name = this._getRecordName(record);
-                this.model.action.doAction(
-                    {
+                const currentActionId = getCurrentActionId();
+                let action;
+                if (currentActionId) {
+                    action = await this._getActionFormView(currentActionId, record.resId);
+                    if (action) {
+                        action.target = 'new';
+                    }
+                }
+                if (!action) {
+                    const name = this._getRecordName(record);
+                    action = {
                         name: name,
                         type: 'ir.actions.act_window',
                         res_model: record.resModel,
@@ -528,19 +545,19 @@ export class GoogleMapController extends Component {
                         view_mode: 'form',
                         res_id: record.resId,
                         target: 'new',
-                    },
-                    {
-                        props: {
-                            onSave: async () => {
-                                this.model.action.doAction({
-                                    type: 'ir.actions.act_window_close',
-                                });
-                                await record.load({}, { keepChanges: true });
-                                record.model.notify();
-                            },
+                    };
+                }
+                this.model.action.doAction(action, {
+                    props: {
+                        onSave: async () => {
+                            await record.load();
+                            record.model.notify();
+                            this.model.action.doAction({
+                                type: 'ir.actions.act_window_close',
+                            });
                         },
-                    }
-                );
+                    },
+                });
             }
         }
     }
