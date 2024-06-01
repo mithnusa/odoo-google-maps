@@ -16,7 +16,7 @@ export class GoogleMapRendererContactAvatar extends GoogleMapRenderer {
     /**
      * @override
      */
-    get infoWindowQwebName() {
+    get infoWindowTemplate() {
         return 'contacts_google_map.MarkerInfoWindow';
     }
 

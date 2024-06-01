@@ -1,8 +1,18 @@
 /** @odoo-module */
+import { useService } from '@web/core/utils/hooks';
 import { GoogleMapRenderer } from '@web_view_google_map/views/google_map/google_map_renderer';
+import { getCurrentActionId } from '@web_view_google_map/views/google_map/utils';
 import { GoogleMapSidebarSales } from './google_map_sidebar';
 
 export class GoogleMapRendererSales extends GoogleMapRenderer {
+    /**
+     * @override
+     */
+    setup() {
+        super.setup();
+        this.action = useService('action');
+    }
+
     /**
      * @override
      */
@@ -97,20 +107,21 @@ export class GoogleMapRendererSales extends GoogleMapRenderer {
     /**
      * @override
      */
-    get infoWindowQwebName() {
+    get infoWindowTemplate() {
         return 'sale_google_map.MarkerInfoWindow';
     }
 
     /**
-     * @override
+     *
+     * @overwrite
      */
     getMarkerContent(record, isMulti) {
-        const divContent = super.getMarkerContent(record, isMulti);
-        const group = record._group;
+        const content = this.markerInfoWindowContent(record, isMulti);
+        const divContent = new DOMParser()
+            .parseFromString(content, 'text/html')
+            .querySelector('div');
 
-        // remove the original event listener
-        divContent.querySelector('#btn-open_form').removeEventListener('click', this.props.showRecord.bind(this, record));
-        // add the new event listener
+        const group = record._group;
         divContent
             .querySelector('#btn-open_form')
             .addEventListener('click', this._openCustomerForm.bind(this, group), false);
@@ -123,20 +134,19 @@ export class GoogleMapRendererSales extends GoogleMapRenderer {
     }
 
     _openCustomerForm(group) {
-        this.props.list.model.action.doAction(
+        this.action.doAction(
             {
                 name: group.displayName || '',
                 type: 'ir.actions.act_window',
                 res_model: group.resModel,
                 views: [[false, 'form']],
-                view_mode: 'form',
                 res_id: group.resId,
                 target: 'new',
             },
             {
                 props: {
                     onSave: async () => {
-                        this.props.list.model.action.doAction({
+                        this.action.doAction({
                             type: 'ir.actions.client',
                             tag: 'reload',
                         });
@@ -159,7 +169,7 @@ export class GoogleMapRendererSales extends GoogleMapRenderer {
     }
 
     actionSeeSales(group) {
-        let actionId = this._getCurrentActionId();
+        let actionId = getCurrentActionId();
         if (actionId) {
             let domain = [];
             let groupField = this.props.list.groupBy ? this.props.list.groupBy[0] : null;
@@ -167,7 +177,7 @@ export class GoogleMapRendererSales extends GoogleMapRenderer {
                 domain.push([groupField, '=', group.resId]);
             }
             let context = group.list.defaultContext ? { ...group.list.defaultContext } : {};
-            this._handleAction(actionId, domain, context);
+            this._handleActionSeeMore(actionId, domain, context);
         }
     }
 

@@ -6,7 +6,7 @@ export class GoogleMapRendererCRM extends GoogleMapRenderer {
     /**
      * @overwrite
      */
-    get infoWindowQwebName() {
+    get infoWindowTemplate() {
         return 'crm_google_map.MarkerInfoWindow';
     }
 

@@ -1,5 +1,8 @@
 # Change Log
 
+## 16.0.4.1.2
+- Improved marker info window
+
 ## 16.0.4.0.2
 - google_map_x2many_field bug fixes
 

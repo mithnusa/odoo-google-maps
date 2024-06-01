@@ -131,6 +131,7 @@ class ResConfigSettings(models.TransientModel):
             ('blue_water', 'Blue water'),
             ('blue_essense', 'Blue essense'),
             ('line_drawing', 'Line drawing'),
+            ('blueprint', 'Blue print'),
         ],
         string='Theme',
         config_parameter='base_google_map.theme',

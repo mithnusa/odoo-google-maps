@@ -9,7 +9,7 @@ import { BaseGoogleMap, LOADER_STATUS } from '@base_google_map/utils/base_google
 
 import { GoogleMapSidebar } from './google_map_sidebar';
 import { GoogleMapGeolocate } from './geolocate/geolocate';
-import { getFontAwesomeIcon } from './utils';
+import { getFontAwesomeIcon, getCurrentActionId } from './utils';
 
 export class GoogleMapRenderer extends BaseGoogleMap {
     setup() {
@@ -37,7 +37,7 @@ export class GoogleMapRenderer extends BaseGoogleMap {
         useEffect(
             (mapEl, loaderStatus) => {
                 // Allow you to select a marker in the map, by pressing a Shift key + click the marker
-                if (mapEl && loaderStatus === LOADER_STATUS.SUCCESS) {
+                if (mapEl && loaderStatus === LOADER_STATUS.SUCCESS && !this.props.archInfo.disableAreaSelector) {
                     mapEl.addEventListener('keydown', this.onMapKeydown.bind(this));
                     mapEl.addEventListener('keyup', this.onMapKeyup.bind(this));
                     return () => {
@@ -209,13 +209,13 @@ export class GoogleMapRenderer extends BaseGoogleMap {
         };
     }
 
-    get infoWindowQwebName() {
+    get infoWindowTemplate() {
         return 'web_view_google_map.MarkerInfoWindow';
     }
 
     markerInfoWindowContent(record, isMulti) {
         const values = this.prepareInfoWindowValues(record, isMulti);
-        return renderToString(this.infoWindowQwebName, values);
+        return renderToString(this.infoWindowTemplate, values);
     }
 
     /**
@@ -540,7 +540,7 @@ export class GoogleMapRenderer extends BaseGoogleMap {
         }
     }
 
-    _handleAction(actionId, domain, context) {
+    _handleActionSeeMore(actionId, domain, context) {
         if (!actionId) return;
         this.props.list.model.orm
             .call('google.map.view.mixins', 'handle_find_action', [actionId])
@@ -559,17 +559,6 @@ export class GoogleMapRenderer extends BaseGoogleMap {
                         });
                 }
             });
-    }
-
-    /**
-     * A hack to get current action ID
-     * @returns {number|null} actionId
-     */
-    _getCurrentActionId() {
-        let url = new URL(window.location.href);
-        let hashParams = new URLSearchParams(url.hash.slice(1));
-        let actionId = parseInt(hashParams.get('action'));
-        return isNaN(actionId) ? null : actionId;
     }
 
     async generateLatLngDomain(lat, lng) {
@@ -593,7 +582,7 @@ export class GoogleMapRenderer extends BaseGoogleMap {
     }
 
     async actionSeeMore(marker) {
-        let actionId = this._getCurrentActionId();
+        let actionId = getCurrentActionId();
         if (actionId) {
             let position = marker.getPosition();
             let domain = await this.generateLatLngDomain(position.lat(), position.lng());
@@ -603,7 +592,7 @@ export class GoogleMapRenderer extends BaseGoogleMap {
                     { type: 'danger' }
                 );
             } else {
-                this._handleAction(actionId, domain);
+                this._handleActionSeeMore(actionId, domain);
             }
         }
     }
