@@ -536,5 +536,8 @@ div[name="base_google_map"] {
         input[data-value="line_drawing"] + label {
             background-image: url('/web_view_google_map/static/img/map_theme/line_drawing.png');
         }
+        input[data-value="blueprint"] + label {
+            background-image: url('/web_view_google_map/static/img/map_theme/blueprint.png');
+        }
     }
 }
