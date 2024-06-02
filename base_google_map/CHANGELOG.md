@@ -1,5 +1,7 @@
 # Change Log
 
+## 16.0.1.3.6
+* Added new map theme 'Blueprint'
 
 ## 16.0.1.2.6
 * Bump js-api-loader to version 1.16.6
