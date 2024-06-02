@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="crm_google_map.GoogleMapSidebar" t-inherit="web_view_google_map.GoogleMapSidebar" t-inherit-mode="primary" owl="1">
+        <xpath expr="//li" position="inside">
+            <div class="d-flex justify-content-around align-items-center font-monospace">
+                <small class="text-muted" t-if="data.expectedRevenue" title="Expected Revenue">
+                    <i class="fa fa-usd"></i>
+                    <span class="ms-1" t-out="data.expectedRevenue"/>
+                </small>
+                <small class="text-muted" t-if="data.probability" title="Probability">
+                    <span class="pe-1" t-out="data.probability"/>
+                    <i class="fa fa-percent"></i>
+                </small>
+                <small class="text-muted" t-if="data.dateDeadline" title="Expected Closing">
+                    <span t-out="data.dateDeadline"/>
+                </small>
+            </div>
+        </xpath>
+    </t>
+</templates>
