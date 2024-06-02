@@ -1,6 +1,7 @@
 /** @odoo-module **/
 
 import { patch } from '@web/core/utils/patch';
+import { archParseBoolean } from '@web/views/utils';
 import { renderToString } from '@web/core/utils/render';
 import { GoogleMapRenderer } from '@web_view_google_map/views/google_map/google_map_renderer';
 
@@ -13,14 +14,16 @@ patch(GoogleMapRenderer.prototype, 'web_view_google_map_selector_area', {
     },
     initialize() {
         this._super(...arguments);
-        let js_class;
+        let js_class = '';
+        let disableAreaSelector = false;
         if (this.props.archInfo && this.props.archInfo.arch) {
             const xml = new DOMParser().parseFromString(this.props.archInfo.arch, 'text/xml');
             js_class = xml.documentElement.getAttribute('js_class') || '';
+            disableAreaSelector = archParseBoolean(xml.documentElement.getAttribute('disable_area_selector'), false);
         }
 
         // prevent initialize area selector in view google map drawing or widget google maps drawing
-        if (js_class === 'google_map_drawing' || (this.props.id && this.props.name)) {
+        if (js_class === 'google_map_drawing' || (this.props.id && this.props.name) || disableAreaSelector) {
             return;
         } else {
             this._initializeGoogleMapDrawing();
