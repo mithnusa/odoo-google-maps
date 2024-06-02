@@ -12,7 +12,8 @@ import { ConfirmationDialog } from '@web/core/confirmation_dialog/confirmation_d
 import { ActionMenus } from '@web/search/action_menus/action_menus';
 import { standardViewProps } from '@web/views/standard_view_props';
 import { useSetupView } from '@web/views/view_hook';
-import { Component, useRef, onWillStart, markRaw } from '@odoo/owl';
+import { Component, useRef, onWillStart } from '@odoo/owl';
+import { getCurrentActionId } from './utils';
 
 export class GoogleMapController extends Component {
     setup() {
@@ -331,6 +332,14 @@ export class GoogleMapController extends Component {
         this.props.selectRecord(record.resId, { activeIds, mode });
     }
 
+    async _getActionFormView(actionId, resId) {
+        if (!actionId) return;
+        return await this.model.orm.call('google.map.view.mixins', 'handle_find_action_form_view', [
+            actionId,
+            resId,
+        ]);
+    }
+
     /**
      * Open form view in a dialog window
      * @param {Object} values
@@ -339,9 +348,18 @@ export class GoogleMapController extends Component {
         if (values && values.resId) {
             const record = this.model.root.records.find((rec) => rec.resId === values.resId);
             if (record) {
-                const name = this._getRecordName(record);
-                this.model.action.doAction(
-                    {
+                const currentActionId = getCurrentActionId();
+                let action;
+                if (currentActionId) {
+                    action = await this._getActionFormView(currentActionId, record.resId);
+                    if (action) {
+                        action.target = 'new';
+                    }
+                }
+
+                if (!action) {
+                    const name = this._getRecordName(record);
+                    action = {
                         name: name,
                         type: 'ir.actions.act_window',
                         res_model: record.resModel,
@@ -349,19 +367,20 @@ export class GoogleMapController extends Component {
                         view_mode: 'form',
                         res_id: record.resId,
                         target: 'new',
-                    },
-                    {
-                        props: {
-                            onSave: async () => {
-                                this.model.action.doAction({
-                                    type: 'ir.actions.act_window_close',
-                                });
-                                await record.load({}, { keepChanges: true });
-                                record.model.notify();
-                            },
+                    };
+                }
+
+                this.model.action.doAction(action, {
+                    props: {
+                        onSave: async () => {
+                            this.model.action.doAction({
+                                type: 'ir.actions.act_window_close',
+                            });
+                            await record.load({}, { keepChanges: true });
+                            record.model.notify();
                         },
-                    }
-                );
+                    },
+                });
             }
         }
     }

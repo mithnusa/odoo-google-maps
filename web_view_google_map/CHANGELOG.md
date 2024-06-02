@@ -1,5 +1,10 @@
 # Change Log
 
+## 16.0.4.1.2
+- Improved marker info window
+- Added new map theme 'Blueprint'
+- Added a new Abstract class `google.map.view.mixins`. This class design to provide mixins to the `google_map` view
+
 ## 16.0.4.0.2
 - google_map_x2many_field bug fixes
 
