@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_sale_order_quotations_google_map" model="ir.ui.view">
+        <field name="name">view.sale.order.quotations.google_map</field>
+        <field name="model">sale.order</field>
+        <field name="priority" eval="100"/>
+        <field name="arch" type="xml">
+            <google_map js_class="google_map_sales" disable_area_selector="1" string="Quotations" lat="partner_latitude" lng="partner_longitude" marker_icon="circle" icon_scale="0.6" color="#ad2df7">
+                <field name="partner_latitude"/>
+                <field name="partner_longitude"/>
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="amount_total"/>
+                <field name="currency_id"/>
+                <field name="partner_contact_address"/>
+            </google_map>
+        </field>
+    </record>
+    <record id="sale.action_quotations_with_onboarding" model="ir.actions.act_window">
+        <field name="view_mode">tree,kanban,form,calendar,pivot,graph,activity,google_map</field>
+    </record>
+    <record id="view_sale_order_orders_google_map" model="ir.ui.view">
+        <field name="name">view.sale.order.orders.google_map</field>
+        <field name="model">sale.order</field>
+        <field name="priority" eval="200"/>
+        <field name="arch" type="xml">
+            <google_map js_class="google_map_sales" disable_area_selector="1" string="Orders" lat="partner_latitude" lng="partner_longitude" marker_icon="circle" icon_scale="0.6" color="#482df7">
+                <field name="partner_latitude"/>
+                <field name="partner_longitude"/>
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="amount_total"/>
+                <field name="partner_contact_address"/>
+            </google_map>
+        </field>
+    </record>
+    <record id="sale.action_orders" model="ir.actions.act_window">
+        <field name="view_mode">tree,kanban,form,calendar,pivot,graph,activity,google_map</field>
+    </record>
+    <record id="sale_order_action_view_google_map" model="ir.actions.act_window.view">
+        <field name="sequence" eval="7"/>
+        <field name="view_mode">google_map</field>
+        <field name="view_id" ref="sale_google_map.view_sale_order_orders_google_map"/>
+        <field name="act_window_id" ref="sale.action_orders"/>
+    </record>
+    <record id="view_sale_order_to_invoice_google_map" model="ir.ui.view">
+        <field name="name">view.sale.order.to_invoice.google_map</field>
+        <field name="model">sale.order</field>
+        <field name="priority" eval="100"/>
+        <field name="arch" type="xml">
+            <google_map js_class="google_map_sales" disable_area_selector="1" string="Orders to Invoice" lat="partner_latitude" lng="partner_longitude" marker_icon="circle" icon_scale="0.6" color="#0dbaa9">
+                <field name="partner_latitude"/>
+                <field name="partner_longitude"/>
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="amount_total"/>
+                <field name="currency_id"/>
+                <field name="partner_contact_address"/>
+            </google_map>
+        </field>
+    </record>
+    <record id="sale.action_orders_to_invoice" model="ir.actions.act_window">
+        <field name="view_mode">tree,form,calendar,graph,pivot,kanban,activity,google_map</field>
+    </record>
+    <record id="sale_order_to_invoice_action_view_quotation_tree" model="ir.actions.act_window.view">
+        <field name="sequence" eval="1"/>
+        <field name="view_mode">tree</field>
+        <field name="view_id" ref="sale.view_order_tree"/>
+        <field name="act_window_id" ref="sale.action_orders_to_invoice"/>
+    </record>
+    <record id="sale_order_to_invoice_action_view_quotation_form" model="ir.actions.act_window.view">
+        <field name="sequence" eval="2"/>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="sale.view_order_form"/>
+        <field name="act_window_id" ref="sale.action_orders_to_invoice"/>
+    </record>
+    <record id="sale_order_to_invoice_action_view_quotation_calendar" model="ir.actions.act_window.view">
+        <field name="sequence" eval="3"/>
+        <field name="view_mode">calendar</field>
+        <field name="view_id" ref="sale.view_sale_order_calendar"/>
+        <field name="act_window_id" ref="sale.action_orders_to_invoice"/>
+    </record>
+    <record id="sale_order_to_invoice_action_view_quotation_graph" model="ir.actions.act_window.view">
+        <field name="sequence" eval="4"/>
+        <field name="view_mode">graph</field>
+        <field name="view_id" ref="sale.view_sale_order_graph"/>
+        <field name="act_window_id" ref="sale.action_orders_to_invoice"/>
+    </record>
+    <record id="sale_order_to_invoice_action_view_quotation_pivot" model="ir.actions.act_window.view">
+        <field name="sequence" eval="5"/>
+        <field name="view_mode">pivot</field>
+        <field name="view_id" ref="sale.view_sale_order_pivot"/>
+        <field name="act_window_id" ref="sale.action_orders_to_invoice"/>
+    </record>
+    <record id="sale_order_to_invoice_action_view_quotation_kanban" model="ir.actions.act_window.view">
+        <field name="sequence" eval="6"/>
+        <field name="view_mode">kanban</field>
+        <field name="view_id" ref="sale.view_sale_order_kanban"/>
+        <field name="act_window_id" ref="sale.action_orders_to_invoice"/>
+    </record>
+    <record id="sale_order_to_invoice_action_view_google_map" model="ir.actions.act_window.view">
+        <field name="sequence" eval="7"/>
+        <field name="view_mode">google_map</field>
+        <field name="view_id" ref="sale_google_map.view_sale_order_to_invoice_google_map"/>
+        <field name="act_window_id" ref="sale.action_orders_to_invoice"/>
+    </record>
+    <record id="view_sale_order_upselling_google_map" model="ir.ui.view">
+        <field name="name">view.sale.order.upselling.google_map</field>
+        <field name="model">sale.order</field>
+        <field name="priority" eval="100"/>
+        <field name="arch" type="xml">
+            <google_map js_class="google_map_sales" disable_area_selector="1" string="Orders to Upsell" lat="partner_latitude" lng="partner_longitude" marker_icon="circle" icon_scale="0.6" color="#6c0dba">
+                <field name="partner_latitude"/>
+                <field name="partner_longitude"/>
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="amount_total"/>
+                <field name="currency_id"/>
+                <field name="partner_contact_address"/>
+            </google_map>
+        </field>
+    </record>
+    <record id="sale.action_orders_upselling" model="ir.actions.act_window">
+        <field name="view_mode">tree,form,calendar,graph,pivot,kanban,activity,google_map</field>
+    </record>
+    <record id="sale_order_upselling_action_view_quotation_tree" model="ir.actions.act_window.view">
+        <field name="sequence" eval="1"/>
+        <field name="view_mode">tree</field>
+        <field name="view_id" ref="sale.view_order_tree"/>
+        <field name="act_window_id" ref="sale.action_orders_upselling"/>
+    </record>
+    <record id="sale_order_upselling_action_view_quotation_form" model="ir.actions.act_window.view">
+        <field name="sequence" eval="2"/>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="sale.view_order_form"/>
+        <field name="act_window_id" ref="sale.action_orders_upselling"/>
+    </record>
+    <record id="sale_order_upselling_action_view_quotation_calendar" model="ir.actions.act_window.view">
+        <field name="sequence" eval="3"/>
+        <field name="view_mode">calendar</field>
+        <field name="view_id" ref="sale.view_sale_order_calendar"/>
+        <field name="act_window_id" ref="sale.action_orders_upselling"/>
+    </record>
+    <record id="sale_order_upselling_action_view_quotation_graph" model="ir.actions.act_window.view">
+        <field name="sequence" eval="4"/>
+        <field name="view_mode">graph</field>
+        <field name="view_id" ref="sale.view_sale_order_graph"/>
+        <field name="act_window_id" ref="sale.action_orders_upselling"/>
+    </record>
+    <record id="sale_order_upselling_action_view_quotation_pivot" model="ir.actions.act_window.view">
+        <field name="sequence" eval="5"/>
+        <field name="view_mode">pivot</field>
+        <field name="view_id" ref="sale.view_sale_order_pivot"/>
+        <field name="act_window_id" ref="sale.action_orders_upselling"/>
+    </record>
+    <record id="sale_order_upselling_action_view_quotation_kanban" model="ir.actions.act_window.view">
+        <field name="sequence" eval="6"/>
+        <field name="view_mode">kanban</field>
+        <field name="view_id" ref="sale.view_sale_order_kanban"/>
+        <field name="act_window_id" ref="sale.action_orders_upselling"/>
+    </record>
+    <record id="sale_order_upselling_action_view_google_map" model="ir.actions.act_window.view">
+        <field name="sequence" eval="7"/>
+        <field name="view_mode">google_map</field>
+        <field name="view_id" ref="sale_google_map.view_sale_order_upselling_google_map"/>
+        <field name="act_window_id" ref="sale.action_orders_upselling"/>
+    </record>
+</odoo>

@@ -1,0 +1,41 @@
+.price-tag {
+    background-color: #4285F4;
+    border-radius: 8px;
+    color: #FFFFFF;
+    font-size: 14px;
+    padding: 10px 15px;
+    position: absolute;
+}
+
+.price-tag::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 100%;
+    transform: translate(-50%, 0);
+    width: 0;
+    height: 0;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-top: 8px solid #4285F4;
+}
+
+.gm-style-iw-d + .info-window-o-sales button.gm-ui-hover-effect {
+    display: none !important;
+}
+
+.info-window-o-sales {
+    // background-color: #f8f9fa;
+    // border: 1px solid #dee2e6;
+    // border-radius: 0.25rem;
+    padding: 0.5rem;
+}
+
+.o_google_map_marker_info_window_title {
+    font-weight: bold;
+    margin-bottom: 0.25rem;
+}
+
+// .o_google_map_marker_info_window_subtitle {
+//     color: #6c757d;
+// }

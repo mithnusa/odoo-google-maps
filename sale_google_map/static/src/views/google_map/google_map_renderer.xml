@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="sale_google_map.MarkerInfoWindow" owl="1">
+        <div class="infoWindow">
+            <hr t-if="isMulti"/>
+            <div class="d-flex flex-grow-1 flex-md-shrink-1 flex-shrink-0">
+                <div class="o_kanban_record d-flex">
+                    <div class="oe_kanban_card d-flex flex-column">
+                        <div class="d-flex o_kanban_header">
+                            <a t-attf-href="https://www.google.com/maps/dir/?api=1&amp;destination={{ destination }}" target="_blank" tabindex="-1" class="btn btn-light" id="btn-navigate_to" data-toggle="tooltip" title="Navigate to this location">
+                                <i class="fa fa-map-signs"></i>
+                                <span class="text-uppercase"> Navigate to</span>
+                            </a>
+                            <a t-attf-href="https://www.google.com/maps/search/?api=1&amp;query={{ destination }}" target="_blank" tabindex="-1" class="btn btn-light" id="btn-view-on-googlemaps" data-toggle="tooltip" title="View on Google Maps website">
+                                <span class="text-uppercase"> View on Google Maps</span>
+                            </a>
+                        </div>
+                        <div class="oe_kanban_details d-flex flex-column justify-content-between pt-3">
+                            <div class="o_kanban_record_title">
+                                <h3>
+                                    <a href="#" role="button" class="text-decoration-none" id="btn-open_form">
+                                        <t t-esc="title"/>
+                                    </a>
+                                </h3>
+                            </div>
+                            <div class="o_kanban_record_subtitle">
+                                <t t-esc="subTitle"/>
+                            </div>
+                            <div class="d-flex justify-content-between font-monospace pt-3 align-items-center">
+                                <div>
+                                    <button type="button" class="btn btn-link" id="btn-open_sales">
+                                        <t t-out="count"/> <t t-out="string"/>
+                                        <span class="ps-3">
+                                            <i class="fa fa-arrow-right"></i>
+                                        </span>
+                                    </button>
+                                </div>
+                                <div>
+                                    <i class="fa fa-usd"></i>
+                                    <span class="ps-1" t-out="total"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </t>
+</templates>
