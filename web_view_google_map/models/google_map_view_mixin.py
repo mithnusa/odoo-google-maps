@@ -37,4 +37,17 @@ class GoogleMapViewMixins(models.AbstractModel):
             return False
 
         action = self.env['ir.actions.actions']._for_xml_id(action_name)
-        return dict(action, view_mode='form', res_id=res_id, views=[(False, 'form')])
+        form_view = (
+            self.env['ir.actions.act_window.view']
+            .sudo()
+            .search(
+                [('view_mode', '=', 'form'), ('act_window_id', '=', action_id)],
+                limit=1,
+            )
+        )
+        if form_view and form_view.view_id:
+            views = [(form_view.view_id.id, 'form')]
+        else:
+            views = [(False, 'form')]
+
+        return dict(action, view_mode='form', res_id=res_id, views=views)
