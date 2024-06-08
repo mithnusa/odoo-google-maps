@@ -1,18 +1,9 @@
 /** @odoo-module */
-import { useService } from '@web/core/utils/hooks';
 import { GoogleMapRenderer } from '@web_view_google_map/views/google_map/google_map_renderer';
 import { getCurrentActionId } from '@web_view_google_map/views/google_map/utils';
 import { GoogleMapSidebarSales } from './google_map_sidebar';
 
 export class GoogleMapRendererSales extends GoogleMapRenderer {
-    /**
-     * @override
-     */
-    setup() {
-        super.setup();
-        this.action = useService('action');
-    }
-
     /**
      * @override
      */
@@ -46,7 +37,24 @@ export class GoogleMapRendererSales extends GoogleMapRenderer {
             });
         }
         this.cache.set(recordId, marker);
-        marker.addListener('click', this.handleMarkerInfoWindow.bind(this, marker, otherRecords));
+        marker.addListener('click', () => {
+            if (marker.__overlay) {
+                marker.__overlay.setMap(null);
+                delete marker.__overlay;
+            }
+            this.handleMarkerInfoWindow(marker, otherRecords);
+        });
+        marker.addListener('mouseover', () => {
+            if (!marker.__overlay) {
+                marker.__overlay = this._drawMarkerOverlay(marker, otherRecords);
+            }
+        });
+        marker.addListener('mouseout', () => {
+            if (marker.__overlay) {
+                marker.__overlay.setMap(null);
+                delete marker.__overlay;
+            }
+        });
     }
 
     /**
@@ -54,8 +62,7 @@ export class GoogleMapRendererSales extends GoogleMapRenderer {
      */
     _prepareMarkerOptions(latLng, record, color) {
         let options = super._prepareMarkerOptions(latLng, record, color);
-        let group = record._group;
-        options.title = group.displayName || '';
+        delete options.title;
         return options;
     }
 
@@ -134,7 +141,7 @@ export class GoogleMapRendererSales extends GoogleMapRenderer {
     }
 
     _openCustomerForm(group) {
-        this.action.doAction(
+        this.props.list.model.action.doAction(
             {
                 name: group.displayName || '',
                 type: 'ir.actions.act_window',
@@ -146,7 +153,7 @@ export class GoogleMapRendererSales extends GoogleMapRenderer {
             {
                 props: {
                     onSave: async () => {
-                        this.action.doAction({
+                        this.props.list.model.action.doAction({
                             type: 'ir.actions.client',
                             tag: 'reload',
                         });
@@ -186,6 +193,72 @@ export class GoogleMapRendererSales extends GoogleMapRenderer {
         props.records = this.props.list.groups;
         props.openCustomerSales = this.actionSeeSales.bind(this);
         return props;
+    }
+
+    _createOverlayInnerContent(group) {
+        let total = 0;
+        if (group.aggregates) {
+            total = group.aggregates.amount_total || 0;
+        }
+        return `
+<div class="text-wrap">
+    <h4>${group.displayName}</h4>
+    <span class="text-muted">${group._address}</span>
+    <div class="d-flex justify-content-between pt-2 font-monospace fs-6">
+        <span>${group.count} ${this.props.archInfo.viewTitle || ''}</span>
+        <span>
+            <i class="fa fa-usd" aria-hidden="true"></i>
+            <span>${total.toLocaleString()}</span>
+        </span>
+    </div>
+</div>`;
+    }
+
+    _createOverlayContent(marker, otherRecords) {
+        const content = document.createElement('div');
+        const group = marker._odooRecord._group;
+        const groups = [group].concat(
+            otherRecords
+                .map((record) => record._marker._odooRecord._group || false)
+                .filter((group) => group)
+        );
+        const groupsContent = groups
+            .slice(0, 3)
+            .map((group) => this._createOverlayInnerContent(group))
+            .join('<hr>');
+
+        content.classList.add('marker-overlay-info', 'p-3');
+        content.innerHTML = groupsContent;
+        return content;
+    }
+
+    _drawMarkerOverlay(marker, otherRecords) {
+        const self = this;
+        let overlay = new google.maps.OverlayView();
+        overlay.onAdd = function () {
+            const div = self._createOverlayContent(marker, otherRecords);
+            this.getPanes().floatPane.appendChild(div);
+            this.div_ = div;
+        };
+        overlay.draw = function () {
+            const projection = this.getProjection();
+            const position = projection.fromLatLngToDivPixel(marker.getPosition());
+            const div = this.div_;
+            div.style.left = position.x + 'px';
+            div.style.top = position.y + 'px';
+            let color = marker._odooMarkerColor || '#ededed';
+            if (color) {
+                div.style.border = `0.5px solid ${color}`;
+            }
+        };
+        overlay.onRemove = function () {
+            if (this.div_) {
+                this.div_.parentNode.removeChild(this.div_);
+                this.div_ = null;
+            }
+        };
+        overlay.setMap(this.googleMap);
+        return overlay;
     }
 }
 
