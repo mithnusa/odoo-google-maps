@@ -1,4 +1,6 @@
 # Change Log
+## 16.0.4.1.3
+- Fixed marker info window issue in marker cluster. When marker info window inside a cluster is open and leave it open and then move to another cluster, instead of showing the markers inside the cluster, the map will pan to (go back to) the previous marker opened.
 
 ## 16.0.4.1.2
 - Improved marker info window

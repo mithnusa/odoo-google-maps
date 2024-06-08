@@ -124,7 +124,7 @@ export class GoogleMapRenderer extends BaseGoogleMap {
             this.googleMap = new google.maps.Map(this.mapRef.el, options);
             this.setMapTheme();
         }
-        this.markerInfoWindow = new google.maps.InfoWindow();
+        this.markerInfoWindow = new google.maps.InfoWindow({ disableAutoPan: true });
         this.renderGooglePlaceSearch(this.searchPlacesRef, this.markerInfoWindow);
     }
 
@@ -188,9 +188,10 @@ export class GoogleMapRenderer extends BaseGoogleMap {
             this.markerCluster = new markerClusterer.MarkerClusterer({
                 map: this.googleMap,
                 markers,
-            });
-            this.markerCluster.addListener('click', () => {
-                this.markerInfoWindow.close();
+                onClusterClick: (_ev, cluster, map) => {
+                    this.markerInfoWindow.close();
+                    map.fitBounds(cluster.bounds);
+                },
             });
         } else {
             this.markerCluster.setMap(this.googleMap);

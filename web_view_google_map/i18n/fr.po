@@ -6,20 +6,69 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-04 07:31+0000\n"
-"PO-Revision-Date: 2023-11-04 07:31+0000\n"
+"POT-Creation-Date: 2024-06-08 11:40+0000\n"
+"PO-Revision-Date: 2024-06-08 11:40+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
-"Language: fr\n"
 "Plural-Forms: \n"
+
+#. module: web_view_google_map
+#. odoo-javascript
+#: code:addons/web_view_google_map/static/src/views/google_map/google_map_sidebar.xml:0
+#, python-format
+msgid "#{hasGeolocation ? '' : 'No geolocation'}"
+msgstr ""
 
 #. module: web_view_google_map
 #: model:ir.model,name:web_view_google_map.model_ir_actions_act_window_view
 msgid "Action Window View"
 msgstr "Vue de la fenêtre d'action"
+
+#. module: web_view_google_map
+#. odoo-javascript
+#: code:addons/web_view_google_map/static/src/views/google_map/google_map_controller.xml:0
+#, python-format
+msgid "All"
+msgstr ""
+
+#. module: web_view_google_map
+#. odoo-javascript
+#: code:addons/web_view_google_map/static/src/views/google_map/geolocate/geolocate.js:0
+#, python-format
+msgid "An unknown error occurred."
+msgstr "Une erreur inconnue est survenue."
+
+#. module: web_view_google_map
+#. odoo-javascript
+#: code:addons/web_view_google_map/static/src/views/google_map/google_map_controller.js:0
+#: code:addons/web_view_google_map/static/src/views/google_map/google_map_controller.js:0
+#, python-format
+msgid "Archive"
+msgstr "Archivé"
+
+#. module: web_view_google_map
+#. odoo-javascript
+#: code:addons/web_view_google_map/static/src/views/google_map/google_map_controller.js:0
+#, python-format
+msgid "Are you sure that you want to archive all the selected records?"
+msgstr "Êtes-vous sûr de vouloir archiver tous les enregistrements sélectionnés?"
+
+#. module: web_view_google_map
+#. odoo-javascript
+#: code:addons/web_view_google_map/static/src/views/google_map/google_map_controller.js:0
+#, python-format
+msgid "Are you sure you want to delete these records?"
+msgstr "Êtes-vous sûr de vouloir supprimer ces enregistrements ?"
+
+#. module: web_view_google_map
+#. odoo-javascript
+#: code:addons/web_view_google_map/static/src/views/google_map/google_map_controller.js:0
+#, python-format
+msgid "Are you sure you want to delete this record?"
+msgstr "Êtes-vous sûr de vouloir supprimer cet enregistrement ?"
 
 #. module: web_view_google_map
 #. odoo-python
@@ -65,6 +114,20 @@ msgstr "Boutons du panneau de commande"
 #, python-format
 msgid "Create record"
 msgstr "Créer un enregistrement"
+
+#. module: web_view_google_map
+#. odoo-javascript
+#: code:addons/web_view_google_map/static/src/views/google_map/geolocate/geolocate.xml:0
+#, python-format
+msgid "Current location"
+msgstr "Localisation actuelle"
+
+#. module: web_view_google_map
+#. odoo-javascript
+#: code:addons/web_view_google_map/static/src/views/google_map/google_map_controller.js:0
+#, python-format
+msgid "Delete"
+msgstr "Supprimer"
 
 #. module: web_view_google_map
 #. odoo-javascript
@@ -114,6 +177,29 @@ msgid "Expand side panel"
 msgstr "Extension du panneau latéral"
 
 #. module: web_view_google_map
+#. odoo-javascript
+#: code:addons/web_view_google_map/static/src/views/google_map/google_map_controller.js:0
+#, python-format
+msgid "Export"
+msgstr "Exporter"
+
+#. module: web_view_google_map
+#. odoo-javascript
+#: code:addons/web_view_google_map/static/src/views/google_map/google_map_controller.xml:0
+#: code:addons/web_view_google_map/static/src/views/google_map/google_map_controller.xml:0
+#, python-format
+msgid "Export All"
+msgstr "Tout exporter"
+
+#. module: web_view_google_map
+#. odoo-javascript
+#: code:addons/web_view_google_map/static/src/views/google_map/google_map_controller.js:0
+#: code:addons/web_view_google_map/static/src/views/google_map/google_map_controller.js:0
+#, python-format
+msgid "External ID"
+msgstr ""
+
+#. module: web_view_google_map
 #. odoo-python
 #: code:addons/web_view_google_map/models/ir_ui_view.py:0
 #, python-format
@@ -135,6 +221,18 @@ msgid "Following example view of how to create one"
 msgstr "Voici un exemple de création"
 
 #. module: web_view_google_map
+#. odoo-javascript
+#: code:addons/web_view_google_map/static/src/views/google_map/geolocate/geolocate.js:0
+#, python-format
+msgid "Geolocation is not supported by this browser."
+msgstr "La géolocalisation n'est pas prise en charge par ce navigateur."
+
+#. module: web_view_google_map
+#: model:ir.model,name:web_view_google_map.model_google_map_view_mixins
+msgid "Google Map View Mixins"
+msgstr ""
+
+#. module: web_view_google_map
 #: model:ir.model.fields.selection,name:web_view_google_map.selection__ir_actions_act_window_view__view_mode__google_map
 #: model:ir.model.fields.selection,name:web_view_google_map.selection__ir_ui_view__type__google_map
 msgid "Google Maps"
@@ -145,7 +243,14 @@ msgstr ""
 #: code:addons/web_view_google_map/static/src/views/google_map/google_map_renderer.xml:0
 #, python-format
 msgid "Google places search"
-msgstr ""
+msgstr "Recherche Google places"
+
+#. module: web_view_google_map
+#. odoo-javascript
+#: code:addons/web_view_google_map/static/src/views/google_map/geolocate/geolocate.js:0
+#, python-format
+msgid "Location information is unavailable."
+msgstr "Les informations relatives à la localisation ne sont pas disponibles."
 
 #. module: web_view_google_map
 #. odoo-javascript
@@ -184,10 +289,22 @@ msgstr "Aucune vue pour Google Map Form n'a été trouvée !"
 
 #. module: web_view_google_map
 #. odoo-javascript
-#: code:addons/web_view_google_map/static/src/views/google_map/google_map_renderer.xml:0
+#: code:addons/web_view_google_map/static/src/views/google_map/google_map_controller.js:0
 #, python-format
-msgid "Open"
-msgstr "Ouvrir"
+msgid ""
+"Of the %d records selected, only the first %d have been archived/unarchived."
+msgstr ""
+"Parmi les %d enregistrements sélectionnés, seuls les %d premiers ont été "
+"archivés/désarchivés."
+
+#. module: web_view_google_map
+#. odoo-javascript
+#: code:addons/web_view_google_map/static/src/views/google_map/google_map_controller.js:0
+#, python-format
+msgid "Only the first %s records have been deleted (out of %s selected)"
+msgstr ""
+"Seuls les premiers %s enregistrements ont été supprimés (des %s "
+"sélectionnés)"
 
 #. module: web_view_google_map
 #. odoo-javascript
@@ -198,10 +315,38 @@ msgstr "Forme ouverte"
 
 #. module: web_view_google_map
 #. odoo-javascript
-#: code:addons/web_view_google_map/static/src/views/google_map/google_map_renderer.xml:0
+#: code:addons/web_view_google_map/static/src/views/google_map/google_map_controller.xml:0
 #, python-format
-msgid "Open form view"
-msgstr "Ouvrir l'affichage du formulaire"
+msgid "Select all"
+msgstr "Tout sélectionner"
+
+#. module: web_view_google_map
+#. odoo-javascript
+#: code:addons/web_view_google_map/static/src/views/google_map/google_map_renderer.js:0
+#, python-format
+msgid "Show more"
+msgstr "Montrer plus"
+
+#. module: web_view_google_map
+#. odoo-javascript
+#: code:addons/web_view_google_map/static/src/views/google_map/geolocate/geolocate.js:0
+#, python-format
+msgid "The request to get user location timed out."
+msgstr "La demande de localisation de l'utilisateur a expiré."
+
+#. module: web_view_google_map
+#. odoo-javascript
+#: code:addons/web_view_google_map/static/src/views/google_map/google_map_controller.js:0
+#, python-format
+msgid "Unarchive"
+msgstr "Désarchiver"
+
+#. module: web_view_google_map
+#. odoo-javascript
+#: code:addons/web_view_google_map/static/src/views/google_map/geolocate/geolocate.js:0
+#, python-format
+msgid "User denied the request for Geolocation."
+msgstr "L'utilisateur a refusé la demande de géolocalisation."
 
 #. module: web_view_google_map
 #: model:ir.model,name:web_view_google_map.model_ir_ui_view
@@ -227,3 +372,26 @@ msgstr "Afficher sur Google Maps"
 #, python-format
 msgid "View on Google Maps website"
 msgstr "Voir sur le site de Google Maps"
+
+#. module: web_view_google_map
+#. odoo-javascript
+#: code:addons/web_view_google_map/static/src/views/google_map/google_map_controller.js:0
+#: code:addons/web_view_google_map/static/src/views/google_map/google_map_controller.js:0
+#, python-format
+msgid "Warning"
+msgstr "Avertissement"
+
+#. module: web_view_google_map
+#. odoo-javascript
+#: code:addons/web_view_google_map/static/src/views/google_map/geolocate/geolocate.js:0
+#, python-format
+msgid "Your location"
+msgstr "Votre localisation"
+
+#. module: web_view_google_map
+#. odoo-javascript
+#: code:addons/web_view_google_map/static/src/views/google_map/google_map_controller.xml:0
+#: code:addons/web_view_google_map/static/src/views/google_map/google_map_controller.xml:0
+#, python-format
+msgid "selected"
+msgstr "sélectionnés"
