@@ -10,19 +10,19 @@ export class GoogleMapsDrawingSidebar extends GoogleMapSidebar {
         const subTitle = this._getSubtitle(record) || record.data.gshape_description;
         if (record.data.gshape_type === 'circle') {
             extras = [
-                sprintf(_lt('Area: %s square meter'), record.data.gshape_area),
-                sprintf(_lt('Radius: %s meter'), record.data.gshape_radius),
+                sprintf(_lt('Area: %s square meter'), (record.data.gshape_area || 0).toLocaleString()),
+                sprintf(_lt('Radius: %s meter'), (record.data.gshape_radius || 0).toLocaleString()),
             ];
         } else if (record.data.gshape_type === 'polygon') {
             extras = [
-                sprintf(_lt('Area: %s square meter'), record.data.gshape_area),
+                sprintf(_lt('Area: %s square meter'), (record.data.gshape_area || 0).toLocaleString()),
                 record.data.gshape_polygon_lines,
             ];
         } else if (record.data.gshape_type === 'rectangle') {
             extras = [
-                sprintf(_lt('Area: %s square meter'), record.data.gshape_area),
-                sprintf(_lt('Width: %s meter'), record.data.gshape_width),
-                sprintf(_lt('Height: %s meter'), record.data.gshape_height),
+                sprintf(_lt('Area: %s square meter'), (record.data.gshape_area || 0).toLocaleString()),
+                sprintf(_lt('Width: %s meter'), (record.data.gshape_width || 0).toLocaleString()),
+                sprintf(_lt('Height: %s meter'), (record.data.gshape_height || 0).toLocaleString()),
             ];
         }
 

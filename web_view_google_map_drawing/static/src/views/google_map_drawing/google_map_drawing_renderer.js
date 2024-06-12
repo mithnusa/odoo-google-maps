@@ -42,6 +42,20 @@ export class GoogleMapDrawingRenderer extends GoogleMapRenderer {
     /**
      * @overwrite
      */
+    addMapCustomEvListeners() {
+        // do nothing
+    }
+
+    /**
+     * @overwrite
+     */
+    removeMapCustomEvListeners() {
+        // do nothing
+    }
+
+    /**
+     * @overwrite
+     */
     renderMap() {
         this.shapesBounds = new google.maps.LatLngBounds();
         this.renderShapes();
@@ -53,15 +67,34 @@ export class GoogleMapDrawingRenderer extends GoogleMapRenderer {
     }
 
     /**
-     * @override
+     * @overwrite
      */
     setMapTheme() {
-        super.setMapTheme();
-        this.googleMap.setOptions({
-            mapTypeControlOptions: {
-                mapTypeIds: ['roadmap', 'satellite', 'hybrid', 'terrain', 'drawing', 'styled_map'],
-            },
-        });
+        const style = this.settings.theme || 'default';
+        if (!Object.prototype.hasOwnProperty.call(MAP_THEMES, style)) {
+            return;
+        }
+
+        if (style !== 'default') {
+            const styledMapType = new google.maps.StyledMapType(MAP_THEMES[style], {
+                name: _lt('Custom'),
+            });
+            this.googleMap.setOptions({
+                mapTypeId: google.maps.MapTypeId.SATELLITE,
+                mapTypeControlOptions: {
+                    mapTypeIds: ['roadmap', 'satellite', 'hybrid', 'terrain', 'styled_map'],
+                },
+            });
+            // Associate the styled map with the MapTypeId and set it to display.
+            this.googleMap.mapTypes.set('styled_map', styledMapType);
+        } else {
+            this.googleMap.setOptions({
+                mapTypeId: google.maps.MapTypeId.SATELLITE,
+                mapTypeControlOptions: {
+                    mapTypeIds: ['roadmap', 'satellite', 'hybrid', 'terrain'],
+                },
+            });
+        }
     }
 
     /**

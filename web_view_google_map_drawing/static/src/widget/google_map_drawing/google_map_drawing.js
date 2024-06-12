@@ -57,9 +57,7 @@ export class GoogleMapDrawing extends GoogleMapRenderer {
 
         onWillDestroy(() => {
             if (this.shapes) {
-                Object.keys(this.shapes).forEach((key) =>
-                    this._deleteShapeInCache(key)
-                );
+                Object.keys(this.shapes).forEach((key) => this._deleteShapeInCache(key));
             }
         });
     }
@@ -67,7 +65,14 @@ export class GoogleMapDrawing extends GoogleMapRenderer {
     /**
      * @overwrite
      */
-    handleOnPatched() {
+    addMapCustomEvListeners() {
+        // do nothing
+    }
+
+    /**
+     * @overwrite
+     */
+    removeMapCustomEvListeners() {
         // do nothing
     }
 
@@ -91,27 +96,18 @@ export class GoogleMapDrawing extends GoogleMapRenderer {
 
     /**
      * Initialize Google Map instance
+     * @override
      */
     initialize() {
         super.initialize();
-        const mapThemeDrawing = new google.maps.StyledMapType(
-            MAP_THEMES['line_drawing'],
-            {
-                name: _lt('Drawing'),
-            }
-        );
+        const mapThemeDrawing = new google.maps.StyledMapType(MAP_THEMES['line_drawing'], {
+            name: _lt('Drawing'),
+        });
         this.googleMap.setOptions({
-            mapTypeId: google.maps.MapTypeId.SATELLITE,
+            mapTypeId: google.maps.MapTypeId.HYBRID,
             mapTypeControlOptions: {
                 style: google.maps.MapTypeControlStyle.DROPDOWN_MENU,
-                mapTypeIds: [
-                    'roadmap',
-                    'satellite',
-                    'hybrid',
-                    'terrain',
-                    'drawing',
-                    'styled_map',
-                ],
+                mapTypeIds: ['roadmap', 'satellite', 'hybrid', 'terrain', 'drawing', 'styled_map'],
             },
         });
         this.googleMap.mapTypes.set('drawing', mapThemeDrawing);
@@ -348,14 +344,8 @@ export class GoogleMapDrawing extends GoogleMapRenderer {
     }
 
     _handleDrawCircleAddListener(circle) {
-        circle.addListener(
-            'radius_changed',
-            this._handleCircleBoundsChangedDebounce.bind(this)
-        );
-        circle.addListener(
-            'center_changed',
-            this._handleCircleBoundsChangedDebounce.bind(this)
-        );
+        circle.addListener('radius_changed', this._handleCircleBoundsChangedDebounce.bind(this));
+        circle.addListener('center_changed', this._handleCircleBoundsChangedDebounce.bind(this));
     }
 
     _handleCircleBoundsChanged() {
@@ -396,33 +386,28 @@ export class GoogleMapDrawing extends GoogleMapRenderer {
     }
 
     toggleSaveButtonAnimation() {
-        this.googleMap.controls[google.maps.ControlPosition.TOP_CENTER].forEach(
-            (element) => {
-                if (element.id === 'custom-control-drawing-buttons') {
-                    let button = element.querySelector('#save');
-                    let floppyIcon = element.querySelector('.fa-floppy-o');
-                    if (button && floppyIcon) {
-                        if (this.isEditing) {
-                            button.classList.add('btn-success');
-                            button.classList.remove('btn-light');
-                            floppyIcon.classList.add('animate');
-                        } else {
-                            floppyIcon.classList.remove('btn-success');
-                            button.classList.add('btn-light');
-                            floppyIcon.classList.remove('animate');
-                        }
+        this.googleMap.controls[google.maps.ControlPosition.TOP_CENTER].forEach((element) => {
+            if (element.id === 'custom-control-drawing-buttons') {
+                let button = element.querySelector('#save');
+                let floppyIcon = element.querySelector('.fa-floppy-o');
+                if (button && floppyIcon) {
+                    if (this.isEditing) {
+                        button.classList.add('btn-success');
+                        button.classList.remove('btn-light');
+                        floppyIcon.classList.add('animate');
+                    } else {
+                        floppyIcon.classList.remove('btn-success');
+                        button.classList.add('btn-light');
+                        floppyIcon.classList.remove('animate');
                     }
                 }
             }
-        );
+        });
     }
 
     _renderMapCustomControl() {
         if (!this.customControl) {
-            const content = renderToString(
-                'web_view_google_map_drawing.ButtonActionDelete',
-                {}
-            );
+            const content = renderToString('web_view_google_map_drawing.ButtonActionDelete', {});
             this.customControl = new DOMParser()
                 .parseFromString(content, 'text/html')
                 .querySelector('div');
@@ -447,9 +432,7 @@ export class GoogleMapDrawing extends GoogleMapRenderer {
                 type: 'warning',
             });
             this.notification.add(
-                this.env._t(
-                    'Click on one of the shapes you have drawn to select a shape'
-                ),
+                this.env._t('Click on one of the shapes you have drawn to select a shape'),
                 { type: 'info' }
             );
         }
@@ -542,9 +525,7 @@ export class GoogleMapDrawing extends GoogleMapRenderer {
             gshape_height: 0.0,
         };
 
-        const linePaths = paths
-            .getArray()
-            .map((item) => ({ lat: item.lat(), lng: item.lng() }));
+        const linePaths = paths.getArray().map((item) => ({ lat: item.lat(), lng: item.lng() }));
 
         const lines = this._computePolygonLines(linePaths);
         const shape_paths = {
