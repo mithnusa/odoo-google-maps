@@ -13,7 +13,7 @@ An extension feature added to the Google Map view. It allows users to select an 
     'website': 'https://github.com/mithnusa',
     'support': 'yopiangi@gmail.com',
     'category': 'Extra Tools',
-    'version': '16.0.1.1.0',
+    'version': '16.0.1.1.1',
     'depends': ['web_view_google_map'],
     'assets': {
         'web.assets_backend': [
