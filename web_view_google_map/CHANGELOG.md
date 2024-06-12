@@ -1,4 +1,8 @@
 # Change Log
+
+## 16.0.4.1.4
+- Refactor the logic (a custom event listener added to map element) inside useEffect on `@web_view_google_map/views/google_map/google_map_renderer` and moved it into these two methods `addMapCustomEvListeners` and `removeMapCustomEvListeners`.
+
 ## 16.0.4.1.3
 - Fixed marker info window issue in marker cluster. When marker info window inside a cluster is open and leave it open and then move to another cluster, instead of showing the markers inside the cluster, the map will pan to (go back to) the previous marker opened.
 
