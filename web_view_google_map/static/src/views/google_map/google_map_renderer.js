@@ -36,14 +36,9 @@ export class GoogleMapRenderer extends BaseGoogleMap {
 
         useEffect(
             (mapEl, loaderStatus) => {
-                // Allow you to select a marker in the map, by pressing a Shift key + click the marker
-                if (mapEl && loaderStatus === LOADER_STATUS.SUCCESS && !this.props.archInfo.disableAreaSelector) {
-                    mapEl.addEventListener('keydown', this.onMapKeydown.bind(this));
-                    mapEl.addEventListener('keyup', this.onMapKeyup.bind(this));
-                    return () => {
-                        mapEl.removeEventListener('keydown', this.onMapKeydown.bind(this));
-                        mapEl.removeEventListener('keyup', this.onMapKeyup.bind(this));
-                    };
+                if (mapEl && loaderStatus === LOADER_STATUS.SUCCESS) {
+                    this.addMapCustomEvListeners();
+                    return () => this.removeMapCustomEvListeners();
                 }
             },
             () => [this.mapRef.el, this.state.loaderStatus]
@@ -70,6 +65,23 @@ export class GoogleMapRenderer extends BaseGoogleMap {
                 this.resetMarkers = true;
             }
         });
+    }
+
+    /**
+     * Add custom event listeners to the map element
+     */
+    addMapCustomEvListeners() {
+        // Allow you to select a marker in the map, by pressing a Shift key + click the marker
+        this.mapRef.el.addEventListener('keydown', this.onMapKeydown.bind(this));
+        this.mapRef.el.addEventListener('keyup', this.onMapKeyup.bind(this));
+    }
+
+    /**
+     * Remove custom event listeners added to the map element
+     */
+    removeMapCustomEvListeners() {
+        this.mapRef.el.removeEventListener('keydown', this.onMapKeydown.bind(this));
+        this.mapRef.el.removeEventListener('keyup', this.onMapKeyup.bind(this));
     }
 
     onMapKeydown(ev) {

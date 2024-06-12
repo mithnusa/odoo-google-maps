@@ -6,24 +6,49 @@ import { renderToString } from '@web/core/utils/render';
 import { GoogleMapRenderer } from '@web_view_google_map/views/google_map/google_map_renderer';
 
 patch(GoogleMapRenderer.prototype, 'web_view_google_map_selector_area', {
+    /**
+     * @override
+     */
     setup() {
         this._super(...arguments);
         this.shapes = {};
         this.markerInAreaSelected = new Set();
         this.editColor = '#fca2a2';
+        this.disableAreaSelector = false;
     },
+
+    /**
+     * @override
+     */
+    addMapCustomEvListeners() {
+        if (!this.disableAreaSelector) {
+            this._super();
+        }
+    },
+
+    /**
+     * @override
+     */
+    removeMapCustomEvListeners() {
+        if (!this.disableAreaSelector) {
+            this._super();
+        }
+    },
+
+    /**
+     * @override
+     */
     initialize() {
         this._super(...arguments);
         let js_class = '';
-        let disableAreaSelector = false;
         if (this.props.archInfo && this.props.archInfo.arch) {
             const xml = new DOMParser().parseFromString(this.props.archInfo.arch, 'text/xml');
             js_class = xml.documentElement.getAttribute('js_class') || '';
-            disableAreaSelector = archParseBoolean(xml.documentElement.getAttribute('disable_area_selector'), false);
+            this.disableAreaSelector = archParseBoolean(xml.documentElement.getAttribute('disable_area_selector'), false);
         }
 
         // prevent initialize area selector in view google map drawing or widget google maps drawing
-        if (js_class === 'google_map_drawing' || (this.props.id && this.props.name) || disableAreaSelector) {
+        if (js_class === 'google_map_drawing' || (this.props.id && this.props.name) || this.disableAreaSelector) {
             return;
         } else {
             this._initializeGoogleMapDrawing();
@@ -112,6 +137,9 @@ patch(GoogleMapRenderer.prototype, 'web_view_google_map_selector_area', {
         google.maps.event.addListener(shape, 'click', this.setSelectedShape.bind(this, shape));
     },
 
+    /**
+     * @override
+     */
     renderMap() {
         if (this.selectedShape || Object.keys(this.shapes).length) {
             return;

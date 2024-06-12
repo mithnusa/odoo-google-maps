@@ -12,6 +12,12 @@
                 color: white;
             }
 
+            .gmnoprint {
+                button {
+                    padding: 10px !important
+                }
+            }
+
             @keyframes notification {
                 5% {
                     transform:rotate(10deg);
