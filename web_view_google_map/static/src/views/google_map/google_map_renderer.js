@@ -9,7 +9,7 @@ import { useBus, useService } from '@web/core/utils/hooks';
 import { BaseGoogleMap, LOADER_STATUS } from '@base_google_map/utils/base_google_map';
 import { GoogleMapSidebar } from './google_map_sidebar';
 import { GoogleMapGeolocate } from './geolocate/geolocate';
-import { getFontAwesomeIcon } from './utils';
+import { getFontAwesomeIcon, getCurrentActionId } from './utils';
 
 export class GoogleMapRenderer extends BaseGoogleMap {
     static template = 'web_view_google_map.GoogleMapRenderer';
@@ -50,12 +50,8 @@ export class GoogleMapRenderer extends BaseGoogleMap {
             (mapEl, loaderStatus) => {
                 // Allow you to select a marker in the map, by pressing a Shift key + click the marker
                 if (mapEl && loaderStatus === LOADER_STATUS.SUCCESS) {
-                    mapEl.addEventListener('keydown', this.onMapKeydown.bind(this));
-                    mapEl.addEventListener('keyup', this.onMapKeyup.bind(this));
-                    return () => {
-                        mapEl.removeEventListener('keydown', this.onMapKeydown.bind(this));
-                        mapEl.removeEventListener('keyup', this.onMapKeyup.bind(this));
-                    };
+                    this.addMapCustomEvListeners();
+                    return () => this.removeMapCustomEvListeners();
                 }
             },
             () => [this.mapRef.el, this.state.loaderStatus]
@@ -64,6 +60,23 @@ export class GoogleMapRenderer extends BaseGoogleMap {
         // The following lifecycle hooks are to maintain the data rendered on the map
         // When the same list ID is rendered, I won't re-render the markers and also won't change the current map center
         onRendered(this.handleOnRendered);
+    }
+
+    /**
+     * Add custom event listeners to the map element
+     */
+    addMapCustomEvListeners() {
+        // Allow you to select a marker in the map, by pressing a Shift key + click the marker
+        this.mapRef.el.addEventListener('keydown', this.onMapKeydown.bind(this));
+        this.mapRef.el.addEventListener('keyup', this.onMapKeyup.bind(this));
+    }
+
+    /**
+     * Remove custom event listeners added to the map element
+     */
+    removeMapCustomEvListeners() {
+        this.mapRef.el.removeEventListener('keydown', this.onMapKeydown.bind(this));
+        this.mapRef.el.removeEventListener('keyup', this.onMapKeyup.bind(this));
     }
 
     onMapKeydown(ev) {
@@ -138,7 +151,7 @@ export class GoogleMapRenderer extends BaseGoogleMap {
             this.googleMap = new google.maps.Map(this.mapRef.el, options);
             this.setMapTheme();
         }
-        this.markerInfoWindow = new google.maps.InfoWindow();
+        this.markerInfoWindow = new google.maps.InfoWindow({ disableAutoPan: true });
         this.renderGooglePlaceSearch(this.searchPlacesRef, this.markerInfoWindow);
     }
 
@@ -202,6 +215,10 @@ export class GoogleMapRenderer extends BaseGoogleMap {
             this.markerCluster = new markerClusterer.MarkerClusterer({
                 map: this.googleMap,
                 markers,
+                onClusterClick: (_ev, cluster, map) => {
+                    this.markerInfoWindow.close();
+                    map.fitBounds(cluster.bounds);
+                },
             });
             this.markerCluster.addListener('click', () => {
                 this.markerInfoWindow.close();
@@ -212,6 +229,26 @@ export class GoogleMapRenderer extends BaseGoogleMap {
         }
     }
 
+    prepareInfoWindowValues(record, isMulti) {
+        const { latitudeField, longitudeField, sidebarTitleField, sidebarSubtitleField } =
+            this.props.archInfo;
+        return {
+            title: record.data[sidebarTitleField],
+            destination: `${record.data[latitudeField]},${record.data[longitudeField]}`,
+            subTitle: record.data[sidebarSubtitleField],
+            isMulti,
+        };
+    }
+
+    get infoWindowTemplate() {
+        return 'web_view_google_map.MarkerInfoWindow';
+    }
+
+    markerInfoWindowContent(record, isMulti) {
+        const values = this.prepareInfoWindowValues(record, isMulti);
+        return renderToString(this.infoWindowTemplate, values);
+    }
+
     /**
      *
      * @param {Object} record
@@ -219,34 +256,13 @@ export class GoogleMapRenderer extends BaseGoogleMap {
      * @returns {HTMLElement} Marker content
      */
     getMarkerContent(record, isMulti) {
-        const { latitudeField, longitudeField, sidebarTitleField, sidebarSubtitleField } =
-            this.props.archInfo;
-        const content = renderToString('web_view_google_map.MarkerInfoWindow', {
-            record: JSON.stringify({
-                id: record.id,
-                resId: record.resId,
-                resModel: record.resModel,
-            }),
-            title: record.data[sidebarTitleField],
-            destination: `${record.data[latitudeField]},${record.data[longitudeField]}`,
-            subTitle: record.data[sidebarSubtitleField],
-            isMulti: isMulti,
-        });
-
+        const content = this.markerInfoWindowContent(record, isMulti);
         const divContent = new DOMParser()
             .parseFromString(content, 'text/html')
             .querySelector('div');
-        divContent.querySelector('#btn-open_form').addEventListener(
-            'click',
-            (ev) => {
-                const data = ev.target.getAttribute('data-record');
-                if (data) {
-                    const values = JSON.parse(data);
-                    this.props.showRecord(values);
-                }
-            },
-            false
-        );
+        divContent
+            .querySelector('#btn-open_form')
+            .addEventListener('click', this.props.showRecord.bind(this, record), false);
         return divContent;
     }
 
@@ -264,10 +280,26 @@ export class GoogleMapRenderer extends BaseGoogleMap {
         bodyContent.appendChild(markerContent);
 
         if (otherRecords.length > 0) {
-            otherRecords.forEach((record) => {
+            // limit to 2 records
+            otherRecords.slice(0, 2).forEach((record) => {
                 let markerOtherContent = this.getMarkerContent(record, true);
                 bodyContent.appendChild(markerOtherContent);
             });
+        }
+
+        if (otherRecords.length > 2) {
+            let moreRecords = document.createElement('div');
+            moreRecords.classList.add('pt-3', 'pb-3', 'text-center');
+            moreRecords.innerHTML =
+                '<button type="button" class="btn btn-link">' + _t('Show more') + '</button>';
+            moreRecords.querySelector('button').addEventListener(
+                'click',
+                () => {
+                    this.actionSeeMore(marker);
+                },
+                false
+            );
+            bodyContent.appendChild(moreRecords);
         }
 
         this.markerInfoWindow.setContent(bodyContent);
@@ -530,6 +562,63 @@ export class GoogleMapRenderer extends BaseGoogleMap {
         this.props.list.selectDomain(false);
         if (pointInMap && record._marker) {
             this.googleMap.panTo(record._marker.getPosition());
+        }
+    }
+
+    _handleActionSeeMore(actionId, domain, context) {
+        if (!actionId) return;
+        this.props.list.model.orm
+            .call('google.map.view.mixins', 'handle_find_action', [actionId])
+            .then((actionKey) => {
+                if (actionKey) {
+                    this.props.list.model.orm
+                        .call('google.map.view.mixins', 'handle_see_more', [
+                            actionKey,
+                            domain,
+                            context,
+                        ])
+                        .then((action) => {
+                            if (action) {
+                                this.props.list.model.action.doAction(action);
+                            }
+                        });
+                }
+            });
+    }
+
+    async generateLatLngDomain(lat, lng) {
+        const { latitudeField, longitudeField } = this.props.archInfo;
+        const data = await this.props.list.model.orm.call(
+            'google.map.view.mixins',
+            'handle_get_geolocation_fields',
+            [this.props.list.resModel, latitudeField, longitudeField]
+        );
+        let domain = [];
+        if (data) {
+            Object.keys(data).forEach((key) => {
+                if (key === latitudeField) {
+                    domain.push([data[key], '=', lat]);
+                } else if (key === longitudeField) {
+                    domain.push([data[key], '=', lng]);
+                }
+            });
+        }
+        return domain;
+    }
+
+    async actionSeeMore(marker) {
+        let actionId = getCurrentActionId();
+        if (actionId) {
+            let position = marker.getPosition();
+            let domain = await this.generateLatLngDomain(position.lat(), position.lng());
+            if (!domain.length) {
+                this.notification.add(
+                    _t('Failed to construct domain. Please contact your administrator'),
+                    { type: 'danger' }
+                );
+            } else {
+                this._handleActionSeeMore(actionId, domain);
+            }
         }
     }
 }

@@ -4,7 +4,7 @@
         <field name="name">view.res.partner.google_map</field>
         <field name="model">res.partner</field>
         <field name="arch" type="xml">
-            <google_map string="Contacts" js_class="google_map_contact_avatar" lat="partner_latitude" color="marker_color" lng="partner_longitude" sidebar_title="display_name" sidebar_subtitle="contact_address" sidebar_avatar="avatar_128">
+            <google_map string="Contacts" js_class="google_map_contact_avatar" lat="partner_latitude" color="marker_color" marker_icon="circle" icon_scale="0.6" lng="partner_longitude" sidebar_title="display_name" sidebar_subtitle="contact_address" sidebar_avatar="avatar_128">
                 <field name="partner_latitude"/>
                 <field name="partner_longitude"/>
                 <field name="color"/>

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="sales_google_map.GoogleMapSidebar" t-inherit="web_view_google_map.GoogleMapSidebar" t-inherit-mode="primary" owl="1">
+        <xpath expr="//t[@t-if='props.allowSelectors']" position="replace"/>
+        <xpath expr="//h3" position="replace">
+            <h3>Customer</h3>
+        </xpath>
+        <xpath expr="//t[@t-foreach='props.records']" position="replace">
+            <t t-foreach="props.records" t-as="group" t-key="group.id">
+                <t t-set="hasGeolocation" t-value="this.hasGeolocation(group)"/>
+                <t t-set="markerColor" t-value="this.getMarkerColor(group)"/>
+                <li t-attf-class="list-group-item pb-1 pt-1 #{hasGeolocation ? '' : 'bg-100'}">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="col">
+                            <a href="#" class="flex-grow-1 o_map_sidebar_record" data-toggle="tooltip" t-attf-style="cursor: #{hasGeolocation ? 'pointer' : 'not-allowed'};" t-attf-title="#{hasGeolocation ? '' : 'No geolocation'}" t-on-click="() => props.handlePointInMap(group.id)">
+                                <span class="title" t-out="group.displayName"/>
+                                <t t-if="hasGeolocation">
+                                    <br/>
+                                    <i class="fa fa-map-marker" t-attf-style="color: #{markerColor};"></i>
+                                </t>
+                                <span class="ps-1 text-muted" t-esc="group._address"/>
+                            </a>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-light" id="open-record" data-toggle="tooltip" title="Show" t-on-click.prevent="() => props.openCustomerSales(group)">
+                            <i class="fa fa-arrow-right"></i>
+                        </button>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="text-muted text-decoration-underline">
+                            <span t-out="group.count"/>
+                            <span class="ms-1" t-out="props.string"/>
+                        </div>
+                        <div class="text-muted">
+                            <i class="fa fa-usd" aria-hidden="true"></i>
+                            <span class="font-monospace ps-1" t-esc="this.aggregateTotal(group)"/>
+                        </div>
+                    </div>
+                </li>
+            </t>
+        </xpath>
+    </t>
+</templates>

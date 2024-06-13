@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'CRM Google Places',
-    'version': '17.0.1.0.0',
+    'version': '17.0.1.1.0',
     'author': 'Yopi Angi',
     'license': 'AGPL-3',
     'maintainer': 'Yopi Angi<yopiangi@gmail.com>',
@@ -26,6 +26,11 @@ You can create a new leads within Google maps by:
     ],
     'website': 'https://github.com/mithnusa',
     'data': ['views/crm_lead.xml'],
+    'assets': {
+        'web.assets_backend': [
+            'crm_google_places/static/src/views/**/*',
+        ]
+    },
     'demo': [],
     'installable': True,
     'application': False,

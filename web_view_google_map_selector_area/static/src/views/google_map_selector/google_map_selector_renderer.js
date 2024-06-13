@@ -1,6 +1,7 @@
 /** @odoo-module **/
 
 import { patch } from '@web/core/utils/patch';
+import { archParseBoolean } from '@web/views/utils';
 import { renderToString } from '@web/core/utils/render';
 import { GoogleMapRenderer } from '@web_view_google_map/views/google_map/google_map_renderer';
 import { StaticList } from '@web/model/relational_model/static_list';
@@ -11,18 +12,43 @@ patch(GoogleMapRenderer.prototype, {
         this.shapes = {};
         this.markerInAreaSelected = new Set();
         this.editColor = '#fca2a2';
+        this.disableAreaSelector = false;
     },
+
+    /**
+     * @override
+     */
+    addMapCustomEvListeners() {
+        if (!this.disableAreaSelector) {
+            super.addMapCustomEvListeners();
+        }
+    },
+
+    /**
+     * @override
+     */
+    removeMapCustomEvListeners() {
+        if (!this.disableAreaSelector) {
+            super.removeMapCustomEvListeners();
+        }
+    },
+
     initialize() {
         super.initialize(...arguments);
         let js_class = null;
         if (this.props.archInfo && this.props.archInfo.xmlDoc) {
             js_class = this.props.archInfo.xmlDoc.getAttribute('js_class') || false;
+            this.disableAreaSelector = archParseBoolean(
+                this.props.archInfo.xmlDoc.getAttribute('disable_area_selector'),
+                false
+            );
         }
         // prevent initiallize area selector in view google map drawing or widget google maps drawing
         if (
             js_class === 'google_map_drawing' ||
             (!!this.props.id && !!this.props.name) ||
-            (this.props.list && this.props.list instanceof StaticList)
+            (this.props.list && this.props.list instanceof StaticList) ||
+            this.disableAreaSelector
         ) {
             return;
         } else {

@@ -1,0 +1,15 @@
+.o_google_map_view {
+    .marker-overlay-info {
+        position: absolute;
+        width: auto;
+        padding: 6px;
+        max-width: 250px;
+        background: #ffffff;
+        -webkit-border-radius: 10px;
+        -moz-border-radius: 10px;
+        border-radius: 10px;
+        border: #ededed solid 2px;
+        transform: translate(-50%, 0%);
+        z-index: 9999;
+    }
+}

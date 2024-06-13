@@ -16,6 +16,10 @@ export class GoogleMapArchParser {
         const googleMapAttr = {};
         const fieldNextIds = {};
         const creates = [];
+        const groupBy = {
+            buttons: {},
+            fields: {},
+        };
 
         let nextId = 0;
         const columns = [];

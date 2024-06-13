@@ -38,9 +38,8 @@ export class X2ManyFieldGoogleMapField extends X2ManyField {
                 openRecord: this.openRecord.bind(this),
                 showRecord: this.openRecord.bind(this),
                 allowSelectors: false,
-                js_class: archInfo.xmlDoc.getAttribute('js_class') || false,
+                readonly: this.props.readonly,
             };
-            props.readonly = this.props.readonly;
             return props;
         }
         return super.rendererProps;
