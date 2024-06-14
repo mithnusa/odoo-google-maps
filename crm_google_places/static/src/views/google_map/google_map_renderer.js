@@ -1,4 +1,5 @@
 /** @odoo-module **/
+import { renderToString } from '@web/core/utils/render';
 import { GoogleMapPlacesRenderer } from '@base_google_places/views/google_map_places/google_map_places_renderer';
 import { GoogleMapSidebarCRM } from '@crm_google_map/views/google_map/google_map_sidebar';
 
@@ -31,7 +32,6 @@ export class GoogleMapPlacesRendererCRM extends GoogleMapPlacesRenderer {
     }
 
     /**
-     *
      * @override
      */
     handleMarker(recordId, marker) {
@@ -46,7 +46,13 @@ export class GoogleMapPlacesRendererCRM extends GoogleMapPlacesRenderer {
             });
         }
         this.cache.set(recordId, marker);
-        marker.addListener('click', this.handleMarkerInfoWindow.bind(this, marker, otherRecords));
+        marker.addListener('click', () => {
+            if (marker.__overlay) {
+                marker.__overlay.setMap(null);
+                delete marker.__overlay;
+            }
+            this.handleMarkerInfoWindow(marker, otherRecords);
+        });
         marker.addListener('mouseover', () => {
             if (!marker.__overlay) {
                 marker.__overlay = this._drawMarkerOverlay(marker, otherRecords);
@@ -69,22 +75,22 @@ export class GoogleMapPlacesRendererCRM extends GoogleMapPlacesRenderer {
         return options;
     }
 
+    prepareMarkerOverlayValues(record) {
+        return {
+            name: record.data.name,
+            address: record.data.customer_address,
+            expectedRevenue: (record.data.expected_revenue || 0).toLocaleString(),
+            probability: record.data.probability || 0,
+        };
+    }
+
+    get markerOverlayTemplate() {
+        return 'crm_google_map.MarkerOverlayContent';
+    }
+
     _createOverlayInnerContent(record) {
-        return `
-<div class="text-wrap">
-    <h4>${record.data.name}</h4>
-    <span class="text-muted">${record.data.customer_address}</span>
-    <div class="d-flex justify-content-between pt-2 font-monospace fs-6">
-        <small>
-            <i class="fa fa-usd" aria-hidden="true"></i>
-            <span>${(record.data.expected_revenue || 0.0).toLocaleString()}</span>
-        </small>
-        <small>
-            <span>${record.data.probability}</span>
-            <i class="fa fa-percent"></i>
-        </small>
-    </div>
-</div>`;
+        let values = this.prepareMarkerOverlayValues(record);
+        return renderToString(this.markerOverlayTemplate, values);
     }
 
     _createOverlayContent(marker, otherRecords) {

@@ -1,4 +1,6 @@
 /** @odoo-module */
+
+import { renderToString } from '@web/core/utils/render';
 import { GoogleMapRenderer } from '@web_view_google_map/views/google_map/google_map_renderer';
 import { getCurrentActionId } from '@web_view_google_map/views/google_map/utils';
 import { GoogleMapSidebarSales } from './google_map_sidebar';
@@ -198,23 +200,26 @@ export class GoogleMapRendererSales extends GoogleMapRenderer {
         return props;
     }
 
-    _createOverlayInnerContent(group) {
+    prepareMarkerOverlayValues(group) {
         let total = 0;
         if (group.aggregates) {
             total = group.aggregates.amount_total || 0;
         }
-        return `
-<div class="text-wrap">
-    <h4>${group.displayName}</h4>
-    <span class="text-muted">${group._address}</span>
-    <div class="d-flex justify-content-between pt-2 font-monospace fs-6">
-        <span>${group.count} ${this.props.archInfo.viewTitle || ''}</span>
-        <span>
-            <i class="fa fa-usd" aria-hidden="true"></i>
-            <span>${total.toLocaleString()}</span>
-        </span>
-    </div>
-</div>`;
+        return {
+            name: group.displayName || '',
+            address: group._address || '',
+            count: group.count + ' ' + (this.props.archInfo.viewTitle || ''),
+            total: (total || 0).toLocaleString(),
+        };
+    }
+
+    get markerOverlayTemplate() {
+        return 'sale_google_map.MarkerOverlayContent';
+    }
+
+    _createOverlayInnerContent(group) {
+        let values = this.prepareMarkerOverlayValues(group);
+        return renderToString(this.markerOverlayTemplate, values);
     }
 
     _createOverlayContent(marker, otherRecords) {
