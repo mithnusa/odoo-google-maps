@@ -6,14 +6,21 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 17.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-23 15:03+0000\n"
-"PO-Revision-Date: 2024-01-23 15:03+0000\n"
+"POT-Creation-Date: 2024-06-15 11:48+0000\n"
+"PO-Revision-Date: 2024-06-15 11:48+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: \n"
+
+#. module: web_view_google_map
+#. odoo-javascript
+#: code:addons/web_view_google_map/static/src/views/google_map/google_map_sidebar.xml:0
+#, python-format
+msgid "#{hasGeolocation ? '' : 'No geolocation'}"
+msgstr ""
 
 #. module: web_view_google_map
 #: model:ir.model,name:web_view_google_map.model_ir_actions_act_window_view
@@ -35,7 +42,7 @@ msgstr "Ajouter"
 #: code:addons/web_view_google_map/static/src/views/google_map/google_map_controller.js:0
 #, python-format
 msgid "Archive"
-msgstr "Archive"
+msgstr "Archiver"
 
 #. module: web_view_google_map
 #. odoo-javascript
@@ -43,7 +50,8 @@ msgstr "Archive"
 #: code:addons/web_view_google_map/static/src/views/google_map/google_map_controller.js:0
 #, python-format
 msgid "Are you sure that you want to archive all the selected records?"
-msgstr "Etes-vous sûr de vouloir archiver tous les enregistrements sélectionnés?"
+msgstr ""
+"Etes-vous sûr de vouloir archiver tous les enregistrements sélectionnés?"
 
 #. module: web_view_google_map
 #. odoo-javascript
@@ -155,6 +163,13 @@ msgid "External ID"
 msgstr "ID externe"
 
 #. module: web_view_google_map
+#. odoo-javascript
+#: code:addons/web_view_google_map/static/src/views/google_map/google_map_renderer.js:0
+#, python-format
+msgid "Failed to construct domain. Please contact your administrator"
+msgstr "Échec de la construction du domaine. Veuillez contacter votre administrateur"
+
+#. module: web_view_google_map
 #. odoo-python
 #: code:addons/web_view_google_map/models/ir_ui_view.py:0
 #, python-format
@@ -168,8 +183,9 @@ msgstr "Le champ \"%(field_name)s\" n'existe pas dans le modèle \"%(model_name)
 msgid ""
 "Field %(name)s assigned to attribute \"lat\" does not exist. All fields used"
 " in google_map view attribute must be loaded"
-msgstr "Le champ %(name)s affecté à l'attribut \"lat\" n'existe pas. Tous les"
-" champs utilisés dans l'attribut de vue google_map doivent être chargés"
+msgstr ""
+"Le champ %(name)s affecté à l'attribut \"lat\" n'existe pas. Tous les champs"
+" utilisés dans l'attribut de vue google_map doivent être chargés"
 
 #. module: web_view_google_map
 #. odoo-python
@@ -178,8 +194,9 @@ msgstr "Le champ %(name)s affecté à l'attribut \"lat\" n'existe pas. Tous les"
 msgid ""
 "Field %(name)s assigned to attribute \"lng\" does not exist. All fields used"
 " in google_map view attribute must be loaded"
-msgstr "Le champ %(name)s affecté à l'attribut \"lng\" n'existe pas. Tous les"
-" champs utilisés dans l'attribut de vue google_map doivent être chargés"
+msgstr ""
+"Le champ %(name)s affecté à l'attribut \"lng\" n'existe pas. Tous les champs"
+" utilisés dans l'attribut de vue google_map doivent être chargés"
 
 #. module: web_view_google_map
 #. odoo-python
@@ -188,8 +205,9 @@ msgstr "Le champ %(name)s affecté à l'attribut \"lng\" n'existe pas. Tous les"
 msgid ""
 "Field %(name)s assigned to attribute \"sidebar_title\" does not exist. All "
 "fields used in google_map view attribute must be loaded"
-msgstr "Le champ %(name)s affecté à l'attribut \"sidebar_title\" n'existe pas."
-" Tous les champs utilisés dans l'attribut de vue google_map doivent être chargés"
+msgstr ""
+"Le champ %(name)s affecté à l'attribut \"sidebar_title\" n'existe pas. Tous "
+"les champs utilisés dans l'attribut de vue google_map doivent être chargés"
 
 #. module: web_view_google_map
 #. odoo-python
@@ -218,6 +236,11 @@ msgstr "Géolocaliser"
 #, python-format
 msgid "Geolocation is not supported by this browser."
 msgstr "La géolocalisation n'est pas prise en charge par ce navigateur."
+
+#. module: web_view_google_map
+#: model:ir.model,name:web_view_google_map.model_google_map_view_mixins
+msgid "Google Map View Mixins"
+msgstr ""
 
 #. module: web_view_google_map
 #: model:ir.model.fields.selection,name:web_view_google_map.selection__ir_actions_act_window_view__view_mode__google_map
@@ -283,13 +306,6 @@ msgstr "Non, garde-le"
 
 #. module: web_view_google_map
 #. odoo-javascript
-#: code:addons/web_view_google_map/static/src/views/google_map/google_map_renderer.xml:0
-#, python-format
-msgid "Open"
-msgstr "Ouvrir"
-
-#. module: web_view_google_map
-#. odoo-javascript
 #: code:addons/web_view_google_map/static/src/views/google_map/google_map_sidebar.xml:0
 #, python-format
 msgid "Open form"
@@ -297,10 +313,10 @@ msgstr "Forme ouverte"
 
 #. module: web_view_google_map
 #. odoo-javascript
-#: code:addons/web_view_google_map/static/src/views/google_map/google_map_renderer.xml:0
+#: code:addons/web_view_google_map/static/src/views/google_map/google_map_renderer.js:0
 #, python-format
-msgid "Open form view"
-msgstr "Ouvrir l'affichage du formulaire"
+msgid "Show more"
+msgstr "Afficher plus"
 
 #. module: web_view_google_map
 #. odoo-javascript

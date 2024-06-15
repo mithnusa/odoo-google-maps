@@ -17,24 +17,26 @@
                     <t t-set="data" t-value="getData(record)"/>
                     <t t-set="hasGeolocation" t-value="this.hasGeolocation(record)"/>
                     <t t-set="markerColor" t-value="this.getMarkerColor(record)"/>
-                    <li t-attf-class="list-group-item d-flex justify-content-between align-items-center pb-1 pt-1 #{hasGeolocation ? '' : 'list-group-item-dark'} #{record.selected ? 'list-group-item-info': ''}">
-                        <t  t-if="props.allowSelectors">
-                            <CheckBox disabled="!props.handleCanSelectRecord" value="record.selected" onChange.alike="() => this.selectRecord(record)"/>
-                        </t>
-                        <a href="#" class="flex-grow-1 o_map_sidebar_record" data-toggle="tooltip" t-attf-style="cursor: #{hasGeolocation ? 'pointer' : 'not-allowed'};" t-attf-title="#{hasGeolocation ? '' : 'No geolocation'}" t-on-click="() => props.handlePointInMap(record.id)">
-                            <span class="title" t-esc="data.title" />
-                            <t t-if="data.subTitle">
-                                <br/>
-                                <t t-if="hasGeolocation">
-                                    <i class="fa fa-map-marker" t-attf-style="color: #{markerColor};"></i>
-                                    <span> </span>
-                                </t>
-                                <span class="text-muted" t-esc="data.subTitle"/>
+                    <li t-attf-class="list-group-item pb-1 pt-1 #{hasGeolocation ? '' : 'bg-100'} #{record.selected ? 'list-group-item-info': ''}">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <t  t-if="props.allowSelectors">
+                                <CheckBox disabled="!props.handleCanSelectRecord" value="record.selected" onChange.alike="() => this.selectRecord(record)"/>
                             </t>
-                        </a>
-                        <button type="button" class="btn btn-sm btn-light" id="open-record" data-toggle="tooltip" title="Open form" t-on-click.prevent="() => props.handleOpenRecord(record)">
-                            <i class="fa fa-arrow-right"></i>
-                        </button>
+                            <a href="#" class="flex-grow-1 o_map_sidebar_record" data-toggle="tooltip" t-attf-style="cursor: #{hasGeolocation ? 'pointer' : 'not-allowed'};" t-attf-title="#{hasGeolocation ? '' : 'No geolocation'}" t-on-click="() => props.handlePointInMap(record.id)">
+                                <span class="title" t-esc="data.title" />
+                                <t t-if="data.subTitle">
+                                    <br/>
+                                    <t t-if="hasGeolocation">
+                                        <i class="fa fa-map-marker" t-attf-style="color: #{markerColor};"></i>
+                                        <span> </span>
+                                    </t>
+                                    <span class="text-muted" t-esc="data.subTitle"/>
+                                </t>
+                            </a>
+                            <button type="button" class="btn btn-sm btn-light" id="open-record" data-toggle="tooltip" title="Open form" t-on-click.prevent="() => props.handleOpenRecord(record)">
+                                <i class="fa fa-arrow-right"></i>
+                            </button>
+                        </div>
                     </li>
                 </t>
             </ul>
