@@ -78,9 +78,17 @@ export class GoogleMapDrawingField extends GoogleMapRenderer {
     /**
      * @overwrite
      */
-    handleOnPatched() {
+    addMapCustomEvListeners() {
         // do nothing
     }
+
+    /**
+     * @overwrite
+     */
+    removeMapCustomEvListeners() {
+        // do nothing
+    }
+
 
     /**
      * @overwrite
