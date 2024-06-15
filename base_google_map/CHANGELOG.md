@@ -1,5 +1,8 @@
 # Change Log
 
+## 17.0.1.1.2
+* Added a new map theme Blueprint
+
 ## 17.0.1.0.2
 * Bump js-api-loader to version 1.16.6
 * Bump markerclusterer to version 2.5.3

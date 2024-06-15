@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 17.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-23 13:07+0000\n"
-"PO-Revision-Date: 2024-01-23 13:07+0000\n"
+"POT-Creation-Date: 2024-06-15 11:42+0000\n"
+"PO-Revision-Date: 2024-06-15 11:42+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -91,6 +91,11 @@ msgid "Blue water"
 msgstr ""
 
 #. module: base_google_map
+#: model:ir.model.fields.selection,name:base_google_map.selection__res_config_settings__google_maps_theme__blueprint
+msgid "Blueprint"
+msgstr ""
+
+#. module: base_google_map
 #: model:ir.model.fields.selection,name:base_google_map.selection__res_config_settings__google_maps_lang_localization__bs
 msgid "Bosnian"
 msgstr ""
@@ -136,10 +141,18 @@ msgid "Config Settings"
 msgstr ""
 
 #. module: base_google_map
-#. odoo-javascript
-#: code:addons/base_google_map/static/src/utils/base_google_map.js:0
-#, python-format
-msgid "Configuration"
+#: model:ir.model.fields,field_description:base_google_map.field_res_config_settings__google_autocomplete_country_restriction
+msgid "Countries"
+msgstr ""
+
+#. module: base_google_map
+#: model_terms:ir.ui.view,arch_db:base_google_map.res_config_settings_view_form
+msgid "Countries :"
+msgstr ""
+
+#. module: base_google_map
+#: model:ir.model.fields,field_description:base_google_map.field_res_config_settings__google_autocomplete_country_restriction_str
+msgid "Country Restriction"
 msgstr ""
 
 #. module: base_google_map
@@ -262,12 +275,20 @@ msgid "Google API Key and Map Localization"
 msgstr ""
 
 #. module: base_google_map
+#: model:ir.model.fields,field_description:base_google_map.field_res_config_settings__google_autocomplete_country_restrict
+msgid "Google Autocomplete Country Restriction"
+msgstr ""
+
+#. module: base_google_map
 #: model:ir.model.fields,field_description:base_google_map.field_res_config_settings__google_autocomplete_lang_restrict
 msgid "Google Autocomplete Language Restriction"
 msgstr ""
 
 #. module: base_google_map
+#. odoo-javascript
+#: code:addons/base_google_map/static/src/utils/base_google_map.js:0
 #: model_terms:ir.ui.view,arch_db:base_google_map.res_config_settings_view_form
+#, python-format
 msgid "Google Maps"
 msgstr ""
 
@@ -478,6 +499,13 @@ msgstr ""
 #. module: base_google_map
 #: model_terms:ir.ui.view,arch_db:base_google_map.res_config_settings_view_form
 msgid "Region"
+msgstr ""
+
+#. module: base_google_map
+#: model_terms:ir.ui.view,arch_db:base_google_map.res_config_settings_view_form
+msgid ""
+"Restrict search results to a specific country. This is especially helpful if"
+" you want restrict the search within a country. Support up to 5 countries."
 msgstr ""
 
 #. module: base_google_map
