@@ -13,12 +13,17 @@
     'website': 'https://github.com/mithnusa',
     'support': 'yopiangi@gmail.com',
     'category': 'Sales/CRM',
-    'version': '17.0.1.0.0',
+    'version': '17.0.1.1.0',
     'depends': [
         'crm',
         'web_view_google_map',
     ],
     'data': ['views/crm_lead.xml'],
+    'assets': {
+        'web.assets_backend': [
+            'crm_google_map/static/src/views/**/*',
+        ]
+    },
     'demo': [],
     'installable': True,
     'application': False,
