@@ -13,7 +13,7 @@
     'website': 'https://github.com/mithnusa',
     'support': 'yopiangi@gmail.com',
     'category': 'Sales/CRM',
-    'version': '1.2.0',
+    'version': '1.0.0',
     'depends': [
         'crm',
         'web_view_google_map',

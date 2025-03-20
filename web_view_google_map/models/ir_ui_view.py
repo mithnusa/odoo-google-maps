@@ -1,4 +1,3 @@
-from test.test_dis import get_tb
 # -*- coding: utf-8 -*-
 import warnings
 from lxml import etree
