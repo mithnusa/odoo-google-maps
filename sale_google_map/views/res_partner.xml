@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="account.res_partner_action_customer" model="ir.actions.act_window">
+        <field name="view_mode">kanban,list,google_map,form</field>
+    </record>
+</odoo>

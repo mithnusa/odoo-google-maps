@@ -1,0 +1,171 @@
+import { _t } from '@web/core/l10n/translation';
+import { Component, useEffect, useRef, onWillDestroy } from '@odoo/owl';
+import { useService } from '@web/core/utils/hooks';
+import { debounce } from '@web/core/utils/timing';
+
+export class GoogleMapSearchPlaces extends Component {
+    static template = 'web_view_google_map.SearchPlaces';
+    static props = ['googleMap'];
+
+    setup() {
+        this.searchRef = useRef('searchPlaces');
+        this.notificationService = useService('notification');
+        this.placeAutocomplete = null;
+        this.marker = null;
+        this.infoWindow = null;
+        this.debouncedHandlePlaceSelect = debounce(this.handlePlaceSelect, 300);
+        useEffect(
+            (googleMap, searchEl) => {
+                if (googleMap && searchEl) {
+                    this._initSearchBox();
+                }
+            },
+            () => [this.props.googleMap, this.searchRef.el]
+        );
+        onWillDestroy(this._cleanup);
+    }
+
+    /**
+     * Cleanup method to remove markers, info windows, and event listeners
+     * @returns {void}
+     * @private
+     */
+    _cleanup() {
+        if (this.markerPlacesSearch) {
+            this.markerPlacesSearch.map = null;
+        }
+        if (this.markerInfoWindow) {
+            this.markerInfoWindow.close();
+            google.maps.event.clearListeners(this.markerInfoWindow, 'closeclick');
+        }
+        if (this.placeAutocomplete) {
+            this.placeAutocomplete.remove();
+            google.maps.event.clearListeners(this.placeAutocomplete, 'gmp-placeselect');
+        }
+    }
+
+    /**
+     * Initialize the Places Autocomplete search box
+     * @returns {Promise<void>}
+     * @private
+     */
+    async _initSearchBox() {
+        if (!this.placeAutocomplete) {
+            try {
+                await this.env.apiLoader.importLibrary('places');
+                const { AdvancedMarkerElement } = await this.env.apiLoader.importLibrary('marker');
+
+                google.maps.event.addListenerOnce(this.props.googleMap, 'idle', () => {
+                    window.requestAnimationFrame(() => {
+                        try {
+                            this.placeAutocomplete =
+                                new google.maps.places.PlaceAutocompleteElement({
+                                    locationRestriction: this.props.googleMap.getBounds(),
+                                });
+                            this.placeAutocomplete.id = 'place-autocomplete-input';
+                            this.searchRef.el.classList.remove('o_hidden');
+                            this.searchRef.el.style.zIndex = 1;
+                            this.searchRef.el.appendChild(this.placeAutocomplete);
+
+                            this.props.googleMap.controls[
+                                google.maps.ControlPosition.TOP_RIGHT
+                            ].push(this.searchRef.el);
+                            this.markerPlacesSearch = new AdvancedMarkerElement({
+                                map: this.props.googleMap,
+                            });
+
+                            this.markerInfoWindow = new google.maps.InfoWindow();
+                            this.placeAutocomplete.addEventListener(
+                                'gmp-placeselect',
+                                this.debouncedHandlePlaceSelect.bind(this)
+                            );
+                        } catch (error) {
+                            console.error('Error initializing PlaceAutocompleteElement:', error);
+                            this.notificationService.add(
+                                _t(
+                                    "Google Maps Places Autocomplete couldn't be created. You might need to check the Google Maps version and ensure that the Places API is enabled."
+                                ),
+                                {
+                                    title: _t('Google Maps Places Autocomplete'),
+                                    type: 'danger',
+                                    sticky: false,
+                                    autocloseDelay: 5000,
+                                }
+                            );
+                        }
+                    });
+                });
+
+                this.props.googleMap.addListener('bounds_changed', () => {
+                    if (this.placeAutocomplete) {
+                        this.placeAutocomplete.locationRestriction =
+                            this.props.googleMap.getBounds();
+                    }
+                });
+            } catch (error) {
+                console.error(error);
+                this.notificationService.add(
+                    _t('Something went wrong. See Javascript console for technical details. '),
+                    {
+                        title: _t('Google Maps Places Autocomplete'),
+                        type: 'danger',
+                    }
+                );
+            }
+        }
+    }
+
+    /**
+     * Handle the place selection event from the autocomplete
+     * @param {Object} param0 - The place select event object
+     * @param {google.maps.places.Place} param0.place - The selected place
+     * @returns {Promise<void>}
+     */
+    async handlePlaceSelect({ place }) {
+        await place.fetchFields({ fields: ['displayName', 'formattedAddress', 'location'] });
+
+        if (place.viewport) {
+            this.props.googleMap.fitBounds(place.viewport);
+        } else {
+            this.props.googleMap.setCenter(place.location);
+            this.props.googleMap.setZoom(17);
+        }
+        const content = document.createElement('div');
+        content.classList.add('p-4', 'mt-4');
+        content.style.maxWidth = '400px';
+        content.innerHTML = `
+            <div id="infowindow-content">
+                <span id="place-displayname" class="fs-4 fw-bolder">
+                    ${place.displayName}
+                </span><br />
+                <span id="place-address">
+                    ${place.formattedAddress}
+                </span>
+            </div>
+        `;
+        this.updateInfoWindow(content, place.location);
+        if (!this.markerPlacesSearch.map) {
+            this.markerPlacesSearch.map = this.props.googleMap;
+        }
+        this.markerPlacesSearch.position = place.location;
+    }
+
+    /**
+     * Update the info window with new content and position
+     * @param {HTMLElement} content - The content to display in the info window
+     * @param {google.maps.LatLng} position - The position to place the info window
+     * @returns {void}
+     */
+    updateInfoWindow(content, position) {
+        this.markerInfoWindow.setContent(content);
+        this.markerInfoWindow.setPosition(position);
+        this.markerInfoWindow.open({
+            map: this.props.googleMap,
+            anchor: this.markerPlacesSearch,
+            shouldFocus: false,
+        });
+        this.markerInfoWindow.addListener('closeclick', () => {
+            this.markerPlacesSearch.map = null;
+        });
+    }
+}

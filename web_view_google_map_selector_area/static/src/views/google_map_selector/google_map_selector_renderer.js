@@ -1,14 +1,15 @@
-/** @odoo-module **/
-
 import { patch } from '@web/core/utils/patch';
 import { archParseBoolean } from '@web/views/utils';
+import { _t } from '@web/core/l10n/translation';
 import { renderToString } from '@web/core/utils/render';
 import { GoogleMapRenderer } from '@web_view_google_map/views/google_map/google_map_renderer';
-import { StaticList } from '@web/model/relational_model/static_list';
 
 patch(GoogleMapRenderer.prototype, {
+    /**
+     * @override
+     */
     setup() {
-        super.setup(...arguments);
+        super.setup();
         this.shapes = {};
         this.markerInAreaSelected = new Set();
         this.editColor = '#fca2a2';
@@ -18,43 +19,48 @@ patch(GoogleMapRenderer.prototype, {
     /**
      * @override
      */
-    addMapCustomEvListeners() {
+    _handleKeyDown(event) {
         if (!this.disableAreaSelector) {
-            super.addMapCustomEvListeners();
+            super._handleKeyDown(event);
         }
     },
 
     /**
      * @override
      */
-    removeMapCustomEvListeners() {
+    _handleKeyUp(event) {
         if (!this.disableAreaSelector) {
-            super.removeMapCustomEvListeners();
+            super._handleKeyUp(event);
         }
     },
 
-    initialize() {
-        super.initialize(...arguments);
-        let js_class = null;
-        if (this.props.archInfo && this.props.archInfo.xmlDoc) {
-            js_class = this.props.archInfo.xmlDoc.getAttribute('js_class') || false;
+    /**
+     * @override
+     */
+    async onMapReady() {
+        await super.onMapReady();
+        let js_class = '';
+        if (this.props.archInfo && this.props.archInfo.arch) {
+            const xml = new DOMParser().parseFromString(this.props.archInfo.arch, 'text/xml');
+            js_class = xml.documentElement.getAttribute('js_class') || '';
             this.disableAreaSelector = archParseBoolean(
-                this.props.archInfo.xmlDoc.getAttribute('disable_area_selector'),
+                xml.documentElement.getAttribute('disable_area_selector'),
                 false
             );
         }
-        // prevent initiallize area selector in view google map drawing or widget google maps drawing
+
+        // prevent initialize area selector in view google map drawing or widget google maps drawing
         if (
             js_class === 'google_map_drawing' ||
-            (!!this.props.id && !!this.props.name) ||
-            (this.props.list && this.props.list instanceof StaticList) ||
-            this.disableAreaSelector
+            (this.props.id && this.props.name) ||
+            this.disableAreaSelector ||
+            this.props.allowSelectors === false
         ) {
             return;
-        } else {
-            this._initializeGoogleMapDrawing();
         }
+        this._initializeGoogleMapDrawing();
     },
+
     _initializeGoogleMapDrawing() {
         let isDrawingEnabled = true;
         if (!this.googleDrawingManager && this.googleMap) {
@@ -83,7 +89,7 @@ patch(GoogleMapRenderer.prototype, {
                 );
             } catch (error) {
                 isDrawingEnabled = false;
-                this.notification.add(
+                this.notificationService.add(
                     _t(
                         'Google Maps drawing failed to load, please update the setting by add "drawing" in the Libraries'
                     ),
@@ -128,6 +134,10 @@ patch(GoogleMapRenderer.prototype, {
     },
 
     handleOverlayComplete(event) {
+        if (!event || !event.overlay) {
+            console.error('Invalid overlay event');
+            return;
+        }
         this.googleDrawingManager.setDrawingMode(null);
         const shape = event.overlay;
         const shapeID = new Date().getTime().toString();
@@ -136,14 +146,6 @@ patch(GoogleMapRenderer.prototype, {
 
         this.shapes[shapeID] = { shape, markers: new Set(), selected: null };
         google.maps.event.addListener(shape, 'click', this.setSelectedShape.bind(this, shape));
-    },
-
-    renderMap() {
-        if (this.selectedShape || Object.keys(this.shapes).length) {
-            return;
-        } else {
-            super.renderMap(...arguments);
-        }
     },
 
     setSelectedShape(shape) {
@@ -191,7 +193,7 @@ patch(GoogleMapRenderer.prototype, {
                 }
                 // recalculate markers inside the shape
                 markers.forEach((marker) => {
-                    if (bounds.contains(marker.getPosition())) {
+                    if (bounds.contains(marker.position)) {
                         markersInRectangle.add(marker);
                     }
                 });
@@ -206,6 +208,7 @@ patch(GoogleMapRenderer.prototype, {
             this.clearSelections(markersInRectangle);
         }
     },
+
     /**
      * Handle markers in a circle
      */
@@ -229,7 +232,7 @@ patch(GoogleMapRenderer.prototype, {
                 markers.forEach((marker) => {
                     const isInside =
                         google.maps.geometry.spherical.computeDistanceBetween(
-                            marker.getPosition(),
+                            marker.position,
                             circleArea.getCenter()
                         ) <= circleArea.getRadius();
                     if (isInside) {
@@ -247,6 +250,7 @@ patch(GoogleMapRenderer.prototype, {
             this.clearSelections(markersInCircle);
         }
     },
+
     /**
      * Handle markers in a polygon
      */
@@ -268,7 +272,7 @@ patch(GoogleMapRenderer.prototype, {
                 markers.forEach((marker) => {
                     if (
                         google.maps.geometry.poly.containsLocation(
-                            marker.getPosition(),
+                            marker.position,
                             this.selectedShape
                         )
                     ) {
@@ -352,6 +356,7 @@ patch(GoogleMapRenderer.prototype, {
             draggable: true,
         };
     },
+
     get circleOption() {
         return {
             fillColor: '#fca2a2',
@@ -362,6 +367,7 @@ patch(GoogleMapRenderer.prototype, {
             draggable: true,
         };
     },
+
     get selectedShapeOption() {
         return {
             fillColor: '#ff5757',

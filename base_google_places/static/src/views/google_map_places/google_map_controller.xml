@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="base_google_places.GoogleMapView" t-inherit="web_view_google_map.GoogleMapView" t-inherit-mode="primary">
+        <xpath expr="//t[@t-component='props.Renderer']" position="attributes">
+            <attribute name="createNewRecordFromPlaces.bind">createNewRecordFromPlaces</attribute>
+        </xpath>
+    </t>
+</templates>

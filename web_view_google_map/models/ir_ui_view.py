@@ -1,15 +1,21 @@
+from test.test_dis import get_tb
 # -*- coding: utf-8 -*-
 import warnings
 from lxml import etree
 from lxml.builder import E
 
 from odoo import _, api, fields, models
-
+from odoo.tools.view_validation import get_expression_field_names
 
 class IrUiView(models.Model):
     _inherit = 'ir.ui.view'
 
     type = fields.Selection(selection_add=[('google_map', 'Google Maps')])
+
+    def _get_view_info(self):
+        view_info = super()._get_view_info()
+        view_info['google_map'] = {'icon': 'fa fa-map-o'}
+        return view_info
 
     @api.model
     def get_google_form_view_id(self, model_name):
@@ -18,7 +24,7 @@ class IrUiView(models.Model):
             ('model', '=', model_name),
         ]
         view = self.sudo().search_read(domain, [], limit=1)
-        return view and view[0]['id']
+        return view and view[0]['id'] or False
 
     def _validate_tag_google_map(self, node, name_manager, node_info):
         if not node_info['validate']:
@@ -47,54 +53,55 @@ class IrUiView(models.Model):
             self._raise_view_error(_('Field %(name)s assigned to attribute "sidebar_title" does not exist. All fields used in google_map view attribute must be loaded', name=att_sidebar_title), node)
 
     def _postprocess_tag_field(self, node, name_manager, node_info):
-        '''This is a copy-paste code with a small modification in order to allow to render google_map inside a form view'''
-        if node.get('name'):
-            attrs = {'id': node.get('id'), 'select': node.get('select')}
-            field = name_manager.model._fields.get(node.get('name'))
-            if field:
-                if field.groups:
-                    if node.get('groups'):
-                        # if the node has a group (e.g. "base.group_no_one")
-                        # and the field in the Python model has a group as well (e.g. "base.group_system")
-                        # the user must have both group to see the field.
-                        # groups="base.group_no_one,base.group_system" directly on the node
-                        # would be one of the two groups, not both (OR instead of AND).
-                        # To make mandatory to have both groups, wrap the field node in a <t> node with the group
-                        # set on the field in the Python model
-                        # e.g. <t groups="base.group_system"><field name="foo" groups="base.group_no_one"/></t>
-                        # The <t> node will be removed later, in _postprocess_access_rights.
-                        node_t = E.t(groups=field.groups, postprocess_added='1')
-                        node.getparent().replace(node, node_t)
-                        node_t.append(node)
-                    else:
-                        node.set('groups', field.groups)
-                if (
-                    node_info.get('view_type') == 'form'
-                    and field.type in ('one2many', 'many2many')
-                    and not node.get('widget')
-                    and node.get('invisible') not in ('1', 'True')
-                    and not name_manager.parent
-                ):
-                    # Embed kanban/tree/form views for visible x2many fields in form views
-                    # if no widget or the widget requires it.
-                    # So the web client doesn't have to call `get_views` for x2many fields not embedding their view
-                    # in the main form view.
-                    for arch, _view in self._get_x2many_missing_view_archs(field, node, node_info):
-                        node.append(arch)
+        name = node.get('name')
+        if not name:
+            return
 
-                for child in node:
-                    if child.tag in ('form', 'tree', 'graph', 'kanban', 'calendar', 'google_map'):
-                        node_info['children'] = []
-                        self._postprocess_view(
-                            child, field.comodel_name, editable=node_info['editable'], parent_name_manager=name_manager,
-                        )
-                if node_info['editable'] and field.type in ('many2one', 'many2many'):
-                    node.set('model_access_rights', field.comodel_name)
+        attrs = {'id': node.get('id'), 'select': node.get('select')}
+        field = name_manager.model._fields.get(name)
 
-            name_manager.has_field(node, node.get('name'), attrs)
+        if field:
+            if field.groups:
+                group_definitions = self.env['res.groups']._get_group_definitions()
+                node_info['model_groups'] &= group_definitions.parse(field.groups, raise_if_not_found=False)
+            if (
+                node_info.get('view_type') == 'form'
+                and field.type in ('one2many', 'many2many')
+                and not node.get('widget')
+                and node.get('invisible') not in ('1', 'True')
+                and not name_manager.parent
+            ):
+                # Embed kanban/list/form views for visible x2many fields in form views
+                # if no widget or the widget requires it.
+                # So the web client doesn't have to call `get_views` for x2many fields not embedding their view
+                # in the main form view.
+                for arch, _view in self._get_x2many_missing_view_archs(field, node, node_info):
+                    node.append(arch)
+
+            if field.relational:
+                domain = (
+                    node.get('domain')
+                    or node_info['editable'] and field._description_domain(self.env)
+                )
+                if isinstance(domain, str):
+                    vnames = get_expression_field_names(domain)
+                    name_manager.must_have_fields(node, vnames, node_info, ('domain', domain))
+            context = node.get('context')
+            if context:
+                vnames = get_expression_field_names(context)
+                name_manager.must_have_fields(node, vnames, node_info, ('context', context))
+
+            for child in node:
+                if child.tag in ('form', 'list', 'graph', 'kanban', 'calendar', 'google_map'):
+                    node_info['children'] = []
+                    self._postprocess_view(child, field.comodel_name, editable=node_info['editable'], node_info=node_info)
+
+            if node_info['editable'] and field.type in ('many2one', 'many2many'):
+                node.set('model_access_rights', field.comodel_name)
+
+        name_manager.has_field(node, name, node_info, attrs)
 
     def _validate_tag_field(self, node, name_manager, node_info):
-        '''This is a copy-paste code with a small modification in order to allow to render google_map inside a form view'''
         validate = node_info['validate']
 
         name = node.get('name')
@@ -103,6 +110,10 @@ class IrUiView(models.Model):
 
         field = name_manager.model._fields.get(name)
         if field:
+            if field.groups:
+                group_definitions = self.env['res.groups']._get_group_definitions()
+                node_info['model_groups'] &= group_definitions.parse(field.groups, raise_if_not_found=False)
+
             if validate and field.relational:
                 domain = (
                     node.get('domain')
@@ -114,7 +125,7 @@ class IrUiView(models.Model):
                     desc = (f'domain of <field name="{name}">' if node.get('domain')
                             else f"domain of python field {name!r}")
                     try:
-                        self._validate_domain_identifiers(node, name_manager, domain, desc, field.comodel_name)
+                        self._validate_domain_identifiers(node, name_manager, domain, desc, field.comodel_name, node_info)
                     except ValueError as e:
                         if 'Modifier must be a domain' in str(e):
                             warnings.warn(f"Non-domain syntaxes are deprecated for attribute 'domain': {desc}\n{domain!r}", DeprecationWarning, 2)
@@ -128,16 +139,17 @@ class IrUiView(models.Model):
                 )
                 self._raise_view_error(msg, node)
 
+            if field.type == 'properties' and node_info['view_type'] != 'search':
+                name_manager.must_have_fields(node, {field._description_definition_record}, node_info, use=f"definition record of {field.name}")
+
             for child in node:
-                if child.tag not in ('form', 'tree', 'graph', 'kanban', 'calendar', 'google_map'):
+                if child.tag not in ('form', 'list', 'graph', 'kanban', 'calendar', 'google_map'):
                     continue
                 node.remove(child)
-                sub_manager = self._validate_view(
-                    child, field.comodel_name, view_type=child.tag, editable=node_info['editable'], full=validate,
+                self._validate_view(
+                    child, field.comodel_name, view_type=child.tag, editable=node_info['editable'],
+                    node_info=node_info,
                 )
-                for fname, groups_uses in sub_manager.mandatory_parent_fields.items():
-                    for groups, use in groups_uses.items():
-                        name_manager.must_have_field(node, fname, use, groups=groups)
 
         elif validate and name not in name_manager.field_info:
             msg = _(
@@ -146,4 +158,4 @@ class IrUiView(models.Model):
             )
             self._raise_view_error(msg, node)
 
-        name_manager.has_field(node, name, {'id': node.get('id'), 'select': node.get('select')})
+        name_manager.has_field(node, name, node_info, {'id': node.get('id'), 'select': node.get('select')})

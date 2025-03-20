@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'CRM Google Places',
-    'version': '17.0.1.1.0',
+    'version': '1.0.0',
     'author': 'Yopi Angi',
     'license': 'AGPL-3',
     'maintainer': 'Yopi Angi<yopiangi@gmail.com>',
@@ -35,5 +35,4 @@ You can create a new leads within Google maps by:
     'installable': True,
     'application': False,
     'auto_install': False,
-    'active': True,
 }

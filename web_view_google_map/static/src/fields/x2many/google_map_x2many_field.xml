@@ -1,15 +1,16 @@
-<?xml version="1.0" encoding="utf-8"?>
-<templates id="template" xml:space="preserve">
-
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
     <t t-name="web_view_google_map.X2ManyFieldGoogleMap" t-inherit="web.X2ManyField" t-inherit-mode="primary">
         <xpath expr="//ListRenderer" position="after">
             <GoogleMapRenderer t-elif="props.viewMode === 'google_map'" t-props="rendererProps"/>
         </xpath>
-        <xpath expr="//t[@t-if='displayControlPanelButtons']/div" position="inside">
-            <button type="button" class="btn btn-outline-secondary" title="Center Map" t-on-click.prevent="() => this.centerMap()">
+        <xpath expr="//KanbanRenderer" position="attributes">
+            <attribute name="t-elif">props.viewMode === 'kanban'</attribute>
+        </xpath>
+        <xpath expr="//div[@t-ref='buttons']" position="inside">
+            <button type="button" class="btn btn-secondary" t-if="props.viewMode === 'google_map'" title="Center Map" t-on-click.prevent="() => this.centerMap()">
                 <span>Center Map</span>
             </button>
         </xpath>
     </t>
-
 </templates>

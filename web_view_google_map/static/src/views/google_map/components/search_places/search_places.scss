@@ -1,0 +1,19 @@
+.o_google_map_view {
+    .google_search_places {
+        margin-top: 10px;
+        margin-right: 10px;
+        width: 300px;
+        background-color: #fff;
+        border-radius: 5px;
+        padding: 2px;
+        font-family: Roboto, sans-serif;
+        height: 40px;
+        position: fixed;
+    }
+    gmp-place-autocomplete {
+        width: 300px;
+        .widget-container {
+            border: none !important;
+        }
+    }
+}

@@ -4,10 +4,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo Server 17.0\n"
+"Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-23 14:56+0000\n"
-"PO-Revision-Date: 2024-01-23 14:56+0000\n"
+"POT-Creation-Date: 2025-03-20 04:47+0000\n"
+"PO-Revision-Date: 2025-03-20 04:47+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -36,14 +36,12 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/base_google_places/static/src/views/google_map_places/google_places_item.xml:0
 #: code:addons/base_google_places/static/src/views/google_map_places/google_places_result.js:0
-#, python-format
 msgid "Add"
 msgstr ""
 
 #. module: base_google_places
 #. odoo-javascript
 #: code:addons/base_google_places/static/src/views/google_map_places/google_places_autocomplete.xml:0
-#, python-format
 msgid "Clear"
 msgstr ""
 
@@ -75,52 +73,42 @@ msgstr ""
 #. module: base_google_places
 #. odoo-javascript
 #: code:addons/base_google_places/static/src/views/google_map_places/google_places_result.xml:0
-#, python-format
 msgid "Enter your search keyword"
 msgstr ""
 
 #. module: base_google_places
 #. odoo-javascript
 #: code:addons/base_google_places/static/src/views/google_map_places/google_map_places_renderer.xml:0
-#, python-format
 msgid "Expand side panel"
 msgstr ""
 
 #. module: base_google_places
 #. odoo-javascript
 #: code:addons/base_google_places/static/src/widgets/google_placesid/google_placesid_field.js:0
-#, python-format
 msgid "Failed to fetch Google place detail"
 msgstr ""
 
 #. module: base_google_places
 #. odoo-javascript
 #: code:addons/base_google_places/static/src/views/google_map_places/google_places_autocomplete.js:0
-#: code:addons/base_google_places/static/src/views/google_map_places/google_places_autocomplete.js:0
-#: code:addons/base_google_places/static/src/views/google_map_places/google_places_autocomplete.js:0
-#: code:addons/base_google_places/static/src/views/google_map_places/google_places_autocomplete.js:0
-#, python-format
 msgid "Failed to fetch place detail"
 msgstr ""
 
 #. module: base_google_places
 #. odoo-javascript
 #: code:addons/base_google_places/static/src/views/google_map_places/google_places_autocomplete.js:0
-#, python-format
 msgid "Failed to fetch place detail."
 msgstr ""
 
 #. module: base_google_places
 #. odoo-javascript
 #: code:addons/base_google_places/static/src/widgets/google_placesid/google_placesid_field.xml:0
-#, python-format
 msgid "Fetch"
 msgstr ""
 
 #. module: base_google_places
 #. odoo-javascript
 #: code:addons/base_google_places/static/src/widgets/google_placesid/google_placesid_field.xml:0
-#, python-format
 msgid "Fetch data from the Google Places Service"
 msgstr ""
 
@@ -142,7 +130,6 @@ msgstr ""
 #. module: base_google_places
 #. odoo-javascript
 #: code:addons/base_google_places/static/src/widgets/google_placesid/google_placesid_field.js:0
-#, python-format
 msgid "Google Places ID"
 msgstr ""
 
@@ -159,7 +146,7 @@ msgid "Google Places Type"
 msgstr ""
 
 #. module: base_google_places
-#: model_terms:ir.ui.view,arch_db:base_google_places.view_google_places_type_tree
+#: model_terms:ir.ui.view,arch_db:base_google_places.view_google_places_type_list
 msgid "Google Places Types"
 msgstr ""
 
@@ -189,67 +176,62 @@ msgid "Name"
 msgstr ""
 
 #. module: base_google_places
-#. odoo-python
-#: code:addons/base_google_places/models/google_places_type.py:0
 #: model:ir.model.constraint,message:base_google_places.constraint_google_places_type_type_unique
-#, python-format
 msgid "Name must be unique!"
 msgstr ""
 
 #. module: base_google_places
 #. odoo-javascript
+#: code:addons/base_google_places/static/src/views/google_map_places/google_map_controller.js:0
 #: code:addons/base_google_places/static/src/views/google_map_places/google_places_autocomplete.js:0
-#, python-format
 msgid "New Place: %s"
 msgstr ""
 
 #. module: base_google_places
 #. odoo-javascript
 #: code:addons/base_google_places/static/src/views/google_map_places/google_places_autocomplete.js:0
-#, python-format
 msgid "New place is created successfully"
 msgstr ""
 
 #. module: base_google_places
 #. odoo-javascript
+#: code:addons/base_google_places/static/src/views/google_map_places/google_map_controller.js:0
+msgid "New record is created successfully"
+msgstr ""
+
+#. module: base_google_places
+#. odoo-javascript
 #: code:addons/base_google_places/static/src/views/google_map_places/google_places_result.xml:0
-#, python-format
 msgid "Next page"
 msgstr ""
 
 #. module: base_google_places
 #. odoo-javascript
 #: code:addons/base_google_places/static/src/views/google_map_places/google_places_result.xml:0
-#, python-format
 msgid "No places found"
 msgstr ""
 
 #. module: base_google_places
 #. odoo-javascript
 #: code:addons/base_google_places/static/src/views/google_map_places/google_places_autocomplete.js:0
-#, python-format
 msgid "No places is found"
 msgstr ""
 
 #. module: base_google_places
 #. odoo-javascript
 #: code:addons/base_google_places/static/src/views/google_map_places/google_places_item.xml:0
-#: code:addons/base_google_places/static/src/views/google_map_places/google_places_item.xml:0
-#, python-format
 msgid "No rating"
 msgstr ""
 
 #. module: base_google_places
 #. odoo-javascript
 #: code:addons/base_google_places/static/src/views/google_map_places/google_places_item.xml:0
-#, python-format
 msgid "No user rating"
 msgstr ""
 
 #. module: base_google_places
 #. odoo-javascript
 #: code:addons/base_google_places/static/src/views/google_map_places/google_places_item.xml:0
-#, python-format
 msgid "Number of user rating"
 msgstr ""
 
@@ -281,55 +263,48 @@ msgstr ""
 #. module: base_google_places
 #. odoo-javascript
 #: code:addons/base_google_places/static/src/views/google_map_places/google_places_autocomplete.js:0
-#, python-format
 msgid "Place is updated successfully"
 msgstr ""
 
 #. module: base_google_places
 #. odoo-javascript
+#: code:addons/base_google_places/static/src/views/google_map_places/google_places_item.xml:0
+msgid "Rating of this place is {{props.place.rating}} out of 5."
+msgstr ""
+
+#. module: base_google_places
+#. odoo-javascript
 #: code:addons/base_google_places/static/src/views/google_map_places/google_places_autocomplete.xml:0
-#, python-format
 msgid "Search Google Maps"
 msgstr ""
 
 #. module: base_google_places
 #. odoo-javascript
 #: code:addons/base_google_places/static/src/views/google_map_places/google_places_autocomplete.js:0
-#, python-format
 msgid "Search failed. No places found in the current search area"
 msgstr ""
 
 #. module: base_google_places
 #. odoo-javascript
 #: code:addons/base_google_places/static/src/views/google_map_places/google_places_autocomplete.xml:0
-#, python-format
 msgid "Search this area"
 msgstr ""
 
 #. module: base_google_places
 #. odoo-javascript
 #: code:addons/base_google_places/static/src/views/google_map_places/google_places_item.xml:0
-#, python-format
 msgid "Temporarily closed"
 msgstr ""
 
 #. module: base_google_places
 #. odoo-javascript
 #: code:addons/base_google_places/static/src/views/google_map_places/google_places_autocomplete.js:0
-#, python-format
-msgid "The place \"%s\" was already created"
+msgid "The place \"%s\" was already registered"
 msgstr ""
 
 #. module: base_google_places
 #: model:ir.model.fields,field_description:base_google_places.field_google_places_mixin__gplace_type_ids
 msgid "Types"
-msgstr ""
-
-#. module: base_google_places
-#. odoo-javascript
-#: code:addons/base_google_places/static/src/views/google_map_places/google_places_autocomplete.js:0
-#, python-format
-msgid "Update Place: %s"
 msgstr ""
 
 #. module: base_google_places
@@ -340,15 +315,13 @@ msgstr ""
 #. module: base_google_places
 #. odoo-javascript
 #: code:addons/base_google_places/static/src/views/google_map_places/google_places_item.xml:0
-#, python-format
 msgid "View on Google Maps"
 msgstr ""
 
 #. module: base_google_places
 #. odoo-javascript
 #: code:addons/base_google_places/static/src/views/google_map_places/google_places_autocomplete.xml:0
-#, python-format
 msgid ""
-"Zoom in until the color changed to yellow. Yellow means you can add any "
+"Zoom in until the color changed to green. Green means you can add any "
 "location or place to your record simply by click the location"
 msgstr ""

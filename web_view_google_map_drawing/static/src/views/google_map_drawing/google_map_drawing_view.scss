@@ -2,17 +2,15 @@
     width: 100%;
 
     .o_field_x2many_google_map {
-        .o_google_map_renderer {
-            min-height: 600px;
+        height: 600px;
 
-            .o_google_map_view {
-                border: 1px solid $o-view-background-color;
-            }
+        .o_google_map_view {
+            border: 1px solid $o-view-background-color;
+        }
 
-            .o_map_right_sidebar {
-                &.closed {
-                    position: relative;
-                }
+        .o_map_right_sidebar {
+            &.closed {
+                position: relative;
             }
         }
     }

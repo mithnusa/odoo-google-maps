@@ -10,7 +10,7 @@ class ResPartnerArea(models.Model):
     _description = 'Partner Area'
 
     partner_id = fields.Many2one(
-        comodel_name='res.partner', required=True, ondelete='cascade'
+        'res.partner', required=True, ondelete='cascade'
     )
 
 
@@ -18,7 +18,5 @@ class ResPartner(models.Model):
     _inherit = 'res.partner'
 
     shape_line_ids = fields.One2many(
-        comodel_name='res.partner.area',
-        inverse_name='partner_id',
-        string='Area',
+        'res.partner.area', 'partner_id', string='Area'
     )

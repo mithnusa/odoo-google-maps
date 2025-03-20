@@ -4,7 +4,7 @@
         <field name="name">view.res.partner.google_map</field>
         <field name="model">res.partner</field>
         <field name="arch" type="xml">
-            <google_map string="Contacts" js_class="google_map_contact_avatar" lat="partner_latitude" color="marker_color" marker_icon="circle" icon_scale="0.6" lng="partner_longitude" sidebar_title="display_name" sidebar_subtitle="contact_address" sidebar_avatar="avatar_128">
+            <google_map string="Contacts" js_class="google_map_contact_avatar" lat="partner_latitude" marker_icon="circle" icon_scale="0.6" color="marker_color" lng="partner_longitude" sidebar_title="display_name" sidebar_subtitle="contact_address" sidebar_avatar="avatar_128">
                 <field name="partner_latitude"/>
                 <field name="partner_longitude"/>
                 <field name="color"/>
@@ -26,7 +26,7 @@
         </field>
     </record>
     <record id="base.action_partner_form" model="ir.actions.act_window">
-        <field name="view_mode">kanban,tree,form,google_map</field>
+        <field name="view_mode">kanban,list,form,google_map</field>
     </record>
     <record id="action_partner_form_view3" model="ir.actions.act_window.view">
         <field eval="3" name="sequence"/>
@@ -42,7 +42,7 @@
         <field name="domain">[('id', '=', active_id)]</field>
     </record>
     <record id="contacts.action_contacts" model="ir.actions.act_window">
-        <field name="view_mode">kanban,tree,google_map,form,activity</field>
+        <field name="view_mode">kanban,list,google_map,form,activity</field>
     </record>
     <record id="contacts.action_contacts_view_form" model="ir.actions.act_window.view">
         <field name="sequence" eval="3"/>
@@ -52,24 +52,6 @@
         <field name="view_mode">google_map</field>
         <field name="view_id" ref="contacts_google_map.view_res_partner_google_map"/>
         <field name="act_window_id" ref="contacts.action_contacts"/>
-    </record>
-    <record id="view_res_partner_form_inherit_google_map" model="ir.ui.view">
-        <field name="name">view.res.partner.form.inherit.google.map</field>
-        <field name="model">res.partner</field>
-        <field name="inherit_id" ref="base.view_partner_form"/>
-        <field name="priority">1000</field>
-        <field name="arch" type="xml">
-            <xpath expr="//form" position="attributes">
-                <attribute name="edit_lat_lng">1</attribute>
-                <!-- <attribute name="google_map_form_view_ref">contacts_google_map.view_res_partner_google_map_form</attribute> -->
-            </xpath>
-            <div name="button_box" position="inside">
-                <button name="%(contacts_google_map.action_view_res_partner_google_map)d" type="action" class="oe_stat_button" icon="fa-map-marker" string="Google Map" invisible="not partner_latitude or not partner_longitude"/>
-            </div>
-            <xpath expr="//field[@name='child_ids']" position="attributes">
-                <attribute name="context">{'default_parent_id': active_id, 'default_street': street, 'default_street2': street2, 'default_city': city, 'default_state_id': state_id, 'default_zip': zip, 'default_country_id': country_id, 'default_lang': lang, 'default_user_id': user_id, 'default_type': 'other', 'default_partner_latitude': partner_latitude, 'default_partner_longitude': partner_longitude}</attribute>
-            </xpath>
-        </field>
     </record>
     <record id="view_crm_partner_geo_form_inherit" model="ir.ui.view">
         <field name="name">view.crm.partner.get.form.inherit</field>
@@ -82,6 +64,11 @@
                     <group>
                         <field name="marker_color" widget="color_picker"/>
                     </group>
+                </group>
+            </xpath>
+            <xpath expr="//page[@name='geo_location']/group[1]/group[1]" position="after">
+                <group string="Google Maps">
+                    <widget name="google_map" lat="partner_latitude" lng="partner_longitude" width="100%" height="400"/>
                 </group>
             </xpath>
         </field>

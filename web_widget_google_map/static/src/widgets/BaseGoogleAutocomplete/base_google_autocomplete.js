@@ -1,9 +1,14 @@
-/** @odoo-module **/
-
 import { _t } from '@web/core/l10n/translation';
 import { formatChar } from '@web/views/fields/formatters';
 import { Component, onWillUnmount, onWillDestroy } from '@odoo/owl';
+import { useGoogleMapsAPILoader } from '@base_google_map/utils/loader_google_map';
 import { GOOGLE_PLACES_COMPONENT_FORM, ADDRESS_FORM, gmaps_populate_places } from './utils';
+
+const GEOLOCATION_OPTIONS = {
+    enableHighAccuracy: true,
+    timeout: 5000,
+    maximumAge: 0
+};
 
 export class BaseGoogleAutocomplete extends Component {
     setup() {
@@ -29,29 +34,34 @@ export class BaseGoogleAutocomplete extends Component {
         this.force_override = false;
         this.autocomplete_settings = null;
 
-        onWillUnmount(() => {
-            // Reset the placeAutocomplete and remove the event listener attached
-            if (this.placesAutocomplete) {
-                this.placesAutocomplete.set('place', null);
-            }
-            if (this.placeAutocompleteListener) {
-                google.maps.event.removeListener(this.placeAutocompleteListener);
-            }
-            // set display none for all pac-container left over on the dom
-            setTimeout(() => {
-                document.body.querySelectorAll('.pac-container').forEach((el) => {
-                    el.style.display = 'none';
-                });
-            }, 500);
+        this.apiLoader = useGoogleMapsAPILoader(
+            this.onLoad.bind(this),
+            this.onError.bind(this)
+        );
+
+        onWillUnmount(this._cleanUp);
+        onWillDestroy(this._cleanUp);
+    }
+
+    _cleanUp() {
+        if (this.placesAutocomplete) {
+            google.maps.event.clearInstanceListeners(this.placesAutocomplete);
+            this.placesAutocomplete.unbindAll();
+            this.placesAutocomplete = null;
+        }
+
+        const pacContainers = document.querySelectorAll('.pac-container');
+        pacContainers.forEach(container => {
+            container.remove();
         });
-        onWillDestroy(() => {
-            // set display none for all pac-container left over on the dom
-            setTimeout(() => {
-                document.body.querySelectorAll('.pac-container').forEach((el) => {
-                    el.style.display = 'none';
-                });
-            }, 500);
-        });
+    }
+
+    async onLoad() {
+        this.initialize();
+    }
+
+    onError(error) {
+        console.error(error);
     }
 
     initialize() {
@@ -69,8 +79,9 @@ export class BaseGoogleAutocomplete extends Component {
         return ['address_components', 'name', 'geometry', 'formatted_address'];
     }
 
-    initGplacesAutocomplete() {
+    async initGplacesAutocomplete() {
         if (!this.placesAutocomplete && this.input) {
+            await this.apiLoader.importLibrary('places');
             const google_fields = this.getGoogleFieldsRestriction();
             const options = {
                 types: this.autocomplete_types,
@@ -137,21 +148,29 @@ export class BaseGoogleAutocomplete extends Component {
         }
     }
 
-    _geolocate() {
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition((position) => {
-                const geolocation = {
-                    lat: position.coords.latitude,
-                    lng: position.coords.longitude,
-                };
-
-                const circle = new google.maps.Circle({
-                    center: geolocation,
-                    radius: position.coords.accuracy,
-                });
-
-                this.placesAutocomplete.setBounds(circle.getBounds());
+    async _geolocate() {
+        if (!navigator.geolocation) {
+            console.log('Geolocation is not supported by this browser.');
+            return;
+        }
+        try {
+            const position = await new Promise((resolve, reject) => {
+                navigator.geolocation.getCurrentPosition(resolve, reject, GEOLOCATION_OPTIONS);
             });
+
+            const geolocation = {
+                lat: position.coords.latitude,
+                lng: position.coords.longitude,
+            };
+
+            const circle = new google.maps.Circle({
+                center: geolocation,
+                radius: position.coords.accuracy,
+            });
+
+            this.placesAutocomplete.setBounds(circle.getBounds());
+        } catch (error) {
+            console.error('Error getting geolocation:', error);
         }
     }
 
@@ -175,21 +194,28 @@ export class BaseGoogleAutocomplete extends Component {
     }
 
     handlePopulateAddress() {
-        const place = this.placesAutocomplete.getPlace();
-        if (place) {
-            if (this.address_mode === 'no_address_format') {
-                const geoValues = this._prepareGeolocation(
-                    place.geometry.location.lat(),
-                    place.geometry.location.lng()
-                );
-                if (geoValues) {
-                    geoValues[this.props.name] = formatChar(place.formatted_address);
-                    this._update(geoValues);
-                }
-            } else if (place.hasOwnProperty('address_components')) {
-                this.populateAddress(place);
-            }
+        if (this._debounceTimer) {
+            this._cleanUp(this._debounceTimer);
         }
+
+        this._debounceTimer = setTimeout(() => {
+            const place = this.placesAutocomplete.getPlace();
+            console.log({place});
+            if (place) {
+                if (this.address_mode === 'no_address_format') {
+                    const geoValues = this._prepareGeolocation(
+                        place.geometry.location.lat(),
+                        place.geometry.location.lng()
+                    );
+                    if (geoValues) {
+                        geoValues[this.props.name] = formatChar(place.formatted_address);
+                        this._update(geoValues);
+                    }
+                } else if (place.hasOwnProperty('address_components')) {
+                    this.populateAddress(place);
+                }
+            }
+        }, 300);
     }
 
     _update(values) {
@@ -209,8 +235,14 @@ export class BaseGoogleAutocomplete extends Component {
     }
 
     parse(value) {
+        if (!value) return '';
+
+        value = String(value);
         if (this.shouldTrim) {
-            return value.trim();
+            value = value.trim();
+        }
+        if (this.maxLength) {
+            value = value.slice(0, this.maxLength);
         }
         return value;
     }

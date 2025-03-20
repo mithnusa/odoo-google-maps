@@ -1,11 +1,11 @@
-/** @odoo-module **/
-
 import { _t } from '@web/core/l10n/translation';
 import { Layout } from '@web/search/layout';
 import { useModelWithSampleData } from '@web/model/model';
 import { extractFieldsFromArchInfo } from '@web/model/relational_model/utils';
 import { usePager } from '@web/search/pager_hook';
 import { useService } from '@web/core/utils/hooks';
+import { rpc } from "@web/core/network/rpc";
+import { user } from "@web/core/user";
 import { unique } from '@web/core/utils/arrays';
 import { ExportDataDialog } from '@web/views/view_dialogs/export_data_dialog';
 import { download } from '@web/core/network/download';
@@ -16,14 +16,14 @@ import {
 import { omit } from '@web/core/utils/objects';
 import { ActionMenus, STATIC_ACTIONS_GROUP_NUMBER } from '@web/search/action_menus/action_menus';
 import { standardViewProps } from '@web/views/standard_view_props';
-import { useSetupView } from '@web/views/view_hook';
+import { useSetupAction } from "@web/search/action_hook";
+import { useViewButtons } from "@web/views/view_button/view_button_hook";
 import { session } from '@web/session';
 import { SearchBar } from '@web/search/search_bar/search_bar';
 import { useSearchBarToggler } from '@web/search/search_bar/search_bar_toggler';
 import { ViewButton } from '@web/views/view_button/view_button';
 import { executeButtonCallback } from '@web/views/view_button/view_button_hook';
 import { CogMenu } from '@web/search/cog_menu/cog_menu';
-import { getCurrentActionId } from './utils';
 
 import {
     Component,
@@ -32,7 +32,6 @@ import {
     useState,
     useSubEnv,
     useEffect,
-    onWillPatch,
 } from '@odoo/owl';
 
 export class GoogleMapController extends Component {
@@ -61,15 +60,13 @@ export class GoogleMapController extends Component {
         this.dialogService = useService('dialog');
         this.actionService = useService('action');
         this.notificationService = useService('notification');
-        this.rpc = useService('rpc');
-        this.userService = useService('user');
 
         this.rootRef = useRef('root');
 
         this.archInfo = this.props.archInfo;
         this.activeActions = this.props.archInfo.activeActions;
         this.multiEdit = this.props.archInfo.multiEdit;
-        this.model = useState(useModelWithSampleData(this.props.Model, this.modelParams));
+        this.model = useState(useModelWithSampleData(this.props.Model, this.modelParams, this.modelOptions));
 
         this.archiveEnabled =
             'active' in this.props.fields
@@ -79,55 +76,46 @@ export class GoogleMapController extends Component {
                 : false;
 
         onWillStart(async () => {
-            this.isExportEnable = await this.userService.hasGroup('base.group_allow_export');
+            this.isExportEnable = await user.hasGroup('base.group_allow_export');
         });
 
         useSubEnv({ model: this.model });
 
-        useSetupView({
+
+        useViewButtons(this.rootRef, {
+            beforeExecuteAction: this.beforeExecuteActionButton.bind(this),
+            afterExecuteAction: this.afterExecuteActionButton.bind(this),
+            reload: () => this.model.load(),
+        });
+
+        useSetupAction({
             rootRef: this.rootRef,
-            beforeLeave: async () => {
-                return this.model.root.leaveEditMode();
-            },
-            beforeUnload: async (ev) => {
-                const editedRecord = this.model.root.editedRecord;
-                if (editedRecord) {
-                    const isValid = await editedRecord.urgentSave();
-                    if (!isValid) {
-                        ev.preventDefault();
-                        ev.returnValue = 'Unsaved changes';
-                    }
-                }
-            },
-            getGlobalState: () => {
-                return {
-                    resIds: this.model.root.records.map((rec) => rec.resId),
-                };
-            },
             getLocalState: () => {
                 return {
+                    activeBars: this.progressBarState?.activeBars,
                     modelState: this.model.exportState(),
                 };
             },
         });
 
         usePager(() => {
-            const { count, hasLimitedCount, isGrouped, limit, offset } = this.model.root;
-            return {
-                offset: offset,
-                limit: limit,
-                total: count,
-                onUpdate: async ({ offset, limit }) => {
-                    if (this.model.root.editedRecord) {
-                        if (!(await this.model.root.editedRecord.save())) {
-                            return;
+            const root = this.model.root;
+            const { count, hasLimitedCount, isGrouped, limit, offset } = root;
+            if (!isGrouped) {
+                return {
+                    offset: offset,
+                    limit: limit,
+                    total: count,
+                    onUpdate: async ({ offset, limit }, hasNavigated) => {
+                        await this.model.root.load({ offset, limit });
+                        await this.onUpdatedPager();
+                        if (hasNavigated) {
+                            this.onPageChangeScroll();
                         }
-                    }
-                    await this.model.root.load({ limit, offset });
-                },
-                updateTotal:
-                    !isGrouped && hasLimitedCount ? () => this.model.root.fetchCount() : undefined,
-            };
+                    },
+                    updateTotal: hasLimitedCount ? () => root.fetchCount() : undefined,
+                };
+            }
         });
 
         useEffect(
@@ -140,10 +128,6 @@ export class GoogleMapController extends Component {
             () => [this.model.root.selection.length]
         );
         this.searchBarToggler = useSearchBarToggler();
-        this.firstLoad = true;
-        onWillPatch(() => {
-            this.firstLoad = false;
-        });
     }
 
     get modelParams() {
@@ -152,6 +136,13 @@ export class GoogleMapController extends Component {
             this.props.fields
         );
 
+        const groupByInfo = {};
+        for (const fieldName in this.archInfo.groupBy.fields) {
+            const fieldNodes = this.archInfo.groupBy.fields[fieldName].fieldNodes;
+            const fields = this.archInfo.groupBy.fields[fieldName].fields;
+            groupByInfo[fieldName] = extractFieldsFromArchInfo({ fieldNodes }, fields);
+        }
+
         const modelConfig = this.props.state?.modelState?.config || {
             resModel: this.props.resModel,
             fields,
@@ -159,14 +150,15 @@ export class GoogleMapController extends Component {
             openGroupsByDefault: false,
         };
 
+        const viewConfig = this.getViewMapConfig();
         return {
             config: modelConfig,
             state: this.props.state?.modelState,
-            groupByInfo: {},
+            groupByInfo,
             limit: this.archInfo.limit || this.props.limit,
             countLimit: this.archInfo.countLimit,
             defaultOrderBy: this.archInfo.defaultOrder,
-            defaultGroupBy: false,
+            defaultGroupBy: this.archInfo.defaultGroupBy,
             groupsLimit: this.archInfo.groupsLimit,
             multiEdit: this.archInfo.multiEdit,
             activeIdsLimit: session.active_ids_limit,
@@ -174,11 +166,24 @@ export class GoogleMapController extends Component {
                 onRecordSaved: this.onRecordSaved.bind(this),
                 onWillSaveRecord: this.onWillSaveRecord.bind(this),
             },
+            viewConfig,
         };
     }
 
+    /**
+     * onRecordSaved is a callBack that will be executed after the save
+     * if it was done. It will therefore not be executed if the record
+     * is invalid or if a server error is thrown.
+     * @param {Record} record
+     */
     async onRecordSaved(record) {}
 
+    /**
+     * onWillSaveRecord is a callBack that will be executed before the
+     * record save if the record is valid if the record is valid.
+     * If it returns false, it will prevent the save.
+     * @param {Record} record
+     */
     async onWillSaveRecord(record) {}
 
     async onDeleteSelectedRecords() {
@@ -392,7 +397,7 @@ export class GoogleMapController extends Component {
     }
 
     async getExportedFields(model, import_compat, parentParams) {
-        return await this.rpc('/web/export/get_fields', {
+        return await rpc('/web/export/get_fields', {
             ...parentParams,
             model,
             import_compat,
@@ -523,33 +528,39 @@ export class GoogleMapController extends Component {
      * Open form view in a dialog window
      * @param {Object} values
      */
-    async showRecord(values) {
-        if (values && values.resId) {
-            const record = this.model.root.records.find((rec) => rec.resId === values.resId);
-            if (record) {
-                const currentActionId = getCurrentActionId();
-                let action;
-                if (currentActionId) {
-                    action = await this._getActionFormView(currentActionId, record.resId);
-                    if (action) {
-                        action.target = 'new';
-                    }
-                }
-                if (!action) {
-                    const name = this._getRecordName(record);
+    async showRecord(record) {
+        if (record) {
+            let action = null;
+            const action_title = this._getRecordName(record);
+            if (this.actionService.currentController) {
+                const form_view = this.actionService.currentController.action.views.filter((view) => view[1] == 'form');
+                if (form_view) {
                     action = {
-                        name: name,
+                        name: action_title,
                         type: 'ir.actions.act_window',
-                        res_model: record.resModel,
-                        views: [[false, 'form']],
+                        res_model: this.model.root.resModel,
+                        views: form_view,
                         view_mode: 'form',
                         res_id: record.resId,
-                        target: 'new',
+                        target: 'new'
                     };
                 }
+            }
+            if (!action) {
+                action = {
+                    name: action_title,
+                    type: 'ir.actions.act_window',
+                    res_model: this.model.root.resModel,
+                    views: [[false, 'form']],
+                    view_mode: 'form',
+                    res_id: record.resId,
+                    target: 'new'
+                };
+            }
+            if (action) {
                 this.model.action.doAction(action, {
                     props: {
-                        onSave: async () => {
+                        onSave: async (record) => {
                             await record.load();
                             record.model.notify();
                             this.model.action.doAction({
@@ -559,6 +570,43 @@ export class GoogleMapController extends Component {
                     },
                 });
             }
+        }
+    }
+
+    showRecordsByDomain(title, domain, target) {
+        target = target || 'current';
+        let action = null;
+        if (this.actionService.currentController) {
+            const views = this.actionService.currentController.action.views.filter((view) => ['google_map', 'list', 'form'].includes(view[1]));
+            if (views) {
+                action = {
+                    name: title,
+                    type: 'ir.actions.act_window',
+                    res_model: this.model.root.resModel,
+                    views: views,
+                    view_mode: 'google_map,list',
+                    domain: domain,
+                    target: target,
+                };
+            }
+        }
+        if (!action) {
+            action = {
+                name: title,
+                type: 'ir.actions.act_window',
+                res_model: this.model.root.resModel,
+                views: [
+                    [false, 'google_map'],
+                    [false, 'list'],
+                    [false, 'form'],
+                ],
+                view_mode: 'google_map,list',
+                domain: domain,
+                target: target,
+            };
+        }
+        if (action) {
+            this.model.action.doAction(action);
         }
     }
 
@@ -584,6 +632,10 @@ export class GoogleMapController extends Component {
 
     get className() {
         return this.props.className;
+    }
+
+    get modelOptions() {
+        return {};
     }
 
     async createRecord() {
@@ -632,4 +684,35 @@ export class GoogleMapController extends Component {
     }
 
     async onUpdatedPager() {}
+
+    onPageChangeScroll() {
+        if (this.rootRef && this.rootRef.el) {
+            if (this.env.isSmall) {
+                this.rootRef.el.scrollTop = 0;
+            } else {
+                this.rootRef.el.querySelector(".o_content").scrollTop = 0;
+            }
+        }
+    }
+
+    getViewMapConfig() {
+        const {
+            latitudeField,
+            longitudeField,
+            sidebarTitleField,
+            sidebarSubtitleField,
+            markerColor,
+            markerIcon,
+            markerIconScale,
+        } = this.archInfo;
+        return {
+            lat: latitudeField,
+            lng: longitudeField,
+            title: sidebarTitleField,
+            subTitle: sidebarSubtitleField,
+            markerColor,
+            markerIcon,
+            markerIconScale,
+        };
+    }
 }

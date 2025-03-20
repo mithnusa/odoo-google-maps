@@ -13,7 +13,7 @@
     'website': 'https://github.com/mithnusa',
     'support': 'yopiangi@gmail.com',
     'category': 'Extra Tools',
-    'version': '17.0.1.0.0',
+    'version': '1.0.0',
     'depends': [
         'crm_google_places',
         'crm_gautocomplete_places',

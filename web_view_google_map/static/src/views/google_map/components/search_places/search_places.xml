@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="web_view_google_map.SearchPlaces">
+        <div class="input-group google_search_places o_hidden" t-ref="searchPlaces"></div>
+    </t>
+</templates>

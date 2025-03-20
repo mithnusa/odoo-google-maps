@@ -27,18 +27,11 @@
                     <div t-if="nbSelected" class="d-flex gap-1">
                         <t t-call="web.ListView.Selection"/>
                         <t t-if="props.info.actionMenus">
-                            <ActionMenus
-                                getActiveIds="() => model.root.selection.map((r) => r.resId)"
-                                context="props.context"
-                                domain="props.domain"
-                                items="actionMenuItems"
-                                isDomainSelected="model.root.isDomainSelected"
-                                resModel="model.root.resModel"
-                                onActionExecuted="() => model.load()"/>
+                            <ActionMenus getActiveIds="() => model.root.selection.map((r) => r.resId)" context="props.context" domain="props.domain" items="actionMenuItems" isDomainSelected="model.root.isDomainSelected" resModel="model.root.resModel" onActionExecuted="() => model.load()"/>
                         </t>
                     </div>
                 </t>
-                <t t-component="props.Renderer" list="model.root" archInfo="props.archInfo" activeActions="activeActions" allowSelectors="props.allowSelectors" readonly="true" openRecord.bind="openRecord" onAdd.bind="createRecord" showRecord.bind="showRecord"/>
+                <t t-component="props.Renderer" list="model.root" archInfo="props.archInfo" activeActions="activeActions" allowSelectors="props.allowSelectors" readonly="true" openRecord.bind="openRecord" onAdd.bind="createRecord" showRecord.bind="showRecord" showRecordsByDomain.bind="showRecordsByDomain"/>
             </Layout>
         </div>
     </t>

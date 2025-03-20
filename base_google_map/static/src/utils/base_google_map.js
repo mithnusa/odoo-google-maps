@@ -1,238 +1,170 @@
-/** @odoo-module **/
+import { Component, onWillDestroy } from '@odoo/owl';
 import { _t } from '@web/core/l10n/translation';
-import { Component, useEffect, useState, onMounted } from '@odoo/owl';
-import { AlertDialog } from '@web/core/confirmation_dialog/confirmation_dialog';
 import { useService } from '@web/core/utils/hooks';
-import { MAP_THEMES } from './themes';
+import { LOADER_STATUS, useGoogleMapsAPILoader } from './loader_google_map';
 
-// see https://googlemaps.github.io/js-api-loader/enums/LoaderStatus.html
-export const LOADER_STATUS = {
-    FAILURE: 3,
-    INITIALIZED: 0,
-    LOADING: 1,
-    SUCCESS: 2,
-    UNLOAD: 999, // custom status for internal usage
-};
-
-export function useGoogleMapLoader({ showLoading, onLoad = () => {}, onError = () => {} }) {
-    showLoading = showLoading || false;
-    const rpc = useService('rpc');
-    const ui = useService('ui');
-
-    onMounted(loadGoogleLoader);
-
-    function prepareOptions(settings) {
-        const loaderOptions = {
-            apiKey: settings.api_key,
-            version: settings.version,
-            libraries: settings.libraries,
-        };
-        if (settings.region) {
-            loaderOptions.region = settings.region;
-        }
-        if (settings.language) {
-            loaderOptions.language = settings.language;
-        }
-        return loaderOptions;
-    }
-
-    async function loadGoogleLoader() {
-        try {
-            showLoading && ui.block();
-            const data = await rpc('/web/base_google_map/settings');
-            if (data) {
-                const settings = { ...data };
-                const loaderOptions = prepareOptions(settings);
-                try {
-                    const loader = new google.maps.plugins.loader.Loader(loaderOptions);
-                    loader
-                        .load()
-                        .then((_google) => {
-                            showLoading && ui.unblock();
-                            window.google = _google;
-                            delete settings.api_key;
-                            delete settings.version;
-                            onLoad(settings);
-                        })
-                        .catch((e) => {
-                            showLoading && ui.unblock();
-                            console.error(e);
-                            onError(e);
-                        });
-                } catch (error) {
-                    showLoading && ui.unblock();
-                    console.error(error);
-                    onError(error);
-                }
-            }
-        } catch (error) {
-            showLoading && ui.unblock();
-            console.error(error);
-            onError(error);
-        }
-    }
-}
-
-export class BaseGoogleMap extends Component {
+export class BaseGoogleMapComponent extends Component {
     setup() {
-        this.user = useService('user');
-        this.rpc = useService('rpc');
-        this.notification = useService('notification');
-        this.dialog = useService('dialog');
-
-        this.state = useState({ loaderStatus: LOADER_STATUS.UNLOAD });
-
-        this.settings = {};
-        this.isPlacesSearchEnable = null;
-        this.markerPlacesSearch = null;
         this.googleMap = null;
-        this.placesAutocomplete = null;
-        this.currentDatapointId = null;
-
-        useGoogleMapLoader({
-            showLoading: false,
-            onLoad: (setting) => {
-                this.settings = { ...setting };
-                this._handleGoogleLoaderSuccess();
-                this.initialize();
-            },
-            onError: (msg) => {
-                this._handleGoogleLoaderError(msg);
-            },
-        });
-
-        useEffect(
-            (loaderStatus) => {
-                if (loaderStatus === LOADER_STATUS.FAILURE) {
-                    this.dialog.add(AlertDialog, {
-                        title: _t('Google Maps'),
-                        body: _t(
-                            'Something went wrong!\nGoogle Maps is not load correctly.\nSee the JavaScript console for technical details.'
-                        ),
-                    });
-                }
-            },
-            () => [this.state.loaderStatus]
+        this.notificationService = useService('notification');
+        this.uiService = useService('ui');
+        this.apiLoader = useGoogleMapsAPILoader(
+            (...args) => this.onGoogleMapsApiLoad(...args),
+            (...args) => this.onGoogleMapsApiError(...args)
         );
+        // Clean up resources when component is destroyed
+        onWillDestroy(this._onWillDestroy);
     }
 
-    initialize() {
-        // not implemented
-        // start Google stuff here
+    /**
+     * Returns the DOM element where the map should be rendered
+     * Must be implemented by child classes
+     * @returns {HTMLElement|false} DOM element where the map should be rendered
+     */
+    mapDivElement() {
+        console.warn('mapDivElement() must be implemented by child classes');
+        return false;
     }
 
-    _handleGoogleLoaderError(msg) {
-        console.error(msg);
-        this.state.loaderStatus = LOADER_STATUS.FAILURE;
+    /**
+     * Update state for Google Maps Loader
+     * Must be implemented by child classes
+     * @param {string} status - The loader status from LOADER_STATUS enum
+     */
+    updateLoaderState(status) {
+        console.warn('updateLoaderState() must be implemented by child classes');
     }
 
-    _handleGoogleLoaderSuccess() {
-        this.state.loaderStatus = LOADER_STATUS.SUCCESS;
-    }
-
-    setMapTheme() {
-        const style = this.settings.theme || 'default';
-        if (!Object.prototype.hasOwnProperty.call(MAP_THEMES, style) || style === 'default') {
+    /**
+     * Handle Google Maps API load success
+     */
+    async onGoogleMapsApiLoad() {
+        const mapEl = this.mapDivElement();
+        if (!mapEl) {
+            this.notificationService.add(_t('Please specify the element for Google Maps'), {
+                title: _t('Google Maps Error'),
+                type: 'danger',
+            });
             return;
         }
-        const styledMapType = new google.maps.StyledMapType(MAP_THEMES[style], {
-            name: _t('Custom'),
-        });
-        this.googleMap.setOptions({
-            mapTypeControlOptions: {
-                mapTypeIds: ['roadmap', 'satellite', 'hybrid', 'terrain', 'styled_map'],
-            },
-        });
-        // Associate the styled map with the MapTypeId and set it to display.
-        this.googleMap.mapTypes.set('styled_map', styledMapType);
-        this.googleMap.setMapTypeId('styled_map');
-    }
-
-    getMapOptions() {
-        const gestureHandling =
-            ['cooperative', 'greedy', 'none', 'auto'].indexOf(
-                this.props.archInfo.gestureHandling
-            ) === -1
-                ? 'auto'
-                : this.props.archInfo.gestureHandling;
-
-        return {
-            mapTypeId: google.maps.MapTypeId.ROADMAP,
-            center: { lat: 0, lng: 0 },
-            zoom: 2,
-            minZoom: 2,
-            maxZoom: 22,
-            fullscreenControl: true,
-            mapTypeControl: true,
-            gestureHandling,
-        };
-    }
-
-    renderGooglePlaceSearch(searchRef, markerInfoWindow) {
-        if (this.settings.is_places_search_enable) {
-            searchRef.el.style.visibility = 'visible';
-            if (!this.markerPlacesSearch) {
-                this.markerPlacesSearch = new google.maps.Marker({
-                    map: this.googleMap,
-                    anchorPoint: new google.maps.Point(0, -29),
-                });
-            } else {
-                this.markerPlacesSearch.setVisible(false);
-            }
-
-            if (!this.placesAutocomplete) {
-                this.placesAutocomplete = new google.maps.places.Autocomplete(
-                    searchRef.el.querySelector('input#search'),
+        try {
+            // Validate required settings
+            const { map_id, color_scheme } = this.apiLoader.__settings;
+            if (!map_id) {
+                this.notificationService.add(
+                    _t('Missing Map ID. Map ID is required to load Google Maps'),
                     {
-                        fields: ['geometry', 'formatted_address'],
-                        types: ['establishment'],
+                        title: _t('Google Maps Warning'),
+                        type: 'danger',
                     }
                 );
-                this.placesAutocomplete.bindTo('bounds', this.googleMap);
-                this.googleMap.controls[google.maps.ControlPosition.TOP_RIGHT].push(searchRef.el);
-                google.maps.event.addListener(
-                    this.placesAutocomplete,
-                    'place_changed',
-                    this.handleSearchPlaceResult.bind(this, markerInfoWindow)
-                );
             }
-        }
-    }
+            const { Map } = await this.apiLoader.importLibrary('maps');
+            const { ColorScheme } = await this.apiLoader.importLibrary('core');
 
-    handleSearchPlaceResult(markerInfoWindow) {
-        const place = this.placesAutocomplete.getPlace();
-        if (place) {
-            if (place.geometry.hasOwnProperty('viewport') && place.geometry.viewport) {
-                this.googleMap.fitBounds(place.geometry.viewport);
-            } else {
-                this.googleMap.panTo(place.geometry.location);
-            }
-            this.markerPlacesSearch.setPosition(place.geometry.location);
-            this.markerPlacesSearch.setVisible(true);
+            // Map color scheme options
+            const schemes = {
+                dark: ColorScheme.DARK,
+                light: ColorScheme.LIGHT,
+                system: ColorScheme.FOLLOW_SYSTEM,
+            };
 
-            const para = document.createElement('p');
-            const node = document.createTextNode(place.formatted_address);
-            para.appendChild(node);
-
-            const divContent = document.createElement('div');
-            divContent.appendChild(para);
-
-            markerInfoWindow.setContent(divContent);
-            markerInfoWindow.open(this.googleMap, this.markerPlacesSearch);
-
-            markerInfoWindow.addListener('closeclick', () => {
-                this.markerPlacesSearch.setVisible(false);
+            // Get map options from props or use defaults
+            const mapOptions = this._prepareMapOptions({
+                center: { lat: 0, lng: 0 },
+                zoom: 2,
+                mapId: map_id,
+                colorScheme: schemes[color_scheme] || ColorScheme.LIGHT,
             });
+
+            // Create map with proper options
+            const googleMap = new Map(mapEl, mapOptions);
+            this.googleMap = googleMap;
+            // Set as loaded
+            this.updateLoaderState(LOADER_STATUS.LOADED);
+            // Trigger map ready callback
+            this.onMapReady(googleMap);
+        } catch (error) {
+            this.onGoogleMapsApiError(error);
         }
     }
 
-    handleSearchPlaceBounds() {
-        if (this.placesAutocomplete) {
-            this.placesAutocomplete.bindTo('bounds', this.googleMap);
+    /**
+     * Handle Google Maps API load error
+     * @private
+     * @param {Error} error - The error that occurred
+     */
+    onGoogleMapsApiError(error) {
+        this.updateLoaderState(LOADER_STATUS.FAILED);
+
+        // Log detailed error for debugging
+        console.error('Google Maps API loading failed:', error);
+
+        // Display user-friendly notification based on error type
+        let errorMessage = _t(
+            'Failed to load Google Maps. Please check your internet connection or API key configuration. You might check the Javascript console for more details.'
+        );
+
+        if (error.code === 'INVALID_API_KEY') {
+            errorMessage = _t('Invalid Google Maps API key. Please check your configuration.');
+        } else if (error.code === 'NETWORK_ERROR') {
+            errorMessage = _t(
+                'Network error while loading Google Maps. Please check your connection.'
+            );
+        }
+
+        this.notificationService.add(errorMessage, {
+            title: _t('Google Maps Error'),
+            type: 'danger',
+            sticky: true,
+        });
+    }
+
+    /**
+     * Prepares map options by merging defaults with provided options
+     * @private
+     * @param {Object} options - Map options
+     * @returns {Object} Final map options
+     */
+    _prepareMapOptions(options) {
+        return options;
+    }
+
+    /**
+     * Called when map is successfully initialized
+     * Can be overridden by child classes
+     * @private
+     * @param {google.maps.Map} map - The initialized Google Map instance
+     */
+    onMapReady(map) {
+        // To be implemented by child classes if needed
+    }
+
+    /**
+     * Clean up resources when component is destroyed
+     */
+    _onWillDestroy() {
+        if (this.googleMap) {
+            // Clean up any listeners or resources
+            this.googleMap = null;
         }
     }
 
-    get isLoaderSuccess() {
-        return this.state.loaderStatus === LOADER_STATUS.SUCCESS;
+    /**
+     * Check if the Google Maps API is loaded and ready
+     * @returns {boolean} True if the map is loaded
+     */
+    isMapLoaded() {
+        console.warn('isMapLoaded() must be implemented by child classes');
+        return false;
+    }
+
+    /**
+     * Generate a unique ID
+     * @private
+     * @returns {string} Unique identifier
+     */
+    _generateUniqueId() {
+        return `gmaps_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
     }
 }

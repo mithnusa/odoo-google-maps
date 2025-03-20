@@ -1,89 +1,87 @@
-/** @odoo-module **/
+import { useRef, onWillUnmount, useState } from '@odoo/owl';
+import { BaseGoogleMapComponent } from '@base_google_map/utils/base_google_map';
+import { LOADER_STATUS } from '@base_google_map/utils/loader_google_map';
 
-import { _t } from '@web/core/l10n/translation';
-import { useRef, onWillUnmount } from '@odoo/owl';
-import { BaseGoogleMap } from '@base_google_map/utils/base_google_map';
-
-export class GoogleMapFormRenderer extends BaseGoogleMap {
+export class GoogleMapFormRenderer extends BaseGoogleMapComponent {
     static template = 'web_view_google_map.GoogleMapFormRenderer';
     setup() {
         super.setup();
         this.mapRef = useRef('map');
 
-        this.fieldLat = this.props.archInfo.latitudeField;
-        this.fieldLng = this.props.archInfo.longitudeField;
+        const { latitudeField, longitudeField } = this.props.archInfo;
+        this.fieldLat = latitudeField;
+        this.fieldLng = longitudeField;
 
-        onWillUnmount(() => {
-            if (this.editableMarkerDragEnd) {
-                google.maps.event.removeListener(this.editableMarkerDragEnd);
-            }
+        this.state = useState({
+            loaderStatus: LOADER_STATUS.NOT_LOADED,
         });
+
+        onWillUnmount(this._cleanupListeners);
     }
 
-    createMarker(options) {
-        return new google.maps.Marker(options);
-    }
-
-    initialize() {
-        if (!this.googleMap) {
-            const options = this.getMapOptions();
-            this.googleMap = new google.maps.Map(this.mapRef.el, options);
-            this.setMapTheme();
+    _cleanupListeners() {
+        if (this.marker) {
+            google.maps.event.clearListeners(this.marker, 'dragend');
+            this.marker.map = null;
+            this.marker = null;
         }
+        if (this.googleMap) {
+            google.maps.event.clearListeners(this.googleMap, 'idle');
+        }
+    }
+
+    updateLoaderState(status) {
+        this.state.loaderStatus = status;
+    }
+
+    mapDivElement() {
+        return this.mapRef.el;
+    }
+
+    onMapReady() {
         this.renderMarker();
     }
 
-    prepareMarkerOptions(lat, lng) {
-        let options = {
-            position: { lat, lng },
-            map: this.googleMap,
-        };
-        const canEdit = this.props.archInfo.activeActions.edit;
-        if (canEdit) {
-            options.draggable = true;
-            options.animation = google.maps.Animation.BOUNCE;
-        }
-        return options;
-    }
-
-    renderMarker() {
+    async renderMarker() {
         const { record } = this.props;
         if (this.props.record && this.fieldLat && this.fieldLng) {
-            const canEdit = this.props.archInfo.activeActions.edit;
+            const canEdit = this.props.archInfo.activeActions.edit || false;
+
             const lat = record.data[this.fieldLat] || 0.0;
             const lng = record.data[this.fieldLng] || 0.0;
+
             const isZoomIn = lat !== 0.0 || lng !== 0.0;
-            const markerOptions = this.prepareMarkerOptions(lat, lng);
-            this.marker = this.createMarker(markerOptions);
-            if (isZoomIn) {
-                this.googleMap.panTo({ lat, lng });
-                google.maps.event.addListenerOnce(this.googleMap, 'idle', () => {
-                    if (this.googleMap.getZoom() < 14) this.googleMap.setZoom(14);
-                });
-            }
+            const markerOptions = {
+                position: { lat, lng },
+                map: this.googleMap,
+                gmpDraggable: canEdit,
+            };
 
-            if (canEdit) {
-                google.maps.event.addListenerOnce(this.marker, 'dragend', () => {
-                    this.googleMap.setCenter(this.marker.getPosition());
-                    if (this.googleMap.getZoom() < 14) this.googleMap.setZoom(14);
-                });
-
-                this.editableMarkerDragEnd = google.maps.event.addListener(
-                    this.marker,
-                    'dragend',
-                    this._handleMarkerDragend.bind(this)
-                );
+            try {
+                const { AdvancedMarkerElement } = await this.apiLoader.importLibrary('marker');
+                this.marker = new AdvancedMarkerElement(markerOptions);
+                if (isZoomIn) {
+                    this.googleMap.panTo({ lat, lng });
+                    google.maps.event.addListenerOnce(this.googleMap, 'idle', () => {
+                        if (this.googleMap.getZoom() < 18) this.googleMap.setZoom(18);
+                    });
+                }
+                if (canEdit && this.marker) {
+                    this.marker.addListener('dragend', this._handleMarkerDragend.bind(this));
+                }
+            } catch (error) {
+                console.error('Error loading Google Maps API:', error);
+                return;
             }
         }
     }
 
-    async _handleMarkerDragend() {
-        this.googleMap.panTo(this.marker.getPosition());
-        const position = this.marker.getPosition();
-        const values = {
-            [this.fieldLat]: position.lat(),
-            [this.fieldLng]: position.lng(),
-        };
-        await this.props.record.update(values);
+    _handleMarkerDragend() {
+        const position = this.marker.position;
+        this.googleMap.panTo(position);
+        this.props.record.update({
+            [this.fieldLat]: position.lat,
+            [this.fieldLng]: position.lng,
+        });
     }
 }

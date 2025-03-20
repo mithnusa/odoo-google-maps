@@ -30,7 +30,7 @@ How to create the view?
 <!-- Action -->
 <record id="action_partner_area_map" model="ir.actions.act_window">
     ...
-    <field name="view_mode">kanban,tree,form,google_map</field>
+    <field name="view_mode">kanban,list,form,google_map</field>
     ...
 </record>
 ```

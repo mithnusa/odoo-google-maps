@@ -1,7 +1,5 @@
-/** @odoo-module **/
 import { _t } from '@web/core/l10n/translation';
 import { Component, onRendered } from '@odoo/owl';
-import { useService } from '@web/core/utils/hooks';
 
 import { GooglePlacesItem } from './google_places_item';
 
@@ -15,7 +13,6 @@ export class GooglePlacesResult extends Component {
         'centerMapToCurrentSearchResult',
         'actionPageNext',
         'searchHasNext',
-        'actionShowPlace',
         'actionAddPlace',
         'handleAfterAction',
         'addPlace',
@@ -23,7 +20,6 @@ export class GooglePlacesResult extends Component {
     ];
 
     setup() {
-        this.notification = useService('notification');
         onRendered(() => this.handleOnRendered());
     }
 

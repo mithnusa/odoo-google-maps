@@ -1,5 +1,3 @@
-/** @odoo-module **/
-
 export const GOOGLE_PLACES_COMPONENT_FORM = {
     street_number: 'long_name',
     route: 'long_name',

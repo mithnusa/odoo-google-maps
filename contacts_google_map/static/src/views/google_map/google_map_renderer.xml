@@ -1,36 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates xml:space="preserve">
-    <t t-name="contacts_google_map.MarkerInfoWindow" t-inherit="web_view_google_map.MarkerInfoWindow">
-        <xpath expr="//div[hasclass('o_kanban_record')]" position="replace">
-            <div class="o_kanban_record o_kanban_record_has_image_fill d-flex w-100">
-                <div class="w-50 o_kanban_image_fill_left o_kanban_image_full" role="img" t-attf-style="background-image:url('{{avatarUrl}}')"/>
-                <div class="oe_kanban_card d-flex flex-column">
-                    <div class="d-flex o_kanban_header">
-                        <a t-attf-href="https://www.google.com/maps/dir/?api=1&amp;destination={{ destination }}" target="_blank" tabindex="-1" class="btn btn-light" id="btn-navigate_to" data-toggle="tooltip" title="Navigate to this location">
-                            <i class="fa fa-map-signs"></i>
-                            <span class="text-uppercase"> Navigate to</span>
-                        </a>
-                    </div>
-                    <div class="oe_kanban_details d-flex flex-column justify-content-between pt-3">
-                        <div class="o_kanban_record_title">
-                            <h4>
-                                <a href="#" role="button" class="text-decoration-none" id="btn-open_form">
-                                    <t t-esc="title"/>
-                                </a>
-                            </h4>
-                        </div>
-                        <div class="o_kanban_record_subtitle">
-                            <t t-esc="subTitle"/>
-                        </div>
-                        <div class="pt-3">
-                            <a t-attf-href="https://www.google.com/maps/search/?api=1&amp;query={{ destination }}" target="_blank" tabindex="-1" class="btn btn-sm btn-link" id="btn-view-on-googlemaps" data-toggle="tooltip" title="View on Google Maps website">
-                                <span class="text-lowercase pe-2"> View on Google Maps</span>
-                                <i class="fa fa-external-link-square"></i>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
+    <t t-name="contacts_google_map.MarkerInfoWindow" t-inherit="web_view_google_map.MarkerInfoWindow" t-inherit-mode="primary">
+        <xpath expr="//div[hasclass('oe_kanban_card')]" position="before">
+            <div class="w-50 o_kanban_image_fill_left o_kanban_image_full" role="img" t-attf-style="background-image:url('{{avatarUrl}}')"/>
+        </xpath>
+        <xpath expr="//div[hasclass('o_kanban_record')]" position="attributes">
+            <attribute name="class" add="o_kanban_record_has_image_fill w-100" separator=" "/>
         </xpath>
     </t>
 </templates>

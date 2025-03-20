@@ -13,7 +13,7 @@
                         'geolocation': {
                             'lat': 'partner_latitude',
                             'lng': 'partner_longitude'
-                        }
+                        },
                     }
                 }</attribute>
             </xpath>
@@ -24,7 +24,7 @@
                         'geolocation': {
                             'lat': 'partner_latitude',
                             'lng': 'partner_longitude'
-                        }
+                        },
                     }
                 }</attribute>
             </xpath>
@@ -35,7 +35,7 @@
                         'geolocation': {
                             'lat': 'partner_latitude',
                             'lng': 'partner_longitude'
-                        }
+                        },
                     }
                 }</attribute>
             </xpath>

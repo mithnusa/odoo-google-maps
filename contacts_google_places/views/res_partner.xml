@@ -17,24 +17,26 @@
         <field name="inherit_id" ref="base.view_partner_form"/>
         <field name="priority">5000</field>
         <field name="arch" type="xml">
-            <xpath expr="//notebook/page[1]" position="attributes">
-                <attribute name="autofocus"/>
-            </xpath>
-            <xpath expr="//notebook/page[1]" position="before">
-                <page string="Google Place Information" autofocus="autofocus">
+            <xpath expr="//notebook/page[1]" position="after">
+                <page string="Google Place Information">
                     <group>
-                        <field name="gplace_formatted_address"/>
-                        <field name="gplace_vicinity"/>
-                        <field name="gplace_id" class="oe_inline" colspan="2" placeholder="Place ID" widget="GooglePlacesIdChar"/>
-                        <field name="gplace_url" class="oe_inline" colspan="2" placeholder="Place URL" widget="url"/>
-                        <field name="gplace_type_ids" widget="many2many_tags"/>
-                        <field name="gplace_opening_hours"/>
-                        <label for="gplace_plus_code_compound" string="Plus code"/>
-                        <div>
-                            <field name="gplace_plus_code_global" invisible="1"/>
-                            <field name="gplace_plus_code_compound" nolabel="1" help="A plus code is like a street address for people or places that don't have one"/>
-                            <field name="gplace_plus_code_url" nolabel="1" widget="url"/>
-                        </div>
+                        <group>
+                            <field name="gplace_formatted_address"/>
+                            <field name="gplace_vicinity"/>
+                            <field name="gplace_id" class="oe_inline" colspan="2" placeholder="Place ID" widget="GooglePlacesIdChar"/>
+                            <field name="gplace_url" class="oe_inline" colspan="2" placeholder="Place URL" widget="url"/>
+                            <field name="gplace_type_ids" widget="many2many_tags"/>
+                            <field name="gplace_opening_hours"/>
+                            <label for="gplace_plus_code_compound" string="Plus code"/>
+                            <div>
+                                <field name="gplace_plus_code_global" invisible="1"/>
+                                <field name="gplace_plus_code_compound" nolabel="1" help="A plus code is like a street address for people or places that don't have one"/>
+                                <field name="gplace_plus_code_url" nolabel="1" widget="url"/>
+                            </div>
+                        </group>
+                        <group>
+                            <widget name="google_map" lat="partner_latitude" width="100%" height="400" lng="partner_longitude"/>
+                        </group>
                     </group>
                 </page>
             </xpath>

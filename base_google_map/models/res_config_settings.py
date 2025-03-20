@@ -131,7 +131,7 @@ class ResConfigSettings(models.TransientModel):
             ('blue_water', 'Blue water'),
             ('blue_essense', 'Blue essense'),
             ('line_drawing', 'Line drawing'),
-            ('blueprint', 'Blueprint'),
+            ('blueprint', 'Blue print'),
         ],
         string='Theme',
         config_parameter='base_google_map.theme',
@@ -164,6 +164,19 @@ class ResConfigSettings(models.TransientModel):
     google_autocomplete_country_restriction_str = fields.Char(
         string='Country Restriction',
         config_parameter='base_google_map.autocomplete_country_restriction',
+    )
+    google_map_id = fields.Char(
+        string='Map ID',
+        config_parameter='base_google_map.map_id',
+    )
+    google_map_color_scheme = fields.Selection(
+        selection=[
+            ('light', 'Light'),
+            ('dark', 'Dark'),
+            ('system', 'Auto'),
+        ],
+        string='Color Scheme',
+        config_parameter='base_google_map.color_scheme',
     )
 
     @api.depends('google_autocomplete_country_restriction_str')

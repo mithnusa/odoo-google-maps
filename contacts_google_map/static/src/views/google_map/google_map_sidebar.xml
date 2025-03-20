@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates xml:space="preserve">
-    <t t-name="contacts_google_map.GoogleMapSidebarAvatar" t-inherit="web_view_google_map.GoogleMapSidebar" t-inherit-mode="primary">
-        <xpath expr="//a[hasclass('o_map_sidebar_record')]" position="before">
-            <div class="o_kanban_record_has_image_fill mx-3">
-                <img t-att-src="data.avatarUrl" class="o_kanban_image_fill_left o_kanban_image_full o_image_40_cover" alt="Avatar"/>
+    <t t-name="contacts_google_map.RecordItemAvatar" t-inherit="web_view_google_map.RecordItem" t-inherit-mode="primary">
+        <xpath expr="//div[hasclass('o_map_sidebar_record')]" position="before">
+            <t t-set="avatar_url" t-value="this.getAvatarUrl(record)"/>
+            <div class="o_kanban_record_has_image_fill mx-1">
+                <img t-att-src="avatar_url" class="o_kanban_image_fill_left o_kanban_image_full o_image_40_cover" alt="Avatar"/>
             </div>
         </xpath>
     </t>

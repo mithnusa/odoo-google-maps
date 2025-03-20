@@ -14,11 +14,12 @@
     'website': 'https://github.com/mithnusa',
     'support': 'yopiangi@gmail.com',
     'category': 'Extra Tools',
-    'version': '17.0.1.1.0',
+    'version': '1.0.0',
     'depends': ['web_view_google_map'],
     'data': ['data/polygon_lines.xml', 'data/gmap_libraries.xml'],
     'assets': {
         'web.assets_backend': [
+            'web_view_google_map_drawing/static/src/utils/**/*',
             'web_view_google_map_drawing/static/src/views/**/*',
             'web_view_google_map_drawing/static/src/fields/**/*',
             'web_view_google_map_drawing/static/src/widget/**/*',

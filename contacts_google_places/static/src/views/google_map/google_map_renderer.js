@@ -1,4 +1,3 @@
-/** @odoo-module **/
 import { GoogleMapPlacesRenderer } from '@base_google_places/views/google_map_places/google_map_places_renderer';
 import { GoogleMapSidebarContactAvatar } from '@contacts_google_map/views/google_map/google_map_sidebar';
 
@@ -7,11 +6,12 @@ export class GoogleMapPlacesContactsAvatarRenderer extends GoogleMapPlacesRender
         ...GoogleMapPlacesRenderer.components,
         Sidebar: GoogleMapSidebarContactAvatar,
     };
+
     /**
      * @override
      */
-    prepareInfoWindowValues(record, isMulti) {
-        let values = super.prepareInfoWindowValues(record, isMulti);
+    _prepareInfoWindowValues(record, isMulti) {
+        let values = super._prepareInfoWindowValues(record, isMulti);
         values.avatarUrl = `/web/image/${record.resModel}/${record.resId}/${this.props.archInfo.sidebarAvatarField}`;
         return values;
     }

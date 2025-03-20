@@ -48,14 +48,14 @@
         <field name="name">view.res.partner.area.tree</field>
         <field name="model">res.partner.area</field>
         <field name="arch" type="xml">
-            <tree string="Areas">
+            <list string="Areas">
                 <field name="partner_id"/>
                 <field name="gshape_name"/>
                 <field name="gshape_type"/>
                 <field name="gshape_area"/>
                 <field name="gshape_radius"/>
                 <field name="gshape_description"/>
-            </tree>
+            </list>
         </field>
     </record>
     <record id="view_res_partner_area_map" model="ir.ui.view">
@@ -80,7 +80,7 @@
         <field name="name">Partner Area</field>
         <field name="type">ir.actions.act_window</field>
         <field name="res_model">res.partner.area</field>
-        <field name="view_mode">google_map,tree,form</field>
+        <field name="view_mode">google_map,list,form</field>
     </record>
 
     <menuitem id="menu_partner_area" name="Partner Area" action="action_res_partner_area" parent="contacts.res_partner_menu_config"/>

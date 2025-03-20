@@ -1,5 +1,3 @@
-/** @odoo-module **/
-
 import { _t } from '@web/core/l10n/translation';
 import { Component, useRef, onRendered, useState, onWillUnmount, useEffect } from '@odoo/owl';
 import { renderToString } from '@web/core/utils/render';
@@ -11,12 +9,12 @@ import { preparePlaces } from '../utils';
 export class GooglePlacesAutocompleteSidebar extends Component {
     static template = 'base_google_places.SidebarPlacesAutocomplete';
     static components = { GooglePlacesResult };
-    static props = ['settings', 'isComponentFolded', 'googleMap', 'placeService'];
+    static props = ['isComponentFolded', 'googleMap', 'apiLoader'];
 
     setup() {
         this.searchBoxRef = useRef('searchBox');
         this.searchResultRef = useRef('searchResultBox');
-        this.notification = useService('notification');
+        this.notificationService = useService('notification');
         this.ui = useService('ui');
 
         this.state = useState({ places: [], hasNextPage: false });
@@ -25,12 +23,12 @@ export class GooglePlacesAutocompleteSidebar extends Component {
         this.placesAutocomplete = null;
 
         useEffect(
-            (isComponentFolded) => {
-                if (!isComponentFolded) {
-                    this.searchBoxRef.el.querySelector('input#searchinputbox').focus();
+            (isComponentFolded, searchBoxEl) => {
+                if (!isComponentFolded && searchBoxEl) {
+                    searchBoxEl.querySelector('input#searchinputbox').focus();
                 }
             },
-            () => [this.props.isComponentFolded]
+            () => [this.props.isComponentFolded, this.searchBoxRef.el]
         );
         onRendered(() => {
             this.onRendered();
@@ -83,10 +81,10 @@ export class GooglePlacesAutocompleteSidebar extends Component {
                     if (zoomLevel >= 17) {
                         if (button.classList.contains('btn-light')) {
                             button.classList.remove('btn-light');
-                            button.classList.add('btn-warning', 'animate');
+                            button.classList.add('btn-success', 'animate');
                         }
                     } else {
-                        button.classList.remove('btn-warning', 'animate');
+                        button.classList.remove('animate', 'btn-success');
                         if (!button.classList.contains('btn-light')) {
                             button.classList.toggle('btn-light');
                         }
@@ -96,8 +94,13 @@ export class GooglePlacesAutocompleteSidebar extends Component {
         );
     }
 
-    onRendered() {
-        if (!this.props.googleMap) return;
+    async onRendered() {
+        if (
+            !this.props.googleMap &&
+            this.props.apiLoader &&
+            !this.props.apiLoader.isLoadedSuccessfully()
+        )
+            return;
 
         if (!this.props.isComponentFolded) {
             if (!this.placesAutocomplete) {
@@ -162,13 +165,18 @@ export class GooglePlacesAutocompleteSidebar extends Component {
     }
 
     _handleGetPlaceDetails(event) {
-        this.props.placeService.getDetails({ placeId: event.placeId }, (place, status) => {
+        const placesService = this.env.getPlacesService();
+        if (!placesService) {
+            console.error('Place service not available');
+            return;
+        }
+        placesService.getDetails({ placeId: event.placeId }, (place, status) => {
             this.ui.unblock();
             if (status === google.maps.places.PlacesServiceStatus.OK) {
                 this.addPlace(place);
             } else {
                 console.warn(status);
-                this.notification.add(_t('Failed to fetch place detail.'), {
+                this.notificationService.add(_t('Failed to fetch place detail.'), {
                     type: 'warning',
                 });
             }
@@ -188,13 +196,13 @@ export class GooglePlacesAutocompleteSidebar extends Component {
                     if (result.place_id) {
                         this.handleClickItemAdd(result);
                     } else {
-                        this.notification.add(_t('Failed to fetch place detail'), {
+                        this.notificationService.add(_t('Failed to fetch place detail'), {
                             type: 'warning',
                         });
                     }
                 } else {
                     console.warn(status);
-                    this.notification.add(_t('Failed to fetch place detail'), {
+                    this.notificationService.add(_t('Failed to fetch place detail'), {
                         type: 'warning',
                     });
                 }
@@ -202,7 +210,7 @@ export class GooglePlacesAutocompleteSidebar extends Component {
             .catch((err) => {
                 this.ui.unblock();
                 console.error(err);
-                this.notification.add(_t('Failed to fetch place detail'), {
+                this.notificationService.add(_t('Failed to fetch place detail'), {
                     type: 'danger',
                 });
             });
@@ -244,6 +252,11 @@ export class GooglePlacesAutocompleteSidebar extends Component {
     actionUpdateSearch() {
         const searchInput = this.searchBoxRef.el.querySelector('input#searchinputbox');
         const searchTerms = searchInput.value.trim();
+        const placesService = this.env.getPlacesService();
+        if (!placesService) {
+            console.error('Places service not available');
+            return;
+        }
 
         if (searchTerms) {
             const request = {
@@ -252,9 +265,9 @@ export class GooglePlacesAutocompleteSidebar extends Component {
                 radius: 3000, // within radius 3 km
             };
 
-            this.props.placeService.nearbySearch(request, (places, status, pagination) => {
+            placesService.nearbySearch(request, (places, status, pagination) => {
                 if (status !== 'OK' || !places) {
-                    this.notification.add(
+                    this.notificationService.add(
                         _t('Search failed. No places found in the current search area'),
                         { type: 'warning' }
                     );
@@ -372,7 +385,7 @@ export class GooglePlacesAutocompleteSidebar extends Component {
             // update places state
             this.state.places = [...this.placesResult];
         } else {
-            this.notification.add(_t('No places is found'), {
+            this.notificationService.add(_t('No places is found'), {
                 type: 'warning',
             });
         }
@@ -408,36 +421,6 @@ export class GooglePlacesAutocompleteSidebar extends Component {
             });
             this.placesResult.splice(0);
         }
-    }
-
-    /**
-     * Show existing record of a place
-     * @param {Object} record
-     */
-    actionShowPlace(record) {
-        this.notification.add(
-            sprintf(_t('The place "%s" was already created'), record.display_name),
-            { type: 'info' }
-        );
-        this.env.model.action.doAction(
-            {
-                name: sprintf(_t('Update Place: %s'), record.display_name),
-                type: 'ir.actions.act_window',
-                res_model: this.env.model.root.resModel,
-                res_id: record.id,
-                views: [[false, 'form']],
-                view_mode: 'form',
-                target: 'new',
-                flags: { mode: 'edit' },
-                context: { active_id: record.id },
-            },
-            {
-                props: {
-                    onSave: async (record, params) =>
-                        await this.handleAfterAction(record, 'write', params),
-                },
-            }
-        );
     }
 
     /**
@@ -481,17 +464,38 @@ export class GooglePlacesAutocompleteSidebar extends Component {
             await this.env.model.root.load();
             this.env.model.notify();
 
+            if (mode === 'create') {
+                this.notificationService.add(_t('New place is created successfully'), {
+                    type: 'info',
+                    autocloseDelay: 5000,
+                    sticky: false,
+                    buttons: [
+                        {
+                            name: 'Open',
+                            onClick: async () => {
+                                this.env.openRecord(record);
+                            },
+                        },
+                    ],
+                });
+            } else if (mode === 'write') {
+                this.notificationService.add(_t('Place is updated successfully'), {
+                    type: 'info',
+                    autocloseDelay: 5000,
+                    sticky: false,
+                    buttons: [
+                        {
+                            name: 'Open',
+                            onClick: async () => {
+                                this.env.openRecord(record);
+                            },
+                        },
+                    ],
+                });
+            }
+
             setTimeout(() => {
                 this.centerMapToCurrentSearchResult();
-                if (mode === 'create') {
-                    this.notification.add(_t('New place is created successfully'), {
-                        type: 'success',
-                    });
-                } else if (mode === 'write') {
-                    this.notification.add(_t('Place is updated successfully'), {
-                        type: 'success',
-                    });
-                }
             }, 500);
         }
     }
@@ -508,19 +512,40 @@ export class GooglePlacesAutocompleteSidebar extends Component {
             ['display_name'],
             { limit: 1 }
         );
+        console.log({ isExists });
         if (isExists.length > 0) {
             const record = isExists[0];
-            this.actionShowPlace(record);
+            record.resId = record.id;
+            record.data = {
+                id: record.id,
+                display_name: record.display_name,
+            };
+            this.notificationService.add(
+                sprintf(_t('The place "%s" was already registered'), record.display_name),
+                {
+                    type: 'info',
+                    autocloseDelay: 5000,
+                    sticky: false,
+                    buttons: [
+                        {
+                            name: 'Open',
+                            onClick: async () => {
+                                this.env.openRecord(record);
+                            },
+                        },
+                    ],
+                }
+            );
+            this.env.showRecord(record);
         } else {
             const values = await preparePlaces(this.env.model.orm, this.env.fields, place);
-
             if (values) {
                 const data = await this.env.model.orm.call(
                     this.env.model.env.searchModel.resModel,
                     'action_google_place_quick_create',
                     [{ place, values }]
                 );
-                this.actionAddPlace(data);
+                this.env.createNewRecordFromPlaces(data);
             }
         }
     }
@@ -530,20 +555,22 @@ export class GooglePlacesAutocompleteSidebar extends Component {
      * @param {Object} place
      */
     handleClickItemAdd(place) {
+        const placesService = this.env.getPlacesService();
+        if (!placesService) {
+            console.error('Place service not available');
+            return;
+        }
         if (place) {
-            this.props.placeService.getDetails(
-                { placeId: place.place_id },
-                async (place, status) => {
-                    if (status === google.maps.places.PlacesServiceStatus.OK) {
-                        await this.addPlace(place);
-                    } else {
-                        console.warn(status);
-                        this.notification.add(_t('Failed to fetch place detail'), {
-                            type: 'warning',
-                        });
-                    }
+            placesService.getDetails({ placeId: place.place_id }, async (place, status) => {
+                if (status === google.maps.places.PlacesServiceStatus.OK) {
+                    await this.addPlace(place);
+                } else {
+                    console.warn(status);
+                    this.notificationService.add(_t('Failed to fetch place detail'), {
+                        type: 'warning',
+                    });
                 }
-            );
+            });
         }
     }
 

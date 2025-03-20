@@ -1,18 +1,16 @@
-/** @odoo-module **/
-
 import { registry } from '@web/core/registry';
 import { _t } from '@web/core/l10n/translation';
-import { X2ManyField, x2ManyField } from '@web/views/fields/x2many/x2many_field';
+import { x2ManyField, X2ManyField } from '@web/views/fields/x2many/x2many_field';
 import { GoogleMapRenderer } from '../../views/google_map/google_map_renderer';
 
-export class X2ManyFieldGoogleMapField extends X2ManyField {
-    static components = { ...X2ManyField.components, GoogleMapRenderer };
+export class X2ManyFieldGoogleMap extends X2ManyField {
     static template = 'web_view_google_map.X2ManyFieldGoogleMap';
+    static components = { ...X2ManyField.components, GoogleMapRenderer };
 
     setup() {
         super.setup();
         const { creates } = this.archInfo;
-        if (this.props.viewMode === 'google_map') {
+        if (['kanban', 'google_map'].indexOf(this.props.viewMode) >= 0) {
             this.creates = creates.length
                 ? creates
                 : [
@@ -27,7 +25,7 @@ export class X2ManyFieldGoogleMapField extends X2ManyField {
 
     get rendererProps() {
         if (this.props.viewMode === 'google_map') {
-            const { archInfo } = this;
+            const archInfo = this.activeField.views[this.props.viewMode];
             if (!archInfo.gestureHandling) {
                 archInfo.gestureHandling = 'cooperative';
                 archInfo.allowSelectors = false;
@@ -37,9 +35,10 @@ export class X2ManyFieldGoogleMapField extends X2ManyField {
                 list: this.list,
                 openRecord: this.openRecord.bind(this),
                 showRecord: this.openRecord.bind(this),
+                showRecordsByDomain: () => {},
                 allowSelectors: false,
-                readonly: this.props.readonly,
             };
+            props.readonly = this.props.readonly;
             return props;
         }
         return super.rendererProps;
@@ -47,7 +46,7 @@ export class X2ManyFieldGoogleMapField extends X2ManyField {
 
     get displayControlPanelButtons() {
         return (
-            this.props.viewMode === 'google_map' &&
+            ['kanban', 'google_map'].indexOf(this.props.viewMode) >= 0 &&
             ('link' in this.activeActions ? this.activeActions.link : this.activeActions.create) &&
             !this.props.readonly
         );
@@ -58,10 +57,11 @@ export class X2ManyFieldGoogleMapField extends X2ManyField {
     }
 }
 
-export const x2ManyFieldGoogleMapField = {
+export const x2ManyGoogleMap = {
     ...x2ManyField,
-    component: X2ManyFieldGoogleMapField,
+    component: X2ManyFieldGoogleMap,
+    displayName: 'Google Maps',
 };
 
-registry.category('fields').add('google_map_one2many', x2ManyFieldGoogleMapField);
-registry.category('fields').add('google_map_many2many', x2ManyFieldGoogleMapField);
+registry.category('fields').add('google_map_one2many', x2ManyGoogleMap);
+registry.category('fields').add('google_map_many2many', x2ManyGoogleMap);

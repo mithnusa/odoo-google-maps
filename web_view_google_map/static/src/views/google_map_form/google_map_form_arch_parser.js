@@ -1,5 +1,3 @@
-/** @odoo-module **/
-
 import { FormArchParser } from '@web/views/form/form_arch_parser';
 
 export class GoogleMapFormArchParser extends FormArchParser {

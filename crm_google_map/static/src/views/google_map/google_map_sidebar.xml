@@ -1,18 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates xml:space="preserve">
-    <t t-name="crm_google_map.GoogleMapSidebar" t-inherit="web_view_google_map.GoogleMapSidebar" t-inherit-mode="primary">
-        <xpath expr="//li" position="inside">
-            <div class="d-flex justify-content-around align-items-center font-monospace">
-                <small class="text-muted" t-if="data.expectedRevenue" title="Expected Revenue">
+    <t t-name="crm_google_map.RecordItem" t-inherit="web_view_google_map.RecordItem" t-inherit-mode="primary">
+        <xpath expr="//t[@t-if='props.subTitle']" position="after">
+            <div class="d-flex justify-content-around align-items-center mt-1">
+                <small class="text-muted" title="Expected Revenue">
                     <i class="fa fa-usd"></i>
-                    <span class="ms-1" t-out="data.expectedRevenue"/>
+                    <Field id="'expected_revenue'" name="'expected_revenue'" record="record" type="monetary"/>
                 </small>
-                <small class="text-muted" t-if="data.probability" title="Probability">
-                    <span class="pe-1" t-out="data.probability"/>
-                    <i class="fa fa-percent"></i>
+                <small class="text-muted" title="Probability">
+                    <Field id="'probability'" name="'probability'" record="record"/>
                 </small>
-                <small class="text-muted" t-if="data.dateDeadline" title="Expected Closing">
-                    <span t-out="data.dateDeadline"/>
+                <small class="text-muted" title="Expected Closing">
+                    <Field id="'date_deadline'" name="'date_deadline'" record="record"/>
                 </small>
             </div>
         </xpath>

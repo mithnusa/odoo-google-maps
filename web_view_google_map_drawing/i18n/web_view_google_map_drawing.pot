@@ -4,23 +4,16 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo Server 17.0\n"
+"Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-06-15 11:50+0000\n"
-"PO-Revision-Date: 2024-06-15 11:50+0000\n"
+"POT-Creation-Date: 2025-03-20 04:51+0000\n"
+"PO-Revision-Date: 2025-03-20 04:51+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: \n"
-
-#. module: web_view_google_map_drawing
-#. odoo-javascript
-#: code:addons/web_view_google_map_drawing/static/src/views/google_map_drawing/google_map_drawing_sidebar.xml:0
-#, python-format
-msgid "#{data.hasShape ? '' : 'No geolocation'}"
-msgstr ""
 
 #. module: web_view_google_map_drawing
 #: model_terms:ir.ui.view,arch_db:web_view_google_map_drawing.polygon_lines
@@ -33,15 +26,6 @@ msgid "Area"
 msgstr ""
 
 #. module: web_view_google_map_drawing
-#. odoo-javascript
-#: code:addons/web_view_google_map_drawing/static/src/views/google_map_drawing/google_map_drawing_sidebar.js:0
-#: code:addons/web_view_google_map_drawing/static/src/views/google_map_drawing/google_map_drawing_sidebar.js:0
-#: code:addons/web_view_google_map_drawing/static/src/views/google_map_drawing/google_map_drawing_sidebar.js:0
-#, python-format
-msgid "Area: %s square meter"
-msgstr ""
-
-#. module: web_view_google_map_drawing
 #: model:ir.model.fields.selection,name:web_view_google_map_drawing.selection__google_drawing_shape__gshape_type__circle
 #: model:ir.model.fields.selection,name:web_view_google_map_drawing.selection__res_partner_area__gshape_type__circle
 msgid "Circle"
@@ -49,16 +33,8 @@ msgstr ""
 
 #. module: web_view_google_map_drawing
 #. odoo-javascript
-#: code:addons/web_view_google_map_drawing/static/src/widget/google_map_drawing/google_map_drawing.js:0
-#, python-format
+#: code:addons/web_view_google_map_drawing/static/src/DEV/google_map_drawing_backup.js:0
 msgid "Click on one of the shapes you have drawn to select a shape"
-msgstr ""
-
-#. module: web_view_google_map_drawing
-#. odoo-javascript
-#: code:addons/web_view_google_map_drawing/static/src/views/google_map_drawing/google_map_drawing_renderer.js:0
-#, python-format
-msgid "Custom"
 msgstr ""
 
 #. module: web_view_google_map_drawing
@@ -69,8 +45,7 @@ msgstr ""
 #. module: web_view_google_map_drawing
 #. odoo-javascript
 #: code:addons/web_view_google_map_drawing/static/src/widget/google_map_drawing/google_map_drawing.xml:0
-#, python-format
-msgid "Delete selected shape"
+msgid "Delete shape"
 msgstr ""
 
 #. module: web_view_google_map_drawing
@@ -85,24 +60,63 @@ msgstr ""
 
 #. module: web_view_google_map_drawing
 #. odoo-javascript
-#: code:addons/web_view_google_map_drawing/static/src/views/google_map_drawing/google_map_drawing_renderer.js:0
 #: code:addons/web_view_google_map_drawing/static/src/widget/google_map_drawing/google_map_drawing.js:0
-#, python-format
-msgid "Drawing"
+msgid "Error"
+msgstr ""
+
+#. module: web_view_google_map_drawing
+#. odoo-javascript
+#: code:addons/web_view_google_map_drawing/static/src/views/google_map_drawing/google_map_drawing_renderer.js:0
+msgid "Failed to create shape"
 msgstr ""
 
 #. module: web_view_google_map_drawing
 #. odoo-javascript
 #: code:addons/web_view_google_map_drawing/static/src/widget/google_map_drawing/google_map_drawing.js:0
-#, python-format
+msgid "Failed to delete shape"
+msgstr ""
+
+#. module: web_view_google_map_drawing
+#. odoo-javascript
+#: code:addons/web_view_google_map_drawing/static/src/widget/google_map_drawing/google_map_drawing.js:0
+msgid "Failed to initialize drawing tools"
+msgstr ""
+
+#. module: web_view_google_map_drawing
+#. odoo-javascript
+#: code:addons/web_view_google_map_drawing/static/src/widget/google_map_drawing/google_map_drawing.js:0
+msgid "Failed to initialize map"
+msgstr ""
+
+#. module: web_view_google_map_drawing
+#. odoo-javascript
+#: code:addons/web_view_google_map_drawing/static/src/widget/google_map_drawing/google_map_drawing.js:0
+msgid "Failed to load existing shape"
+msgstr ""
+
+#. module: web_view_google_map_drawing
+#. odoo-javascript
+#: code:addons/web_view_google_map_drawing/static/src/widget/google_map_drawing/google_map_drawing.js:0
+msgid "Failed to save new shape"
+msgstr ""
+
+#. module: web_view_google_map_drawing
+#. odoo-javascript
+#: code:addons/web_view_google_map_drawing/static/src/widget/google_map_drawing/google_map_drawing.js:0
+msgid "Failed to save shape changes"
+msgstr ""
+
+#. module: web_view_google_map_drawing
+#. odoo-javascript
+#: code:addons/web_view_google_map_drawing/static/src/DEV/google_map_drawing_backup.js:0
+#: code:addons/web_view_google_map_drawing/static/src/widget/google_map_drawing/google_map_drawing.js:0
 msgid "Google Maps Drawing"
 msgstr ""
 
 #. module: web_view_google_map_drawing
 #. odoo-javascript
+#: code:addons/web_view_google_map_drawing/static/src/DEV/google_map_drawing_backup.js:0
 #: code:addons/web_view_google_map_drawing/static/src/views/google_map_drawing/google_map_drawing_renderer.js:0
-#: code:addons/web_view_google_map_drawing/static/src/widget/google_map_drawing/google_map_drawing.js:0
-#, python-format
 msgid ""
 "Google Maps DrawingManager could not be loaded. Please make sure \"drawing\""
 " is configured on Google Maps Libraries settings"
@@ -111,13 +125,6 @@ msgstr ""
 #. module: web_view_google_map_drawing
 #: model:ir.model,name:web_view_google_map_drawing.model_google_drawing_shape
 msgid "Google Maps Shape Mixin"
-msgstr ""
-
-#. module: web_view_google_map_drawing
-#. odoo-javascript
-#: code:addons/web_view_google_map_drawing/static/src/widget/google_map_drawing/google_map_drawing.xml:0
-#, python-format
-msgid "Google places search"
 msgstr ""
 
 #. module: web_view_google_map_drawing
@@ -132,15 +139,7 @@ msgstr ""
 
 #. module: web_view_google_map_drawing
 #. odoo-javascript
-#: code:addons/web_view_google_map_drawing/static/src/views/google_map_drawing/google_map_drawing_sidebar.js:0
-#, python-format
-msgid "Height: %s meter"
-msgstr ""
-
-#. module: web_view_google_map_drawing
-#. odoo-javascript
-#: code:addons/web_view_google_map_drawing/static/src/widget/google_map_drawing/google_map_drawing.js:0
-#, python-format
+#: code:addons/web_view_google_map_drawing/static/src/DEV/google_map_drawing_backup.js:0
 msgid ""
 "If you want to change the shape, you will need to delete the shape that you "
 "are currently drawing"
@@ -159,35 +158,44 @@ msgstr ""
 #. module: web_view_google_map_drawing
 #. odoo-javascript
 #: code:addons/web_view_google_map_drawing/static/src/widget/google_map_drawing/google_map_drawing.js:0
-#, python-format
+msgid "No shape selected"
+msgstr ""
+
+#. module: web_view_google_map_drawing
+#. odoo-javascript
+#: code:addons/web_view_google_map_drawing/static/src/DEV/google_map_drawing_backup.js:0
 msgid "No shape selected to delete"
 msgstr ""
 
 #. module: web_view_google_map_drawing
 #. odoo-javascript
-#: code:addons/web_view_google_map_drawing/static/src/widget/google_map_drawing/google_map_drawing.js:0
-#, python-format
+#: code:addons/web_view_google_map_drawing/static/src/DEV/google_map_drawing_backup.js:0
 msgid "Only one shape allowed"
 msgstr ""
 
 #. module: web_view_google_map_drawing
 #. odoo-javascript
-#: code:addons/web_view_google_map_drawing/static/src/views/google_map_drawing/google_map_drawing_sidebar.xml:0
-#, python-format
-msgid "Open form"
+#: code:addons/web_view_google_map_drawing/static/src/widget/google_map_drawing/google_map_drawing.js:0
+msgid ""
+"Only one shape is allowed. Please edit the existing shape or delete it "
+"first."
 msgstr ""
 
 #. module: web_view_google_map_drawing
 #. odoo-javascript
 #: code:addons/web_view_google_map_drawing/static/src/views/google_map_drawing/google_map_drawing_renderer.xml:0
-#, python-format
+msgid "Open"
+msgstr ""
+
+#. module: web_view_google_map_drawing
+#. odoo-javascript
+#: code:addons/web_view_google_map_drawing/static/src/views/google_map_drawing/google_map_drawing_renderer.xml:0
 msgid "Open form view"
 msgstr ""
 
 #. module: web_view_google_map_drawing
 #. odoo-javascript
-#: code:addons/web_view_google_map_drawing/static/src/widget/google_map_drawing/google_map_drawing.js:0
-#, python-format
+#: code:addons/web_view_google_map_drawing/static/src/DEV/google_map_drawing_backup.js:0
 msgid ""
 "Please click on one of the shapes that you have drawn and that you would "
 "like to save."
@@ -210,13 +218,6 @@ msgid "Radius"
 msgstr ""
 
 #. module: web_view_google_map_drawing
-#. odoo-javascript
-#: code:addons/web_view_google_map_drawing/static/src/views/google_map_drawing/google_map_drawing_sidebar.js:0
-#, python-format
-msgid "Radius: %s meter"
-msgstr ""
-
-#. module: web_view_google_map_drawing
 #: model:ir.model.fields.selection,name:web_view_google_map_drawing.selection__google_drawing_shape__gshape_type__rectangle
 #: model:ir.model.fields.selection,name:web_view_google_map_drawing.selection__res_partner_area__gshape_type__rectangle
 msgid "Rectangle"
@@ -224,15 +225,25 @@ msgstr ""
 
 #. module: web_view_google_map_drawing
 #. odoo-javascript
-#: code:addons/web_view_google_map_drawing/static/src/widget/google_map_drawing/google_map_drawing.xml:0
-#, python-format
-msgid "Save"
+#: code:addons/web_view_google_map_drawing/static/src/widget/google_map_drawing/google_map_drawing.js:0
+msgid "Shape changes saved successfully"
 msgstr ""
 
 #. module: web_view_google_map_drawing
 #. odoo-javascript
 #: code:addons/web_view_google_map_drawing/static/src/widget/google_map_drawing/google_map_drawing.js:0
-#, python-format
+msgid "Shape created and saved successfully"
+msgstr ""
+
+#. module: web_view_google_map_drawing
+#. odoo-javascript
+#: code:addons/web_view_google_map_drawing/static/src/widget/google_map_drawing/google_map_drawing.js:0
+msgid "Shape deleted successfully"
+msgstr ""
+
+#. module: web_view_google_map_drawing
+#. odoo-javascript
+#: code:addons/web_view_google_map_drawing/static/src/DEV/google_map_drawing_backup.js:0
 msgid ""
 "Something went wrong, the shape cannot be drawn on the map. Please contact "
 "administrator"
@@ -251,20 +262,30 @@ msgstr ""
 #. module: web_view_google_map_drawing
 #. odoo-javascript
 #: code:addons/web_view_google_map_drawing/static/src/widget/google_map_drawing/google_map_drawing.js:0
-#, python-format
+msgid "Success"
+msgstr ""
+
+#. module: web_view_google_map_drawing
+#. odoo-javascript
+#: code:addons/web_view_google_map_drawing/static/src/DEV/google_map_drawing_backup.js:0
 msgid "The shape has been recorded"
 msgstr ""
 
 #. module: web_view_google_map_drawing
 #. odoo-javascript
-#: code:addons/web_view_google_map_drawing/static/src/widget/google_map_drawing/google_map_drawing.js:0
-#, python-format
+#: code:addons/web_view_google_map_drawing/static/src/DEV/google_map_drawing_backup.js:0
 msgid "There is no shape to save"
 msgstr ""
 
 #. module: web_view_google_map_drawing
 #: model:ir.model.fields,field_description:web_view_google_map_drawing.field_google_drawing_shape__gshape_type
 msgid "Type"
+msgstr ""
+
+#. module: web_view_google_map_drawing
+#. odoo-javascript
+#: code:addons/web_view_google_map_drawing/static/src/widget/google_map_drawing/google_map_drawing.js:0
+msgid "Warning"
 msgstr ""
 
 #. module: web_view_google_map_drawing
@@ -275,11 +296,4 @@ msgstr ""
 #. module: web_view_google_map_drawing
 #: model:ir.model.fields,help:web_view_google_map_drawing.field_google_drawing_shape__gshape_width
 msgid "Width of Rectangle"
-msgstr ""
-
-#. module: web_view_google_map_drawing
-#. odoo-javascript
-#: code:addons/web_view_google_map_drawing/static/src/views/google_map_drawing/google_map_drawing_sidebar.js:0
-#, python-format
-msgid "Width: %s meter"
 msgstr ""

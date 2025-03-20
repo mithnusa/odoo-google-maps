@@ -1,12 +1,10 @@
-/** @odoo-module **/
-
 import { registry } from '@web/core/registry';
 import { _t } from '@web/core/l10n/translation';
 import { standardFieldProps } from '@web/views/fields/standard_field_props';
 import { CharField } from '@web/views/fields/char/char_field';
 import { Component, useRef } from '@odoo/owl';
 import { useService } from '@web/core/utils/hooks';
-import { useGoogleMapLoader } from '@base_google_map/utils/base_google_map';
+import { useGoogleMapsAPILoader } from '@base_google_map/utils/loader_google_map';
 import { preparePlaces } from '../../views/utils';
 
 export class GooglePlacesIdCharField extends Component {
@@ -15,27 +13,23 @@ export class GooglePlacesIdCharField extends Component {
     static props = {
         ...standardFieldProps,
         placeholder: { type: String, optional: true },
+        maxLength: { type: Number, optional: true },
     };
+
     setup() {
         this.button = useRef('button');
-        this.rpc = useService('rpc');
-        this.notification = useService('notification');
+        this.notificationService = useService('notification');
         this.placeService = null;
-
-        useGoogleMapLoader({
-            showLoading: false,
-            onLoad: (setting) => {
-                this.settings = { ...setting };
-                this._handleGoogleLoaderSuccess();
-                this.initialize();
-            },
-            onError: (msg) => {
-                this._handleGoogleLoaderError(msg);
-            },
-        });
+        this.apiLoader = useGoogleMapsAPILoader(this.onLoad.bind(this), this.onError.bind(this));
     }
-    _handleGoogleLoaderSuccess() {}
-    _handleGoogleLoaderError() {}
+    async onLoad() {
+        this.initialize();
+    }
+
+    onError(error) {
+        console.error(error);
+    }
+
     initialize() {
         if (!this.placeService) {
             this.placeService = new google.maps.places.PlacesService(
@@ -61,9 +55,13 @@ export class GooglePlacesIdCharField extends Component {
         }
     }
     async onClick() {
-        if (!this.props.record.data[this.props.name]) return;
+        console.log(' onClick ');
+        console.log(this);
+        const value = this.props.record.data[this.props.name];
+        console.log({ value });
+        if (!value) return;
         this._toogleAnimateButtonDisable();
-        this.placeService.getDetails({ placeId: this.props.record.data[this.props.name] }, async (place, status) => {
+        this.placeService.getDetails({ placeId: value }, async (place, status) => {
             this._toogleAnimateButtonEnable();
             if (status === google.maps.places.PlacesServiceStatus.OK) {
                 const values = await preparePlaces(
@@ -71,16 +69,18 @@ export class GooglePlacesIdCharField extends Component {
                     this.props.record.activeFields,
                     place
                 );
+                console.log({ values });
                 const data = await this.env.model.orm.call(
                     this.props.record.resModel,
                     'action_google_place_update',
                     [{ place, values }]
                 );
+                console.log({ data });
                 if (data) {
                     await this.props.record.update(data);
                 }
             } else {
-                this.notification.add(_t('Failed to fetch Google place detail'), {
+                this.notificationService.add(_t('Failed to fetch Google place detail'), {
                     type: 'warning',
                 });
             }

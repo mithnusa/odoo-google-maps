@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from odoo import fields, models, _
+from odoo import fields, models
 
 
 class GooglePlacesType(models.Model):
@@ -10,5 +10,4 @@ class GooglePlacesType(models.Model):
     code = fields.Char(string='Code', required=True)
     active = fields.Boolean(default=True)
 
-    _sql_constraints = [
-        ('type_unique', 'UNIQUE(code, name)', _('Name must be unique!'))]
+    _sql_constraints = [('type_unique', 'UNIQUE(code, name)', 'Name must be unique!')]

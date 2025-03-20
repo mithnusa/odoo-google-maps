@@ -1,5 +1,3 @@
-/** @odoo-module **/
-import { renderToString } from '@web/core/utils/render';
 import { GoogleMapPlacesRenderer } from '@base_google_places/views/google_map_places/google_map_places_renderer';
 import { GoogleMapSidebarCRM } from '@crm_google_map/views/google_map/google_map_sidebar';
 
@@ -21,118 +19,11 @@ export class GoogleMapPlacesRendererCRM extends GoogleMapPlacesRenderer {
      */
     prepareInfoWindowValues(record, isMulti) {
         let values = super.prepareInfoWindowValues(record, isMulti);
-        values.expectedRevenue = record.data.expected_revenue
-            ? record.data.expected_revenue.toLocaleString()
-            : false;
-        values.probability = record.data.probability || false;
-        values.dateDeadline = record.data.date_deadline
-            ? record.data.date_deadline.toLocaleString()
-            : false;
+        const { other } = record.dataView;
+        const { expectedRevenue, probability, dateDeadline } = other;
+        values.expectedRevenue = expectedRevenue ? expectedRevenue.toLocaleString() : false;
+        values.probability = probability || 0;
+        values.dateDeadline = dateDeadline ? dateDeadline.toLocaleString() : false;
         return values;
-    }
-
-    /**
-     * @override
-     */
-    handleMarker(recordId, marker) {
-        const otherRecords = [];
-        if (this.cache.size) {
-            const position = marker.getPosition();
-            this.cache.forEach((_cMarker) => {
-                if (position && position.equals(_cMarker.getPosition())) {
-                    marker.setMap(null);
-                    otherRecords.push(_cMarker._odooRecord);
-                }
-            });
-        }
-        this.cache.set(recordId, marker);
-        marker.addListener('click', () => {
-            if (marker.__overlay) {
-                marker.__overlay.setMap(null);
-                delete marker.__overlay;
-            }
-            this.handleMarkerInfoWindow(marker, otherRecords);
-        });
-        marker.addListener('mouseover', () => {
-            if (!marker.__overlay) {
-                marker.__overlay = this._drawMarkerOverlay(marker, otherRecords);
-            }
-        });
-        marker.addListener('mouseout', () => {
-            if (marker.__overlay) {
-                marker.__overlay.setMap(null);
-                delete marker.__overlay;
-            }
-        });
-    }
-
-    /**
-     * @override
-     */
-    _prepareMarkerOptions(latLng, record, color) {
-        let options = super._prepareMarkerOptions(latLng, record, color);
-        delete options.title;
-        return options;
-    }
-
-    prepareMarkerOverlayValues(record) {
-        return {
-            name: record.data.name,
-            address: record.data.customer_address,
-            expectedRevenue: (record.data.expected_revenue || 0).toLocaleString(),
-            probability: record.data.probability || 0,
-        };
-    }
-
-    get markerOverlayTemplate() {
-        return 'crm_google_map.MarkerOverlayContent';
-    }
-
-    _createOverlayInnerContent(record) {
-        let values = this.prepareMarkerOverlayValues(record);
-        return renderToString(this.markerOverlayTemplate, values);
-    }
-
-    _createOverlayContent(marker, otherRecords) {
-        const content = document.createElement('div');
-        const record = marker._odooRecord;
-        const records = [record].concat(otherRecords);
-        const recordsContent = records
-            .slice(0, 3)
-            .map((rec) => this._createOverlayInnerContent(rec))
-            .join('<hr>');
-
-        content.classList.add('marker-overlay-info', 'p-3');
-        content.innerHTML = recordsContent;
-        return content;
-    }
-
-    _drawMarkerOverlay(marker, otherRecords) {
-        const self = this;
-        let overlay = new google.maps.OverlayView();
-        overlay.onAdd = function () {
-            const div = self._createOverlayContent(marker, otherRecords);
-            this.getPanes().floatPane.appendChild(div);
-            this.div_ = div;
-        };
-        overlay.draw = function () {
-            const projection = this.getProjection();
-            const position = projection.fromLatLngToDivPixel(marker.getPosition());
-            const div = this.div_;
-            div.style.left = position.x + 'px';
-            div.style.top = position.y + 'px';
-            let color = marker._odooMarkerColor || '#ededed';
-            if (color) {
-                div.style.border = `0.5px solid ${color}`;
-            }
-        };
-        overlay.onRemove = function () {
-            if (this.div_) {
-                this.div_.parentNode.removeChild(this.div_);
-                this.div_ = null;
-            }
-        };
-        overlay.setMap(this.googleMap);
-        return overlay;
     }
 }

@@ -92,9 +92,7 @@ class GooglePlacesMixin(models.AbstractModel):
             'administrative_area_level_2',
         ]
         values[mapping_fields.get('zip')] = ['postal_code']
-        values[mapping_fields.get('state_id')] = [
-            'administrative_area_level_1'
-        ]
+        values[mapping_fields.get('state_id')] = ['administrative_area_level_1']
         values[mapping_fields.get('country_id')] = ['country']
         return values
 
@@ -156,15 +154,11 @@ class GooglePlacesMixin(models.AbstractModel):
                 for type_val in set(component_type).intersection(set(mapping)):
                     if values.get(field):
                         values[field].append(
-                            component.get(
-                                GOOGLE_PLACES_COMPONENT_FORM[type_val]
-                            )
+                            component.get(GOOGLE_PLACES_COMPONENT_FORM[type_val])
                         )
                     else:
                         values[field] = [
-                            component.get(
-                                GOOGLE_PLACES_COMPONENT_FORM[type_val]
-                            )
+                            component.get(GOOGLE_PLACES_COMPONENT_FORM[type_val])
                         ]
 
         street_delimiter = {'street': ' ', 'street2': ', '}
@@ -200,55 +194,44 @@ class GooglePlacesMixin(models.AbstractModel):
         exists = False
         if place_id:
             values = {}
-            record_count = self.search_count(
-                [('gplace_id', '=', place_id)], limit=1
-            )
+            record_count = self.search_count([('gplace_id', '=', place_id)], limit=1)
             if record_count:
                 exists = True
         else:
             values = self.default_get(self._fields.keys())
 
         place = place_dict.get('place')
+        address_components = place.get('address_components')
+        location = (place.get('geometry') or {}).get('location') or {}
         place.pop('photos', None)
-
         places_value = place_dict.get('values') or {}
         values.update(places_value)
 
+        if values.get('gplace_type_ids'):
+            values['gplace_type_ids'] = values['gplace_type_ids']
+
+        odoo_fields = self._get_mapping_odoo_fields()
         if place:
-            odoo_fields = self._get_mapping_odoo_fields()
             if odoo_fields.get('name') and place.get('name'):
                 values[odoo_fields['name']] = place['name']
 
             if odoo_fields.get('website') and place.get('website'):
                 values[odoo_fields['website']] = place['website']
 
-            if odoo_fields.get('phone') and place.get(
-                'international_phone_number'
-            ):
-                values[odoo_fields['phone']] = place[
-                    'international_phone_number'
-                ]
+            if odoo_fields.get('phone') and place.get('international_phone_number'):
+                values[odoo_fields['phone']] = place['international_phone_number']
 
             # address
-            address_components = place.get('address_components')
             if address_components:
-                address_values = self._prepare_address_fields(
-                    address_components
-                )
+                address_values = self._prepare_address_fields(address_components)
                 values.update(address_values)
 
             # geolocation
-            location = (place.get('geometry') or {}).get('location') or {}
             if location:
-                geo_values = self._prepare_geolocation_fields(
-                    odoo_fields, location
-                )
+                geo_values = self._prepare_geolocation_fields(odoo_fields, location)
                 values.update(geo_values)
 
-            if (
-                values.get('gplace_photos_url')
-                and 'image_1920' in self._fields
-            ):
+            if values.get('gplace_photos_url') and 'image_1920' in self._fields:
                 photos = values['gplace_photos_url'].split(',')
                 image = self._google_get_place_image(photos[0])
                 if image:
@@ -267,6 +250,9 @@ class GooglePlacesMixin(models.AbstractModel):
     def action_google_place_update(self, place_dict):
         values = {}
         place = place_dict.get('place')
+        address_components = place.get('address_components')
+
+        location = (place.get('geometry') or {}).get('location') or {}
         place.pop('photos', None)
 
         places_value = place_dict.get('values') or {}
@@ -280,15 +266,10 @@ class GooglePlacesMixin(models.AbstractModel):
             if odoo_fields.get('website') and place.get('website'):
                 values[odoo_fields['website']] = place['website']
 
-            if odoo_fields.get('phone') and place.get(
-                'international_phone_number'
-            ):
-                values[odoo_fields['phone']] = place[
-                    'international_phone_number'
-                ]
+            if odoo_fields.get('phone') and place.get('international_phone_number'):
+                values[odoo_fields['phone']] = place['international_phone_number']
 
             # address
-            address_components = place.get('address_components')
             if address_components:
                 address_values = self._prepare_address_fields(
                     address_components,
@@ -297,27 +278,15 @@ class GooglePlacesMixin(models.AbstractModel):
                 values.update(address_values)
 
             # geolocation
-            location = (place.get('geometry') or {}).get('location') or {}
             if location:
-                geo_values = self._prepare_geolocation_fields(
-                    odoo_fields, location
-                )
+                geo_values = self._prepare_geolocation_fields(odoo_fields, location)
                 values.update(geo_values)
 
-            if (
-                values.get('gplace_photos_url')
-                and 'image_1920' in self._fields
-            ):
+            if values.get('gplace_photos_url') and 'image_1920' in self._fields:
                 photos = values['gplace_photos_url'].split(',')
                 image = self._google_get_place_image(photos[0])
                 if image:
                     values['image_1920'] = image
-
-            if place.get('types'):
-                types_ids = self.env['google.places.type'].search(
-                    [('code', 'in', place['types'])]
-                )
-                values['gplace_type_ids'] = [(6, 0, types_ids.ids)]
 
         return values
 

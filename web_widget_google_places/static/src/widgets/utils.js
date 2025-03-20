@@ -1,5 +1,3 @@
-/** @odoo-module **/
-
 export function getPlaceProperties(ormService, record_fields, place) {
     const placesFields = [
         'gplace_formatted_address',
@@ -9,7 +7,6 @@ export function getPlaceProperties(ormService, record_fields, place) {
         'gplace_type_ids',
         'gplace_plus_code_global',
         'gplace_plus_code_compound',
-        'gplace_photos_url',
         'gplace_vicinity',
     ];
 
@@ -30,17 +27,6 @@ export function getPlaceProperties(ormService, record_fields, place) {
             res['gplace_plus_code_global'] = place.plus_code.global_code;
             res['gplace_plus_code_compound'] = place.plus_code.compound_code;
         }
-        // Uncomment this if you want to store the photos url in the database
-        // if (place.photos) {
-        //     const photos = [];
-        //     _.map(place.photos, (photo, idx) => {
-        //         if (idx < 3) {
-        //             const photo_url = photo.getUrl({ maxWidth: 480 });
-        //             photos.push(photo_url);
-        //         }
-        //     });
-        //     res['gplace_photos_url'] = photos.join(',');
-        // }
         return new Promise(async (resolve) => {
             if (place.types) {
                 const records = await ormService.searchRead(
@@ -48,7 +34,7 @@ export function getPlaceProperties(ormService, record_fields, place) {
                     [['code', 'in', place.types]],
                     ['display_name']
                 );
-                res['gplace_type_ids'] = [[6, false, records.map((v) => v.id)]];
+                res['gplace_type_ids'] = [[6, 0, records.map((v) => v.id)]];
             }
             resolve(res);
         });

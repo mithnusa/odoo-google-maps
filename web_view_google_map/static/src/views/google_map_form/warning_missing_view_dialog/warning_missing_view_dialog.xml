@@ -4,7 +4,7 @@
     <Dialog size="props.size" title="title">
         <div class="o_warning_missing_google_form_view_dialog">
             <div class="container">
-                <span class="fs-4">No view for Google Map Form were found!</span>
+                <span class="fs-4 text-danger">No view for Google Map Form were found in this model!</span>
                 <br/>
                 <span>Following example view of how to create one</span>
                 <pre class="o_dark px-5">

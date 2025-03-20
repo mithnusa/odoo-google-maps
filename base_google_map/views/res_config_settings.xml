@@ -1,54 +1,47 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
-    <data>
-        <record id="res_config_settings_view_form" model="ir.ui.view">
-            <field name="name">res.config.settings.view.form.inherit.base_google_map</field>
-            <field name="model">res.config.settings</field>
-            <field name="priority" eval="500"/>
-            <field name="inherit_id" ref="base_setup.res_config_settings_view_form"/>
-            <field name="arch" type="xml">
-                <xpath expr="//block[@name='integration']" position="after">
-                    <block name="base_google_map" title="Google Maps">
-                        <setting id="google_maps_view_api_key">
-                            <div>
-                                API Key: <field name="google_maps_view_api_key" string="API Key"/>
-                            </div>
-                            <div class="content-group">
-                                <div class="mt16 text-muted">
-                                    <div>Google API Key and Map Localization</div>
-                                    <div>Visit this page <a href="https://developers.google.com/maps/documentation/javascript/localization" target="_blank">page</a> about Localizing the Map</div>
-                                </div>
-                            </div>
-                        </setting>
-                        <setting id="google_maps_libraries">
-                            <field name="google_maps_libraries" string="Libraries"/>
-                        </setting>
-                        <setting id="google_maps_lang_localization" >
-                            <field name="google_maps_lang_localization" string="Language"/>
-                        </setting>
-                        <setting id="google_maps_region_localization" help="If you set the language of the map, it's important to consider setting the region too. This helps ensure that your application complies with local laws.">
-                            <field name="google_maps_region_localization" string="Region"/>
-                        </setting>
-                        <setting id="google_maps_theme">
-                            <field name="google_maps_theme" string="Theme" widget="radio"/>
-                        </setting>
-                        <setting id="google_autocomplete_lang_restrict" help="The language code, indicating in which language the results should be returned, if possible. Searches are also biased to the selected language; results in the selected language may be given a higher ranking.">
-                            <field name="google_autocomplete_lang_restrict"/>
-                        </setting>
-                        <setting id="google_enable_map_place_search" help="Enable Google Places Search Autocomplete in Google map. This feature required the &#8220;Places API&#8221; to be enabled in your Google API key.">
-                            <field name="google_enable_map_place_search"/>
-                        </setting>
-                        <setting id="google_autocomplete_country_restrict" help="Restrict search results to a specific country. This is especially helpful if you want restrict the search within a country. Support up to 5 countries.">
-                            <field name="google_autocomplete_country_restrict"/>
-                            <div class="content-group">
-                                <field name="google_autocomplete_country_restriction_str" invisible="1"/>
-                                <label for="google_autocomplete_country_restriction" string="Countries : " invisible="not google_autocomplete_country_restrict"/>
-                                <field name="google_autocomplete_country_restriction" widget="many2many_tags" invisible="not google_autocomplete_country_restrict"/>
-                            </div>
-                        </setting>
-                    </block>
-                </xpath>
-            </field>
-        </record>
-    </data>
+    <record id="res_config_settings_view_form" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.base_google_map</field>
+        <field name="model">res.config.settings</field>
+        <field name="priority" eval="500"/>
+        <field name="inherit_id" ref="base_setup.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//block[@name='integration']" position="after">
+                <block name="base_google_map" title="Google Maps">
+                    <setting id="google_maps_view_api_key_setting" help="Google Maps Platform products are secured from unauthorized use by restricting API calls to those that provide proper authentication credentials. These credentials are in the form of an API key - a unique alphanumeric string that associates your Google billing account with your project, and with the specific API or SDK" documentation="https://developers.google.com/maps/documentation/javascript/get-api-key">
+                        <field name="google_maps_view_api_key" string="API Key"/>
+                    </setting>
+                    <setting id="google_map_id_setting" help="A map ID is a unique identifier that represents Google Maps styling and configuration settings that are stored in Google Cloud." documentation="https://developers.google.com/maps/documentation/get-map-id#create_map_ids">
+                        <field name="google_map_id" string="Map ID"/>
+                    </setting>
+                    <setting id="google_maps_libraries_setting">
+                        <field name="google_maps_libraries" string="Libraries"/>
+                    </setting>
+                    <setting id="google_maps_lang_localization_setting" >
+                        <field name="google_maps_lang_localization" string="Language"/>
+                    </setting>
+                    <setting id="google_maps_region_localization_setting" help="If you set the language of the map, it's important to consider setting the region too. This helps ensure that your application complies with local laws.">
+                        <field name="google_maps_region_localization" string="Region"/>
+                    </setting>
+                    <setting id="google_map_color_scheme_setting" help="Set Map Color" documentation="https://developers.google.com/maps/documentation/javascript/mapcolorscheme">
+                        <field name="google_map_color_scheme" widget="radio"/>
+                    </setting>
+                    <setting id="google_autocomplete_lang_restrict_setting" help="The language code, indicating in which language the results should be returned, if possible. Searches are also biased to the selected language; results in the selected language may be given a higher ranking.">
+                        <field name="google_autocomplete_lang_restrict"/>
+                    </setting>
+                    <setting id="google_enable_map_place_search_setting" help="Enable Google Places Search Autocomplete in Google Maps. This feature required the &#8220;Places API&#8221; to be enabled in your Google API key.">
+                        <field name="google_enable_map_place_search"/>
+                    </setting>
+                    <setting id="google_autocomplete_country_restrict_setting" help="Restrict search results to a specific country. This is especially helpful if you want restrict the search within a country. Support up to 5 countries.">
+                        <field name="google_autocomplete_country_restrict"/>
+                        <div class="content-group">
+                            <field name="google_autocomplete_country_restriction_str" invisible="1"/>
+                            <label for="google_autocomplete_country_restriction" string="Countries : " invisible="not google_autocomplete_country_restrict"/>
+                            <field name="google_autocomplete_country_restriction" widget="many2many_tags" invisible="not google_autocomplete_country_restrict"/>
+                        </div>
+                    </setting>
+                </block>
+            </xpath>
+        </field>
+    </record>
 </odoo>

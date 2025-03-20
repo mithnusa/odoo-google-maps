@@ -1,45 +1,119 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates xml:space="preserve">
+    <t t-name="web_view_google_map.RecordItem">
+        <div class="list-group-item list-group-item-action">
+            <t t-set="_showMarker" t-value="typeof showMarker === 'boolean' ? showMarker : true" />
+            <div class="d-flex justify-content-between align-items-center gap-2">
+                <t t-if="props.allowSelectors">
+                    <CheckBox disabled="!props.handleCanSelectRecord" value="record.selected" onChange.alike="() => this.selectRecord(record)"/>
+                </t>
+                <div t-on-click="() => fnPinPointInMap(record.id)" class="flex-grow-1 o_map_sidebar_record cursor-pointer row" data-toggle="tooltip">
+                    <Field id="props.title" name="props.title" record="record" readonly="true" class="'fw-bold'"/>
+                    <t t-if="props.subTitle">
+                        <div class="d-flex">
+                            <span class="me-1" t-if="_showMarker">
+                                <i class="fa fa-map-marker" t-attf-style="color: #{data?.other?.markerColor || 'red'};" />
+                            </span>
+                            <Field id="props.subTitle" name="props.subTitle" record="record" class="'small text-muted'" readonly="true"/>
+                        </div>
+                    </t>
+                </div>
+                <button type="button" class="btn btn-sm btn-light" id="open-record" data-toggle="tooltip" title="Open form" t-on-click.prevent="() => fnOpenRecord(record)">
+                    <i class="fa fa-arrow-right" />
+                </button>
+            </div>
+        </div>
+    </t>
+    <t t-name="web_view_google_map.GroupItem">
+        <div class="list-group-item">
+            <div class="d-flex justify-content-between align-items-center">
+                <button class="btn btn-link collapsed" t-attf-id="btn-group-collapse-#{group.key}" t-att-data-group_id="group.key" type="button" data-bs-toggle="collapse" t-attf-data-bs-target="#collapseGroup_#{ group.key }" aria-expanded="false" t-attf-aria-controls="collapseGroup_#{ group.key }" t-on-click.prevent="(ev) => this.handleGroupCollapse(ev, group.key)">
+                    <div class="d-flex align-items-center">
+                        <span class="me-2">
+                            <i class="fa fa-caret-right" />
+                            <i class="fa fa-caret-down" />
+                        </span>
+                        <span class="me-1">
+                            <i class="fa fa-map-marker" t-attf-style="color: #{group.group.markerColor || 'red'};" />
+                        </span>
+                        <span class="ps-1 pe-1 text-truncate d-inline-block" t-out="group.group.displayName || 'None'" style="max-width: 200px;" data-toggle="tooltip" t-attf-title="#{group.group.displayName || 'None'}"/>
+                        (<span t-out="group.group.count" />)
+                    </div>
+                </button>
+                <div t-if="group.group.count">
+                    <button type="button" class="btn btn-sm btn-light" t-on-click="() => this.actionShowGroupRecords(group)">
+                        <i class="fa fa-lg fa-angle-double-right" />
+                    </button>
+                </div>
+            </div>
+            <div class="collapse" t-attf-id="collapseGroup_#{ group.key }">
+                <t t-if="group.group.records.length">
+                    <div class="list-group list-group-flush">
+                        <t t-foreach="group.group.records" t-as="record" t-key="record.id">
+                            <t t-call="{{ constructor.recordItemTemplate }}">
+                                <t t-set="data" t-value="record.dataView" />
+                                <t t-set="showMarker" t-value="false" />
+                            </t>
+                        </t>
+                    </div>
+                    <t t-if="group.group.count > group.group.records.length">
+                        <div class="list-group list-group-flush">
+                            <div class="list-group-item">
+                                <div class="d-flex justify-content-center align-items-center cursor-pointer" t-on-click.prevent="() => this.actionShowGroupRecords(group)">
+                                    <span class="me-2">see more</span>
+                                    <i class="fa fa-lg fa-angle-double-right" />
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </t>
+            </div>
+        </div>
+    </t>
+    <t t-name="web_view_google_map.ListGroupOrRecord">
+        <div class="list-group list-group-flush">
+            <t t-if="datas.length">
+                <t t-foreach="datas" t-as="groupOrRecord" t-key="groupOrRecord.key">
+                    <t t-if="groupOrRecord.group">
+                        <t t-call="{{ constructor.groupItemTemplate }}">
+                            <t t-set="group" t-value="groupOrRecord" />
+                        </t>
+                    </t>
+                    <t t-else="">
+                        <t t-call="{{ constructor.recordItemTemplate }}">
+                            <t t-set="record" t-value="groupOrRecord.record" />
+                            <t t-set="data" t-value="record.dataView" />
+                        </t>
+                    </t>
+                </t>
+            </t>
+            <div class="list-group-item" t-else="">
+                <div class="d-flex flex-column align-items-center">
+                    <h5>No data available to display</h5>
+                    <small class="text-muted">Please ensure geolocation data is set</small>
+                </div>
+            </div>
+        </div>
+    </t>
     <t t-name="web_view_google_map.GoogleMapSidebar">
         <div class="o_map_sidebar" t-ref="root">
             <div class="mt-2 mx-3">
                 <div class="d-flex">
-                    <t t-if="props.allowSelectors">
+                    <t t-if="!props.isGrouped and props.allowSelectors">
                         <CheckBox value="props.handleSelectAll" onChange.bind="props.handleToggleSelection"/>
                     </t>
-                    <h3>
-                        <t t-esc="props.string"/>
-                    </h3>
+                    <h3 t-if="props.header" t-esc="props.header" />
+                    <small class="ms-2 text-muted">
+                        <span data-toggle="tooltip" title="Only those with geolocation data set are displayed">
+                            <i class="fa fa-info" />
+                        </span>
+                    </small>
                 </div>
             </div>
-            <ul class="list-group">
-                <t t-foreach="props.records" t-as="record" t-key="record.id">
-                    <t t-set="data" t-value="getData(record)"/>
-                    <t t-set="hasGeolocation" t-value="this.hasGeolocation(record)"/>
-                    <t t-set="markerColor" t-value="this.getMarkerColor(record)"/>
-                    <li t-attf-class="list-group-item pb-1 pt-1 #{hasGeolocation ? '' : 'bg-100'} #{record.selected ? 'list-group-item-info': ''}">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <t  t-if="props.allowSelectors">
-                                <CheckBox disabled="!props.handleCanSelectRecord" value="record.selected" onChange.alike="() => this.selectRecord(record)"/>
-                            </t>
-                            <a href="#" class="flex-grow-1 o_map_sidebar_record" data-toggle="tooltip" t-attf-style="cursor: #{hasGeolocation ? 'pointer' : 'not-allowed'};" t-attf-title="#{hasGeolocation ? '' : 'No geolocation'}" t-on-click="() => props.handlePointInMap(record.id)">
-                                <span class="title" t-esc="data.title" />
-                                <t t-if="data.subTitle">
-                                    <br/>
-                                    <t t-if="hasGeolocation">
-                                        <i class="fa fa-map-marker" t-attf-style="color: #{markerColor};"></i>
-                                        <span> </span>
-                                    </t>
-                                    <span class="text-muted" t-esc="data.subTitle"/>
-                                </t>
-                            </a>
-                            <button type="button" class="btn btn-sm btn-light" id="open-record" data-toggle="tooltip" title="Open form" t-on-click.prevent="() => props.handleOpenRecord(record)">
-                                <i class="fa fa-arrow-right"></i>
-                            </button>
-                        </div>
-                    </li>
-                </t>
-            </ul>
+            <t t-call="{{ constructor.listGroupOrRecordTemplate }}">
+                <t t-set="fnPinPointInMap" t-value="props.pointInMap" />
+                <t t-set="fnOpenRecord" t-value="props.openRecord" />
+            </t>
         </div>
     </t>
 </templates>

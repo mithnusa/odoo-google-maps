@@ -1,805 +1,439 @@
-/** @odoo-module **/
-
 import { registry } from '@web/core/registry';
 import { _t } from '@web/core/l10n/translation';
-import { onWillUpdateProps, onWillDestroy } from '@odoo/owl';
-import { useInputField } from '@web/views/fields/input_field_hook';
-import { useService } from '@web/core/utils/hooks';
+import { useRef, useSubEnv, onWillUpdateProps, onWillDestroy, useState, onRendered } from '@odoo/owl';
 import { useDebounced } from '@web/core/utils/timing';
 import { standardFieldProps } from '@web/views/fields/standard_field_props';
 import { renderToString } from '@web/core/utils/render';
-import { GoogleMapRenderer } from '@web_view_google_map/views/google_map/google_map_renderer';
 
-import { LOADER_STATUS } from '@base_google_map/utils/base_google_map';
-import { MAP_THEMES } from '@base_google_map/utils/themes';
+import { BaseGoogleMapComponent } from '@base_google_map/utils/base_google_map';
+import { GoogleMapGeolocate } from '@web_view_google_map/views/google_map/components/geolocate/geolocate';
+import { GoogleMapSearchPlaces } from '@web_view_google_map/views/google_map/components/search_places/search_places';
+import { LOADER_STATUS } from '@base_google_map/utils/loader_google_map';
 
-export class GoogleMapDrawingField extends GoogleMapRenderer {
-    static components = {};
+import { ShapeManager } from '../../utils/shape_manager';
+import { EventManager } from '../../utils/event_manager';
+import { MapConfig } from '../../utils/map_config';
+import { ShapeFactory } from '../../utils/shape_factory';
+
+export class GoogleMapDrawingField extends BaseGoogleMapComponent {
     static template = 'web_view_google_map_drawing.GoogleDrawingField';
+    static components = {
+        Geolocate: GoogleMapGeolocate,
+        InMapSearchPlaces: GoogleMapSearchPlaces,
+    };
+    static defaultProps = {
+        dynamicPlaceholder: false,
+        shouldTrim: true,
+    };
     static props = {
         ...standardFieldProps,
+        dynamicPlaceholder: { type: Boolean, optional: true },
         options: { type: Object, optional: true },
     };
 
     setup() {
         super.setup();
-        this.notification = useService('notification');
-
-        this.displayColor = '#006ee5';
-        this.editColor = '#ffa187';
-
+        this.mapRef = useRef('map');
+        this.googleMapBounds = null;
+        this.shapeManager = new ShapeManager();
+        this.eventManager = new EventManager();
         this.drawingManager = null;
         this.customControl = null;
-        this.selectedShape = null;
-        this.isEditing = false;
-        this.shapes = {};
 
+        this.state = useState({
+            sidebarIsFolded: false,
+            loaderStatus: LOADER_STATUS.NOT_LOADED,
+            groupDatalistId: null,
+            isEditing: false,
+        });
+
+        // Setup debounced handlers
         this._handleDrawPolygonAddListenerDebounce = useDebounced(
-            this._handlePolygonBoundsChanged,
-            500
+            this._handlePolygonBoundsChanged.bind(this),
+            MapConfig.DEBOUNCE_DELAY
         );
         this._handleCircleBoundsChangedDebounce = useDebounced(
-            this._handleCircleBoundsChanged,
-            500
+            this._handleCircleBoundsChanged.bind(this),
+            MapConfig.DEBOUNCE_DELAY
         );
         this._handleRectangleBoundsChangedDebounce = useDebounced(
-            this._handleRectangleBoundsChanged,
-            500
+            this._handleRectangleBoundsChanged.bind(this),
+            MapConfig.DEBOUNCE_DELAY
         );
 
-        onWillUpdateProps((_nextProps) => {
-            // on page changed, disable the shape already drawn before
-            if (!_nextProps.value) {
-                Object.values(this.shapes).forEach((shape) => shape.setMap(null));
-            } else {
-                for (const [key, shape] of Object.entries(this.shapes)) {
-                    if (key !== _nextProps.value) {
-                        shape.setMap(null);
-                    }
-                }
-            }
-            // reset the edit mode
-            this.isEditing = false;
-            this.toggleSaveButtonAnimation();
+        useSubEnv({
+            apiLoader: this.apiLoader,
+            isMapLoaded: this.isMapLoaded.bind(this),
         });
 
-        onWillDestroy(() => {
-            if (this.shapes) {
-                Object.keys(this.shapes).forEach((key) => this._deleteShapeInCache(key));
-            }
-        });
-
-        useInputField({
-            getValue: () => this.props.record.data[this.props.name] || '',
-            parse: (v) => this.parse(v),
-        });
+        // Setup lifecycle hooks
+        onWillUpdateProps(this._handlePropsUpdate);
+        onWillDestroy(this._cleanup);
+        onRendered(this._handleRendered);
     }
 
-    /**
-     * @overwrite
-     */
-    addMapCustomEvListeners() {
-        // do nothing
+    _handlePropsUpdate(nextProps) {
+        this.shapeManager.cleanup();
+        if (this.drawingManager) {
+            this.drawingManager.setDrawingMode(null);
+        }
     }
 
-    /**
-     * @overwrite
-     */
-    removeMapCustomEvListeners() {
-        // do nothing
-    }
-
-
-    /**
-     * @overwrite
-     */
-    handleOnRendered() {
-        if (this.state.loaderStatus === LOADER_STATUS.SUCCESS) {
+    _handleRendered() {
+        if (this.isMapLoaded()) {
             this.renderMap();
         }
     }
 
     /**
-     * @overwrite
+     * @override
      */
+    isMapLoaded() {
+        return (
+            this.state.loaderStatus === LOADER_STATUS.LOADED &&
+            this.googleMap &&
+            this.drawingManager
+        );
+    }
+
+    /**
+     * @override
+     */
+    mapDivElement() {
+        return this.mapRef.el;
+    }
+
+    /**
+     * @override
+     */
+    _prepareMapOptions(options) {
+        options.mapTypeId = google.maps.MapTypeId.HYBRID;
+        return options;
+    }
+
+    /**
+     * @override
+     */
+    async onMapReady() {
+        try {
+            const { LatLngBounds } = await this.apiLoader.importLibrary('core');
+            this.googleMapBounds = new LatLngBounds();
+            this.initializeDrawing();
+        } catch (error) {
+            console.error('Map initialization failed:', error);
+            this.notificationService.add(_t('Failed to initialize map'), { type: 'danger' });
+        }
+    }
+
+    updateLoaderState(status) {
+        this.state.loaderStatus = status || LOADER_STATUS.FAILED;
+    }
+
     renderMap() {
-        if (!this.drawingManager) return;
-        this._resetShape();
-        this._handleLoadShape();
+        if (!this.isMapLoaded()) return;
+        this._loadExistingShape();
     }
 
-    /**
-     * Initialize Google Map instance
-     */
-    initialize() {
-        super.initialize();
-        const mapThemeDrawing = new google.maps.StyledMapType(MAP_THEMES['line_drawing'], {
-            name: _t('Drawing'),
-        });
-        this.googleMap.setOptions({
-            mapTypeId: google.maps.MapTypeId.HYBRID,
-            mapTypeControlOptions: {
-                style: google.maps.MapTypeControlStyle.DROPDOWN_MENU,
-                mapTypeIds: ['roadmap', 'satellite', 'hybrid', 'terrain', 'drawing', 'styled_map'],
-            },
-        });
-        this.googleMap.mapTypes.set('drawing', mapThemeDrawing);
-        this.initializeDrawing();
-    }
+    initializeDrawing() {
+        if (this.drawingManager || !this.googleMap) return;
 
-    /**
-     * Load the shape from cache if any, otherwise create a new one
-     */
-    _handleLoadShape() {
-        const value = this.props.record.data[this.props.name];
-        if (value) {
-            if (this.shapes[value]) {
-                const shape = this.shapes[value];
-                const shapeMap = shape.getMap();
-                if (!shapeMap) {
-                    shape.setMap(this.googleMap);
-                }
-                if (shape.type === 'polygon') {
-                    this._handleCenterMap(shape.getPath());
-                } else if (shape.type === 'circle') {
-                    this._handleCenterMap(false, shape.getBounds());
-                } else if (shape.type === 'rectangle') {
-                    this._handleCenterMap(false, shape.getBounds());
-                }
-            } else {
-                try {
-                    const shape = JSON.parse(value);
-                    this._handleShapeToDraw(shape);
-                } catch (error) {
-                    console.error(error);
-                    this.notification.add(
-                        _t(
-                            'Something went wrong, the shape cannot be drawn on the map. Please contact administrator'
-                        ),
-                        { type: 'danger' }
-                    );
-                }
-            }
-        }
-    }
-
-    _storeInCache(shape) {
-        const value = { type: shape.type };
-        if (shape.type === 'rectangle') {
-            const directions = shape.getBounds().toJSON();
-            value.options = {
-                bounds: directions,
-            };
-        } else if (shape.type === 'polygon') {
-            const paths = shape.getPath();
-            value.options = {
-                paths: paths.getArray().map((item) => ({
-                    lat: item.lat(),
-                    lng: item.lng(),
-                })),
-            };
-        } else if (shape.type === 'circle') {
-            const radius = shape.getRadius();
-            const center = shape.getCenter();
-            value.options = {
-                radius: radius,
-                center: {
-                    lat: center.lat(),
-                    lng: center.lng(),
+        try {
+            this.drawingManager = new google.maps.drawing.DrawingManager({
+                drawingControl: !this.props.readonly,
+                drawingControlOptions: {
+                    position: google.maps.ControlPosition.TOP_CENTER,
+                    drawingModes: MapConfig.DRAWING_MODES,
                 },
-            };
-        }
-        this.shapes[JSON.stringify(value)] = shape;
-    }
-
-    _deleteShapeInCache(shape_key) {
-        if (shape_key in this.shapes) {
-            this.shapes[shape_key].setMap(null);
-            delete this.shapes[shape_key];
-        }
-    }
-
-    _handleShapeToDraw(shape) {
-        if (shape.type === 'polygon') {
-            const polygon = this._handleDrawPolygon(shape);
-            polygon.setOptions({
-                strokeColor: this.displayColor,
-                fillColor: this.displayColor,
+                map: this.googleMap,
+                ...MapConfig.DEFAULT_SHAPE_OPTIONS,
             });
-            polygon.type = 'polygon';
-            this._storeInCache(polygon);
-            const selectedShape = polygon;
-            google.maps.event.addListener(
-                selectedShape,
-                'click',
-                this.handleSetSelectedShape.bind(this, selectedShape)
-            );
-        } else if (shape.type === 'rectangle') {
-            const rectangle = this._handleDrawRectangle(shape.options);
-            rectangle.setOptions({
-                draggable: false,
-                strokeColor: this.displayColor,
-                fillColor: this.displayColor,
-            });
-            rectangle.type = 'rectangle';
-            this._storeInCache(rectangle);
-            const selectedShape = rectangle;
-            google.maps.event.addListener(
-                selectedShape,
-                'click',
-                this.handleSetSelectedShape.bind(this, selectedShape)
-            );
-        } else if (shape.type === 'circle') {
-            const circle = this._handleDrawCircle(shape.options);
-            circle.setOptions({
-                draggable: false,
-                strokeColor: this.displayColor,
-                fillColor: this.displayColor,
-            });
-            circle.type = 'circle';
-            this._storeInCache(circle);
-            const selectedShape = circle;
-            google.maps.event.addListener(
-                selectedShape,
-                'click',
-                this.handleSetSelectedShape.bind(this, selectedShape)
-            );
-        }
-    }
 
-    _handleDrawPolygonPoints(lines) {
-        this._cleanPolygonPoints();
-        if (lines) {
-            let latLng;
-            const totalStop = Object.keys(lines).length;
-            Object.keys(lines).forEach((key) => {
-                if (key < totalStop) {
-                    latLng = lines[key].start;
-                } else {
-                    latLng = lines[key].stop;
-                }
-                this.polygonMarkers[key] = new google.maps.Marker({
-                    map: this.googleMap,
-                    position: latLng,
-                    label: key,
-                    animation: google.maps.Animation.DROP,
-                });
-            });
-        }
-    }
-
-    _handleDrawPolygon(shape) {
-        const options = shape.options;
-        const polygon = new google.maps.Polygon({
-            strokeColor: '#FF0000',
-            strokeOpacity: 0.85,
-            strokeWeight: 1.0,
-            fillColor: '#FF9999',
-            fillOpacity: 0.35,
-            editable: false,
-            map: this.googleMap,
-        });
-        polygon.setOptions(options);
-        this._handleDrawPolygonPoints(shape.lines);
-        this._handleCenterMap(polygon.getPath());
-        this._handleDrawPolygonAddListener(polygon);
-        return polygon;
-    }
-
-    _handleDrawPolygonAddListener(polygon) {
-        google.maps.event.addListener(
-            polygon.getPath(),
-            'insert_at',
-            this._handleDrawPolygonAddListenerDebounce.bind(this)
-        );
-        // event `dragend` is also fired at event `set_at`
-        google.maps.event.addListener(
-            polygon.getPath(),
-            'set_at',
-            this._handleDrawPolygonAddListenerDebounce.bind(this)
-        );
-        google.maps.event.addListener(
-            polygon.getPath(),
-            'remove_at',
-            this._handleDrawPolygonAddListenerDebounce.bind(this)
-        );
-    }
-
-    _handlePolygonBoundsChanged() {
-        this.isEditing = true;
-        this.toggleSaveButtonAnimation();
-    }
-
-    _handleDrawRectangle(options) {
-        const rectangle = new google.maps.Rectangle({
-            strokeColor: '#FF0000',
-            strokeOpacity: 0.85,
-            strokeWeight: 1.0,
-            fillColor: '#FF9999',
-            fillOpacity: 0.35,
-            map: this.googleMap,
-            editable: false,
-            draggable: false,
-        });
-        rectangle.setOptions(options);
-        this._handleCenterMap(false, rectangle.getBounds());
-        this._handleDrawRectangleAddListener(rectangle);
-        return rectangle;
-    }
-
-    _handleDrawRectangleAddListener(rectangle) {
-        rectangle.addListener(
-            'bounds_changed',
-            this._handleRectangleBoundsChangedDebounce.bind(this)
-        );
-    }
-
-    _handleRectangleBoundsChanged() {
-        this.isEditing = true;
-        this.toggleSaveButtonAnimation();
-    }
-
-    _handleDrawCircle(options) {
-        const circle = new google.maps.Circle({
-            strokeColor: '#FF0000',
-            strokeOpacity: 0.85,
-            strokeWeight: 1.0,
-            fillColor: '#FF9999',
-            fillOpacity: 0.35,
-            map: this.googleMap,
-            editable: false,
-            draggable: false,
-        });
-        circle.setOptions(options);
-        this._handleCenterMap(false, circle.getBounds());
-        this._handleDrawCircleAddListener(circle);
-        return circle;
-    }
-
-    _handleDrawCircleAddListener(circle) {
-        circle.addListener('radius_changed', this._handleCircleBoundsChangedDebounce.bind(this));
-        circle.addListener('center_changed', this._handleCircleBoundsChangedDebounce.bind(this));
-    }
-
-    _handleCircleBoundsChanged() {
-        this.isEditing = true;
-        this.toggleSaveButtonAnimation();
-    }
-
-    _getGeneralOptions() {
-        return {
-            fillColor: this.editColor,
-            strokeColor: '#fc6c44',
-            strokeOpacity: 0.85,
-            strokeWeight: 2.0,
-            fillOpacity: 0.45,
-            editable: true,
-        };
-    }
-
-    _getCircleOptions() {
-        return {
-            fillColor: this.editColor,
-            fillOpacity: 0.45,
-            strokeWeight: 0,
-            editable: true,
-            zIndex: 1,
-        };
-    }
-
-    _getSelectedOptions() {
-        return {
-            fillColor: '#ffa187',
-            strokeColor: '#fc6c44',
-            strokeOpacity: 0.85,
-            strokeWeight: 2.0,
-            fillOpacity: 0.45,
-            editable: true,
-        };
-    }
-
-    toggleSaveButtonAnimation() {
-        this.googleMap.controls[google.maps.ControlPosition.TOP_CENTER].forEach((element) => {
-            if (element.id === 'custom-control-drawing-buttons') {
-                let button = element.querySelector('#save');
-                let floppyIcon = element.querySelector('.fa-floppy-o');
-                if (button && floppyIcon) {
-                    if (this.isEditing) {
-                        button.classList.add('btn-success');
-                        button.classList.remove('btn-light');
-                        floppyIcon.classList.add('animate');
-                    } else {
-                        floppyIcon.classList.remove('btn-success');
-                        button.classList.add('btn-light');
-                        floppyIcon.classList.remove('animate');
-                    }
-                }
+            // Disable drawing mode if shape exists
+            if (this.shapeManager.getShapeCount() > 0) {
+                this.drawingManager.setDrawingMode(null);
             }
-        });
-    }
 
-    _renderMapCustomControl() {
-        if (!this.customControl) {
-            const content = renderToString('web_view_google_map_drawing.ButtonActionDelete', {});
-            this.customControl = new DOMParser()
-                .parseFromString(content, 'text/html')
-                .querySelector('div');
-            this.googleMap.controls[google.maps.ControlPosition.TOP_CENTER].push(
-                this.customControl
-            );
-            this.customControl
-                .querySelector('#delete')
-                .addEventListener('click', this._actionDelete.bind(this));
-            this.customControl
-                .querySelector('#save')
-                .addEventListener('click', this._actionSave.bind(this));
-        }
-    }
-
-    _actionDelete() {
-        if (this.selectedShape) {
-            this.selectedShape.setMap(null);
-            this.selectedShape = null;
-        } else {
-            this.notification.add(_t('No shape selected to delete'), {
-                type: 'warning',
-            });
-            this.notification.add(
-                _t('Click on one of the shapes you have drawn to select a shape'),
-                { type: 'info' }
-            );
-        }
-    }
-
-    _actionSave() {
-        if (!this.selectedShape) {
-            this.notification.add(_t('There is no shape to save'), {
+            this._setupDrawingListeners();
+            this._renderCustomControls();
+        } catch (error) {
+            console.error('Drawing initialization failed:', error);
+            this.notificationService.add(_t('Failed to initialize drawing tools'), {
                 type: 'danger',
             });
-            this.notification.add(
-                _t(
-                    'Please click on one of the shapes that you have drawn and that you would like to save.'
-                ),
-                { type: 'info' }
-            );
-        } else {
-            let values;
-            if (this.selectedShape.type === 'polygon') {
-                values = this._handleSavePolygon();
-            } else if (this.selectedShape.type === 'rectangle') {
-                values = this._handleSaveRectangle();
-            } else if (this.selectedShape.type === 'circle') {
-                values = this._handleSaveCircle();
-            }
-            this._saveChanges(values);
         }
     }
 
-    async _saveChanges(values) {
-        if (values) {
-            this._storeInCache(this.selectedShape);
-            this.selectedShape.setOptions({
-                editable: false,
-                strokeColor: this.displayColor,
-                fillColor: this.displayColor,
-            });
-            await this.props.record.update(values);
-            this.drawingManager.setDrawingMode(null);
-            this.notification.add(_t('The shape has been recorded'), {
-                type: 'info',
-            });
-            this.selectedShape = null;
-            this.isEditing = false;
-            this.toggleSaveButtonAnimation();
-        }
-    }
-
-    _computePolygonLines(paths) {
-        let stop;
-        let start;
-        let count = 0;
-
-        const lines = {};
-        paths.forEach((latLng) => {
-            start = stop;
-            stop = latLng;
-            if (start) {
-                lines[count] = { start, stop };
-            }
-            count += 1;
-        });
-
-        const lines_len = Object.keys(lines).length;
-        lines[lines_len + 1] = {
-            start: lines[1].start,
-            stop: lines[lines_len].stop,
-        };
-
-        Object.keys(lines).forEach((line) => {
-            lines[line].length = google.maps.geometry.spherical.computeLength([
-                lines[line].start,
-                lines[line].stop,
-            ]);
-        });
-        return lines;
-    }
-
-    _handleSavePolygon() {
-        const paths = this.selectedShape.getPath();
-        const area = this._calculateAreaPolygon(this.selectedShape);
-        const values = {
-            gshape_type: this.selectedShape.type,
-            gshape_area: area,
-            gshape_radius: 0.0,
-            gshape_width: 0.0,
-            gshape_height: 0.0,
-        };
-
-        const linePaths = paths.getArray().map((item) => ({ lat: item.lat(), lng: item.lng() }));
-
-        const lines = this._computePolygonLines(linePaths);
-        const shape_paths = {
-            type: this.selectedShape.type,
-            options: {
-                paths: linePaths,
-            },
-            lines,
-        };
-        values[this.props.name] = JSON.stringify(shape_paths);
-        return values;
-    }
-
-    _handleSaveRectangle() {
-        const area = this._calculateAreaRectangle(this.selectedShape);
-        const values = {
-            gshape_type: this.selectedShape.type,
-            gshape_radius: 0.0,
-            gshape_area: area,
-        };
-        const bounds = this.selectedShape.getBounds();
-        const directions = bounds.toJSON();
-        const shape_paths = {
-            type: this.selectedShape.type,
-            options: { bounds: directions },
-        };
-        values.gshape_height = google.maps.geometry.spherical.computeDistanceBetween(
-            new google.maps.LatLng(
-                this.selectedShape.bounds.toJSON().north,
-                this.selectedShape.bounds.toJSON().east
-            ),
-            new google.maps.LatLng(
-                this.selectedShape.bounds.toJSON().south,
-                this.selectedShape.bounds.toJSON().east
-            )
+    _setupDrawingListeners() {
+        this.eventManager.addListener(
+            this.drawingManager,
+            'overlaycomplete',
+            this._handleOverlayComplete.bind(this)
         );
-        values.gshape_width = google.maps.geometry.spherical.computeDistanceBetween(
-            new google.maps.LatLng(
-                this.selectedShape.bounds.toJSON().north,
-                this.selectedShape.bounds.toJSON().east
-            ),
-            new google.maps.LatLng(
-                this.selectedShape.bounds.toJSON().north,
-                this.selectedShape.bounds.toJSON().west
-            )
-        );
-        values[this.props.name] = JSON.stringify(shape_paths);
-        return values;
-    }
-    /**
-     * Calculate circle square area (in meter)
-     * @param {*} circle
-     * @returns
-     */
-    _calculateAreaCircle(circle) {
-        const radius = circle.getRadius();
-        const area = Math.PI * radius * radius;
-        return area;
-    }
-    /**
-     * Calculate rectangle square area (in meter)
-     * @param {*} rectangle
-     * @returns
-     */
-    _calculateAreaRectangle(rectangle) {
-        const rectangleBound = rectangle.bounds.toJSON();
-        const height = google.maps.geometry.spherical.computeDistanceBetween(
-            new google.maps.LatLng(rectangleBound.north, rectangleBound.east),
-            new google.maps.LatLng(rectangleBound.south, rectangleBound.east)
-        );
-        const width = google.maps.geometry.spherical.computeDistanceBetween(
-            new google.maps.LatLng(rectangleBound.north, rectangleBound.east),
-            new google.maps.LatLng(rectangleBound.north, rectangleBound.west)
-        );
-        const area = height * width;
-        return area;
-    }
-    /**
-     * Calculate polygon square area (in meter)
-     * @param {*} polygon
-     * @returns
-     */
-    _calculateAreaPolygon(polygon) {
-        const paths = polygon.getPath();
-        const area = google.maps.geometry.spherical.computeArea(paths);
-        return area;
+
+        this.eventManager.addListener(this.googleMap, 'click', this._clearSelectedShape.bind(this));
     }
 
-    _handleSaveCircle() {
-        const radius = this.selectedShape.getRadius();
-        const center = this.selectedShape.getCenter();
-        const area = this._calculateAreaCircle(this.selectedShape);
-        const values = {
-            gshape_type: this.selectedShape.type,
-            gshape_radius: radius,
-            gshape_area: area,
-            gshape_width: 0.0,
-            gshape_height: 0.0,
-        };
-        const shape_paths = {
-            type: this.selectedShape.type,
-            options: {
-                radius: radius,
-                center: {
-                    lat: center.lat(),
-                    lng: center.lng(),
-                },
-            },
-        };
-        values[this.props.name] = JSON.stringify(shape_paths);
-        return values;
-    }
-
-    /**
-     * Overwrite
-     * @returns {}
-     */
-    getMapOptions() {
-        return {
-            mapTypeId: google.maps.MapTypeId.ROADMAP,
-            center: { lat: 0, lng: 0 },
-            zoom: 4,
-            minZoom: 2,
-            maxZoom: 22,
-            fullscreenControl: true,
-            mapTypeControl: true,
-            gestureHandling: 'cooperative',
-        };
-    }
-
-    /**
-     * Overwrite
-     * Instantiate Drawing Manager with edit options
-     */
-    initializeDrawing() {
-        if (!this.drawingManager) {
-            const shapeOption = this._getGeneralOptions();
-            const circleOption = this._getCircleOptions();
-            try {
-                this.drawingManager = new google.maps.drawing.DrawingManager({
-                    drawingControl: !this.props.readonly,
-                    drawingControlOptions: {
-                        position: google.maps.ControlPosition.TOP_CENTER,
-                        drawingModes: [
-                            google.maps.drawing.OverlayType.CIRCLE,
-                            google.maps.drawing.OverlayType.POLYGON,
-                            google.maps.drawing.OverlayType.RECTANGLE,
-                        ],
-                    },
-                    map: this.googleMap,
-                    polygonOptions: shapeOption,
-                    circleOptions: circleOption,
-                    rectangleOptions: shapeOption,
-                });
-                google.maps.event.addListener(
-                    this.drawingManager,
-                    'overlaycomplete',
-                    this.handleOverlayComplete.bind(this)
-                );
-                google.maps.event.addListener(
-                    this.googleMap,
-                    'click',
-                    this._clearSelectedShape.bind(this)
-                );
-                this._renderMapCustomControl();
-            } catch (error) {
-                console.error(error);
-                this.notification.add(
-                    _t(
-                        'Google Maps DrawingManager could not be loaded. Please make sure "drawing" is configured on Google Maps Libraries settings'
-                    ),
-                    { type: 'danger' }
-                );
-            }
-        }
-    }
-
-    handleOverlayComplete(event) {
+    async _handleOverlayComplete(event) {
         this.drawingManager.setDrawingMode(null);
-        const shape = event.overlay;
-        if (this.selectedShape) {
-            shape.setMap(null);
-            this.notification.add(_t('Only one shape allowed'), {
-                type: 'warning',
-            });
-            this.notification.add(
-                _t(
-                    'If you want to change the shape, you will need to delete the shape that you are currently drawing'
-                ),
-                { type: 'info' }
+
+        // Check if shape already exists
+        if (this.shapeManager.getShapeCount() > 0) {
+            event.overlay.setMap(null); // Remove the newly drawn shape
+            this.notificationService.add(
+                _t('Only one shape is allowed. Please edit the existing shape or delete it first.'),
+                {
+                    type: 'warning',
+                    title: _t('Warning'),
+                }
             );
             return;
         }
-        this.isEditing = true;
-        this.toggleSaveButtonAnimation();
-        shape.type = event.type;
-        this.handleSetSelectedShape(shape);
 
-        google.maps.event.addListener(
-            shape,
-            'click',
-            this.handleSetSelectedShape.bind(this, shape)
+        const shape = ShapeFactory.createShape(event.type, event.overlay);
+        this.shapeManager.addShape(shape);
+        this._setupShapeListeners(shape);
+
+        try {
+            const shapeData = shape.toJSON();
+            await this.props.record.update({
+                [this.props.name]: JSON.stringify(shapeData),
+                gshape_type: shape.getType(),
+                gshape_area: shape.getArea(),
+                ...shape.getDimensions(),
+            });
+
+            // Add notification for successful creation
+            this.notificationService.add(_t('Shape created and saved successfully'), {
+                type: 'success',
+                title: _t('Success'),
+            });
+        } catch (error) {
+            console.error('Failed to save new shape:', error);
+            this.notificationService.add(_t('Failed to save new shape'), {
+                type: 'danger',
+                title: _t('Error'),
+            });
+        }
+    }
+
+    _loadExistingShape() {
+        const value = this.props.record.data[this.props.name];
+        if (!value) return;
+
+        try {
+            const shapeData = JSON.parse(value);
+            // Create the shape directly on the map
+            const shape = ShapeFactory.fromJSON(shapeData, this.googleMap);
+            this.shapeManager.addShape(shape);
+            this._setupShapeListeners(shape);
+            this._centerMapOnShape(shape);
+
+            // Disable drawing mode if shape exists
+            if (this.drawingManager) {
+                this.drawingManager.setDrawingMode(null);
+            }
+        } catch (error) {
+            console.error('Failed to load shape:', error);
+            this.notificationService.add(_t('Failed to load existing shape'), { type: 'danger' });
+        }
+    }
+
+    _setupShapeListeners(shape) {
+        const shapeObj = shape.getShape();
+
+        // Remove any existing listeners
+        this.eventManager.removeListeners(shapeObj, 'click');
+
+        // Add click listener for selection
+        this.eventManager.addListener(shapeObj, 'click', (e) => {
+            // Prevent event bubbling to map
+            e.stop();
+            e.domEvent.stopPropagation();
+
+            this.shapeManager.selectShape(shape);
+            shape.setEditable(true);
+
+            // Disable drawing mode when editing
+            if (this.drawingManager) {
+                this.drawingManager.setDrawingMode(null);
+            }
+        });
+
+        // Add type-specific listeners
+        switch (shape.getType()) {
+            case 'polygon':
+                this._setupPolygonListeners(shape);
+                break;
+            case 'circle':
+                this._setupCircleListeners(shape);
+                break;
+            case 'rectangle':
+                this._setupRectangleListeners(shape);
+                break;
+        }
+    }
+
+    _setupPolygonListeners(shape) {
+        const path = shape.getShape().getPath();
+        this.eventManager.addListener(path, 'insert_at', () =>
+            this._handleDrawPolygonAddListenerDebounce()
+        );
+        this.eventManager.addListener(path, 'set_at', () =>
+            this._handleDrawPolygonAddListenerDebounce()
+        );
+        this.eventManager.addListener(path, 'remove_at', () =>
+            this._handleDrawPolygonAddListenerDebounce()
         );
     }
 
-    handleSetSelectedShape(shape) {
-        this.selectedShape = shape;
-        const options = this._getSelectedOptions();
-        if (['circle', 'rectangle', 'polygon'].indexOf(this.selectedShape.type) >= 0) {
-            options.draggable = true;
-        }
-        this.selectedShape.setOptions(options);
+    _setupCircleListeners(shape) {
+        const circle = shape.getShape();
+        this.eventManager.addListener(circle, 'radius_changed', () =>
+            this._handleCircleBoundsChangedDebounce()
+        );
+        this.eventManager.addListener(circle, 'center_changed', () =>
+            this._handleCircleBoundsChangedDebounce()
+        );
     }
 
-    _resetShape() {
-        if (this.selectedShape) {
-            this.selectedShape.setOptions({
-                editable: false,
-                map: null,
-            });
-            this.selectedShape = null;
+    _setupRectangleListeners(shape) {
+        const rectangle = shape.getShape();
+
+        // Remove any existing listeners first
+        this.eventManager.removeListeners(rectangle, 'bounds_changed');
+
+        // Add the bounds_changed listener with debounce
+        this.eventManager.addListener(
+            rectangle,
+            'bounds_changed',
+            () => {
+                if (shape.isEditable()) {
+                    this._handleRectangleBoundsChangedDebounce(shape);
+                }
+            },
+            { debounce: MapConfig.DEBOUNCE_DELAY }
+        );
+    }
+
+    _handlePolygonBoundsChanged(shape) {
+        this._handleShapeChanged(shape);
+    }
+
+    _handleCircleBoundsChanged(shape) {
+        this._handleShapeChanged(shape);
+    }
+
+    _handleRectangleBoundsChanged(shape) {
+        this._handleShapeChanged(shape);
+    }
+
+    async _handleShapeChanged(shape) {
+        if (!shape) {
+            shape = this.shapeManager.getSelectedShape();
         }
-        Object.values(this.shapes).forEach((shape) => shape.setMap(null));
-        if (this.polygonMarkers) {
-            Object.keys(this.polygonMarkers).forEach((lineAt) => {
-                this.polygonMarkers[lineAt].setMap(null);
-                delete this.polygonMarkers[lineAt];
+
+        if (shape) {
+            try {
+                const shapeData = shape.toJSON();
+                await this.props.record.update({
+                    [this.props.name]: JSON.stringify(shapeData),
+                    gshape_type: shape.getType(),
+                    gshape_area: shape.getArea(),
+                    ...shape.getDimensions(),
+                });
+
+                // Add notification for successful save
+                this.notificationService.add(_t('Shape changes saved successfully'), {
+                    type: 'success',
+                    title: _t('Success'),
+                });
+            } catch (error) {
+                console.error('Failed to save shape changes:', error);
+                this.notificationService.add(_t('Failed to save shape changes'), {
+                    type: 'danger',
+                    title: _t('Error'),
+                });
+            }
+        }
+    }
+
+    _renderCustomControls() {
+        if (this.customControl) return;
+
+        const content = renderToString('web_view_google_map_drawing.ButtonActionDelete', {});
+        this.customControl = new DOMParser()
+            .parseFromString(content, 'text/html')
+            .querySelector('div');
+
+        this.googleMap.controls[google.maps.ControlPosition.TOP_CENTER].push(this.customControl);
+
+        this.customControl
+            .querySelector('#delete')
+            .addEventListener('click', this._handleDelete.bind(this));
+    }
+
+    async _handleDelete() {
+        const selectedShape = this.shapeManager.getSelectedShape();
+        if (!selectedShape) {
+            this.notificationService.add(_t('No shape selected'), {
+                type: 'warning',
+                sticky: false,
+                title: _t('Warning'),
+            });
+            return;
+        }
+
+        try {
+            selectedShape.remove();
+            this.shapeManager.removeShape(selectedShape.getId());
+            await this.props.record.update({ [this.props.name]: false });
+
+            // Add notification for successful deletion
+            this.notificationService.add(_t('Shape deleted successfully'), {
+                type: 'success',
+                sticky: false,
+                title: _t('Success'),
+            });
+
+            // Re-enable drawing mode after deletion
+            if (this.drawingManager) {
+                this.drawingManager.setDrawingMode(google.maps.drawing.OverlayType.POLYGON);
+            }
+        } catch (error) {
+            console.error('Failed to delete shape:', error);
+            this.notificationService.add(_t('Failed to delete shape'), {
+                type: 'danger',
+                sticky: true,
+                title: _t('Error'),
             });
         }
-        this.drawingManager.setDrawingMode(null);
     }
 
     _clearSelectedShape() {
-        if (this.selectedShape) {
-            this.selectedShape.setEditable(false);
-            this.selectedShape = null;
-        }
-        this.drawingManager.setDrawingMode(null);
-    }
-
-    _cleanPolygonPoints() {
-        if (this.polygonMarkers) {
-            Object.keys(this.polygonMarkers).forEach((lineAt) => {
-                this.polygonMarkers[lineAt].setMap(null);
-                delete this.polygonMarkers[lineAt];
-            });
-        } else {
-            this.polygonMarkers = {};
+        const selectedShape = this.shapeManager.getSelectedShape();
+        if (selectedShape) {
+            selectedShape.setEditable(false);
+            this.shapeManager.clearSelection();
         }
     }
 
-    _handleCenterMap(paths, bounds) {
-        if (!this.googleMap) return;
-        paths = paths || [];
-        bounds = bounds || false;
-        if (paths.length > 0) {
-            let mapBounds = new google.maps.LatLngBounds();
-            paths.forEach((item) => {
-                mapBounds.extend({ lat: item.lat(), lng: item.lng() });
-            });
-            this.googleMap.fitBounds(mapBounds);
-        } else if (bounds) {
+    _centerMapOnShape(shape) {
+        const bounds = shape.getBounds();
+        if (bounds && !bounds.isEmpty()) {
             this.googleMap.fitBounds(bounds);
         }
+    }
+
+    _cleanup() {
+        this.eventManager.removeAllListeners();
+        this.shapeManager.cleanup();
+        if (this.drawingManager) {
+            this.drawingManager.setMap(null);
+        }
+    }
+
+    getMapOptions() {
+        return MapConfig.MAP_OPTIONS;
     }
 }
 
@@ -807,8 +441,11 @@ export const googleMapDrawingField = {
     component: GoogleMapDrawingField,
     displayName: _t('Google Maps Drawing'),
     supportedTypes: ['text'],
-    extractProps: ({ options }) => ({
-        options,
+    extractProps: ({ attrs, options }) => ({
+        placeholder: attrs.placeholder,
+        dynamicPlaceholder: options?.dynamic_placeholder || false,
+        dynamicPlaceholderModelReferenceField:
+            options?.dynamic_placeholder_model_reference_field || '',
     }),
 };
 

@@ -1,12 +1,11 @@
-/** @odoo-module **/
-
 import { GoogleMapSidebar } from '@web_view_google_map/views/google_map/google_map_sidebar';
 
 export class GoogleMapSidebarContactAvatar extends GoogleMapSidebar {
-    static template = 'contacts_google_map.GoogleMapSidebarAvatar';
-    static props = [...GoogleMapSidebar.props, 'fieldAvatar'];
-    getData(record) {
+    static props = { ...GoogleMapSidebar.props, fieldAvatar: { type: String } };
+    static recordItemTemplate = 'contacts_google_map.RecordItemAvatar';
+
+    getAvatarUrl(record) {
         const avatarUrl = `/web/image/${record.resModel}/${record.resId}/${this.props.fieldAvatar}`;
-        return Object.assign({ avatarUrl }, super.getData(record));
+        return avatarUrl;
     }
 }

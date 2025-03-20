@@ -10,6 +10,7 @@ class Main(http.Controller):
         IrParam = request.env['ir.config_parameter'].sudo()
 
         api_key = IrParam.get_param('base_google_map.api_key', default='')
+        map_id = IrParam.get_param('base_google_map.map_id', default='')
         libraries = IrParam.get_param(
             'base_google_map.libraries', default='geometry'
         )
@@ -25,10 +26,11 @@ class Main(http.Controller):
             'libraries': [lib.strip() for lib in libraries.split(',')],
             'region': region,
             'version': version,
+            'map_id': map_id,
         }
 
         # Extras
-        theme = IrParam.get_param('base_google_map.theme', default='default')
+        color_scheme = IrParam.get_param('base_google_map.color_scheme', default='')
         is_places_search_enable = safe_eval(
             IrParam.get_param(
                 'base_google_map.enable_map_place_search', default='False'
@@ -45,7 +47,7 @@ class Main(http.Controller):
         if is_restrict_language and language:
             values['language'] = language
 
-        values['theme'] = theme
+        values['color_scheme'] = color_scheme
         values['is_places_search_enable'] = is_places_search_enable
 
         # Autocomplete country restriction

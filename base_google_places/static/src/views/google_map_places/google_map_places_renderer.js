@@ -1,8 +1,5 @@
-/** @odoo-module **/
-
 import { useState, useChildSubEnv } from '@odoo/owl';
 import { GooglePlacesAutocompleteSidebar } from './google_places_autocomplete';
-
 import { GoogleMapRenderer } from '@web_view_google_map/views/google_map/google_map_renderer';
 
 export class GoogleMapPlacesRenderer extends GoogleMapRenderer {
@@ -11,43 +8,59 @@ export class GoogleMapPlacesRenderer extends GoogleMapRenderer {
         ...GoogleMapRenderer.components,
         GooglePlacesAutocompleteSidebar,
     };
+    static props = {
+        ...GoogleMapRenderer.props,
+        createNewRecordFromPlaces: Function,
+    };
+
     setup() {
         super.setup();
+
         this.state = useState({
             ...this.state,
             sidebarPlacesIsFolded: true,
         });
-
-        this.placeService = null;
+        this.placesService = null;
 
         useChildSubEnv({
             model: this.props.list.model,
             fields: this.props.list.fields,
+            getPlacesService: this.getPlacesService.bind(this),
+            openRecord: this.props.openRecord.bind(this),
+            createNewRecordFromPlaces: this.props.createNewRecordFromPlaces.bind(this),
+            showRecord: this.props.showRecord.bind(this),
         });
     }
 
+    getPlacesService() {
+        return this.placesService;
+    }
+
     togglePlacesSidebar() {
+        this._isSidebarAction = true;
         this.state.sidebarPlacesIsFolded = !this.state.sidebarPlacesIsFolded;
     }
 
-    initialize() {
-        super.initialize();
-        if (!this.placeService) {
-            this.placeService = new google.maps.places.PlacesService(this.googleMap, {
+    /**
+     * @override
+     */
+    async onMapReady() {
+        await super.onMapReady();
+        if (!this.placesService) {
+            this.placesService = new google.maps.places.PlacesService(this.googleMap, {
                 fields: [
-                    'business_status',
-                    'formatted_address',
-                    'geometry',
-                    'icon',
                     'name',
+                    'geometry',
+                    'formatted_address',
                     'photos',
                     'place_id',
+                    'icon',
                     'plus_code',
                     'type',
-                    'rating',
                     'vicinity',
                     'user_ratings_total',
                     'url',
+                    'business_status',
                 ],
             });
         }
