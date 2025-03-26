@@ -30,52 +30,46 @@ export class GooglePlacesIdCharField extends Component {
         console.error(error);
     }
 
-    initialize() {
+    async initialize() {
         if (!this.placeService) {
-            this.placeService = new google.maps.places.PlacesService(
-                document.createElement('div'),
-                {
-                    fields: [
-                        'business_status',
-                        'formatted_address',
-                        'geometry',
-                        'icon',
-                        'name',
-                        'photos',
-                        'place_id',
-                        'plus_code',
-                        'type',
-                        'rating',
-                        'vicinity',
-                        'user_ratings_total',
-                        'url',
-                    ],
-                }
-            );
+            const { PlacesService } = await this.apiLoader.importLibrary('places');
+            this.placeService = new PlacesService(document.createElement('div'), {
+                fields: [
+                    'business_status',
+                    'formatted_address',
+                    'geometry',
+                    'icon',
+                    'name',
+                    'photos',
+                    'place_id',
+                    'plus_code',
+                    'type',
+                    'rating',
+                    'vicinity',
+                    'user_ratings_total',
+                    'url',
+                ],
+            });
         }
     }
     async onClick() {
-        console.log(' onClick ');
-        console.log(this);
         const value = this.props.record.data[this.props.name];
-        console.log({ value });
         if (!value) return;
         this._toogleAnimateButtonDisable();
         this.placeService.getDetails({ placeId: value }, async (place, status) => {
             this._toogleAnimateButtonEnable();
-            if (status === google.maps.places.PlacesServiceStatus.OK) {
+            const { PlacesServiceStatus } = await google.maps.importLibrary('places');
+            if (status === PlacesServiceStatus.OK) {
                 const values = await preparePlaces(
                     this.env.model.orm,
                     this.props.record.activeFields,
                     place
                 );
-                console.log({ values });
                 const data = await this.env.model.orm.call(
                     this.props.record.resModel,
                     'action_google_place_update',
                     [{ place, values }]
                 );
-                console.log({ data });
                 if (data) {
                     await this.props.record.update(data);
                 }

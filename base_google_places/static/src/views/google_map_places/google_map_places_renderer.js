@@ -47,7 +47,8 @@ export class GoogleMapPlacesRenderer extends GoogleMapRenderer {
     async onMapReady() {
         await super.onMapReady();
         if (!this.placesService) {
-            this.placesService = new google.maps.places.PlacesService(this.googleMap, {
+            const { PlacesService } = await this.apiLoader.importLibrary("places");
+            this.placesService = new PlacesService(this.googleMap, {
                 fields: [
                     'name',
                     'geometry',
