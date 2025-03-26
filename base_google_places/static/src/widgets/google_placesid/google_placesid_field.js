@@ -58,7 +58,7 @@ export class GooglePlacesIdCharField extends Component {
         this._toogleAnimateButtonDisable();
         this.placeService.getDetails({ placeId: value }, async (place, status) => {
             this._toogleAnimateButtonEnable();
-            const { PlacesServiceStatus } = await google.maps.importLibrary('places');
+            const { PlacesServiceStatus } = await this.apiLoader.importLibrary('places');
             if (status === PlacesServiceStatus.OK) {
                 const values = await preparePlaces(
                     this.env.model.orm,
