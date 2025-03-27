@@ -38,7 +38,7 @@
                     </group>
                     <field name="gshape_description" placeholder="Description"/>
                     <separator string="Polygon Lines" invisible="gshape_type != 'polygon'"/>
-                    <field nolabel="1" class="oe_inline" name="gshape_polygon_lines" invisible="gshape_type != 'polygon'"/>
+                    <!-- <field nolabel="1" class="oe_inline" name="gshape_polygon_lines" invisible="gshape_type != 'polygon'"/> -->
                     <field name="gshape_paths" widget="google_map_drawing"/>
                 </sheet>
             </form>
@@ -77,12 +77,12 @@
         </field>
     </record>
     <record id="action_res_partner_area" model="ir.actions.act_window">
-        <field name="name">Partner Area</field>
+        <field name="name">Areas</field>
         <field name="type">ir.actions.act_window</field>
         <field name="res_model">res.partner.area</field>
         <field name="view_mode">google_map,list,form</field>
     </record>
 
-    <menuitem id="menu_partner_area" name="Partner Area" action="action_res_partner_area" parent="contacts.res_partner_menu_config"/>
+    <menuitem id="menu_partner_area" name="Areas" sequence="2" action="action_res_partner_area" parent="contacts.menu_contacts"/>
 
 </odoo>

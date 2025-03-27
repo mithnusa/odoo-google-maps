@@ -125,7 +125,7 @@ export class GoogleMapDrawingRenderer extends BaseGoogleMapComponent {
     }
 
     _onWillDestroy() {
-        super._onWillDestroy();
+        this.shapeManager.cleanup();
         if (this.shapes) {
             this.shapes.forEach((shape, key) => {
                 // Remove event listeners
@@ -137,6 +137,7 @@ export class GoogleMapDrawingRenderer extends BaseGoogleMapComponent {
             this.markerInfoWindow.close();
             google.maps.event.clearInstanceListeners(this.markerInfoWindow);
         }
+        super._onWillDestroy();
     }
 
     /**
@@ -588,6 +589,7 @@ export class GoogleMapDrawingRenderer extends BaseGoogleMapComponent {
 
         if (shapeId && this.shapes.has(shapeId)) {
             const shape = this.shapes.get(shapeId);
+            this.shapeManager.updateMeasurementLabel(shape, this.googleMap);
             this.prevShapeSelected = this.currentShapeSelected;
             this.currentShapeSelected = shape;
 
@@ -824,7 +826,7 @@ export class GoogleMapDrawingRenderer extends BaseGoogleMapComponent {
         // Limit zoom level after bounds fit
         google.maps.event.addListenerOnce(this.googleMap, 'idle', () => {
             google.maps.event.trigger(this.googleMap, 'resize');
-            if (this.googleMap.getZoom() > MAX_AUTO_ZOOM) this.googleMap.setZoom(MAX_AUTO_ZOOM);
+            if (this.googleMap && this.googleMap.getZoom() > MAX_AUTO_ZOOM) this.googleMap.setZoom(MAX_AUTO_ZOOM);
         });
     }
 

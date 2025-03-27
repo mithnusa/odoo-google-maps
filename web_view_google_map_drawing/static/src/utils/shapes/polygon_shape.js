@@ -87,7 +87,7 @@ export class PolygonShape extends BaseShape {
     setEditable(editable) {
         super.setEditable(editable);
         this.shape.setOptions({
-            draggable: editable,
+            draggable: false,
             editable: editable,
         });
     }

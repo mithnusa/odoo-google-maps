@@ -47,7 +47,7 @@ export class MapUtils {
         let sumLng = 0;
         const len = coordinates.length;
 
-        coordinates.forEach(coord => {
+        coordinates.forEach((coord) => {
             sumLat += coord.lat();
             sumLng += coord.lng();
         });
@@ -86,4 +86,77 @@ export class MapUtils {
                 return null;
         }
     }
-};
+
+    static mapLabelOverlay() {
+        class MapLabel extends google.maps.OverlayView {
+            constructor(options) {
+                super();
+                this.position = options.position;
+                this.text = options.text;
+                this.map = options.map;
+                this.setMap(this.map);
+            }
+
+            onAdd() {
+                // console.log('onAdd');
+                this.div = document.createElement('div');
+                this.div.className = 'map-measurement-label';
+                this.div.style.position = 'absolute';
+                this.div.style.backgroundColor = 'rgba(255, 255, 255, 0.8)';
+                this.div.style.padding = '2px 6px';
+                this.div.style.borderRadius = '3px';
+                this.div.style.fontSize = '12px';
+                this.div.style.fontWeight = '500';
+                this.div.style.border = '1px solid #666';
+                this.div.style.cursor = 'default';
+                this.div.style.userSelect = 'none';
+                this.div.style.whiteSpace = 'nowrap';
+                this.div.innerHTML = this.text;
+
+                const panes = this.getPanes();
+                panes.overlayLayer.appendChild(this.div);
+            }
+
+            draw() {
+                if (!this.div || !this.map) return;
+
+                const overlayProjection = this.getProjection();
+                const position = overlayProjection.fromLatLngToDivPixel(this.position);
+                if (position) {
+                    this.div.style.left = position.x + 'px';
+                    this.div.style.top = position.y + 'px';
+                }
+            }
+
+            onRemove() {
+                console.log('onRemove');
+                if (this.div) {
+                    if (this.div.parentNode) {
+                        this.div.parentNode.removeChild(this.div);
+                    }
+                    this.div = null;
+                }
+            }
+
+            setPosition(position) {
+                this.position = position;
+                this.draw();
+            }
+
+            setText(text) {
+                this.text = text;
+                if (this.div && this.text) {
+                    this.div.innerHTML = text;
+                }
+            }
+
+            setMap(map) {
+                if (this.map && this.div) {
+                    this.onRemove();
+                }
+                super.setMap(map);
+            }
+        }
+        return MapLabel;
+    }
+}

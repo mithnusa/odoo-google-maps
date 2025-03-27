@@ -19,7 +19,7 @@ export class BaseShape {
         this._editable = editable;
         this.shape.setOptions({
             editable: editable,
-            draggable: editable,
+            draggable: false,
             strokeColor: editable ? MapConfig.COLORS.EDIT : MapConfig.COLORS.DISPLAY,
             fillColor: editable ? MapConfig.COLORS.EDIT : MapConfig.COLORS.DISPLAY,
         });

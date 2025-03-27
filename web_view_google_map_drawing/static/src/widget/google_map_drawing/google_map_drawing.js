@@ -1,6 +1,13 @@
 import { registry } from '@web/core/registry';
 import { _t } from '@web/core/l10n/translation';
-import { useRef, useSubEnv, onWillUpdateProps, onWillDestroy, useState, onRendered } from '@odoo/owl';
+import {
+    useRef,
+    useSubEnv,
+    onWillUpdateProps,
+    onWillDestroy,
+    useState,
+    onRendered,
+} from '@odoo/owl';
 import { useDebounced } from '@web/core/utils/timing';
 import { standardFieldProps } from '@web/views/fields/standard_field_props';
 import { renderToString } from '@web/core/utils/render';
@@ -14,6 +21,7 @@ import { ShapeManager } from '../../utils/shape_manager';
 import { EventManager } from '../../utils/event_manager';
 import { MapConfig } from '../../utils/map_config';
 import { ShapeFactory } from '../../utils/shape_factory';
+
 
 export class GoogleMapDrawingField extends BaseGoogleMapComponent {
     static template = 'web_view_google_map_drawing.GoogleDrawingField';
@@ -193,6 +201,9 @@ export class GoogleMapDrawingField extends BaseGoogleMapComponent {
         this.shapeManager.addShape(shape);
         this._setupShapeListeners(shape);
 
+        // Add measurement labels after shape creation
+        this.shapeManager.updateMeasurementLabel(shape, this.googleMap);
+
         try {
             const shapeData = shape.toJSON();
             await this.props.record.update({
@@ -226,6 +237,10 @@ export class GoogleMapDrawingField extends BaseGoogleMapComponent {
             const shape = ShapeFactory.fromJSON(shapeData, this.googleMap);
             this.shapeManager.addShape(shape);
             this._setupShapeListeners(shape);
+
+            // Add measurement labels after loading existing shape
+            this.shapeManager.updateMeasurementLabel(shape, this.googleMap);
+
             this._centerMapOnShape(shape);
 
             // Disable drawing mode if shape exists
@@ -334,6 +349,9 @@ export class GoogleMapDrawingField extends BaseGoogleMapComponent {
 
         if (shape) {
             try {
+                // Update measurement labels when shape changes
+                this.shapeManager.updateMeasurementLabel(shape, this.googleMap);
+
                 const shapeData = shape.toJSON();
                 await this.props.record.update({
                     [this.props.name]: JSON.stringify(shapeData),
@@ -384,6 +402,7 @@ export class GoogleMapDrawingField extends BaseGoogleMapComponent {
         }
 
         try {
+            this.shapeManager.removeMeasurementLabels(selectedShape);
             selectedShape.remove();
             this.shapeManager.removeShape(selectedShape.getId());
             await this.props.record.update({ [this.props.name]: false });

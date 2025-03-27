@@ -762,7 +762,7 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
         // Limit zoom level after bounds fit
         google.maps.event.addListenerOnce(this.googleMap, 'idle', () => {
             google.maps.event.trigger(this.googleMap, 'resize');
-            if (this.googleMap.getZoom() > MAX_AUTO_ZOOM) this.googleMap.setZoom(MAX_AUTO_ZOOM);
+            if (this.googleMap && this.googleMap.getZoom() > MAX_AUTO_ZOOM) this.googleMap.setZoom(MAX_AUTO_ZOOM);
         });
     }
 
