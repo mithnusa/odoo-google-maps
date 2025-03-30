@@ -430,7 +430,6 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
      * @param {boolean} [pointInMap=false] Whether to center the map on the record
      */
     toggleRecordSelection(record, pointInMap = false) {
-        console.log(' -toggleRecordSelection- ', { record });
         if (!record) return;
 
         this.markerInfoWindow.close();

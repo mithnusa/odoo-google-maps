@@ -44,8 +44,9 @@ class Main(http.Controller):
         language = IrParam.get_param(
             'base_google_map.lang_localization', default=''
         )
-        if is_restrict_language and language:
-            values['language'] = language
+        # if is_restrict_language and language:
+        values['language'] = language
+        values['restrict_language'] = is_restrict_language
 
         values['color_scheme'] = color_scheme
         values['is_places_search_enable'] = is_places_search_enable
@@ -56,14 +57,17 @@ class Main(http.Controller):
                 'base_google_map.autocomplete_country_restrict', default='False'
             )
         )
+        values['autocomplete_restrict_country'] = is_restrict_country
 
-        if is_restrict_country:
-            country_codes = IrParam.get_param(
-                'base_google_map.autocomplete_country_restriction', default=''
-            )
-            if country_codes:
-                country_codes_list = country_codes.lower().split(',')
-                # Support up to 5 countries (https://developers.google.com/maps/documentation/javascript/place-autocomplete#restrict-predictions-to-a-specific-country)
-                values['autocomplete_countries_restriction'] = country_codes_list[:5]
+        country_codes = IrParam.get_param(
+            'base_google_map.autocomplete_country_restriction', default=''
+        )
+        values['autocomplete_list_countries_restriction'] = []
+        if country_codes:
+            country_codes_list = country_codes.lower().split(',')
+            # Support up to 5 countries (https://developers.google.com/maps/documentation/javascript/place-autocomplete#restrict-predictions-to-a-specific-country)
+            countries = list(filter(None, [c.strip() for c in country_codes_list[:5]]))
+            if countries:
+                values['autocomplete_list_countries_restriction'] = countries
 
         return values

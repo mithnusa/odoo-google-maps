@@ -218,7 +218,6 @@ export class ShapeManager {
             // Calculate distance
             const distance = google.maps.geometry.spherical.computeDistanceBetween(start, end);
             if (distance > 0) {
-                console.log({ distance });
                 // Create label
                 const MapLabelOverlay = MapUtils.mapLabelOverlay();
                 const label = new MapLabelOverlay({
@@ -253,26 +252,44 @@ export class ShapeManager {
     }
 
     formatMeasurement(value, isArea = false) {
+        // Helper function to add thousand separators
+        const addThousandSeparator = (num) => {
+            return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        };
+
+        // Helper function to round to significant digits
+        const roundToSignificant = (num, decimals) => {
+            return Number(Math.round(num + 'e' + decimals) + 'e-' + decimals);
+        };
+
         if (isArea) {
             // Format area measurements
             if (value < 10000) {
                 // Less than 10,000 m²
-                return `${value.toFixed(2)} m²`;
+                const rounded = roundToSignificant(value, 2);
+                return `${addThousandSeparator(rounded)} m²`;
             } else if (value < 1000000) {
-                // Less than 1 km²
-                return `${(value / 10000).toFixed(2)} ha`;
+                // Less than 1 km² (show in hectares)
+                const hectares = value / 10000;
+                const rounded = roundToSignificant(hectares, 2);
+                return `${addThousandSeparator(rounded)} ha`;
             } else {
                 // 1 km² or larger
-                return `${(value / 1000000).toFixed(2)} km²`;
+                const squareKm = value / 1000000;
+                const rounded = roundToSignificant(squareKm, 2);
+                return `${addThousandSeparator(rounded)} km²`;
             }
         } else {
             // Format length/perimeter measurements
             if (value < 1000) {
                 // Less than 1000 meters
-                return `${value.toFixed(2)} m`;
+                const rounded = roundToSignificant(value, 1);
+                return `${addThousandSeparator(rounded)} m`;
             } else {
                 // 1000 meters or larger
-                return `${(value / 1000).toFixed(2)} km`;
+                const km = value / 1000;
+                const rounded = roundToSignificant(km, 2);
+                return `${addThousandSeparator(rounded)} km`;
             }
         }
     }

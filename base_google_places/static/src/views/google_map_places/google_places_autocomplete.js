@@ -127,8 +127,6 @@ export class GooglePlacesAutocompleteSidebar extends Component {
                 this.markerInfoWindow = new google.maps.InfoWindow({ content: '' });
             }
 
-            this.placesAutocomplete.bindTo('bounds', this.props.googleMap);
-
             this.addHandleMapEventListener();
         }
     }
@@ -139,6 +137,12 @@ export class GooglePlacesAutocompleteSidebar extends Component {
                 'places_changed',
                 this.handleOnPlacesChanged.bind(this)
             );
+        }
+
+        if (!this.listenerMapBoundChanged) {
+            this.listenerMapBoundChanged = this.props.googleMap.addListener('bounds_changed', () => {
+                this.placesAutocomplete.setBounds(this.props.googleMap.getBounds());
+            });
         }
 
         if (!this.listenerMapCenterChanged) {
@@ -326,6 +330,9 @@ export class GooglePlacesAutocompleteSidebar extends Component {
         if (this.listenerPlaceChanged) {
             google.maps.event.removeListener(this.listenerPlaceChanged);
         }
+        if (this.listenerMapBoundChanged) {
+            google.maps.event.removeListener(this.listenerMapBoundChanged);
+        }
         if (this.listenerClickAddIndicator) {
             google.maps.event.removeListener(this.listenerClickAddIndicator);
         }
@@ -512,7 +519,6 @@ export class GooglePlacesAutocompleteSidebar extends Component {
             ['display_name'],
             { limit: 1 }
         );
-        console.log({ isExists });
         if (isExists.length > 0) {
             const record = isExists[0];
             record.resId = record.id;

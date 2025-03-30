@@ -11,11 +11,7 @@ export async function preparePlaces(orm, fields, place) {
     ];
 
     const odooFields = Object.keys(fields);
-    console.log(' -preparePlaces- ');
-    console.log({ place });
-    console.log({ odooFields });
     const validateFields = placesFields.filter((v) => odooFields.includes(v));
-    console.log({ validateFields });
 
     if (validateFields.length === placesFields.length) {
         const res = {

@@ -50,18 +50,24 @@ export class GoogleMapSearchPlaces extends Component {
      * @private
      */
     async _initSearchBox() {
+        const settings = this.env.apiLoader.getSettings();
+        if (!settings.in_map_place_search) return;
+
         if (!this.placeAutocomplete) {
             try {
                 await this.env.apiLoader.importLibrary('places');
                 const { AdvancedMarkerElement } = await this.env.apiLoader.importLibrary('marker');
 
+                const searchOptions = {}
+                if (settings.autocomplete_restrict_country && settings.autocomplete_list_countries_restriction) {
+                    searchOptions.componentRestrictions = {country: settings.autocomplete_list_countries_restriction};
+                }
+
                 google.maps.event.addListenerOnce(this.props.googleMap, 'idle', () => {
+                    searchOptions.locationRestriction = this.props.googleMap.getBounds();
                     window.requestAnimationFrame(() => {
                         try {
-                            this.placeAutocomplete =
-                                new google.maps.places.PlaceAutocompleteElement({
-                                    locationRestriction: this.props.googleMap.getBounds(),
-                                });
+                            this.placeAutocomplete = new google.maps.places.PlaceAutocompleteElement(searchOptions);
                             this.placeAutocomplete.id = 'place-autocomplete-input';
                             this.searchRef.el.classList.remove('o_hidden');
                             this.searchRef.el.style.zIndex = 1;

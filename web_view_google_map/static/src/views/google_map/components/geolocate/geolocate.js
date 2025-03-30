@@ -114,7 +114,6 @@ export class GoogleMapGeolocate extends Component {
      */
     _geolocationFailed(error) {
         let message = '';
-        console.log({ error });
         switch (error.code) {
             case error.PERMISSION_DENIED:
                 message = _t('User denied the request for Geolocation.');

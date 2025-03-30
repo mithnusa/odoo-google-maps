@@ -32,7 +32,6 @@ export class BaseGoogleAutocomplete extends Component {
         // or overwrite the default values and used the `fillfields` provided in the view options instead.
         // This option will be applied only on `fillfields` and `address_form`
         this.force_override = false;
-        this.autocomplete_settings = null;
 
         this.apiLoader = useGoogleMapsAPILoader(
             this.onLoad.bind(this),
@@ -65,6 +64,7 @@ export class BaseGoogleAutocomplete extends Component {
     }
 
     initialize() {
+        this.settings = this.apiLoader.getSettings();
         this.defaultFillField();
         this.prepareOptions();
     }
@@ -89,17 +89,18 @@ export class BaseGoogleAutocomplete extends Component {
             };
 
             // On this section, only set the country restriction if there is only one country configured in the settings
-            if (this.settings.autocomplete_countries_restriction && this.settings.autocomplete_countries_restriction.length === 1) {
-                options.componentRestrictions = { country: this.settings.autocomplete_countries_restriction[0] };
+            if (this.settings.autocomplete_restrict_country && this.settings.autocomplete_list_countries_restriction) {
+                options.componentRestrictions = {country: this.settings.autocomplete_list_countries_restriction[0]};
             }
-            if (this.settings.language) {
+            // restrict language
+            if (this.settings.language && this.settings.restrict_language) {
                 options.language = this.settings.language;
             }
             this.placesAutocomplete = new google.maps.places.Autocomplete(this.input.el, options);
 
-            if (this.settings.autocomplete_countries_restriction && this.settings.autocomplete_countries_restriction.length > 1) {
+            if (this.settings.autocomplete_restrict_country && this.settings.autocomplete_list_countries_restriction.length > 1) {
                 this.placesAutocomplete.setComponentRestrictions({
-                    country: this.settings.autocomplete_countries_restriction,
+                    country: this.settings.autocomplete_list_countries_restriction,
                 });
             }
 
@@ -194,28 +195,21 @@ export class BaseGoogleAutocomplete extends Component {
     }
 
     handlePopulateAddress() {
-        if (this._debounceTimer) {
-            this._cleanUp(this._debounceTimer);
-        }
-
-        this._debounceTimer = setTimeout(() => {
-            const place = this.placesAutocomplete.getPlace();
-            console.log({place});
-            if (place) {
-                if (this.address_mode === 'no_address_format') {
-                    const geoValues = this._prepareGeolocation(
-                        place.geometry.location.lat(),
-                        place.geometry.location.lng()
-                    );
-                    if (geoValues) {
-                        geoValues[this.props.name] = formatChar(place.formatted_address);
-                        this._update(geoValues);
-                    }
-                } else if (place.hasOwnProperty('address_components')) {
-                    this.populateAddress(place);
+        const place = this.placesAutocomplete.getPlace();
+        if (place) {
+            if (this.address_mode === 'no_address_format') {
+                const geoValues = this._prepareGeolocation(
+                    place.geometry.location.lat(),
+                    place.geometry.location.lng()
+                );
+                if (geoValues) {
+                    geoValues[this.props.name] = formatChar(place.formatted_address);
+                    this._update(geoValues);
                 }
+            } else if (place.hasOwnProperty('address_components')) {
+                this.populateAddress(place);
             }
-        }, 300);
+        }
     }
 
     _update(values) {

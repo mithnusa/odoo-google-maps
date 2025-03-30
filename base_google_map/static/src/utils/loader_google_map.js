@@ -201,6 +201,14 @@ export const useGoogleMapsAPILoader = (
         }
         // Color scheme
         settings.color_scheme = params.color_scheme || 'light';
+        // In Map Place Search
+        settings.in_map_place_search = params.is_places_search_enable || false;
+        // Restrict Language
+        settings.restrict_language = params.restrict_language || false;
+        // Restrict Country
+        settings.autocomplete_restrict_country = params.autocomplete_restrict_country || false;
+        // List of country restrictions
+        settings.autocomplete_list_countries_restriction = params.autocomplete_list_countries_restriction || [];
         // Auth Referrer Policy
         // The auth_referrer_policy can take several possible values, which are defined by the Referrer Policy specification.
         // These values control how much referrer information should be included with requests made from your site. Here are the possible values:

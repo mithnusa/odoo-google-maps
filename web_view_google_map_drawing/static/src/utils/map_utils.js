@@ -98,7 +98,6 @@ export class MapUtils {
             }
 
             onAdd() {
-                // console.log('onAdd');
                 this.div = document.createElement('div');
                 this.div.className = 'map-measurement-label';
                 this.div.style.position = 'absolute';
@@ -129,7 +128,6 @@ export class MapUtils {
             }
 
             onRemove() {
-                console.log('onRemove');
                 if (this.div) {
                     if (this.div.parentNode) {
                         this.div.parentNode.removeChild(this.div);
