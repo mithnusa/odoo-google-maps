@@ -22,9 +22,8 @@
                     <group>
                         <group>
                             <field name="gplace_formatted_address"/>
-                            <field name="gplace_vicinity"/>
-                            <field name="gplace_id" class="oe_inline" colspan="2" placeholder="Place ID" widget="GooglePlacesIdChar"/>
-                            <field name="gplace_url" class="oe_inline" colspan="2" placeholder="Place URL" widget="url"/>
+                            <field name="gplace_id" placeholder="Place ID" widget="GooglePlacesIdChar"/>
+                            <field name="gplace_url" placeholder="Place URL" widget="url"/>
                             <field name="gplace_type_ids" widget="many2many_tags"/>
                             <field name="gplace_opening_hours"/>
                             <label for="gplace_plus_code_compound" string="Plus code"/>
