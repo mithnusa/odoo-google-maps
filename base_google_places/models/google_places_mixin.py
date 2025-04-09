@@ -40,17 +40,6 @@ GOOGLE_PLACES_COMPONENT_FORM = {
     'point_of_interest': 'long_name',
 }
 
-PLACES_FIELDS = [
-    'formatted_address',
-    'geometry',
-    'name',
-    'place_id',
-    'plus_code',
-    'type',
-    'vicinity',
-    'url',
-]
-
 
 class GooglePlacesMixin(models.AbstractModel):
     _name = 'google.places.mixin'
@@ -230,12 +219,6 @@ class GooglePlacesMixin(models.AbstractModel):
             if location:
                 geo_values = self._prepare_geolocation_fields(odoo_fields, location)
                 values.update(geo_values)
-
-            if values.get('gplace_photos_url') and 'image_1920' in self._fields:
-                photos = values['gplace_photos_url'].split(',')
-                image = self._google_get_place_image(photos[0])
-                if image:
-                    values['image_1920'] = image
 
         if exists:
             return values
