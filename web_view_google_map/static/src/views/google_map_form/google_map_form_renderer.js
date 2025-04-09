@@ -4,6 +4,8 @@ import { LOADER_STATUS } from '@base_google_map/utils/loader_google_map';
 
 export class GoogleMapFormRenderer extends BaseGoogleMapComponent {
     static template = 'web_view_google_map.GoogleMapFormRenderer';
+    static props = ['*'];
+
     setup() {
         super.setup();
         this.mapRef = useRef('map');

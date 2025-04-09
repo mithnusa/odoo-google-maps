@@ -16,15 +16,6 @@ class IrUiView(models.Model):
         view_info['google_map'] = {'icon': 'fa fa-map-o'}
         return view_info
 
-    @api.model
-    def get_google_form_view_id(self, model_name):
-        domain = [
-            ('arch_db', 'ilike', 'js_class="google_map_form"'),
-            ('model', '=', model_name),
-        ]
-        view = self.sudo().search_read(domain, [], limit=1)
-        return view and view[0]['id'] or False
-
     def _validate_tag_google_map(self, node, name_manager, node_info):
         if not node_info['validate']:
             return

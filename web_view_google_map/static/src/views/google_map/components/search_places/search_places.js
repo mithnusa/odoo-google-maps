@@ -40,7 +40,7 @@ export class GoogleMapSearchPlaces extends Component {
         }
         if (this.placeAutocomplete) {
             this.placeAutocomplete.remove();
-            google.maps.event.clearListeners(this.placeAutocomplete, 'gmp-placeselect');
+            google.maps.event.clearListeners(this.placeAutocomplete, 'gmp-select');
         }
     }
 
@@ -82,7 +82,7 @@ export class GoogleMapSearchPlaces extends Component {
 
                             this.markerInfoWindow = new google.maps.InfoWindow();
                             this.placeAutocomplete.addEventListener(
-                                'gmp-placeselect',
+                                'gmp-select',
                                 this.debouncedHandlePlaceSelect.bind(this)
                             );
                         } catch (error) {
@@ -127,7 +127,8 @@ export class GoogleMapSearchPlaces extends Component {
      * @param {google.maps.places.Place} param0.place - The selected place
      * @returns {Promise<void>}
      */
-    async handlePlaceSelect({ place }) {
+    async handlePlaceSelect({ placePrediction }) {
+        const place = placePrediction.toPlace();
         await place.fetchFields({ fields: ['displayName', 'formattedAddress', 'location'] });
 
         if (place.viewport) {
