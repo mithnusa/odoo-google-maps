@@ -111,19 +111,27 @@ class ResCountry(models.Model):
         state_short_name = ''
 
         google_address = {}
+
+        long_term = 'long_name'
+        short_term = 'short_name'
+        # In the new version, long_name and short_name have now been changed to longText and shortText respectively.
+        if not all(term in address_components[0].keys() for term in [long_term, short_term]):
+            long_term = 'longText'
+            short_term = 'shortText'
+
         for component in address_components:
             # hardcoded types 'country' for country
             if 'country' in component['types']:
-                country_long_name = component['long_name']
-                country_short_name = component['short_name']
+                country_long_name = component[long_term]
+                country_short_name = component[short_term]
 
             # hardcoded types 'administrative_area_level_1' for state
             if 'administrative_area_level_1' in component['types']:
-                state_long_name = component['long_name']
-                state_short_name = component['short_name']
+                state_long_name = component[long_term]
+                state_short_name = component[short_term]
 
             for type in component['types']:
-                google_address[type] = component['long_name']
+                google_address[type] = component[long_term]
 
         address = {}
         if country_short_name or country_long_name:

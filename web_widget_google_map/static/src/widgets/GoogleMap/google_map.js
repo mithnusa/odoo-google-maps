@@ -2,6 +2,7 @@ import { registry } from '@web/core/registry';
 import { _t } from '@web/core/l10n/translation';
 import { useService } from '@web/core/utils/hooks';
 import { standardWidgetProps } from '@web/views/widgets/standard_widget_props';
+import { evaluateExpr, evaluateBooleanExpr } from "@web/core/py_js/py";
 
 import { rpc } from '@web/core/network/rpc';
 import { Component, onWillStart } from '@odoo/owl';
@@ -33,7 +34,7 @@ export class GoogleMapWidget extends Component {
     }
 
     async loadGoogleSetting() {
-        if (!Object.keys(this.settings).length) {
+        if (!Object.keys(this.settings).length && !this.props.invisible) {
             const { context } = this.props.record;
             const settings = await rpc('/web/base_google_map/settings', { context });
             if (settings) {
