@@ -9,7 +9,7 @@
     'support': 'yopiangi@gmail.com',
     'category': 'Hidden',
     'version': '1.0.0',
-    'depends': ['sale_stock', 'stock_delivery', 'web_view_google_map', 'web_widget_google_map'],
+    'depends': ['sale_stock', 'stock_delivery', 'web_view_google_map'],
     'data': ['views/stock_picking.xml'],
     'demo': [],
     'installable': True,
