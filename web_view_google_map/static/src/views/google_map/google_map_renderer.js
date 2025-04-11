@@ -621,7 +621,6 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
      * @returns {Object} Marker element configuration
      */
     _createMarkerElementValues(data, markerColor, scale = 1) {
-        console.log('createMarkerElementValues', { data, markerColor, scale });
         const color = markerColor || data.markerColor || this.props.archInfo.markerColor || 'red';
         const borderColor = invertColorDarken(color);
 
