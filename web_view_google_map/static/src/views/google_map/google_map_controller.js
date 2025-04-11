@@ -19,11 +19,11 @@ import { standardViewProps } from '@web/views/standard_view_props';
 import { useSetupAction } from "@web/search/action_hook";
 import { useViewButtons } from "@web/views/view_button/view_button_hook";
 import { session } from '@web/session';
-import { SearchBar } from '@web/search/search_bar/search_bar';
 import { useSearchBarToggler } from '@web/search/search_bar/search_bar_toggler';
 import { ViewButton } from '@web/views/view_button/view_button';
 import { executeButtonCallback } from '@web/views/view_button/view_button_hook';
 import { CogMenu } from '@web/search/cog_menu/cog_menu';
+import { GoogleMapSearchBar } from './google_map_search_bar';
 
 import {
     Component,
@@ -36,7 +36,7 @@ import {
 
 export class GoogleMapController extends Component {
     static template = 'web_view_google_map.GoogleMapView';
-    static components = { Layout, ActionMenus, SearchBar, ViewButton, CogMenu };
+    static components = { Layout, ActionMenus, SearchBar: GoogleMapSearchBar, ViewButton, CogMenu };
     static props = {
         ...standardViewProps,
         Model: Function,
@@ -702,8 +702,6 @@ export class GoogleMapController extends Component {
             sidebarTitleField,
             sidebarSubtitleField,
             markerColor,
-            markerIcon,
-            markerIconScale,
         } = this.archInfo;
         return {
             lat: latitudeField,
@@ -711,8 +709,6 @@ export class GoogleMapController extends Component {
             title: sidebarTitleField,
             subTitle: sidebarSubtitleField,
             markerColor,
-            markerIcon,
-            markerIconScale,
         };
     }
 }

@@ -97,8 +97,8 @@ export function parseRecord(record, viewConfig, isGrouped = false) {
             other[config] = getFieldValue(fieldName);
         });
 
-        let marker_color = 'red';
         if (otherFields.markerColor) {
+            let marker_color = null;
             const color = record.data[otherFields.markerColor] || otherFields.markerColor;
             if (typeof color === 'number') {
                 const ColorList = [
@@ -116,13 +116,31 @@ export function parseRecord(record, viewConfig, isGrouped = false) {
                     '#9365B8', // Purple
                 ];
                 marker_color = ColorList[color] || marker_color;
-            } else if (
-                /(?:#|0x)(?:[a-f0-9]{3}|[a-f0-9]{6})\b|(?:rgb|hsl)a?\([^\)]*\)/gi.test(color)
-            ) {
+            } else if (/(?:#|0x)(?:[a-f0-9]{3}|[a-f0-9]{6})\b|(?:rgb|hsl)a?\([^\)]*\)/gi.test(color)) {
                 marker_color = color;
+            } else if (color) {
+                // check color is a valid color name
+                const colorName = color.toLowerCase();
+                const colorList = [
+                    'red',
+                    'orange',
+                    'yellow',
+                    'green',
+                    'blue',
+                    'purple',
+                    'pink',
+                    'brown',
+                    'black',
+                    'white',
+                ];
+                if (colorList.includes(colorName)) {
+                    marker_color = colorName;
+                } else {
+                    marker_color = normalizeColor(color);
+                }
             }
+            other['markerColor'] = marker_color;
         }
-        other['markerColor'] = marker_color;
     }
     return { geolocation, other };
 }

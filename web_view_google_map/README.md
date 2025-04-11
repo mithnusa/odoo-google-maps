@@ -58,6 +58,7 @@ Optional attributes:
     <form>
         <field name="marker_color" widget="color_picker">
     </form>
+    3. Using color name
     ```
 - `disable_cluster_marker`: attribute to disable marker clustering. By default, markers on the map are clustered. Use this option to disable clustering if desired.
 Example:

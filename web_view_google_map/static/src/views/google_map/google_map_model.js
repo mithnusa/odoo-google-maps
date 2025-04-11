@@ -51,7 +51,6 @@ export class GoogleMapGroup extends Group {
 }
 
 export class GoogleMapDynamicGroupList extends DynamicGroupList {
-
     /**
      * Override
      */
@@ -69,7 +68,6 @@ export class GoogleMapDynamicGroupList extends DynamicGroupList {
         }
         return groupBy_;
     }
-
 }
 
 export class GoogleMapModel extends RelationalModel {
@@ -103,28 +101,30 @@ export class GoogleMapModel extends RelationalModel {
      * @returns {Array} domain for map
      */
     get mapDomain() {
-        if (this.viewConfig && this.viewConfig.lat && this.viewConfig.lng) {
-            const latDomain = [[this.viewConfig.lat, '!=', 0.0]];
-            const lngDomain = [[this.viewConfig.lng, '!=', 0.0]];
-            return Domain.or([latDomain, lngDomain]).toList({});
+        if (
+            this.viewConfig &&
+            this.viewConfig.lat &&
+            this.viewConfig.lng &&
+            this.config.fields[this.viewConfig.lat].searchable &&
+            this.config.fields[this.viewConfig.lng].searchable
+        ) {
+            let latDomain = [[this.viewConfig.lat, '!=', 0.0]];
+            let lngDomain = [[this.viewConfig.lng, '!=', 0.0]];
+
+            if (this.config.fields[this.viewConfig.lat].related) {
+                const [related_source, _related_field] =
+                    this.config.fields[this.viewConfig.lat].related.split('.');
+                latDomain = Domain.and([latDomain, [[related_source, '!=', false]]]).toList({});
+            }
+            if (this.config.fields[this.viewConfig.lng].related) {
+                const [related_source, _related_field] =
+                    this.config.fields[this.viewConfig.lng].related.split('.');
+                latDomain = Domain.and([latDomain, [[related_source, '!=', false]]]).toList({});
+            }
+            return Domain.and([latDomain, lngDomain]).toList({});
         }
         return [];
     }
-
-    // async _loadGroupedList(config) {
-    //     console.log(' _loadGroupedList ');
-    //     console.log(' ')
-    //     console.log(' params config: ', config);
-    //     console.log(' config.groupBy[0]: ', config.groupBy[0])
-    //     try {
-    //         config.groupBy[0].split(":");
-    //     } catch(error) {
-    //         config.groupBy = [''];
-    //     }
-    //     const result = super._loadGroupedList(config);
-    //     console.log(' result: ', result);
-    //     return result;
-    // }
 }
 
 export class GoogleMapRecord extends Record {
