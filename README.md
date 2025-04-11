@@ -26,6 +26,8 @@ Most of the implementation in this modules are inspired from the samples that yo
 | crm_google_places | 18.0.1.0.0 | Implementation of Google Places in the Google Maps view, allowing users to search for locations in a given area on maps and save them as your Lead |
 | web_view_google_map | 18.0.1.0.0 | Base module for a new view "google_map" |
 | web_view_google_map_drawing | 18.0.1.0.0 | Base module for sub view of "google_map" for drawing capability |
+| sale_google_map | 18.0.1.0.0 | Implementation of view "Google map" on Sale Order |
+| stock_google_map | 18.0.1.0.0 | Implementation of view "Google map" on Inventory |
 | web_view_google_map_selector_area | 18.0.1.0.0 | An extension feature added to the Google Map view. It allows users to select an area on the map and capture all markers within that area |
 | web_widget_google_map | 18.0.1.0.0 | Base module of widget Google Autocomplete |
 | web_widget_google_places | 18.0.1.0.0 | Inherit web_widget_google_map and add more data from Google Places fields |
