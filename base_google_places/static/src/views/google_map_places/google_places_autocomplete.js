@@ -21,6 +21,7 @@ export class GooglePlacesAutocompleteSidebar extends Component {
         this.placesResult = [];
         this.markerInfoWindow = null;
         this.placesAutocomplete = null;
+        this.isSettingsBounds = false; // flag to prevent bound recursion
 
         useEffect(
             (isComponentFolded, searchBoxEl) => {
@@ -141,7 +142,15 @@ export class GooglePlacesAutocompleteSidebar extends Component {
 
         if (!this.listenerMapBoundChanged) {
             this.listenerMapBoundChanged = this.props.googleMap.addListener('bounds_changed', () => {
-                this.placesAutocomplete.setBounds(this.props.googleMap.getBounds());
+                if (this.isSettingsBounds) {
+                    return; // skip if the bounds are already set
+                }
+                this.isSettingsBounds = true;
+                try {
+                    this.placesAutocomplete.setBounds(this.props.googleMap.getBounds());
+                } catch (error) {
+                    this.isSettingsBounds = false;
+                }
             });
         }
 
