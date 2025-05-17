@@ -35,6 +35,7 @@ export class GoogleMapDrawingField extends BaseGoogleMapComponent {
     };
     static props = {
         ...standardFieldProps,
+        placeholder: { type: String, optional: true },
         dynamicPlaceholder: { type: Boolean, optional: true },
         options: { type: Object, optional: true },
     };
@@ -463,8 +464,7 @@ export const googleMapDrawingField = {
     extractProps: ({ attrs, options }) => ({
         placeholder: attrs.placeholder,
         dynamicPlaceholder: options?.dynamic_placeholder || false,
-        dynamicPlaceholderModelReferenceField:
-            options?.dynamic_placeholder_model_reference_field || '',
+        options,
     }),
 };
 
