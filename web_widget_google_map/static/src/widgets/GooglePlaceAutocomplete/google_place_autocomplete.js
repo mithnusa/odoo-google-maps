@@ -72,10 +72,10 @@ export class GooglePlaceAutocompleteField extends BaseGoogleAutocomplete {
                             this.address_form = options.fillfields.address;
                             this.fillfields['address'] = options.fillfields.address;
                         } else {
-                            const address_fields = _.defaults(
+                            const address_fields = Object.assign(
                                 {},
-                                options.fillfields.address,
-                                this.fillfields.address
+                                this.fillfields.address,
+                                options.fillfields.address
                             );
                             this.address_form = address_fields;
                             this.fillfields['address'] = address_fields;
@@ -86,10 +86,10 @@ export class GooglePlaceAutocompleteField extends BaseGoogleAutocomplete {
                         if (this.force_override) {
                             this.fillfields['general'] = options.fillfields.general;
                         } else {
-                            this.fillfields['general'] = _.defaults(
+                            this.fillfields['general'] = Object.assign(
                                 {},
-                                options.fillfields.general,
-                                this.fillfields.general
+                                this.fillfields.general,
+                                options.fillfields.general
                             );
                         }
                     }
