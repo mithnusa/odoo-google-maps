@@ -3,6 +3,10 @@ import { Component, useEffect, useRef, onWillDestroy } from '@odoo/owl';
 import { useService } from '@web/core/utils/hooks';
 import { debounce } from '@web/core/utils/timing';
 
+const DEFAULT_ZOOM_LEVEL = 17;
+const INFO_WINDOW_MAX_WIDTH = '400px';
+
+
 export class GoogleMapSearchPlaces extends Component {
     static template = 'web_view_google_map.SearchPlaces';
     static props = ['googleMap'];
@@ -14,6 +18,7 @@ export class GoogleMapSearchPlaces extends Component {
         this.marker = null;
         this.infoWindow = null;
         this.debouncedHandlePlaceSelect = debounce(this.handlePlaceSelect, 300);
+        this.boundsChangedListener = null;
         useEffect(
             (googleMap, searchEl) => {
                 if (googleMap && searchEl) {
@@ -41,6 +46,9 @@ export class GoogleMapSearchPlaces extends Component {
         if (this.placeAutocomplete) {
             this.placeAutocomplete.remove();
             google.maps.event.clearListeners(this.placeAutocomplete, 'gmp-select');
+        }
+        if (this.boundsChangedListener) {
+            google.maps.event.removeListener(this.boundsChangedListener);
         }
     }
 
@@ -102,7 +110,7 @@ export class GoogleMapSearchPlaces extends Component {
                     });
                 });
 
-                this.props.googleMap.addListener('bounds_changed', () => {
+                this.boundsChangedListener = this.props.googleMap.addListener('bounds_changed', () => {
                     if (this.placeAutocomplete) {
                         this.placeAutocomplete.locationRestriction =
                             this.props.googleMap.getBounds();
@@ -128,33 +136,29 @@ export class GoogleMapSearchPlaces extends Component {
      * @returns {Promise<void>}
      */
     async handlePlaceSelect({ placePrediction }) {
-        const place = placePrediction.toPlace();
-        await place.fetchFields({ fields: ['displayName', 'formattedAddress', 'location'] });
+        try {
+            const place = placePrediction.toPlace();
+            await place.fetchFields({ fields: ['displayName', 'formattedAddress', 'location'] });
 
-        if (place.viewport) {
-            this.props.googleMap.fitBounds(place.viewport);
-        } else {
-            this.props.googleMap.setCenter(place.location);
-            this.props.googleMap.setZoom(17);
+            if (place.viewport) {
+                this.props.googleMap.fitBounds(place.viewport);
+            } else {
+                this.props.googleMap.setCenter(place.location);
+                this.props.googleMap.setZoom(DEFAULT_ZOOM_LEVEL);
+            }
+            const content = this._createInfoWindowContent(place);
+            this.updateInfoWindow(content, place.location);
+            if (!this.markerPlacesSearch.map) {
+                this.markerPlacesSearch.map = this.props.googleMap;
+            }
+            this.markerPlacesSearch.position = place.location;
+        } catch (error) {
+            console.error('Error handling place select:', error);
+            this.notificationService.add(
+                _t('Failed to fetch Google place detail.'),
+                { type: 'warning' }
+            );
         }
-        const content = document.createElement('div');
-        content.classList.add('p-4', 'mt-4');
-        content.style.maxWidth = '400px';
-        content.innerHTML = `
-            <div id="infowindow-content">
-                <span id="place-displayname" class="fs-4 fw-bolder">
-                    ${place.displayName}
-                </span><br />
-                <span id="place-address">
-                    ${place.formattedAddress}
-                </span>
-            </div>
-        `;
-        this.updateInfoWindow(content, place.location);
-        if (!this.markerPlacesSearch.map) {
-            this.markerPlacesSearch.map = this.props.googleMap;
-        }
-        this.markerPlacesSearch.position = place.location;
     }
 
     /**
@@ -174,5 +178,27 @@ export class GoogleMapSearchPlaces extends Component {
         this.markerInfoWindow.addListener('closeclick', () => {
             this.markerPlacesSearch.map = null;
         });
+    }
+ 
+    /**
+     * Create the content for the info window
+     * @param {Object} place - The place object containing displayName and formattedAddress
+     * @returns {HTMLElement} - The content element for the info window
+     */
+    _createInfoWindowContent(place) {
+        const content = document.createElement('div');
+        content.classList.add('p-4', 'mt-4');
+        content.style.maxWidth = INFO_WINDOW_MAX_WIDTH;
+        content.innerHTML = `
+            <div id="infowindow-content">
+                <span id="place-displayname" class="fs-4 fw-bolder">
+                    ${place.displayName}
+                </span><br />
+                <span id="place-address">
+                    ${place.formattedAddress}
+                </span>
+            </div>
+        `;
+        return content;
     }
 }

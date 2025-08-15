@@ -117,13 +117,13 @@ export class BaseGoogleAutocomplete extends Component {
         if (!readonly && options) {
             this.force_override = options.force_override || false;
             if (options.hasOwnProperty('component_form')) {
-                this.component_form = _.defaults({}, options.component_form, this.component_form);
+                this.component_form = Object.assign({}, this.component_form, options.component_form);
             }
             if (options.hasOwnProperty('delimiter')) {
-                this.fillfields_delimiter = _.defaults(
+                this.fillfields_delimiter = Object.assign(
                     {},
-                    options.delimiter,
-                    this.fillfields_delimiter
+                    this.fillfields_delimiter,
+                    options.delimiter
                 );
             }
             if (options.hasOwnProperty('lat')) {
@@ -136,7 +136,7 @@ export class BaseGoogleAutocomplete extends Component {
                 if (this.force_override) {
                     this.address_form = options.address_form;
                 } else {
-                    this.address_form = _.defaults({}, options.address_form, this.address_form);
+                    this.address_form = Object.assign({}, this.address_form, options.address_form);
                 }
             }
             if (options.hasOwnProperty('display_name')) {
