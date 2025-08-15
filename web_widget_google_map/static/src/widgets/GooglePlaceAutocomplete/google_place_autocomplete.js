@@ -74,7 +74,7 @@ export class GooglePlaceAutocompleteField extends BaseGoogleAutocomplete {
                         } else {
                             const address_fields = Object.assign(
                                 {},
-                                this.fillfields.address,
+                                this.fillfields.address || {},
                                 options.fillfields.address
                             );
                             this.address_form = address_fields;
@@ -88,7 +88,7 @@ export class GooglePlaceAutocompleteField extends BaseGoogleAutocomplete {
                         } else {
                             this.fillfields['general'] = Object.assign(
                                 {},
-                                this.fillfields.general,
+                                this.fillfields.general || {},
                                 options.fillfields.general
                             );
                         }
