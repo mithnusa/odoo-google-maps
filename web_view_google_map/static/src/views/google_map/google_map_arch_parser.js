@@ -57,7 +57,6 @@ export class GoogleMapArchParser {
                     hasLabel: !(exprToBoolean(fieldInfo.attrs.nolabel) || fieldInfo.field.noLabel),
                     label: (fieldInfo.widget && label && label.toString()) || fieldInfo.string,
                 });
-                return false;
             } else if (node.tagName === 'control') {
                 for (const childNode of node.children) {
                     if (childNode.tagName === 'button') {
@@ -83,7 +82,6 @@ export class GoogleMapArchParser {
                     fieldNodes: groupByArchInfo.fieldNodes,
                     fields: models[coModelName].fields,
                 };
-                return false;
             } else if (node.tagName === 'google_map') {
                 const activeActions = {
                     ...getActiveActions(xmlDoc),

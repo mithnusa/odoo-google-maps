@@ -24,7 +24,7 @@ export class GooglePlacesResult extends Component {
     }
 
     handleOnRendered() {
-        if (this.props.places) {
+        if (this.props.places && this.props.googleMap) {
             this.props.places.forEach((place) => {
                 google.maps.event.addListener(
                     place._marker,
@@ -83,4 +83,5 @@ export class GooglePlacesResult extends Component {
     get isEmpty() {
         return this.props.places.length <= 0;
     }
+
 }

@@ -9,23 +9,26 @@ import { getPlaceProperties } from '../utils';
 export class GooglePlaceAutocompleteExtendedField extends GooglePlaceAutocompleteField {
     getGoogleFieldsRestriction() {
         const fields = super.getGoogleFieldsRestriction();
-        return fields.concat([
-            'formatted_address',
-            'plus_code',
-            'place_id',
-            'vicinity',
-            'url',
-            'type',
-            'opening_hours',
-        ]);
+        const new_fields = new Set(
+            fields.concat([
+                'formattedAddress',
+                'plusCode',
+                'id',
+                'websiteURI',
+                'types',
+            ])
+        );
+        return Array.from(new_fields);
     }
     async populateAddress(place) {
+        console.log(' GooglePlaceAutocompleteExtendedField.populateAddress ');
         await super.populateAddress(place);
         const gplaces = await getPlaceProperties(
             this.env.model.orm,
             this.props.record.fields,
             place
         );
+        console.log('gplaces: ', gplaces);
         this._update(gplaces);
     }
 }

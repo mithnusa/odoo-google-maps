@@ -16,7 +16,11 @@
     'category': 'Extra Tools',
     'version': '1.0.1',
     'depends': ['web_view_google_map'],
-    'data': ['data/polygon_lines.xml', 'data/gmap_libraries.xml'],
+    'data': [
+        'data/gmap_libraries.xml',
+        'security/ir.model.access.csv',
+        'wizard/geojson_upload_wizard_views.xml',
+    ],
     'assets': {
         'web.assets_backend': [
             'web_view_google_map_drawing/static/src/utils/**/*',

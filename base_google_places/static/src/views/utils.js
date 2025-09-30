@@ -15,17 +15,16 @@ export async function preparePlaces(orm, fields, place) {
 
     if (validateFields.length === placesFields.length) {
         const res = {
-            gplace_formatted_address: place.formatted_address || '',
-            gplace_id: place.place_id || '',
-            gplace_vicinity: place.vicinity || '',
-            gplace_url: place.url || '',
+            gplace_formatted_address: place.formattedAddress || '',
+            gplace_id: place.id || '',
+            gplace_url: place.websiteURI || '',
         };
-        if (place.opening_hours) {
-            res['gplace_opening_hours'] = place.opening_hours.weekday_text.join('\n');
+        if (place.regularOpeningHours) {
+            res['gplace_opening_hours'] = place.regularOpeningHours.join('\n');
         }
-        if (place.plus_code) {
-            res['gplace_plus_code_global'] = place.plus_code.global_code;
-            res['gplace_plus_code_compound'] = place.plus_code.compound_code;
+        if (place.plusCode) {
+            res['gplace_plus_code_global'] = place.plusCode.globalCode;
+            res['gplace_plus_code_compound'] = place.plusCode.compoundCode;
         }
         return new Promise(async (resolve) => {
             if (place.types) {

@@ -1,6 +1,5 @@
-import { useRef, onWillUnmount, useState } from '@odoo/owl';
+import { useRef, onWillUnmount } from '@odoo/owl';
 import { BaseGoogleMapComponent } from '@base_google_map/utils/base_google_map';
-import { LOADER_STATUS } from '@base_google_map/utils/loader_google_map';
 
 export class GoogleMapFormRenderer extends BaseGoogleMapComponent {
     static template = 'web_view_google_map.GoogleMapFormRenderer';
@@ -13,10 +12,6 @@ export class GoogleMapFormRenderer extends BaseGoogleMapComponent {
         const { latitudeField, longitudeField } = this.props.archInfo;
         this.fieldLat = latitudeField;
         this.fieldLng = longitudeField;
-
-        this.state = useState({
-            loaderStatus: LOADER_STATUS.NOT_LOADED,
-        });
 
         onWillUnmount(this._cleanupListeners);
     }
@@ -32,15 +27,12 @@ export class GoogleMapFormRenderer extends BaseGoogleMapComponent {
         }
     }
 
-    updateLoaderState(status) {
-        this.state.loaderStatus = status;
-    }
-
     mapDivElement() {
         return this.mapRef.el;
     }
 
-    onMapReady() {
+    async onMapReady(map) {
+        await super.onMapReady(map);
         this.renderMarker();
     }
 

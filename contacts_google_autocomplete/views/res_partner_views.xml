@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_res_partner_form_inherit_google_autocomplete" model="ir.ui.view">
+        <field name="name">res.partner.form.inherit.google.autocomplete</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="priority">999</field>
+        <field name="arch" type="xml">
+            <xpath expr="//h1/field[1]" position="attributes">
+                <attribute name="widget">gplace_autocomplete_el</attribute>
+                <attribute name="options">{'mapping_mode': 'places'}</attribute>
+            </xpath>
+            <xpath expr="//h1/field[2]" position="attributes">
+                <attribute name="widget">gplace_autocomplete_el</attribute>
+                <attribute name="options">{'mapping_mode': 'places'}</attribute>
+            </xpath>
+            <xpath expr="//field[@name='street']" position="attributes">
+                <attribute name="widget">gplace_autocomplete_el</attribute>
+                <attribute name="options">{'mapping_mode': 'address'}</attribute>
+            </xpath>
+            <xpath expr="//field[@name='child_ids']/form//field[@name='name']" position="attributes">
+                <attribute name="widget">gplace_autocomplete_el</attribute>
+                <attribute name="options">{'mapping_mode': 'places'}</attribute>
+            </xpath>
+            <xpath expr="//field[@name='child_ids']/form//field[@name='street']" position="attributes">
+                <attribute name="widget">gplace_autocomplete_el</attribute>
+                <attribute name="options">{'mapping_mode': 'address'}</attribute>
+            </xpath>
+        </field>
+    </record>
+</odoo>

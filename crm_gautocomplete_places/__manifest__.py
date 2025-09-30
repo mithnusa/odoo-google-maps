@@ -14,7 +14,9 @@
     'category': 'Extra Tools',
     'version': '1.0.0',
     'depends': ['crm_google_map', 'web_widget_google_map'],
-    'data': ['views/crm_lead.xml'],
+    'data': [
+        # 'views/crm_lead.xml'
+    ],
     'demo': [],
     'installable': True,
     'application': False,

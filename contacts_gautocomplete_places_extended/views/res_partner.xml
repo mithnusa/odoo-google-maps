@@ -6,11 +6,15 @@
         <field name="inherit_id" ref="base.view_partner_form"/>
         <field name="priority">4000</field>
         <field name="arch" type="xml">
-            <xpath expr="//div[hasclass('oe_title')]/h1/field[@id='company']" position="attributes">
-                <attribute name="widget">gplaces_autocomplete_extended</attribute>
+            <xpath expr="//h1/field[1]" position="attributes">
+                <attribute name="widget">gplace_autocomplete_el</attribute>
+                <attribute name="options">{'mapping_mode': 'places'}</attribute>
+                <!-- <attribute name="options">{'mapping_code': 'VeJXBUBi'}</attribute> -->
             </xpath>
-            <xpath expr="//div[hasclass('oe_title')]/h1/field[@id='individual']" position="attributes">
-                <attribute name="widget">gplaces_autocomplete_extended</attribute>
+            <xpath expr="//h1/field[2]" position="attributes">
+                <attribute name="widget">gplace_autocomplete_el</attribute>
+                <attribute name="options">{'mapping_mode': 'places'}</attribute>
+                <!-- <attribute name="options">{'mapping_code': 'VeJXBUBi'}</attribute> -->
             </xpath>
         </field>
     </record>

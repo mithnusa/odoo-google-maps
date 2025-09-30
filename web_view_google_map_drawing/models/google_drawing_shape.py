@@ -2,6 +2,7 @@
 import logging
 from odoo import _, api, fields, models
 from odoo.tools.safe_eval import safe_eval
+from .fields import SearchableJson
 
 
 _logger = logging.getLogger(__name__)
@@ -81,7 +82,73 @@ class GoogleDrawingShape(models.AbstractModel):
     gshape_polygon_lines = fields.Html(
         string='Lines', compute='_compute_gshape_polygon_lines'
     )
+    gshape_geojson = SearchableJson(string='Shape GeoJSON')
 
     def decode_shape_paths(self):
         self.ensure_one()
         return safe_eval(self.gshape_paths)
+
+    @api.model
+    def create_from_geojson_feature(self, feature_data, default_values=None):
+        """Create a shape record from GeoJSON feature data"""
+        if default_values is None:
+            default_values = {}
+            
+        # Extract geometry data
+        geometry = feature_data.get('geometry', {})
+        properties = feature_data.get('properties', {})
+        
+        # Prepare values for creation
+        values = {
+            'gshape_name': properties.get('name', default_values.get('name', 'Imported Shape')),
+            'gshape_description': properties.get('description', default_values.get('description', '')),
+            'gshape_geojson': feature_data,
+        }
+        
+        # Determine shape type and extract specific data
+        geom_type = geometry.get('type', '').lower()
+        coordinates = geometry.get('coordinates', [])
+        
+        if geom_type == 'polygon':
+            values.update({
+                'gshape_type': 'polygon',
+                'gshape_paths': str({'coordinates': coordinates}),
+            })
+            # Calculate area if possible
+            area = properties.get('area', 0.0)
+            if area:
+                values['gshape_area'] = area
+                
+        elif geom_type == 'point':
+            # For points, create a small circle
+            values.update({
+                'gshape_type': 'circle',
+                'gshape_radius': properties.get('radius', 100.0),
+                'gshape_paths': str({'center': coordinates}),
+            })
+            
+        elif geom_type in ['linestring', 'multilinestring']:
+            # Convert to polygon for compatibility
+            values.update({
+                'gshape_type': 'polygon',
+                'gshape_paths': str({'coordinates': coordinates}),
+            })
+            
+        # Add any additional default values
+        values.update(default_values)
+        
+        return self.create(values)
+
+    @api.model
+    def import_geojson_features(self, features_data, default_values=None):
+        """Import multiple GeoJSON features"""
+        created_records = self.env[self._name]
+        
+        for feature_data in features_data:
+            try:
+                record = self.create_from_geojson_feature(feature_data, default_values)
+                created_records |= record
+            except Exception as e:
+                _logger.error(f"Failed to import feature: {e}")
+                
+        return created_records

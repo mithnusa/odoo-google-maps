@@ -37,8 +37,8 @@ patch(GoogleMapRenderer.prototype, {
     /**
      * @override
      */
-    async onMapReady() {
-        await super.onMapReady();
+    async onMapReady(map) {
+        await super.onMapReady(map);
         let js_class = '';
         if (this.props.archInfo && this.props.archInfo.arch) {
             const xml = new DOMParser().parseFromString(this.props.archInfo.arch, 'text/xml');
@@ -342,6 +342,30 @@ patch(GoogleMapRenderer.prototype, {
                 this._deselectMarker(marker);
             });
         }
+    },
+
+    /**
+     * @override
+     * Fit map bounds with limitation on zoom level
+     * If there is a selected shape, fit the map to the shape
+     * Otherwise, fit the map to the given bounds
+     * @param {google.maps.LatLngBounds} bounds
+     */
+    _fitMapBoundsWithLimit(bounds) {
+        if (!this.isMapLoaded()) return;
+
+        // fit map to selected shape if any
+        if (this.selectedShape) {
+            if (['circle', 'rectangle'].includes(this.selectedShape.type)) {
+                bounds = this.selectedShape.getBounds();
+            } else if (this.selectedShape.type === 'polygon') {
+                bounds = new google.maps.LatLngBounds();
+                this.selectedShape.getPath().forEach((latlng) => {
+                    bounds.extend(latlng);
+                });
+            }
+        }
+        super._fitMapBoundsWithLimit(bounds);
     },
 
     get polygonOption() {

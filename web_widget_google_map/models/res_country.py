@@ -23,6 +23,17 @@ class ResCountry(models.Model):
 
     def _default_google_country(self):
         return 'country'
+    
+    google_street_format = fields.Selection(
+        selection=[
+            ('street_number_route', 'Street Number + Route'),
+            ('route_street_number', 'Route + Street Number'),
+        ],
+        string='Street Format',
+        default='route_street_number',
+        help='Define the format of the street address.\n'
+        'For example, "123 Main St" can be formatted as "Main St 123" or "123 Main St".',
+    )
 
     google_street = fields.Char(
         string='Street',
@@ -90,6 +101,10 @@ class ResCountry(models.Model):
             dict: The prepared address dictionary.
 
         """
+        print('\n\n\t prepare_google_address ')
+        print('address_components: ', address_components)
+        print('field_mapping: ', field_mapping)
+        print('\n\n')
         if (
             not address_components
             or not isinstance(address_components, list)
@@ -144,10 +159,15 @@ class ResCountry(models.Model):
                 limit=1,
             )
             if country_id:
-                address[field_mapping['country_id']] = [
-                    country_id.id,
-                    country_id.name,
-                ]
+                # address[field_mapping['country_id']] = [
+                #     country_id.id,
+                #     country_id.name,
+                # ]
+                # address[field_mapping['country_id']] = country_id.id
+                address[field_mapping['country_id']] = {
+                    'id': country_id.id,
+                    'display_name': country_id.display_name,
+                }
                 if state_long_name or state_short_name:
                     # state
                     state_id = self.env['res.country.state'].search(
@@ -160,10 +180,14 @@ class ResCountry(models.Model):
                         limit=1,
                     )
                     if state_id:
-                        address[field_mapping['state_id']] = [
-                            state_id.id,
-                            state_id.name,
-                        ]
+                        # address[field_mapping['state_id']] = [
+                        #     state_id.id,
+                        #     state_id.name,
+                        # ]
+                        address[field_mapping['state_id']] = {
+                            'id': state_id.id,
+                            'display_name': state_id.display_name,
+                        }
 
                 # street
                 address[field_mapping['street']] = self._parse_google_address_settings(
@@ -181,5 +205,6 @@ class ResCountry(models.Model):
                 address[field_mapping['zip']] = self._parse_google_address_settings(
                     country_id.google_zip, google_address
                 )
-
+        
+        print('\n\n\t address: ', address, '\n\n')
         return address

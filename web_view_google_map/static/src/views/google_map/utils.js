@@ -3,6 +3,26 @@
  * Parse config markerColor given in google_map view
  * @param {string} colors
  */
+
+export const WIDGET_COLOR_PICKER_COLOR = [
+    null,
+    '#F06050', // Red
+    '#F4A460', // Orange
+    '#F7CD1F', // Yellow
+    '#6CC1ED', // Light blue
+    '#814968', // Dark purple
+    '#EB7E7F', // Salmon pink
+    '#2C8397', // Medium blue
+    '#475577', // Dark blue
+    '#D6145F', // Fuchsia
+    '#30C381', // Green
+    '#9365B8', // Purple
+];
+
+export function getHexColorPicker(index) {
+    return WIDGET_COLOR_PICKER_COLOR[index] || '#009688';
+}
+
 export function parseMarkersColor(colors) {
     if (!colors) {
         return false;
@@ -34,6 +54,41 @@ export function getCurrentActionId() {
     return isNaN(actionId) ? null : actionId;
 }
 
+/**
+ * Process marker color value and return normalized color
+ * @param {*} color - The color value from the record data or field configuration
+ * @returns {string|null} - Normalized color value or null
+ */
+export function processColor(color) {
+    let marker_color = null;
+    if (typeof color === 'number') {
+        marker_color = getHexColorPicker(color);
+    } else if (/(?:#|0x)(?:[a-f0-9]{3}|[a-f0-9]{6})\b|(?:rgb|hsl)a?\([^\)]*\)/gi.test(color)) {
+        marker_color = color;
+    } else if (color && !marker_color) {
+        // check color is a valid color name
+        const colorName = color.toLowerCase();
+        const colorList = [
+            'red',
+            'orange',
+            'yellow',
+            'green',
+            'blue',
+            'purple',
+            'pink',
+            'brown',
+            'black',
+            'white',
+        ];
+        if (colorList.includes(colorName)) {
+            marker_color = colorName;
+        } else {
+            marker_color = normalizeColor(color);
+        }
+    }
+    return marker_color;
+}
+
 export function parseRecord(record, viewConfig, isGrouped = false) {
     function getFieldValue(fieldName) {
         let value = '';
@@ -42,7 +97,7 @@ export function parseRecord(record, viewConfig, isGrouped = false) {
         }
         switch (record.fields[fieldName].type) {
             case 'many2one':
-                value = record.data[fieldName] ? record.data[fieldName][1] : '';
+                value = record.data[fieldName] || {};
                 break;
             case 'selection':
                 let selection = record.fields[fieldName].selection.find(
@@ -64,8 +119,11 @@ export function parseRecord(record, viewConfig, isGrouped = false) {
             case 'binary': // expected binary of an image
                 value = `/web/image/${record.resModel}/${record.resId}/${fieldName}`;
                 break;
+            case 'json':
+                value = record.data[fieldName] ? record.data[fieldName] : {};
+                break;
             default:
-                value = '';
+                value = null;
         }
         return value;
     }
@@ -98,48 +156,8 @@ export function parseRecord(record, viewConfig, isGrouped = false) {
         });
 
         if (otherFields.markerColor) {
-            let marker_color = null;
             const color = record.data[otherFields.markerColor] || otherFields.markerColor;
-            if (typeof color === 'number') {
-                const ColorList = [
-                    null,
-                    '#F06050', // Red
-                    '#F4A460', // Orange
-                    '#F7CD1F', // Yellow
-                    '#6CC1ED', // Light blue
-                    '#814968', // Dark purple
-                    '#EB7E7F', // Salmon pink
-                    '#2C8397', // Medium blue
-                    '#475577', // Dark blue
-                    '#D6145F', // Fuchsia
-                    '#30C381', // Green
-                    '#9365B8', // Purple
-                ];
-                marker_color = ColorList[color] || marker_color;
-            } else if (/(?:#|0x)(?:[a-f0-9]{3}|[a-f0-9]{6})\b|(?:rgb|hsl)a?\([^\)]*\)/gi.test(color)) {
-                marker_color = color;
-            } else if (color) {
-                // check color is a valid color name
-                const colorName = color.toLowerCase();
-                const colorList = [
-                    'red',
-                    'orange',
-                    'yellow',
-                    'green',
-                    'blue',
-                    'purple',
-                    'pink',
-                    'brown',
-                    'black',
-                    'white',
-                ];
-                if (colorList.includes(colorName)) {
-                    marker_color = colorName;
-                } else {
-                    marker_color = normalizeColor(color);
-                }
-            }
-            other['markerColor'] = marker_color;
+            other['markerColor'] = processColor(color);
         }
     }
     return { geolocation, other };

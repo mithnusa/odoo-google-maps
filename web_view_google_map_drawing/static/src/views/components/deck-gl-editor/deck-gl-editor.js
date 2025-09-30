@@ -1,0 +1,554 @@
+import { _t } from '@web/core/l10n/translation';
+import { debounce } from '@web/core/utils/timing';
+import { useService } from '@web/core/utils/hooks';
+import { loadJS } from '@web/core/assets';
+import {
+    Component,
+    useEffect,
+    useState,
+    useRef,
+    onWillStart,
+    onWillDestroy,
+    onWillUpdateProps,
+} from '@odoo/owl';
+
+
+/**
+ * Deck.gl configuration constants
+ */
+const DECKGL_CONFIG = {
+    // Rendering performance
+    MAX_FEATURES_PER_BATCH: 50000, // Maximum features to process per batch
+    VIEWPORT_PADDING: 0.1, // Padding around viewport for culling (10%)
+
+    // Memory management
+    FEATURE_POOL_SIZE: 100000, // Pre-allocated feature object pool
+    GC_INTERVAL: 30000, // Garbage collection interval (30s)
+    MEMORY_THRESHOLD: 0.8, // Memory usage threshold for cleanup
+
+    // Visual styling
+    DEFAULT_COLORS: {
+        FILL: [70, 130, 180, 80], // Steel blue with 80% opacity
+        STROKE: [25, 25, 112, 255], // Midnight blue
+        SELECTED_FILL: [255, 215, 0, 120], // Gold with transparency
+        SELECTED_STROKE: [255, 140, 0, 255], // Dark orange
+    },
+
+    // Interactive features
+    HOVER_RADIUS: 10, // Pixels for hover detection
+    SELECT_RADIUS: 15, // Pixels for selection detection
+    ANIMATION_DURATION: 300, // Milliseconds for smooth transitions
+};
+
+
+export class DeckGlEditor extends Component {
+    static template = 'web_view_google_map_drawing.DeckGlEditor';
+    static props = {
+        googleMap: Object,
+        saveFeatures: Function,
+        dataGeoJson: { type: Object, optional: true },
+        record: Object,
+        onSelectionChange: { type: Function, optional: true }, // Callback for selection changes
+    };
+
+    setup() {
+        this.notificationService = useService('notification');
+        this.editorRef = useRef('editor');
+        this.googleMapBounds = null;
+        this.deckglOverlay = null;
+
+        // Selection state management - make reactive for template
+        this.state = useState({
+            selectedFeatures: new Set(), // Track selected feature IDs
+            hoveredFeatureId: null, // Track hovered feature
+        });
+        
+        // Drag state management
+        this.isDragging = false;
+        this.dragStartPosition = null;
+        this.dragFeatureIds = new Set();
+        
+        this.debounceRenderGeoJsonData = debounce(this.renderGeoJsonData.bind(this), 500);
+
+        onWillStart(async () => {
+            await this._loadDeckGLAssets();
+        });
+
+        useEffect(
+            (editorRef, googleMap) => {
+                if (editorRef.el && googleMap) {
+                    this._initializeDeckGLOverlay();
+                }
+            },
+            () => [this.editorRef, this.props.googleMap],
+        );
+
+        onWillDestroy(() => this._cleanUp());
+
+        onWillUpdateProps(() => {
+            if (this.props.dataGeoJson && this.deckglOverlay) {
+                this.debounceRenderGeoJsonData();
+            }
+        });
+    }
+
+
+    /**
+     * Load Deck.gl and Nebula GL assets and dependencies
+     * @private
+     */
+    async _loadDeckGLAssets() {
+        if (window.deck) {
+            return;
+        }
+
+        try {
+            // Load Deck.gl core and Google Maps integration
+            await loadJS('/web_view_google_map_drawing/static/src/libs/deck-gl/9.1.14/dist.min.js');
+
+            if (!window.deck) {
+                throw new Error('Deck.gl failed to load correctly.');
+            }
+        } catch (error) {
+            console.error('Error loading Deck.gl and Nebula GL assets:', error);
+            throw new Error('Failed to load Deck.gl and Nebula GL assets: ' + error.message);
+        }
+    }
+    
+    async _initializeDeckGLOverlay() {
+        if (!window.deck || !this.props.googleMap) {
+            throw new Error('Deck.gl or Google Maps not available');
+        }
+
+        if (this.deckglOverlay) {
+            console.warn('Deck.gl overlay already initialized');
+            return;
+        }
+
+        try {
+            this.deckglOverlay = new window.deck.GoogleMapsOverlay({
+                layers: [],
+                controller: true,
+                onClick: (info) => this._onFeatureClick(info),
+            });
+
+            this.deckglOverlay.setMap(this.props.googleMap);
+
+            // Initial data load
+            this.debounceRenderGeoJsonData();
+
+        } catch (error) {
+            console.error('Failed to initialize Deck.gl overlay:', error);
+            this.notificationService.add(
+                _t('Failed to initialize high-performance renderer. Please refresh the page.'),
+                { type: 'danger' }
+            );
+        }
+    }
+
+    /**
+     * Handle feature selection on click
+     * Supports single and multi-selection with Ctrl/Cmd key
+     */
+    _onFeatureClick(info) {
+        if (!info.object) {
+            // Clicked on empty space - clear selection
+            this.state.selectedFeatures.clear();
+            this._updateLayerStyling();
+            return;
+        }
+
+        const feature = info.object;
+        const featureId = feature.properties?.id || feature.id || `feature_${Date.now()}`;
+        
+        // Add unique ID to feature if it doesn't have one
+        if (!feature.properties) feature.properties = {};
+        if (!feature.properties.id) feature.properties.id = featureId;
+
+        // Check if Ctrl/Cmd is held for multi-selection
+        const isMultiSelect = info.srcEvent && (info.srcEvent.ctrlKey || info.srcEvent.metaKey);
+        
+        if (isMultiSelect) {
+            // Multi-selection: toggle the feature
+            if (this.state.selectedFeatures.has(featureId)) {
+                this.state.selectedFeatures.delete(featureId);
+            } else {
+                this.state.selectedFeatures.add(featureId);
+            }
+        } else {
+            // Single selection: select only this feature
+            this.state.selectedFeatures.clear();
+            this.state.selectedFeatures.add(featureId);
+        }
+        // Update visual styling to reflect selection
+        this._updateLayerStyling();
+        
+        // Emit selection change event (if needed by parent components)
+        this._notifySelectionChange();
+    }
+
+    /**
+     * Update layer styling based on selection and hover state
+     */
+    _updateLayerStyling() {
+        if (!this.deckglOverlay) return;
+        
+        // Re-render with updated styling
+        this.renderGeoJsonData();
+    }
+
+    /**
+     * Notify parent components of selection changes
+     */
+    _notifySelectionChange() {
+        const selectedFeatureIds = Array.from(this.state.selectedFeatures);
+        
+        // If parent needs to know about selection changes
+        if (this.props.onSelectionChange) {
+            this.props.onSelectionChange(selectedFeatureIds);
+        }
+        
+        // Could also trigger custom events here if needed
+        console.log(`Selection changed: ${selectedFeatureIds.length} features selected`);
+    }
+
+    /**
+     * Translate (move) features by the specified delta
+     */
+    _translateFeatures(featureIds, deltaX, deltaY) {
+        if (!this.props.dataGeoJson?.features) return;
+
+        this.props.dataGeoJson.features.forEach(feature => {
+            if (!featureIds.has(feature.properties?.id)) return;
+
+            const geometry = feature.geometry;
+            
+            switch (geometry.type) {
+                case 'Point':
+                    geometry.coordinates[0] += deltaX;
+                    geometry.coordinates[1] += deltaY;
+                    break;
+
+                case 'MultiPoint':
+                case 'LineString':
+                    geometry.coordinates.forEach(coord => {
+                        coord[0] += deltaX;
+                        coord[1] += deltaY;
+                    });
+                    break;
+
+                case 'MultiLineString':
+                case 'Polygon':
+                    geometry.coordinates.forEach(ring => {
+                        ring.forEach(coord => {
+                            coord[0] += deltaX;
+                            coord[1] += deltaY;
+                        });
+                    });
+                    break;
+
+                case 'MultiPolygon':
+                    geometry.coordinates.forEach(polygon => {
+                        polygon.forEach(ring => {
+                            ring.forEach(coord => {
+                                coord[0] += deltaX;
+                                coord[1] += deltaY;
+                            });
+                        });
+                    });
+                    break;
+
+                default:
+                    console.warn('Unsupported geometry type for translation:', geometry.type);
+            }
+        });
+    }
+
+    renderGeoJsonData() {
+        if (!this.deckglOverlay || !this.props.dataGeoJson || !this.props.dataGeoJson.features) {
+            console.log('Deck.gl overlay or GeoJSON data not available');
+            return;
+        }
+        
+        // Ensure all features have unique IDs
+        this.props.dataGeoJson.features.forEach((feature, index) => {
+            if (!feature.properties) feature.properties = {};
+            if (!feature.properties.id) {
+                feature.properties.id = `feature_${index}`;
+            }
+        });
+
+        const polygons = this.props.dataGeoJson.features.filter(f => ['Polygon', 'MultiPolygon'].includes(f.geometry.type));
+        const points = this.props.dataGeoJson.features.filter(f => ['Point', 'MultiPoint'].includes(f.geometry.type));
+        const lines = this.props.dataGeoJson.features.filter(f => ['LineString', 'MultiLineString'].includes(f.geometry.type));
+
+        const color = this._generateFeatureColor();
+        const normalFillColor = this._hexToRgba(color, 0.4);
+        const normalStrokeColor = this._hexToRgba(color, 1.0);
+
+        const layers = [
+            // Polygon layer for filled shapes
+            new window.deck.GeoJsonLayer({
+                id: 'polygonsLayer',
+                data: polygons,
+                stroked: true,
+                filled: true,
+                lineWidthMinPixels: 2,
+                opacity: 0.8,
+                pickable: true,
+                autoHighlight: false, // We handle highlighting manually
+                
+                // Dynamic styling based on selection/hover state
+                getFillColor: d => this._getFeatureFillColor(d, normalFillColor),
+                getLineColor: d => this._getFeatureStrokeColor(d, normalStrokeColor),
+                getLineWidth: d => this._getFeatureLineWidth(d, 2),
+                
+                // Update triggers for re-rendering when selection changes
+                updateTriggers: {
+                    getFillColor: [this.state.selectedFeatures, this.state.hoveredFeatureId],
+                    getLineColor: [this.state.selectedFeatures, this.state.hoveredFeatureId],
+                    getLineWidth: [this.state.selectedFeatures, this.state.hoveredFeatureId],
+                }
+            }),
+
+            // Line layer for LineString geometries
+            new window.deck.GeoJsonLayer({
+                id: 'linesLayer',
+                data: lines,
+                filled: false,
+                stroked: true,
+                pickable: true,
+                autoHighlight: false, // We handle highlighting manually
+                lineWidthMinPixels: 2,
+                
+                // Dynamic styling
+                getLineColor: d => this._getFeatureStrokeColor(d, normalStrokeColor),
+                getLineWidth: d => this._getFeatureLineWidth(d, 3),
+                
+                // Update triggers
+                updateTriggers: {
+                    getLineColor: [this.state.selectedFeatures, this.state.hoveredFeatureId],
+                    getLineWidth: [this.state.selectedFeatures, this.state.hoveredFeatureId],
+                }
+            }),
+
+            // Point layer for Point geometries
+            new window.deck.ScatterplotLayer({
+                id: 'pointsLayer',
+                data: points.map(f => ({
+                    ...f,
+                    position: f.geometry.type === 'Point'
+                        ? f.geometry.coordinates
+                        : f.geometry.coordinates[0]
+                })),
+                getPosition: d => d.position,
+                radiusMinPixels: 5,
+                radiusMaxPixels: 50,
+                pickable: true,
+                autoHighlight: false, // We handle highlighting manually
+                
+                // Dynamic styling
+                getRadius: d => this._getFeaturePointRadius(d, 10),
+                getFillColor: d => this._getFeatureFillColor(d, normalFillColor),
+                getLineColor: d => this._getFeatureStrokeColor(d, normalStrokeColor),
+                getLineWidth: d => this._getFeatureLineWidth(d, 2),
+                
+                // Update triggers
+                updateTriggers: {
+                    getRadius: [this.state.selectedFeatures, this.state.hoveredFeatureId],
+                    getFillColor: [this.state.selectedFeatures, this.state.hoveredFeatureId],
+                    getLineColor: [this.state.selectedFeatures, this.state.hoveredFeatureId],
+                    getLineWidth: [this.state.selectedFeatures, this.state.hoveredFeatureId],
+                }
+            })
+        ];
+
+        this.deckglOverlay.setProps({ layers });
+        this.centerMapToFeatures(this.props.dataGeoJson.features);
+    }
+
+    /**
+     * Get dynamic fill color based on feature state
+     */
+    _getFeatureFillColor(feature, normalColor) {
+        const featureId = feature.properties?.id;
+        
+        if (featureId === this.state.hoveredFeatureId) {
+            // Hover state - bright yellow/gold
+            return [255, 255, 0, 100];
+        }
+        
+        if (this.state.selectedFeatures.has(featureId)) {
+            // Selected state - gold with higher opacity
+            return DECKGL_CONFIG.DEFAULT_COLORS.SELECTED_FILL;
+        }
+        
+        // Normal state
+        return normalColor;
+    }
+
+    /**
+     * Get dynamic stroke color based on feature state  
+     */
+    _getFeatureStrokeColor(feature, normalColor) {
+        const featureId = feature.properties?.id;
+        
+        if (featureId === this.state.hoveredFeatureId) {
+            // Hover state - bright orange
+            return [255, 165, 0, 255];
+        }
+        
+        if (this.state.selectedFeatures.has(featureId)) {
+            // Selected state - dark orange
+            return DECKGL_CONFIG.DEFAULT_COLORS.SELECTED_STROKE;
+        }
+        
+        // Normal state
+        return normalColor;
+    }
+
+    /**
+     * Get dynamic line width based on feature state
+     */
+    _getFeatureLineWidth(feature, normalWidth) {
+        const featureId = feature.properties?.id;
+        
+        if (featureId === this.state.hoveredFeatureId) {
+            // Hover state - thicker line
+            return normalWidth + 2;
+        }
+        
+        if (this.state.selectedFeatures.has(featureId)) {
+            // Selected state - slightly thicker
+            return normalWidth + 1;
+        }
+        
+        // Normal state
+        return normalWidth;
+    }
+
+    /**
+     * Get dynamic point radius based on feature state
+     */
+    _getFeaturePointRadius(feature, normalRadius) {
+        const featureId = feature.properties?.id;
+        
+        if (featureId === this.state.hoveredFeatureId) {
+            // Hover state - larger point
+            return normalRadius + 5;
+        }
+        
+        if (this.state.selectedFeatures.has(featureId)) {
+            // Selected state - slightly larger
+            return normalRadius + 2;
+        }
+        
+        // Normal state
+        return normalRadius;
+    }
+
+    async centerMapToFeatures(features) {
+        if (!features || features.length === 0 || !this.props.googleMap) return;
+        
+        const { LatLngBounds } = await this.env.apiLoader.importLibrary('core');
+        const bounds = new LatLngBounds();
+        features.forEach(feature => {
+            const coords = feature.geometry.coordinates;
+            this._extendBounds(bounds, feature.geometry.type, coords);
+        });
+        this.props.googleMap.fitBounds(bounds);
+    }
+
+    _extendBounds(bounds, type, coords) {
+        switch (type) {
+            case 'Point':
+                bounds.extend(new google.maps.LatLng(coords[1], coords[0]));
+                break;
+            case 'MultiPoint':
+            case 'LineString':
+                coords.forEach(coord => {
+                    bounds.extend(new google.maps.LatLng(coord[1], coord[0]));
+                });
+                break;
+            case 'MultiLineString':
+            case 'Polygon':
+                coords.forEach(ring => {
+                    ring.forEach(coord => {
+                        bounds.extend(new google.maps.LatLng(coord[1], coord[0]));
+                    });
+                });
+                break;
+            case 'MultiPolygon':
+                coords.forEach(polygon => {
+                    polygon.forEach(ring => {
+                        ring.forEach(coord => {
+                            bounds.extend(new google.maps.LatLng(coord[1], coord[0]));
+                        });
+                    });
+                });
+                break;
+            default:
+                console.warn('Unsupported geometry type for bounds extension:', type);
+        }
+    }
+
+    /**
+     * Public API methods for parent components
+     */
+    
+    /**
+     * Clear all selections
+     */
+    clearSelection() {
+        this.state.selectedFeatures.clear();
+        this.state.hoveredFeatureId = null;
+        this._updateLayerStyling();
+        this._notifySelectionChange();
+    }
+
+    _cleanUp() {
+        // Clear selection state
+        this.state.selectedFeatures.clear();
+        this.state.hoveredFeatureId = null;
+        
+        // Clear drag state
+        this.isDragging = false;
+        this.dragStartPosition = null;
+        this.dragFeatureIds.clear();
+        
+        // Reset cursor
+        document.body.style.cursor = '';
+        
+        if (this.deckglOverlay) {
+            this.deckglOverlay.setMap(null);
+            this.deckglOverlay = null;
+        }
+    }
+
+    /**
+     * Generate random color for features
+     * @private
+     */
+    _generateFeatureColor() {
+        const colors = [
+            '#E74C3C', '#F39C12', '#FF0066', '#9B59B6', '#673AB7',
+            '#3F51B5', '#3498DB', '#03A9F4', '#00BCD4', '#009688',
+            '#27AE60', '#8BC34A', '#CDDC39', '#F1C40F', '#FFC107'
+        ];
+        return colors[Math.floor(Math.random() * colors.length)];
+    }
+
+    /**
+     * Convert hex color to RGBA array
+     * @private
+     */
+    _hexToRgba(hex, alpha = 1.0) {
+        const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+        return result ? [
+            parseInt(result[1], 16),
+            parseInt(result[2], 16),
+            parseInt(result[3], 16),
+            Math.round(alpha * 255)
+        ] : DECKGL_CONFIG.DEFAULT_COLORS.FILL;
+    }
+}

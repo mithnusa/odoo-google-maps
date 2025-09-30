@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <record id="view_res_partner_form_inherit" model="ir.ui.view">
-        <field name="name">view.res.partner.form.inherit</field>
+    <record id="view_res_partner_form_inherit_google_map_drawing" model="ir.ui.view">
+        <field name="name">view.res.partner.form.inherit.google_map_drawing</field>
         <field name="model">res.partner</field>
         <field name="inherit_id" ref="base.view_partner_form"/>
         <field name="priority">1000</field>
@@ -9,7 +9,7 @@
             <xpath expr="//notebook" position="inside">
                 <page string="Area">
                     <field name="shape_line_ids" widget="google_map_drawing_one2many" mode="google_map">
-                        <google_map js_class="google_map_drawing" string="Areas" sidebar_title="gshape_name" sidebar_subtitle="partner_id">
+                        <google_map js_class="google_map_drawing" string="Areas" sidebar_title="gshape_name" sidebar_subtitle="gshape_description">
                             <field name="partner_id"/>
                             <field name="gshape_name"/>
                             <field name="gshape_description"/>

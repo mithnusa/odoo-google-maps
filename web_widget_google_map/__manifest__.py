@@ -8,7 +8,7 @@
         Implementation of Google Autocomplete Address form and
         Google Places autocomplete through widget
     ''',
-    'license': 'AGPL-3',
+    'license': 'LGPL-3',
     'author': 'Yopi Angi',
     'website': 'https://github.com/mithnusa',
     'support': 'yopiangi@gmail.com',
@@ -17,10 +17,17 @@
     'depends': ['base_google_map'],
     'assets': {
         'web.assets_backend': [
+            'web_widget_google_map/static/src/hooks/*',
             'web_widget_google_map/static/src/widgets/**/*',
         ],
     },
-    'data': ['data/gmap_libraries.xml', 'views/res_country.xml'],
+    'data': [
+        'data/gmap_libraries.xml',
+        'security/ir.model.access.csv',
+        # 'security/ir_rule.xml',
+        'views/res_country.xml',
+        'views/google_places_mapping_views.xml',
+    ],
     'demo': [],
     'installable': True,
     'application': False,

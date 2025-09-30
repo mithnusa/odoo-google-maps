@@ -1,24 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates xml:space="preserve">
     <t t-name="crm_google_map.MarkerInfoWindow" t-inherit="web_view_google_map.MarkerInfoWindow" t-inherit-mode="primary">
-        <xpath expr="//div[hasclass('oe_kanban_details')]" position="after">
+        <xpath expr="//t[@t-esc='subTitle']/.." position="after">
             <div class="row pt-2">
                 <div class="col-6 mb-2" t-if="expectedRevenue">
                     <small>Expected Revenue</small>
                     <br/>
                     <i class="fa fa-usd"></i>
-                    <span class="ps-1" t-out="expectedRevenue"/>
+                    <span class="ps-1 fw-bolder" t-out="expectedRevenue"/>
                 </div>
                 <div class="col-6 mb-2" t-if="probability">
                     <small>Probability</small>
                     <br/>
-                    <span class="pe-1" t-out="probability"/>
-                    <i class="fa fa-percent"></i>
+                    <span class="pe-1 fw-bolder" t-out="probability"/>
+                    <span class="fw-bolder">%</span>
                 </div>
                 <div class="col-6 mb-2" t-if="dateDeadline">
                     <small>Expected Closing</small>
                     <br/>
-                    <span t-out="dateDeadline"/>
+                    <span class="fw-bolder" t-out="dateDeadline"/>
                 </div>
             </div>
         </xpath>

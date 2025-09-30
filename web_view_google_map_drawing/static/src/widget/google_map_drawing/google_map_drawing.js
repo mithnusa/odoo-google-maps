@@ -15,7 +15,8 @@ import { renderToString } from '@web/core/utils/render';
 import { BaseGoogleMapComponent } from '@base_google_map/utils/base_google_map';
 import { GoogleMapGeolocate } from '@web_view_google_map/views/google_map/components/geolocate/geolocate';
 import { GoogleMapSearchPlaces } from '@web_view_google_map/views/google_map/components/search_places/search_places';
-import { LOADER_STATUS } from '@base_google_map/utils/loader_google_map';
+
+import { TerraDrawToolsUI } from '../../views/components/terra-tools-ui/terra-tools-ui';
 
 import { ShapeManager } from '../../utils/shape_manager';
 import { EventManager } from '../../utils/event_manager';
@@ -28,6 +29,7 @@ export class GoogleMapDrawingField extends BaseGoogleMapComponent {
     static components = {
         Geolocate: GoogleMapGeolocate,
         InMapSearchPlaces: GoogleMapSearchPlaces,
+        TerraDrawToolsUI,
     };
     static defaultProps = {
         dynamicPlaceholder: false,
@@ -50,8 +52,8 @@ export class GoogleMapDrawingField extends BaseGoogleMapComponent {
         this.customControl = null;
 
         this.state = useState({
+            ...this.state,
             sidebarIsFolded: false,
-            loaderStatus: LOADER_STATUS.NOT_LOADED,
             groupDatalistId: null,
             isEditing: false,
         });
@@ -97,17 +99,6 @@ export class GoogleMapDrawingField extends BaseGoogleMapComponent {
     /**
      * @override
      */
-    isMapLoaded() {
-        return (
-            this.state.loaderStatus === LOADER_STATUS.LOADED &&
-            this.googleMap &&
-            this.drawingManager
-        );
-    }
-
-    /**
-     * @override
-     */
     mapDivElement() {
         return this.mapRef.el;
     }
@@ -123,7 +114,8 @@ export class GoogleMapDrawingField extends BaseGoogleMapComponent {
     /**
      * @override
      */
-    async onMapReady() {
+    async onMapReady(map) {
+        await super.onMapReady(map);
         try {
             const { LatLngBounds } = await this.apiLoader.importLibrary('core');
             this.googleMapBounds = new LatLngBounds();
@@ -132,10 +124,6 @@ export class GoogleMapDrawingField extends BaseGoogleMapComponent {
             console.error('Map initialization failed:', error);
             this.notificationService.add(_t('Failed to initialize map'), { type: 'danger' });
         }
-    }
-
-    updateLoaderState(status) {
-        this.state.loaderStatus = status || LOADER_STATUS.FAILED;
     }
 
     renderMap() {

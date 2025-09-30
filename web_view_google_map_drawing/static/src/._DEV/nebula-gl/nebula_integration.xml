@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates>
+    <!-- Nebula.gl Integration Template -->
+    <t t-name="nebula_integration_template">
+        <div class="nebula-integration-container">
+            <!-- Performance Warning Banner -->
+            <div class="performance-banner" t-if="state.showPerformanceWarning">
+                <div class="banner-content" t-att-class="state.performanceReport?.recommendedRenderer === 'nebula_only' ? 'critical' : 'info'">
+                    <div class="banner-icon">
+                        <i t-att-class="state.performanceReport?.recommendedRenderer === 'nebula_only' ? 'fa fa-exclamation-triangle' : 'fa fa-info-circle'"></i>
+                    </div>
+                    <div class="banner-text">
+                        <div class="banner-title">
+                            <t t-if="state.performanceReport?.recommendedRenderer === 'nebula_only'">
+                                <strong>High-Performance Mode Required</strong>
+                            </t>
+                            <t t-else="">
+                                <strong>Large Dataset Detected</strong>
+                            </t>
+                        </div>
+                        <div class="banner-description">
+                            <t t-if="state.performanceReport">
+                                <t t-esc="state.performanceReport.totalFeatures"></t> features with 
+                                <t t-esc="state.performanceReport.totalVertices.toLocaleString()"></t> vertices detected.
+                                <t t-if="state.performanceReport.recommendedRenderer === 'nebula_only'">
+                                    Terra Draw would freeze with this complexity!
+                                </t>
+                                <t t-else="">
+                                    Nebula.gl recommended for smooth editing.
+                                </t>
+                            </t>
+                        </div>
+                    </div>
+                    <div class="banner-actions">
+                        <button class="btn btn-sm btn-primary" t-on-click="() => this.forceNebulaMode()" t-if="!state.useNebulaForAll">
+                            <i class="fa fa-rocket"></i> Use High-Performance Mode
+                        </button>
+                        <button class="btn btn-sm btn-secondary" t-on-click="() => this.state.showPerformanceWarning = false">
+                            <i class="fa fa-times"></i> Dismiss
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Mode Toggle Controls -->
+            <div class="mode-toggle-controls" t-if="!state.useNebulaForAll and !props.readonly">
+                <div class="toggle-container">
+                    <div class="toggle-title">Editing Mode:</div>
+                    <div class="toggle-buttons">
+                        <button 
+                            class="mode-btn" 
+                            t-att-class="state.mode === 'viewing' ? 'active' : ''"
+                            t-att-disabled="state.isTransitioning"
+                            t-on-click="() => this.switchMode('viewing')"
+                            title="View and navigate features">
+                            <i class="fa fa-eye"></i>
+                            <span>View</span>
+                        </button>
+                        <button 
+                            class="mode-btn" 
+                            t-att-class="state.mode === 'editing' ? 'active' : ''"
+                            t-att-disabled="state.isTransitioning"
+                            t-on-click="() => this.switchMode('editing')"
+                            title="Edit and draw features">
+                            <i class="fa fa-edit"></i>
+                            <span>Edit</span>
+                        </button>
+                    </div>
+                    
+                    <!-- Loading indicator during transition -->
+                    <div class="transition-indicator" t-if="state.isTransitioning">
+                        <i class="fa fa-spinner fa-spin"></i>
+                        <span>Switching mode...</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Main Content Area -->
+            <div class="content-area">
+                <!-- Deck.gl Renderer (Always present for viewing) -->
+                <div class="renderer-container deck-renderer" 
+                     t-att-class="state.mode === 'viewing' ? 'active' : 'background'">
+                    <GoogleMapDeckGLRenderer t-props="deckglRendererProps" />
+                </div>
+                
+                <!-- Nebula.gl Editor (Present when editing or for complex datasets) -->
+                <div class="renderer-container nebula-renderer" 
+                     t-if="state.mode === 'editing' or state.useNebulaForAll"
+                     t-att-class="state.mode === 'editing' ? 'active' : 'background'">
+                    <NebulaGLEditor t-props="nebulaEditorProps" />
+                </div>
+            </div>
+            
+            <!-- Performance Stats Display -->
+            <div class="performance-stats" t-if="state.performanceReport">
+                <div class="stats-container">
+                    <div class="stats-title">Dataset Performance Analysis</div>
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <div class="stat-label">Features</div>
+                            <div class="stat-value" t-esc="state.performanceReport.totalFeatures"></div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Total Vertices</div>
+                            <div class="stat-value" t-esc="state.performanceReport.totalVertices.toLocaleString()"></div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Complex Features</div>
+                            <div class="stat-value" t-esc="state.performanceReport.complexFeatures"></div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Very Complex</div>
+                            <div class="stat-value" t-esc="state.performanceReport.veryComplexFeatures"></div>
+                        </div>
+                    </div>
+                    <div class="stats-recommendation">
+                        <i class="fa fa-lightbulb-o"></i>
+                        <span>
+                            <t t-if="state.performanceReport.recommendedRenderer === 'nebula_only'">
+                                Nebula.gl required for this dataset complexity
+                            </t>
+                            <t t-elif="state.performanceReport.recommendedRenderer === 'nebula_preferred'">
+                                Nebula.gl recommended for optimal performance  
+                            </t>
+                            <t t-else="">
+                                Both renderers suitable for this dataset
+                            </t>
+                        </span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Help/Info Panel -->
+            <div class="help-panel" t-if="state.mode === 'editing'">
+                <div class="help-content">
+                    <h6>🚀 High-Performance Editing</h6>
+                    <ul>
+                        <li>GPU-accelerated rendering with Deck.gl + Nebula.gl</li>
+                        <li>No vertex count limitations (Terra Draw froze at 183+ vertices)</li>
+                        <li>Smooth editing of complex geometries</li>
+                        <li>Real-time measurements and visual feedback</li>
+                        <li>Built-in undo/redo functionality</li>
+                    </ul>
+                    <div class="help-shortcuts">
+                        <strong>Shortcuts:</strong> 
+                        <kbd>V</kbd> Select | <kbd>P</kbd> Point | <kbd>L</kbd> Line | 
+                        <kbd>O</kbd> Polygon | <kbd>Ctrl+Z</kbd> Undo | <kbd>Del</kbd> Delete
+                    </div>
+                </div>
+            </div>
+        </div>
+    </t>
+</templates>

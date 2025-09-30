@@ -24,6 +24,8 @@ export class GoogleMapRendererCRM extends GoogleMapRenderer {
         values.expectedRevenue = expectedRevenue ? expectedRevenue.toLocaleString() : false;
         values.probability = probability || 0;
         values.dateDeadline = dateDeadline ? dateDeadline.toLocaleString() : false;
+        values.partnerName = other.partnerId ? other.partnerId.display_name : false;
+        values.salespersonName = other.userId ? other.userId.display_name : false;
         return values;
     }
 }

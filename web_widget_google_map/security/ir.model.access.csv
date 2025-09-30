@@ -1,0 +1,7 @@
+"id","name","model_id:id","group_id:id","perm_read","perm_write","perm_create","perm_unlink"
+"access_google_places_mapping_admin","access_google_places_mapping_admin","model_google_places_mapping","base.group_system",1,1,1,1
+"access_google_places_mapping_user","access_google_places_mapping_user","model_google_places_mapping","base.group_user",1,0,0,0
+"access_google_places_mapping_address_line_admin","access_google_places_mapping_address_line_admin","model_google_places_mapping_address_line","base.group_system",1,1,1,1
+"access_google_places_mapping_address_line_user","access_google_places_mapping_address_line_user","model_google_places_mapping_address_line","base.group_user",1,0,0,0
+"access_google_places_mapping_other_line_admin","access_google_places_mapping_other_line_admin","model_google_places_mapping_other_line","base.group_system",1,1,1,1
+"access_google_places_mapping_other_line_user","access_google_places_mapping_other_line_user","model_google_places_mapping_other_line","base.group_user",1,0,0,0

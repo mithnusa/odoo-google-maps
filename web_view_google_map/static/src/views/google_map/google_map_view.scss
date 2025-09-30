@@ -1,6 +1,6 @@
 .o_dialog {
     .o_google_map_view {
-        height: 600px;
+        height: 650px;
     }
 }
 
@@ -34,148 +34,16 @@
           }
           .infoWindow {
             overflow: hidden !important;
+            &:focus, &:focus-within, &:active {
+                outline: none;
+                box-shadow: none;
+                border: none;
+            }
           }
 
           .gm-style-iw-tc::after {
             background: $o-view-background-color;
           }
-
-    }
-
-    .o_map_right_sidebar {
-        // Base styles
-        position: relative;
-        height: 100%;
-        background-color: $o-view-background-color;
-        transition: width 0.3s ease-in-out;
-        z-index: 1;
-        width: 25%; // Default width
-
-        .content {
-            display: flex;
-            flex-direction: column;
-            flex-wrap: wrap;
-            position: relative;
-            height: 100%;
-            width: 100%;
-            padding: 0px 2px 0px 2px;
-            background-color: $o-view-background-color;
-            transform: translateX(0);
-            transition: transform 0.3s ease-in-out;
-            overflow-x: auto;
-
-            button[data-bs-toggle="collapse"] {
-                .fa-caret-down {
-                    display: block;
-                }
-                .fa-caret-right {
-                    display: none;
-                }
-                &.collapsed {
-                    .fa-caret-down {
-                        display: none;
-                    }
-                    .fa-caret-right {
-                        display: block;
-                    }
-                }
-            }
-            .list-group {
-                .list-group-item {
-                    padding: 0.25rem 0.5rem;
-                }
-            }
-
-        }
-        .toggle_right_sidenav {
-            display: block;
-            position: absolute;
-            right: 100%;  // Position relative to the sidebar width
-            top: 25%;
-            z-index: 2;
-            transition: right 0.3s ease-in-out; // Add transition to match content
-
-            button {
-                width: 25px;
-                height: 60px;
-                border-left: 1.5px solid $o-view-background-color;
-                border-top: 1.5px solid $o-view-background-color;
-                border-bottom: 1.5px solid $o-view-background-color;
-                border-right: 0px;
-                box-shadow: 0px 1px 0px #989898;
-                border-radius: 4px 0px 0px 4px;
-                font-size: 20px;
-                background-color: $o-view-background-color;
-                cursor: pointer;
-
-                &:focus {
-                    outline: none;
-                }
-
-                &::before {
-                    display: inline-block;
-                }
-            }
-        }
-
-
-        // Closed state
-        &.closed {
-            width: 0;
-            box-shadow: none;
-
-            .content {
-                transform: translateX(100%);
-                overflow: hidden;
-            }
-
-            .toggle_right_sidenav {
-                right: 0; // Adjust to keep button visible when closed
-
-                button::before {
-                    content: '\2039';
-                }
-            }
-        }
-        // Open state
-        &.open {
-            width: 25%;
-            box-shadow: -0.9px 0 1px 0.1px $o-view-background-color;
-
-            .content {
-                transform: translateX(0);
-            }
-
-            .toggle_right_sidenav {
-                right: 100%; // Keep button at the edge of sidebar when open
-
-                button::before {
-                    content: '\203A';
-                }
-            }
-        }
-        li {
-            &.disabled {
-                background-color: invert($o-view-background-color, 0.5%);
-                pointer-events: auto;
-                cursor: no-drop;
-                a {
-                    text-decoration: none;
-                }
-            }
-        }
-
-        .o_map_sidebar {
-            span {
-                &.text-muted {
-                    @include font-size($font-size-sm);
-                }
-                &.title {
-                    @include o-kanban-record-title($font-size: 14px);
-                }
-            }
-        }
-
     }
 
     .o_map_button {
@@ -202,6 +70,8 @@
     --KanbanRecord-padding-v: #{$o-kanban-inside-vgutter};
     --KanbanRecord-padding-h: #{$o-kanban-inside-hgutter};
     --KanbanRecord-gap-v: #{$o-kanban-inner-hmargin};
+    --KanbanRecord__image-width: #{$o-kanban-image-width};
+    --KanbanRecord__image--fill-width: #{$o-kanban-image-fill-width};
 
     // ----------------------------------------------------------------------------
 
@@ -218,6 +88,10 @@
     .o_kanban_record {
         position: relative;
         margin: 0 0 -1px;
+
+        aside img {
+            max-width: var(--KanbanRecord__image-width);
+        }
 
         > div {
             padding: 4px;

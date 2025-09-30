@@ -19,11 +19,12 @@ export class GoogleMapPlacesRendererCRM extends GoogleMapPlacesRenderer {
      */
     prepareInfoWindowValues(record, isMulti) {
         let values = super.prepareInfoWindowValues(record, isMulti);
-        const { other } = record.dataView;
-        const { expectedRevenue, probability, dateDeadline } = other;
+        const { expectedRevenue, probability, dateDeadline, partnerId, userId } = record.dataView.other || {};
         values.expectedRevenue = expectedRevenue ? expectedRevenue.toLocaleString() : false;
         values.probability = probability || 0;
         values.dateDeadline = dateDeadline ? dateDeadline.toLocaleString() : false;
+        values.partnerName = partnerId ? partnerId.display_name : false;
+        values.salespersonName = userId ? userId.display_name : false;
         return values;
     }
 }

@@ -1,0 +1,177 @@
+/**
+ * Simple Nebula.gl Map Editor Styling
+ */
+
+.nebula-map-editor {
+    position: relative;
+    height: 100%;
+    width: 100%;
+    
+    /* Toolbar */
+    .nebula-toolbar {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        display: flex;
+        gap: 8px;
+        background: rgba(255, 255, 255, 0.95);
+        padding: 8px;
+        border-radius: 6px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        z-index: 1000;
+        
+        .toolbar-section {
+            display: flex;
+            gap: 4px;
+        }
+        
+        .toolbar-divider {
+            width: 1px;
+            background: #ddd;
+            margin: 0 4px;
+        }
+        
+        .tool-btn {
+            width: 36px;
+            height: 36px;
+            border: none;
+            background: #f8f9fa;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            
+            &:hover {
+                background: #e9ecef;
+            }
+            
+            &.active {
+                background: #007bff;
+                color: white;
+            }
+            
+            &:disabled {
+                opacity: 0.5;
+                cursor: not-allowed;
+            }
+            
+            &.danger {
+                color: #dc3545;
+                
+                &:hover {
+                    background: #dc3545;
+                    color: white;
+                }
+            }
+        }
+    }
+    
+    /* Status Bar */
+    .nebula-status {
+        position: absolute;
+        bottom: 10px;
+        left: 10px;
+        right: 10px;
+        background: rgba(0, 0, 0, 0.8);
+        color: white;
+        padding: 8px 12px;
+        border-radius: 4px;
+        z-index: 1000;
+        display: flex;
+        gap: 20px;
+        align-items: center;
+        font-size: 13px;
+        
+        span {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            
+            i {
+                opacity: 0.8;
+            }
+        }
+        
+        .performance-badge {
+            background: #28a745;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: bold;
+            margin-left: auto;
+        }
+    }
+    
+    /* Instructions */
+    .nebula-instructions {
+        position: absolute;
+        top: 60px;
+        right: 10px;
+        z-index: 1100;
+        
+        .instruction-card {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 12px;
+            border-radius: 6px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            max-width: 200px;
+            
+            h6 {
+                margin: 0 0 8px 0;
+                color: #007bff;
+                font-size: 14px;
+            }
+            
+            p {
+                margin: 0 0 8px 0;
+                font-size: 13px;
+                color: #495057;
+            }
+            
+            small {
+                font-size: 11px;
+                color: #6c757d;
+                
+                kbd {
+                    background: #e9ecef;
+                    padding: 2px 4px;
+                    border-radius: 2px;
+                    font-size: 10px;
+                }
+            }
+        }
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+        .nebula-toolbar {
+            left: 5px;
+            top: 5px;
+            
+            .tool-btn {
+                width: 32px;
+                height: 32px;
+            }
+        }
+        
+        .nebula-status {
+            left: 5px;
+            right: 5px;
+            bottom: 5px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .nebula-instructions {
+            right: 5px;
+            top: 50px;
+            
+            .instruction-card {
+                max-width: 180px;
+                padding: 8px;
+            }
+        }
+    }
+}

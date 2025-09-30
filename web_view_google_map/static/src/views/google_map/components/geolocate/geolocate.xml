@@ -7,7 +7,7 @@
         <div id="custom-control-geolocate" class="button-geolocate-user">
             <div class="button_geolocate_user">
                 <button class="btn btn-sm btn-light my-2" type="button" title="Current location">
-                    <i class="fa fa-map-pin fa-2x text-info"></i>
+                    <i class="fa fa-location-arrow fa-2x text-info"></i>
                 </button>
             </div>
         </div>

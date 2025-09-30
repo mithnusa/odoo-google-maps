@@ -7,7 +7,18 @@
             </div>
             <div class="search-result w-100" t-ref="searchResultBox">
                 <div class="content">
-                    <GooglePlacesResult places="state.places" googleMap="props.googleMap" markerInfoWindow="markerInfoWindow" centerMapToCurrentSearchResult.bind="centerMapToCurrentSearchResult" actionPageNext.bind="actionPageNext" searchHasNext="state.hasNextPage" actionAddPlace.bind="actionAddPlace" handleAfterAction.bind="handleAfterAction" addPlace.bind="addPlace" handleClickItemAdd.bind="handleClickItemAdd"/>
+                    <GooglePlacesResult
+                        places="state.places"
+                        googleMap="props.googleMap"
+                        markerInfoWindow="markerInfoWindow"
+                        centerMapToCurrentSearchResult.bind="centerMapToCurrentSearchResult"
+                        actionPageNext.bind="actionPageNext"
+                        searchHasNext="state.hasNextPage"
+                        actionAddPlace.bind="actionAddPlace"
+                        handleAfterAction.bind="handleAfterAction"
+                        addPlace.bind="addPlace"
+                        handleClickItemAdd.bind="handleClickItemAdd"
+                    />
                 </div>
             </div>
         </div>
@@ -28,8 +39,8 @@
     </t>
     <t t-name="base_google_places.PlaceCreationIndicator">
         <div id="custom-control-add-places-indicator" class="place-creation-indicator">
-            <div class="place_creation_indicator">
-                <button class="btn btn-sm btn-light mt2" disabled="1" type="button" title="Zoom in until the color changed to green. Green means you can add any location or place to your record simply by click the location">
+            <div class="place_creation_indicator" data-bs-toggle="tooltip" data-bs-placement="top" title="Zoom in until the color changed to green. Green means you can add any location or place to your record simply by click the location">
+                <button class="btn btn-sm btn-light mt2" disabled="1" type="button">
                     <i class="fa fa-lightbulb-o fa-2x"></i>
                 </button>
             </div>

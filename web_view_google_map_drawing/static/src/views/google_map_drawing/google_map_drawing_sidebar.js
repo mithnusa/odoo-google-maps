@@ -9,6 +9,8 @@ export class GoogleMapsDrawingSidebar extends GoogleMapSidebar {
         ...sidebarProps,
         createShape: Function,
     };
+    static recordItemTemplate = 'web_view_google_map_drawing.RecordItem';
+    static groupItemTemplate = 'web_view_google_map_drawing.GroupItem';
 
     async handleGroupCollapse(ev, groupKey) {
         const group = this.datas.find((data) => data.key === groupKey);

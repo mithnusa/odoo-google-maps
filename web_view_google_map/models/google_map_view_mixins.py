@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from odoo import api, models
-from odoo.osv import expression
+from odoo.fields import Domain
 from odoo.tools.safe_eval import safe_eval
 
 
@@ -14,11 +14,11 @@ class GoogleMapViewMixins(models.AbstractModel):
         if domain:
             if action.get('domain'):
                 if isinstance(action['domain'], str):
-                    action['domain'] = expression.AND(
+                    action['domain'] = Domain.AND(
                         [safe_eval(action['domain']), domain]
                     )
                 else:
-                    action['domain'] = expression.AND([action['domain'], domain])
+                    action['domain'] = Domain.AND([action['domain'], domain])
             else:
                 action['domain'] = domain
 

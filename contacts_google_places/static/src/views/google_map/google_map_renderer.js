@@ -10,8 +10,8 @@ export class GoogleMapPlacesContactsAvatarRenderer extends GoogleMapPlacesRender
     /**
      * @override
      */
-    _prepareInfoWindowValues(record, isMulti) {
-        let values = super._prepareInfoWindowValues(record, isMulti);
+    prepareInfoWindowValues(record, isMulti) {
+        let values = super.prepareInfoWindowValues(record, isMulti);
         values.avatarUrl = `/web/image/${record.resModel}/${record.resId}/${this.props.archInfo.sidebarAvatarField}`;
         return values;
     }

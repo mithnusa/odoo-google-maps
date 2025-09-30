@@ -22,63 +22,60 @@ export class GooglePlacesIdCharField extends Component {
         this.placeService = null;
         this.apiLoader = useGoogleMapsAPILoader(this.onLoad.bind(this), this.onError.bind(this));
     }
-    async onLoad() {
-        this.initialize();
-    }
+
+    onLoad() {}
 
     onError(error) {
         console.error(error);
     }
 
-    async initialize() {
-        if (!this.placeService) {
-            const { PlacesService } = await this.apiLoader.importLibrary('places');
-            this.placeService = new PlacesService(document.createElement('div'), {
-                fields: [
-                    'business_status',
-                    'formatted_address',
-                    'geometry',
-                    'icon',
-                    'name',
-                    'photos',
-                    'place_id',
-                    'plus_code',
-                    'type',
-                    'rating',
-                    'vicinity',
-                    'user_ratings_total',
-                    'url',
-                ],
-            });
-        }
-    }
     async onClick() {
         const value = this.props.record.data[this.props.name];
+
+        // Mak sure place ID is present
         if (!value) return;
+
         this._toogleAnimateButtonDisable();
-        this.placeService.getDetails({ placeId: value }, async (place, status) => {
+        try {
+            const { Place } = await this.apiLoader.importLibrary('places');
+            const place = new Place({ id: value });
+            await place.fetchFields({
+                fields: [
+                    'businessStatus',
+                    'formattedAddress',
+                    'addressComponents',
+                    'location',
+                    'displayName',
+                    'id',
+                    'plusCode',
+                    'types',
+                    'rating',
+                    'websiteURI',
+                ],
+            });
+
             this._toogleAnimateButtonEnable();
-            const { PlacesServiceStatus } = await this.apiLoader.importLibrary('places');
-            if (status === PlacesServiceStatus.OK) {
-                const values = await preparePlaces(
-                    this.env.model.orm,
-                    this.props.record.activeFields,
-                    place
-                );
-                const data = await this.env.model.orm.call(
-                    this.props.record.resModel,
-                    'action_google_place_update',
-                    [{ place, values }]
-                );
-                if (data) {
-                    await this.props.record.update(data);
-                }
-            } else {
-                this.notificationService.add(_t('Failed to fetch Google place detail'), {
-                    type: 'warning',
-                });
+
+            const values = await preparePlaces(
+                this.env.model.orm,
+                this.props.record.activeFields,
+                place
+            );
+            const data = await this.env.model.orm.call(
+                this.props.record.resModel,
+                'action_google_place_update',
+                [{ place, values }]
+            );
+            if (data) {
+                await this.props.record.update(data);
             }
-        });
+        } catch (error) {
+            console.error(error);
+            this._toogleAnimateButtonEnable();
+            this.notificationService.add(_t('Failed to fetch Google place detail'), {
+                type: 'warning',
+            });
+        }
     }
     _toogleAnimateButtonDisable() {
         this.button.el.classList.toggle('disabled', true);

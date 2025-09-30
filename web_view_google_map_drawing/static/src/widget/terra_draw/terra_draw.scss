@@ -1,0 +1,83 @@
+.o_field_google_map_terra_draw {
+    width: 100%;
+
+    .o_google_map_renderer {
+        min-height: 600px;
+        position: relative; // For complexity banner positioning
+
+        .o_complexity_banner {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            max-width: 600px;
+            opacity: 0.9;
+            
+            .alert {
+                margin-bottom: 0;
+                padding: 6x;
+                font-size: 12px;
+                border-radius: 4px;
+                
+                strong {
+                    font-weight: 600;
+                }
+            }
+            
+            @media (max-width: 768px) {
+                position: static;
+                max-width: none;
+                margin-bottom: 10px;
+                
+                .alert {
+                    font-size: 11px;
+                    padding: 6px 10px;
+                }
+            }
+        }
+
+        .o_google_map_view {
+            border: 1px solid $o-view-background-color;
+
+            .animate {
+                animation: notification 1.5s infinite;
+                color: white;
+            }
+
+            .gmnoprint {
+                button {
+                    padding: 10px !important
+                }
+            }
+
+            @keyframes notification {
+                5% {
+                    transform:rotate(10deg);
+                }
+                10% {
+                    transform:rotate(-10deg);
+                }
+                15% {
+                    transform:rotate(10deg);
+                }
+                20% {
+                    transform:rotate(0deg);
+                }
+            }
+
+            .map-measurement-label {
+                z-index: 999;
+                position: absolute;
+                background-color: rgba(255, 255, 255, 0.8);
+                padding: 2px 6px;
+                border-radius: 3px;
+                font-size: 12px;
+                font-weight: 500;
+                border: 1px solid #666;
+                white-space: nowrap;
+            }
+        }
+
+    }
+}

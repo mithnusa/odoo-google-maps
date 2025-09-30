@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <div t-name="web_view_google_map_drawing.GoogleMapTerraDrawField">
+        <InMapSearchPlaces googleMap="googleMap"/>
+        <div class="o_google_map_renderer">
+            <div class="o_google_map_view" id="o_google_map_view" t-ref="map"></div>
+            <Geolocate googleMap="googleMap" t-if="state.isMapReady"/>
+            
+            <!-- Complexity Analysis Banner -->
+            <div class="o_complexity_banner" t-if="state.isMapReady and state.complexityAnalysis">
+                <div class="alert alert-warning" t-if="state.renderingMode === 'deckgl'">
+                    <strong>Readonly Mode:</strong> 
+                    Complex features detected (<t t-esc="state.complexityAnalysis.totalFeatures"/> features, max <t t-esc="state.complexityAnalysis.maxVertices"/> vertices).
+                </div>
+            </div>
+            
+            <!-- Conditional Rendering: Terra Draw for simple features -->
+            <TerraDrawToolsUI 
+                dataGeoJson="geoJson" 
+                googleMap="googleMap" 
+                saveFeatures.bind="handleSave" 
+                record="props.record" 
+                t-if="state.isMapReady and state.renderingMode === 'terra-draw'"/>
+            
+            <!-- Conditional Rendering: DeckGL for complex features -->
+            <DeckGlEditor 
+                dataGeoJson="geoJson" 
+                googleMap="googleMap" 
+                saveFeatures.bind="handleSave" 
+                record="props.record" 
+                t-if="state.isMapReady and state.renderingMode === 'deckgl'"/>
+        </div>
+    </div>
+</templates>

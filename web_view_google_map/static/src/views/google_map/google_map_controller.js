@@ -20,6 +20,7 @@ import { useSetupAction } from "@web/search/action_hook";
 import { useViewButtons } from "@web/views/view_button/view_button_hook";
 import { session } from '@web/session';
 import { useSearchBarToggler } from '@web/search/search_bar/search_bar_toggler';
+import { SelectionBox } from "@web/views/view_components/selection_box";
 import { ViewButton } from '@web/views/view_button/view_button';
 import { executeButtonCallback } from '@web/views/view_button/view_button_hook';
 import { CogMenu } from '@web/search/cog_menu/cog_menu';
@@ -36,7 +37,7 @@ import {
 
 export class GoogleMapController extends Component {
     static template = 'web_view_google_map.GoogleMapView';
-    static components = { Layout, ActionMenus, SearchBar: GoogleMapSearchBar, ViewButton, CogMenu };
+    static components = { Layout, ActionMenus, SearchBar: GoogleMapSearchBar, ViewButton, CogMenu, SelectionBox };
     static props = {
         ...standardViewProps,
         Model: Function,
@@ -557,19 +558,22 @@ export class GoogleMapController extends Component {
                     target: 'new'
                 };
             }
-            if (action) {
-                this.model.action.doAction(action, {
-                    props: {
-                        onSave: async (record) => {
-                            await record.load();
-                            record.model.notify();
-                            this.model.action.doAction({
-                                type: 'ir.actions.act_window_close',
-                            });
-                        },
-                    },
-                });
+            if (!action || (action && action.views.length <= 0)) {
+                console.warn('No form view available for this record.');
+                return;
             }
+            this.model.action.doAction(action, {
+                props: {
+                    onSave: async (record) => {
+                        await record.load();
+                        record.model.notify();
+                        this.model.action.doAction({
+                            type: 'ir.actions.act_window_close',
+                        });
+                        await this.model.root.load();
+                    },
+                },
+            });
         }
     }
 

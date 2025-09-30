@@ -1,4 +1,10 @@
 .o_google_map_renderer {
+    $o-kanban-image-width: 64px !default;
+    $o-kanban-image-fill-width: 64px !default;
+    .o_kanban_ungrouped .o_kanban_record {
+        width: var(--KanbanRecord-width);
+        margin: calc(var(--KanbanRecord-margin-v) * 0.5) var(--KanbanRecord-margin-h);
+    }
     .o_kanban_record_has_image_fill {
         display: flex;
 

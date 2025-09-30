@@ -3,8 +3,8 @@
     <t t-name="contacts_google_map.RecordItemAvatar" t-inherit="web_view_google_map.RecordItem" t-inherit-mode="primary">
         <xpath expr="//div[hasclass('o_map_sidebar_record')]" position="before">
             <t t-set="avatar_url" t-value="this.getAvatarUrl(record)"/>
-            <div class="o_kanban_record_has_image_fill mx-1">
-                <img t-att-src="avatar_url" class="o_kanban_image_fill_left o_kanban_image_full o_image_40_cover" alt="Avatar"/>
+            <div class="d-inline-block position-relative opacity-trigger-hover">
+                <img loading="lazy" t-att-src="avatar_url" class="img img-fluid o_avatar rounded" alt="Avatar" height="24" width="24" style="max-height: 24px; max-width: 24px;"/>
             </div>
         </xpath>
     </t>

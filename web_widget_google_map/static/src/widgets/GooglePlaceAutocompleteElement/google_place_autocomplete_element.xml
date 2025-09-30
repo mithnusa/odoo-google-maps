@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates xml:space="preserve">
+    <t t-name="web_widget_google_map.GooglePlaceAutocompleteElement">
+        <t t-if="props.readonly">
+            <span t-esc="formattedValue" />
+        </t>
+        <t t-else="">
+            <div class="o_gplace_autocomplete_wrapper">
+                <!-- Main Input Group -->
+                <!-- <div class="input-group"> -->
+                <div class="d-flex align-items-stretch gap-1">
+                    <input
+                        class="o_input"
+                        t-att-class="{
+                            'o_field_placeholder': hasDynamicPlaceholder
+                        }"
+                        t-att-id="props.id"
+                        type="text"
+                        autocomplete="off"
+                        t-att-maxlength="maxLength > 0 and maxLength"
+                        t-att-placeholder="props.placeholder"
+                        t-ref="input"
+                        t-on-blur="onBlur"
+                    />
+                    <a t-attf-href="#{ '#' + widgetId }"
+                        class="btn btn-light align-content-center o_gplace_toggle"
+                        role="button"
+                        data-bs-toggle="collapse"
+                        aria-expanded="false"
+                        t-attf-aria-controls="#{ widgetId }">
+                        <div class="d-flex gap-1 align-items-center">
+                            <i class="fa fa-google"></i>
+                            <i class="fa fa-angle-down o_gplace_toggle_icon"></i>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- Collapsible Google Places Container -->
+                <div class="collapse" t-attf-id="#{ widgetId }">
+                    <div class="bg-100 ps-2 pe-2 pb-2 pt-1 mt-1 rounded-2 shadow-sm">
+                        <p class="small mb-1 fw-lighter font-sans-serif">
+                            <span>Search Google <t t-if="mappingMode === 'places'">Place</t><t t-elif="mappingMode === 'address'">Address</t></span>
+                            <t t-if="mappingUrl">
+                                <span class="ps-1 float-end cursor-pointer" style="font-size: 10px;" title="Open Mapping Configuration" t-on-click.prevent="openMappingConfig">
+                                    <t t-out="this.mappingCode"/>
+                                </span> 
+                            </t>
+                            <t t-else="">
+                                <span class="ps-1 float-end" style="font-size: 10px;" title="Missing mapping code or mapping mode"><i class="fa fa-exclamation-triangle"/></span>
+                            </t>
+                        </p>
+                        <div
+                            t-ref="divInput"
+                            t-attf-id="#{ props.id + '_google_places' }"
+                            class="o_google_places_element"
+                        ></div>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </t>
+
+</templates>

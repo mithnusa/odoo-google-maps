@@ -7,7 +7,6 @@ import { useBus } from '@web/core/utils/hooks';
 import { BaseGoogleMapComponent } from '@base_google_map/utils/base_google_map';
 import { GoogleMapGeolocate } from '@web_view_google_map/views/google_map/components/geolocate/geolocate';
 import { GoogleMapSearchPlaces } from '@web_view_google_map/views/google_map/components/search_places/search_places';
-import { LOADER_STATUS } from '@base_google_map/utils/loader_google_map';
 import { GoogleMapsDrawingSidebar } from './google_map_drawing_sidebar';
 import { MapUtils } from '../../utils/map_utils';
 import { ShapeFactory } from '../../utils/shape_factory';
@@ -51,10 +50,9 @@ export class GoogleMapDrawingRenderer extends BaseGoogleMapComponent {
         this._isSidebarAction = false;
 
         this.state = useState({
+            ...this.state,
             // flag to check if sidebar is folded or not
             sidebarIsFolded: false,
-            // flag to Google Maps API loader status
-            loaderStatus: LOADER_STATUS.NOT_LOADED,
             // flag to control when to update markers
             groupDatalistId: null,
         });
@@ -142,14 +140,6 @@ export class GoogleMapDrawingRenderer extends BaseGoogleMapComponent {
 
     /**
      * @override
-     * @returns {boolean} True if the map is loaded
-     */
-    isMapLoaded() {
-        return this.state.loaderStatus === LOADER_STATUS.LOADED && this.googleMap;
-    }
-
-    /**
-     * @override
      * @returns {HTMLElement|false} Map DOM element
      */
     mapDivElement() {
@@ -181,18 +171,15 @@ export class GoogleMapDrawingRenderer extends BaseGoogleMapComponent {
     /**
      * @override
      */
-    updateLoaderState(status) {
-        status = status || LOADER_STATUS.FAILED;
-        this.state.loaderStatus = status;
-    }
-
-    /**
-     * @override
-     */
-    async onMapReady() {
-        const { LatLngBounds } = await this.apiLoader.importLibrary('core');
-        this.shapesBounds = new LatLngBounds();
-        this.markerInfoWindow = new google.maps.InfoWindow({ disableAutoPan: true });
+    async onMapReady(map) {
+        await super.onMapReady(map);
+        if (!this.shapesBounds) {
+            const { LatLngBounds } = await this.apiLoader.importLibrary('core');
+            this.shapesBounds = new LatLngBounds();
+        }
+        if (!this.markerInfoWindow) {
+            this.markerInfoWindow = new google.maps.InfoWindow({ disableAutoPan: true });
+        }
         this.initializeDrawing();
     }
 
@@ -345,7 +332,7 @@ export class GoogleMapDrawingRenderer extends BaseGoogleMapComponent {
      * @returns {Array} Array of group or record data
      */
     getGroupsOrRecords() {
-        if (this.state.loaderStatus !== LOADER_STATUS.LOADED) return [];
+        if (!this.isMapLoaded()) return [];
         const { list } = this.props;
 
         const currentProps = {

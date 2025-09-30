@@ -42,13 +42,12 @@
                 <attribute name="options">{
                     'fillfields': {
                         'general': {
-                            'partner_name': 'name',
-                            'website': 'website',
-                            'phone': ['international_phone_number', 'formatted_phone_number'],
-                            'gplace_id': 'place_id',
-                            'gplace_formatted_address': 'formatted_address',
-                            'gplace_url': 'url',
-                            'gplace_vicinity': 'vicinity',
+                            'partner_name': 'displayName',
+                            'website': 'websiteURI',
+                            'phone': ['internationalPhoneNumber', 'nationalPhoneNumber'],
+                            'gplace_id': 'id',
+                            'gplace_formatted_address': 'formattedAddress',
+                            'gplace_url': 'googleMapsURI',
                         },
                         'address': {
                             'street': ['street_number', 'route'],
@@ -75,13 +74,12 @@
                 <attribute name="options">{
                     'fillfields': {
                         'general': {
-                            'partner_name': 'name',
-                            'website': 'website',
-                            'phone': ['international_phone_number', 'formatted_phone_number'],
-                            'gplace_id': 'place_id',
-                            'gplace_formatted_address': 'formatted_address',
-                            'gplace_url': 'url',
-                            'gplace_vicinity': 'vicinity',
+                            'partner_name': 'displayName',
+                            'website': 'websiteURI',
+                            'phone': ['internationalPhoneNumber', 'nationalPhoneNumber'],
+                            'gplace_id': 'id',
+                            'gplace_formatted_address': 'formattedAddress',
+                            'gplace_url': 'googleMapsURI',
                         },
                         'address': {
                             'street': ['street_number', 'route'],

@@ -1,4 +1,6 @@
-export function getPlaceProperties(ormService, record_fields, place) {
+const ODOO_COMMAND_REPLACE_ALL = 6;
+
+export async function getPlaceProperties(ormService, record_fields, place) {
     const placesFields = [
         'gplace_formatted_address',
         'gplace_id',
@@ -13,31 +15,29 @@ export function getPlaceProperties(ormService, record_fields, place) {
     const odooFields = Object.keys(record_fields);
     const validateFields = placesFields.filter((v) => odooFields.includes(v));
 
-    if (validateFields.length > 0) {
-        const res = {
-            gplace_formatted_address: place.formatted_address || '',
-            gplace_id: place.place_id || '',
-            gplace_vicinity: place.vicinity || '',
-            gplace_url: place.url || '',
-        };
-        if (place.opening_hours) {
-            res['gplace_opening_hours'] = place.opening_hours.weekday_text.join('\n');
-        }
-        if (place.plus_code) {
-            res['gplace_plus_code_global'] = place.plus_code.global_code;
-            res['gplace_plus_code_compound'] = place.plus_code.compound_code;
-        }
-        return new Promise(async (resolve) => {
-            if (place.types) {
-                const records = await ormService.searchRead(
-                    'google.places.type',
-                    [['code', 'in', place.types]],
-                    ['display_name']
-                );
-                res['gplace_type_ids'] = [[6, 0, records.map((v) => v.id)]];
-            }
-            resolve(res);
-        });
+    if (validateFields.length === 0) {
+        return {};
     }
-    return new Promise((resolve) => resolve({}));
+    const res = {
+        gplace_formatted_address: place.formatted_address || '',
+        gplace_id: place.place_id || '',
+        gplace_vicinity: place.vicinity || '',
+        gplace_url: place.url || '',
+    };
+    if (place.opening_hours) {
+        res['gplace_opening_hours'] = place.opening_hours.weekday_text.join('\n');
+    }
+    if (place.plus_code) {
+        res['gplace_plus_code_global'] = place.plus_code.global_code;
+        res['gplace_plus_code_compound'] = place.plus_code.compound_code;
+    }
+    if (place.types) {
+        const records = await ormService.searchRead(
+            'google.places.type',
+            [['code', 'in', place.types]],
+            ['display_name']
+        );
+        res['gplace_type_ids'] = [[ODOO_COMMAND_REPLACE_ALL, 0, records.map((v) => v.id)]];
+    }
+    return res;
 }

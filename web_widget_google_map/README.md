@@ -202,7 +202,7 @@ Example:
 ```
 
 Useful links:
-- [https://developers.google.com/maps/documentation/javascript/place-data-fields](https://developers.google.com/maps/documentation/javascript/place-data-fields)
+- [https://developers.google.com/maps/documentation/javascript/place-class-data-fields](https://developers.google.com/maps/documentation/javascript/place-class-data-fields)
 - [https://developers.google.com/maps/documentation/geocoding/requests-geocoding#Types](https://developers.google.com/maps/documentation/geocoding/requests-geocoding#Types)
 - [https://developers.google.com/maps/documentation/javascript/examples/geocoding-simple](https://developers.google.com/maps/documentation/javascript/examples/geocoding-simple)
 - [https://developers.google.com/maps/documentation/embed/get-started] (https://developers.google.com/maps/documentation/embed/get-started)

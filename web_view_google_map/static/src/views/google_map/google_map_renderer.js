@@ -15,6 +15,7 @@ import { useBus } from '@web/core/utils/hooks';
 
 import { BaseGoogleMapComponent } from '@base_google_map/utils/base_google_map';
 import { LOADER_STATUS } from '@base_google_map/utils/loader_google_map';
+import { KanbanRecord } from '@web/views/kanban/kanban_record';
 
 import { GoogleMapSidebar } from './google_map_sidebar';
 import { GoogleMapGeolocate } from './components/geolocate/geolocate';
@@ -25,29 +26,30 @@ import { invertColorDarken } from './utils';
  * Maximum zoom level to apply when fitting bounds
  * @type {number}
  */
-const MAX_AUTO_ZOOM = 17;
+export const MAX_AUTO_ZOOM = 17;
 
 /**
  * Number of records to process in each batch for better UI responsiveness
  * @type {number}
  */
-const MARKER_BATCH_SIZE = 100;
+export const MARKER_BATCH_SIZE = 100;
 
 /**
  * Number of other markers at the same position to show before displaying "Show more" button
  * @type {number}
  */
-const MAX_INLINE_MARKERS = 2;
+export const MAX_INLINE_MARKERS = 2;
 
 /**
  * Shift key code for keyboard events
  * @type {number}
  */
-const SHIFT_KEY_CODE = 16;
+export const SHIFT_KEY_CODE = 16;
 
 export class GoogleMapRenderer extends BaseGoogleMapComponent {
     static template = 'web_view_google_map.GoogleMapRenderer';
     static components = {
+        KanbanRecord,
         Geolocate: GoogleMapGeolocate,
         Sidebar: GoogleMapSidebar,
         InMapSearchPlaces: GoogleMapSearchPlaces,
@@ -74,6 +76,7 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
         this._isSidebarAction = false;
 
         this.state = useState({
+            ...this.state,
             sidebarIsFolded: false,
             // flag to Google Maps API loader status
             loaderStatus: LOADER_STATUS.NOT_LOADED,
@@ -90,11 +93,12 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
         this.cachedGroupsOrRecords = null;
 
         this.debounceToggleRecordSelection = debounce(this.toggleRecordSelection.bind(this), 500);
+        this.debounceRenderGeolocationData = debounce(this.renderGeolocationData.bind(this), 500);
 
         useEffect(
             () => {
                 if (this.state.groupDatalistId && this.isMapLoaded() && !this._isSidebarAction) {
-                    this.renderGeolocationData();
+                    this.debounceRenderGeolocationData();
                 }
                 this._isSidebarAction = false;
             },
@@ -107,7 +111,7 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
                 if (isGrouped) {
                     this.state.groupDatalistId = this._generateUniqueId();
                 } else {
-                    this.renderGeolocationData();
+                    this.debounceRenderGeolocationData();
                 }
                 this._isSidebarAction = false;
             }
@@ -153,26 +157,10 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
 
     /**
      * @override
-     * @returns {boolean} True if the map is loaded
-     */
-    isMapLoaded() {
-        return this.state.loaderStatus === LOADER_STATUS.LOADED && this.googleMap;
-    }
-
-    /**
-     * @override
      * @returns {HTMLElement|false} Map DOM element
      */
     mapDivElement() {
         return this.mapRef.el;
-    }
-
-    /**
-     * @override
-     */
-    updateLoaderState(status) {
-        status = status || LOADER_STATUS.FAILED;
-        this.state.loaderStatus = status;
     }
 
     /**
@@ -223,7 +211,7 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
      * @returns {Array} Array of group or record data
      */
     getGroupsOrRecords() {
-        if (this.state.loaderStatus !== LOADER_STATUS.LOADED) return [];
+        if (!this.isMapLoaded()) return [];
         const { list } = this.props;
 
         const currentProps = {
@@ -372,7 +360,7 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
      */
     async centerMapByGroup(groupRecords) {
         if (!this.isMapLoaded() || !Array.isArray(groupRecords)) return;
-        this.markerInfoWindow.close();
+        this.markerInfoWindow?.close();
         const { LatLngBounds } = await this.apiLoader.importLibrary('core');
         const bounds = new LatLngBounds();
         groupRecords.forEach((record) => {
@@ -392,7 +380,7 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
         if (!marker) return;
 
         const position = marker.position;
-        this.markerInfoWindow.close();
+        this.markerInfoWindow?.close();
         this.googleMap.panTo(position);
 
         google.maps.event.addListenerOnce(this.googleMap, 'idle', () => {
@@ -507,10 +495,15 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
     /**
      * @override
      */
-    async onMapReady() {
-        const { LatLngBounds } = await this.apiLoader.importLibrary('core');
-        this.googleMapBounds = new LatLngBounds();
-        this.markerInfoWindow = new google.maps.InfoWindow({ disableAutoPan: true });
+    async onMapReady(map) {
+        await super.onMapReady(map);
+        if (!this.googleMapBounds) {
+            const { LatLngBounds } = await this.apiLoader.importLibrary('core');
+            this.googleMapBounds = new LatLngBounds();
+        }
+        if (!this.markerInfoWindow) {
+            this.markerInfoWindow = new google.maps.InfoWindow({ disableAutoPan: true });       
+        }
     }
     /**
      * Apply visual changes to a selected marker
@@ -539,7 +532,7 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
      * @param {boolean} isMulti Whether this is one of multiple records
      * @returns {Object} Template values
      */
-    _prepareInfoWindowValues(record, isMulti = false) {
+    prepareInfoWindowValues(record, isMulti = false) {
         const { geolocation, other } = record.dataView;
 
         return {
@@ -1101,27 +1094,10 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
      * @returns {string} HTML content
      */
     _generateInfoWindowHtml(record, isMulti = false) {
-        const values = this._prepareInfoWindowValues(record, isMulti);
+        const values = this.prepareInfoWindowValues(record, isMulti);
         return renderToString(this.infoWindowTemplate, values);
     }
 
-    /**
-     * Prepare values for info window template
-     * @private
-     * @param {Object} record Record data
-     * @param {boolean} isMulti Whether this is one of multiple records
-     * @returns {Object} Template values
-     */
-    _prepareInfoWindowValues(record, isMulti = false) {
-        const { geolocation, other } = record.dataView;
-
-        return {
-            title: other.title || '',
-            destination: geolocation ? `${geolocation.lat},${geolocation.lng}` : '',
-            subTitle: other.subTitle || '',
-            isMulti,
-        };
-    }
 
     /**
      * Handle "Show more" button click

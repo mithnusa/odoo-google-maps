@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="web_view_google_map_drawing.GoogleMapView.Buttons" t-inherit="web_view_google_map.GoogleMapView.Buttons" t-inherit-mode="primary">
+        <xpath expr="//button[@t-on-click='centerMap']" position="after">
+            <button type="button" class="btn btn-outline-primary o-google_map-button-draw-shapes" t-on-click="openGeoJSONUploadWizard" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Import GeoJSON file">
+                <i class="fa fa-upload"/>
+                <span class="ps-1">GeoJSON</span>
+            </button>
+        </xpath>
+    </t>
+</templates>

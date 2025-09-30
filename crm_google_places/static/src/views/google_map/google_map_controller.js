@@ -6,6 +6,8 @@ export class GoogleMapPlacesControllerCRM extends GoogleMapPlacesController {
             expectedRevenue: 'expected_revenue',
             probability: 'probability',
             dateDeadline: 'date_deadline',
+            partnerId: 'partner_id',
+            userId: 'user_id',
         });
     }
 }

@@ -19,7 +19,7 @@ Partner Area
     'data': [
         'security/ir.model.access.csv',
         'views/res_partner_area.xml',
-        'views/res_partner.xml',
+        # 'views/res_partner.xml',
     ],
     'demo': [],
     'installable': True,

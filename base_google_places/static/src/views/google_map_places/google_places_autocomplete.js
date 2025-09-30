@@ -128,7 +128,7 @@ export class GooglePlacesAutocompleteSidebar extends Component {
                 this.markerInfoWindow = new google.maps.InfoWindow({ content: '' });
             }
 
-            this.addHandleMapEventListener();
+            // this.addHandleMapEventListener();
         }
     }
 
@@ -177,23 +177,20 @@ export class GooglePlacesAutocompleteSidebar extends Component {
         }
     }
 
-    _handleGetPlaceDetails(event) {
-        const placesService = this.env.getPlacesService();
-        if (!placesService) {
-            console.error('Place service not available');
-            return;
-        }
-        placesService.getDetails({ placeId: event.placeId }, (place, status) => {
+    async _handleGetPlaceDetails(event) {
+        try {
+            const { Place } = await this.props.apiLoader.importLibrary("places");
+            const place = new Place({ id: event.placeId });
+            await place.fetchFields({fields: this.env.placeFields});
+            this.addPlace(place);
+        } catch (error) {
+            console.error('Error fetching place details:', error);
+            this.notificationService.add(_t('Failed to fetch place detail.'), {
+                type: 'danger',
+            });
+        } finally {
             this.ui.unblock();
-            if (status === google.maps.places.PlacesServiceStatus.OK) {
-                this.addPlace(place);
-            } else {
-                console.warn(status);
-                this.notificationService.add(_t('Failed to fetch place detail.'), {
-                    type: 'warning',
-                });
-            }
-        });
+        }
     }
 
     _handlePlaceReverseGeocoding(event) {
@@ -262,42 +259,84 @@ export class GooglePlacesAutocompleteSidebar extends Component {
     /**
      * Nearby search, search within 3km radius of the current map center
      */
-    actionUpdateSearch() {
+    async actionUpdateSearch() {
+        if (!this.props.googleMap) return;
+
+        console.log('Action update search triggered');
+        console.log(this);
+        
         const searchInput = this.searchBoxRef.el.querySelector('input#searchinputbox');
         const searchTerms = searchInput.value.trim();
-        const placesService = this.env.getPlacesService();
-        if (!placesService) {
-            console.error('Places service not available');
-            return;
-        }
+        // const placesService = this.env.getPlacesService();
+        // if (!placesService) {
+        //     console.error('Places service not available');
+        //     return;
+        // }
 
         if (searchTerms) {
+            // Get the current map center
+            const mapCenter = this.props.googleMap.getCenter();
+            const { Place, SearchNearbyRankPreference } = await this.props.apiLoader.importLibrary("places");
+
+            console.log( { Place, SearchNearbyRankPreference } );
+            
             const request = {
-                keyword: searchTerms,
-                bounds: this.props.googleMap.getBounds(),
-                radius: 3000, // within radius 3 km
+                // required parameters
+                fields: this.env.placeFields,
+                locationRestriction: {
+                    center: {
+                        lat: mapCenter.lat(),
+                        lng: mapCenter.lng()
+                    },
+                    radius: 3000,
+                },
+                // optional parameters
+                // includedPrimaryTypes: ['restaurant'],
+                maxResultCount: 10,
+                rankPreference: SearchNearbyRankPreference.POPULARITY,
+                // language: 'en-US',
+                // region: 'us',
             };
 
-            placesService.nearbySearch(request, (places, status, pagination) => {
-                if (status !== 'OK' || !places) {
-                    this.notificationService.add(
-                        _t('Search failed. No places found in the current search area'),
-                        { type: 'warning' }
-                    );
-                    return;
-                }
+            console.log('Performing nearby search with request:', request);
 
-                this.placesAutocomplete.set('places', places);
-                this.state.hasNextPage = pagination.hasNextPage;
+            const { places } = await Place.searchNearby(request);
 
-                if (pagination && pagination.hasNextPage) {
-                    this.funcGetNextPage = () => {
-                        pagination.nextPage();
-                    };
-                } else {
-                    this.funcGetNextPage = null;
-                }
-            });
+            if (!places || places.length === 0) {
+                this.notificationService.add(_t('Search failed. No places found in the current search area'), { type: 'warning' });
+                return;
+            }
+
+            console.log('Nearby search results:', places);
+
+            this.placesAutocomplete.set('places', places);
+
+            this.state.places = places;
+
+
+
+
+
+            // placesService.nearbySearch(request, (places, status, pagination) => {
+            //     if (status !== 'OK' || !places) {
+            //         this.notificationService.add(
+            //             _t('Search failed. No places found in the current search area'),
+            //             { type: 'warning' }
+            //         );
+            //         return;
+            //     }
+
+            //     this.placesAutocomplete.set('places', places);
+            //     this.state.hasNextPage = pagination.hasNextPage;
+
+            //     if (pagination && pagination.hasNextPage) {
+            //         this.funcGetNextPage = () => {
+            //             pagination.nextPage();
+            //         };
+            //     } else {
+            //         this.funcGetNextPage = null;
+            //     }
+            // });
         }
     }
 
@@ -379,7 +418,8 @@ export class GooglePlacesAutocompleteSidebar extends Component {
     }
 
     handleOnPlacesChanged() {
-        const places = this.placesAutocomplete.getPlaces();
+        // const places = this.placesAutocomplete.getPlaces();
+        const places = this.state.places;
         // reset the previous current search result
         this._cleanPlacesResult();
         if (places && this.props.googleMap) {
@@ -524,7 +564,7 @@ export class GooglePlacesAutocompleteSidebar extends Component {
     async addPlace(place) {
         const isExists = await this.env.model.orm.searchRead(
             this.env.model.env.searchModel.resModel,
-            [['gplace_id', '=', place.place_id]],
+            [['gplace_id', '=', place.id]],
             ['display_name'],
             { limit: 1 }
         );
@@ -569,23 +609,22 @@ export class GooglePlacesAutocompleteSidebar extends Component {
      * onClick event handler
      * @param {Object} place
      */
-    handleClickItemAdd(place) {
-        const placesService = this.env.getPlacesService();
-        if (!placesService) {
-            console.error('Place service not available');
-            return;
-        }
-        if (place) {
-            placesService.getDetails({ placeId: place.place_id }, async (place, status) => {
-                if (status === google.maps.places.PlacesServiceStatus.OK) {
-                    await this.addPlace(place);
-                } else {
-                    console.warn(status);
-                    this.notificationService.add(_t('Failed to fetch place detail'), {
-                        type: 'warning',
-                    });
-                }
+    async handleClickItemAdd(place) {
+        console.log('Fetching place details for placeId:', {place, self: this});
+        try {
+            const { Place } = await this.props.apiLoader.importLibrary("places");
+            const placeInfo = new Place({ id: place.place_id });
+            await placeInfo.fetchFields({ fields: this.env.placeFields });
+
+            this.ui.unblock();
+            this.addPlace(placeInfo);
+        } catch (error) {
+            console.error('Error fetching place details:', error);
+            this.notificationService.add(_t('Failed to fetch place detail.'), {
+                type: 'danger',
             });
+        } finally {
+            this.ui.unblock();
         }
     }
 

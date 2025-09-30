@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="web_view_google_map_drawing.TerraToolsUI">
+        <!-- Main Toolbar -->
+        <div class="o_terra_tools_ui" t-ref="toolUiRef">
+            <div class="o_terra_toolbar">
+                <button id="point-mode" class="mode-button" title="Point" t-on-click.prevent="onClickSetActiveMode">
+                    <img src="/web_view_google_map_drawing/static/img/point.svg" alt="Point" draggable="false"/>
+                </button>
+                <button id="linestring-mode" class="mode-button" title="Linestring" t-on-click.prevent="onClickSetActiveMode">
+                    <img src="/web_view_google_map_drawing/static/img/polyline.svg" alt="Linestring" draggable="false"/>
+                </button>
+                <button id="polygon-mode" class="mode-button" title="Polygon" t-on-click.prevent="onClickSetActiveMode">
+                    <img src="/web_view_google_map_drawing/static/img/polygon.png" alt="Polygon" draggable="false"/>
+                </button>
+                <button id="rectangle-mode" class="mode-button" title="Rectangle" t-on-click.prevent="onClickSetActiveMode">
+                    <img src="/web_view_google_map_drawing/static/img/rectangle.svg" alt="Rectangle" draggable="false"/>
+                </button>
+                <button id="circle-mode" class="mode-button" title="Circle" t-on-click.prevent="onClickSetActiveMode">
+                    <img src="/web_view_google_map_drawing/static/img/circle.svg" alt="Circle" draggable="false"/>
+                </button>
+                <button id="freehand-mode" class="mode-button" title="Freehand" t-on-click.prevent="onClickSetActiveMode">
+                    <img src="/web_view_google_map_drawing/static/img/freehand.svg" alt="Freehand" draggable="false"/>
+                </button>
+                <button id="select-mode" class="mode-button" title="Select" t-on-click.prevent="onClickSetActiveMode">
+                    <img src="/web_view_google_map_drawing/static/img/select.svg" alt="Select" draggable="false"/>
+                </button>
+                <button id="resize-button" class="mode-button" title="Resize" t-on-click.prevent="onClickSetActiveMode">
+                    <img src="/web_view_google_map_drawing/static/img/resize.svg" alt="Resize" draggable="false"/>
+                </button>
+                <button id="clear-mode" class="mode-button" title="Clear" t-on-click.prevent="onClickActionButton">
+                    <img src="/web_view_google_map_drawing/static/img/delete.svg" alt="Clear" draggable="false"/>
+                </button>
+                <button id="delete-selected-button" class="mode-button" title="Clear last or Selected" t-on-click.prevent="onClickActionButton">
+                    <img src="/web_view_google_map_drawing/static/img/delete-selected.svg" alt="Delete Selected" draggable="false"/>
+                </button>
+                <button id="undo-button" class="mode-button" title="Undo" t-on-click.prevent="onClickActionButton">
+                    <img src="/web_view_google_map_drawing/static/img/undo.svg" alt="Undo" draggable="false"/>
+                </button>
+                <button id="redo-button" class="mode-button" title="Redo" t-on-click.prevent="onClickActionButton">
+                    <img src="/web_view_google_map_drawing/static/img/redo.svg" alt="Redo" draggable="false"/>
+                </button>
+                <button id="measurement-unit-button" class="mode-button" t-att-title="state.measurementUnit === 'metric' ? 'Switch to Imperial' : 'Switch to Metric'" t-on-click.prevent="onClickActionButton">
+                    <span t-if="state.measurementUnit === 'metric'" class="fa fa-info" style="font-size: 16px;"></span>
+                    <span t-else="" class="fa fa-globe" style="font-size: 16px;"></span>
+                </button>
+                <button id="measurement-toggle-button" class="mode-button" t-att-title="state.showMeasurements ? 'Hide Measurements' : 'Show Measurements'" t-on-click.prevent="onClickActionButton">
+                    <span t-if="state.showMeasurements" class="fa fa-eye" style="font-size: 16px;"></span>
+                    <span t-else="" class="fa fa-eye-slash" style="font-size: 16px;"></span>
+                </button>
+            </div>
+        
+            <!-- Measurement Display Panel - Positioned independently -->
+            <div t-if="state.showMeasurements &amp;&amp; !state.selectedFeatureId" class="o_measurement_panel_overlay">
+                <div class="o_measurement_panel">
+                    <div class="o_measurement_header">
+                        <span class="fa fa-ruler" style="margin-right: 5px;"></span>
+                        <span>Measurements (<t t-esc="state.measurementUnit === 'metric' ? 'Metric' : 'Imperial'"/>)</span>
+                        <button class="o_measurement_close" t-on-click.prevent="() => this.toggleMeasurementDisplay()" title="Close measurements">
+                            <span class="fa fa-times"></span>
+                        </button>
+                    </div>
+                    
+                    <!-- Selected Feature Measurement -->
+                    <div t-if="state.selectedFeatureId" class="o_measurement_selected">
+                        <t t-set="selectedMeasurement" t-value="getSelectedFeatureMeasurement()"/>
+                        <div t-if="selectedMeasurement" class="o_measurement_item selected">
+                            <div class="o_measurement_type">
+                                <span class="fa fa-crosshairs" style="margin-right: 3px;"></span>
+                                <strong t-esc="selectedMeasurement.type"/>
+                            </div>
+                            <div t-if="selectedMeasurement.partName" class="o_measurement_detail">
+                                <small><strong t-esc="selectedMeasurement.partName"/></small>
+                            </div>
+                            <div t-if="selectedMeasurement.partInfo" class="o_measurement_detail">
+                                <small><t t-esc="selectedMeasurement.partInfo"/></small>
+                            </div>
+                            <div t-if="selectedMeasurement.coordinates" class="o_measurement_detail">
+                                <small>Coordinates: <t t-esc="selectedMeasurement.coordinates"/></small>
+                            </div>
+                            <div t-if="selectedMeasurement.length" class="o_measurement_detail">
+                                <small>Length: <t t-esc="selectedMeasurement.length"/></small>
+                            </div>
+                            <div t-if="selectedMeasurement.area" class="o_measurement_detail">
+                                <small>Area: <t t-esc="selectedMeasurement.area"/></small>
+                            </div>
+                            <div t-if="selectedMeasurement.perimeter" class="o_measurement_detail">
+                                <small>Perimeter: <t t-esc="selectedMeasurement.perimeter"/></small>
+                            </div>
+                            <div t-if="selectedMeasurement.radius" class="o_measurement_detail">
+                                <small>Radius: <t t-esc="selectedMeasurement.radius"/></small>
+                            </div>
+                            <div t-if="selectedMeasurement.circumference" class="o_measurement_detail">
+                                <small>Circumference: <t t-esc="selectedMeasurement.circumference"/></small>
+                            </div>
+                            <div t-if="selectedMeasurement.points" class="o_measurement_detail">
+                                <small>Points: <t t-esc="selectedMeasurement.points"/></small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- All Features Summary -->
+                    <div t-if="!state.selectedFeatureId" class="o_measurement_all">
+                        <t t-set="allMeasurements" t-value="getAllFeatureMeasurements()"/>
+                        <div t-if="allMeasurements.length === 0" class="o_measurement_item">
+                            <small class="text-muted">No features to measure</small>
+                        </div>
+                        <div t-else="" class="o_measurement_summary">
+                            <div class="o_measurement_count">
+                                <small><strong t-esc="allMeasurements.length"/> feature(s)</small>
+                            </div>
+                            <div t-foreach="allMeasurements.slice(0, 3)" t-as="measurement" t-key="measurement.id" class="o_measurement_item">
+                                <div class="o_measurement_type">
+                                    <small><t t-esc="measurement.index"/>. <t t-esc="measurement.type"/></small>
+                                </div>
+                                <div t-if="measurement.partName" class="o_measurement_detail">
+                                    <small><t t-esc="measurement.partName"/></small>
+                                </div>
+                                <div t-if="measurement.length" class="o_measurement_detail">
+                                    <small>Length: <t t-esc="measurement.length"/></small>
+                                </div>
+                                <div t-if="measurement.area" class="o_measurement_detail">
+                                    <small>Area: <t t-esc="measurement.area"/></small>
+                                </div>
+                            </div>
+                            <div t-if="allMeasurements.length > 3" class="o_measurement_more">
+                                <small class="text-muted">... and <t t-esc="allMeasurements.length - 3"/> more</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </t>
+</templates>

@@ -10,4 +10,4 @@ class GooglePlacesType(models.Model):
     code = fields.Char(string='Code', required=True)
     active = fields.Boolean(default=True)
 
-    _sql_constraints = [('type_unique', 'UNIQUE(code, name)', 'Name must be unique!')]
+    _name_code_unique = models.Constraint('UNIQUE(code, name)', 'Name must be unique!')

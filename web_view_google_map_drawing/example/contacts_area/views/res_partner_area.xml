@@ -37,9 +37,9 @@
                         </group>
                     </group>
                     <field name="gshape_description" placeholder="Description"/>
-                    <separator string="Polygon Lines" invisible="gshape_type != 'polygon'"/>
                     <!-- <field nolabel="1" class="oe_inline" name="gshape_polygon_lines" invisible="gshape_type != 'polygon'"/> -->
-                    <field name="gshape_paths" widget="google_map_drawing"/>
+                    <field name="gshape_geojson" widget="google_map_terra_draw"/>
+                    <!-- <field name="gshape_geojson" widget="deckgl_editor"/> -->
                 </sheet>
             </form>
         </field>
@@ -65,14 +65,11 @@
             <google_map js_class="google_map_drawing" string="Areas" sidebar_title="gshape_name" sidebar_subtitle="partner_id">
                 <field name="partner_id"/>
                 <field name="gshape_name"/>
-                <field name="gshape_description"/>
                 <field name="gshape_type"/>
-                <field name="gshape_radius"/>
                 <field name="gshape_area"/>
-                <field name="gshape_paths"/>
-                <field name="gshape_height"/>
-                <field name="gshape_width"/>
-                <field name="gshape_polygon_lines"/>
+                <field name="gshape_radius"/>
+                <field name="gshape_description"/>
+                <field name="gshape_geojson"/>
             </google_map>
         </field>
     </record>

@@ -64,6 +64,7 @@ export const AUTOCOMPLETE_TYPES = ['geocode', 'address', 'establishment', 'regio
  * @param {*} value
  */
 export function fetchValues(ormService, model, field_name, value) {
+    console.log('fetchValues called with:', { model, field_name, value });
     if (model && value) {
         return new Promise(async (resolve) => {
             const data = await ormService.searchRead(
@@ -72,6 +73,7 @@ export function fetchValues(ormService, model, field_name, value) {
                 ['display_name'],
                 { limit: 1 }
             );
+            console.log('fetchValues result:', data);
             resolve({
                 [field_name]: data.length === 1 ? data[0] : false,
             });

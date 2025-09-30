@@ -1,0 +1,53 @@
+<?xml version ="1.0" encoding="UTF-8"?>
+<templates>
+    <t t-name="contacts_gautocomplete_places.PartnerAutoCompleteCharFieldWithGooglePlace" t-inherit="partner_autocomplete.PartnerAutoCompleteCharField" t-inherit-mode="primary">
+        <xpath expr="//PartnerAutoComplete" position="replace">
+            <div class="d-flex align-items-stretch gap-1">
+                <PartnerAutoComplete
+                    value="props.record.data[props.name] || ''"
+                    sources="sources"
+                    input="inputRef"
+                    placeholder="props.placeholder || ''"
+                >
+                    <t t-set-slot="partnerOption" t-slot-scope="partnerOptionScope">
+                        <t t-call="partner_autocomplete.DropdownOption">
+                            <t t-set="option" t-value="partnerOptionScope"/>
+                        </t>
+                    </t>
+                </PartnerAutoComplete>
+                <a t-attf-href="#{ '#' + widgetId }"
+                    class="btn btn-light align-content-center o_gplace_toggle"
+                    role="button"
+                    data-bs-toggle="collapse"
+                    aria-expanded="false"
+                    t-attf-aria-controls="#{ widgetId }">
+                    <div class="d-flex gap-1 align-items-center">
+                        <i class="fa fa-google"></i>
+                        <i class="fa fa-angle-down o_gplace_toggle_icon"></i>
+                    </div>
+                </a>
+            </div>
+            <!-- Collapsible Google Places Container -->
+                <div class="collapse" t-attf-id="#{ widgetId }">
+                <div class="bg-100 ps-2 pe-2 pb-2 pt-1 mt-1 rounded-2 shadow-sm">
+                    <p class="small mb-1 fw-lighter font-sans-serif">
+                        <span>Search Google <t t-if="mappingMode === 'places'">Place</t><t t-elif="mappingMode === 'address'">Address</t></span>
+                        <t t-if="mappingUrl">
+                            <span class="ps-1 float-end cursor-pointer" style="font-size: 10px;" title="Open Mapping Configuration" t-on-click.prevent="openMappingConfig">
+                                <t t-out="this.mappingCode"/>
+                            </span> 
+                        </t>
+                        <t t-else="">
+                            <span class="ps-1 float-end" style="font-size: 10px;" title="Missing mapping code or mapping mode"><i class="fa fa-exclamation-triangle"/></span>
+                        </t>
+                    </p>
+                    <div
+                        t-ref="divInput"
+                        t-attf-id="#{ props.id + '_google_places' }"
+                        class="o_google_places_element"
+                    ></div>
+                </div>
+            </div>
+        </xpath>
+    </t>
+</templates>

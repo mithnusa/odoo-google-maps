@@ -5,7 +5,7 @@ from odoo.tools.safe_eval import safe_eval
 
 
 class Main(http.Controller):
-    @http.route('/web/base_google_map/settings', type='json', auth='user')
+    @http.route('/web/base_google_map/settings', type='jsonrpc', auth='user')
     def map_setting(self):
         IrParam = request.env['ir.config_parameter'].sudo()
 

@@ -76,7 +76,7 @@ export class BaseGoogleAutocomplete extends Component {
     }
 
     getGoogleFieldsRestriction() {
-        return ['address_components', 'name', 'geometry', 'formatted_address'];
+        return ['addressComponents', 'displayName', 'location', 'formattedAddress'];
     }
 
     async initGplacesAutocomplete() {

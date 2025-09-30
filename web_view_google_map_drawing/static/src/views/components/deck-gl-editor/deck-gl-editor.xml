@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <div t-name="web_view_google_map_drawing.DeckGlEditor" class="deck-gl-editor">
+        <span t-ref="editor"></span>
+    </div>
+</templates>

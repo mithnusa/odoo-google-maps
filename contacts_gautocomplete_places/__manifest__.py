@@ -13,8 +13,15 @@
     'support': 'yopiangi@gmail.com',
     'category': 'Extra Tools',
     'version': '1.0.0',
-    'depends': ['web_widget_google_map'],
-    'data': ['views/res_partner.xml'],
+    'depends': ['partner_autocomplete', 'web_widget_google_map'],
+    'data': [
+        # 'views/res_partner.xml'
+    ],
+    'assets': {
+        'web.assets_backend': [
+            'contacts_gautocomplete_places/static/src/widgets/partner_autocomplete_with_google_place/*',
+        ],
+    },
     'demo': [],
     'installable': True,
     'application': False,

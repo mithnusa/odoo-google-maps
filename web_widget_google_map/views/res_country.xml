@@ -8,6 +8,7 @@
             <xpath expr="//group[@name='advanced_address_formatting']" position="after">
                 <group name="google_address_format" string="Google Address Format" groups="base.group_no_one">
                     <group>
+                        <field name="google_street_format" widget="radio" options="{'horizontal': true}"/>
                         <field name="google_street"/>
                         <field name="google_street2"/>
                         <field name="google_city"/>

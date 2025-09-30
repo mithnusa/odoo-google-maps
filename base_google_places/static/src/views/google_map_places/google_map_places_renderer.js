@@ -29,6 +29,7 @@ export class GoogleMapPlacesRenderer extends GoogleMapRenderer {
             openRecord: this.props.openRecord.bind(this),
             createNewRecordFromPlaces: this.props.createNewRecordFromPlaces.bind(this),
             showRecord: this.props.showRecord.bind(this),
+            placeFields: this.placeFields,
         });
     }
 
@@ -41,29 +42,58 @@ export class GoogleMapPlacesRenderer extends GoogleMapRenderer {
         this.state.sidebarPlacesIsFolded = !this.state.sidebarPlacesIsFolded;
     }
 
+    get placeFields() {
+        // return [
+        //     'name',
+        //     'geometry',
+        //     'formatted_address',
+        //     'place_id',
+        //     'icon',
+        //     'plus_code',
+        //     'type',
+        //     'vicinity',
+        //     'user_ratings_total',
+        //     'url',
+        //     'business_status',
+        // ]
+        return [
+            'businessStatus',
+            'formattedAddress',
+            'addressComponents',
+            'location',
+            'displayName',
+            'id',
+            'plusCode',
+            'types',
+            'rating',
+            'websiteURI',
+            'userRatingCount',
+        ]
+    }
+
     /**
      * @override
      */
-    async onMapReady() {
-        await super.onMapReady();
-        if (!this.placesService) {
-            const { PlacesService } = await this.apiLoader.importLibrary("places");
-            this.placesService = new PlacesService(this.googleMap, {
-                fields: [
-                    'name',
-                    'geometry',
-                    'formatted_address',
-                    'photos',
-                    'place_id',
-                    'icon',
-                    'plus_code',
-                    'type',
-                    'vicinity',
-                    'user_ratings_total',
-                    'url',
-                    'business_status',
-                ],
-            });
-        }
-    }
+    // async onMapReady() {
+    //     await super.onMapReady();
+    //     if (!this.placesService) {
+    //         const { Place } = await this.apiLoader.importLibrary("places");
+    //         // this.placesService = new PlacesService(this.googleMap, {
+    //         //     fields: [
+    //         //         'name',
+    //         //         'geometry',
+    //         //         'formatted_address',
+    //         //         'photos',
+    //         //         'place_id',
+    //         //         'icon',
+    //         //         'plus_code',
+    //         //         'type',
+    //         //         'vicinity',
+    //         //         'user_ratings_total',
+    //         //         'url',
+    //         //         'business_status',
+    //         //     ],
+    //         // });
+    //     }
+    // }
 }

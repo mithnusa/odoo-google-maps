@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <div t-name="web_view_google_map_drawing.DeckGlField">
+        <InMapSearchPlaces googleMap="googleMap"/>
+        <div class="o_google_map_renderer">
+            <div class="o_google_map_view" id="o_google_map_view" t-ref="map"></div>
+            <Geolocate googleMap="googleMap" t-if="state.isMapReady"/>
+            <DeckGlEditor googleMap="googleMap" dataGeoJson="geoJson" saveFeatures.bind="handleSave" record="props.record" t-if="state.isMapReady"/>
+        </div>
+    </div>
+</templates>
