@@ -213,7 +213,14 @@ export class BaseGoogleAutocomplete extends Component {
     }
 
     _update(values) {
-        this.props.record.update(values);
+        const filterChanges = {};
+        // Only update the fields that exist in the record (defined in the view)
+        for (const key in values) {
+            if (this.props.record.fields.hasOwnProperty(key)) {
+                filterChanges[key] = values[key];
+            }
+        }
+        this.props.record.update(filterChanges);
     }
 
     get shouldTrim() {
