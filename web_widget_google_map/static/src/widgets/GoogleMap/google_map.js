@@ -2,11 +2,10 @@ import { registry } from '@web/core/registry';
 import { _t } from '@web/core/l10n/translation';
 import { useService } from '@web/core/utils/hooks';
 import { standardWidgetProps } from '@web/views/widgets/standard_widget_props';
-import { evaluateExpr, evaluateBooleanExpr } from "@web/core/py_js/py";
-
 import { rpc } from '@web/core/network/rpc';
 import { Component, onWillStart } from '@odoo/owl';
-import { WarningMissingGoogleMapFormViewDialog } from '@web_view_google_map/views/google_map_form/warning_missing_view_dialog/warning_missing_view_dialog';
+
+import { WarningMissingGoogleMapFormViewDialog } from '@base_google_map/utils/components/warning_missing_view_dialog/warning_missing_view_dialog';
 
 export class GoogleMapWidget extends Component {
     static template = 'web_widget_google_map.GoogleMapWidget';

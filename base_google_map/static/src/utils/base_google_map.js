@@ -4,8 +4,8 @@ import { useService } from '@web/core/utils/hooks';
 import { LOADER_STATUS, LOADER_ERROR_TYPES, useGoogleMapsAPILoader } from './loader_google_map';
 
 // Constants for validation and configuration
-const MAX_ZOOM_LEVEL = 21;
-const MIN_ZOOM_LEVEL = 0;
+const MAX_ZOOM_LEVEL = 23;
+const MIN_ZOOM_LEVEL = 1;
 const VALID_LAT_RANGE = [-90, 90];
 const VALID_LNG_RANGE = [-180, 180];
 const RESIZE_DEBOUNCE_DELAY = 250;
@@ -45,7 +45,7 @@ export class BaseGoogleMapComponent extends Component {
 
         // Lifecycle hooks
         onMounted(() => this._onMounted());
-        onWillDestroy(() => this._onWillDestroy());
+        onWillDestroy(() => this._cleanUp());
 
         useEffect(
             (mapEl, loaderStatus) => {
@@ -111,7 +111,7 @@ export class BaseGoogleMapComponent extends Component {
 
         // Update ARIA attributes for accessibility
         this._updateA11yAttributes(status);
-
+        // Notify child classes of state change
         this.handleOnStateChange(values);
     }
 
@@ -186,16 +186,16 @@ export class BaseGoogleMapComponent extends Component {
             const googleMap = new Map(mapEl, mapOptions);
             this.googleMap = googleMap;
 
-            // Update loader state
-            this.updateLoaderState();
-
+            
             // Setup resize observer for responsive behavior
             this._setupResizeObserver(mapEl);
-
+            // Setup accessibility features
             this._setupAccessibility(mapEl);
 
             // Trigger map ready callback
             await this.onMapReady(googleMap);
+            // Update loader state
+            this.updateLoaderState();
         } catch (error) {
             this.onGoogleMapsApiError(error);
         }
@@ -234,7 +234,6 @@ export class BaseGoogleMapComponent extends Component {
         const shouldShowRetry = this._shouldShowRetryOption(errorType);
 
         this.notificationService.add(this.errorMessage, {
-            title: _t('Google Maps Error'),
             type: 'danger',
             sticky: true,
             buttons: shouldShowRetry
@@ -258,7 +257,7 @@ export class BaseGoogleMapComponent extends Component {
      * @param {Object} options - Map options
      * @returns {Object} Final validated map options
      */
-    _prepareMapOptions(options) {
+    _prepareMapOptions(options = {}) {
         // Validate and sanitize coordinates
         const center = this._validateCoordinates(options.center);
         const zoom = this._validateZoom(options.zoom);
@@ -271,21 +270,50 @@ export class BaseGoogleMapComponent extends Component {
             keyboardShortcuts: true,
             // Accessibility
             clickableIcons: true,
-            // Security
-            restriction: this._getMapRestrictions(),
         };
 
-        // Allow child classes to override via getMapOptions method
-        const childOptions = typeof this.getMapOptions === 'function' ? this.getMapOptions() : {};
-
-        return {
+        const values = {
             ...defaultOptions,
             ...options,
-            ...childOptions,
             // Ensure validated values are not overridden
             center,
             zoom,
         };
+
+        // Gesture handling
+        const gestureHandling = this.props.archInfo?.gestureHandling || 'auto';
+        values.gestureHandling = gestureHandling;
+
+        // Map type
+        const mapType = (this.props.archInfo?.mapType || 'roadmap').toUpperCase();
+        if (mapType && google.maps.MapTypeId[mapType]) {
+            values.mapTypeId = google.maps.MapTypeId[mapType];
+        } else {
+            console.warn('Unrecognized map type ' + mapType + ', defaulting to ROADMAP');
+            values.mapTypeId = google.maps.MapTypeId.ROADMAP;
+        }
+
+        // Map Id
+        // Prioritize mapId from props.archInfo if available, otherwise use from options
+        // Only override if props has a mapId, otherwise keep the one from options
+        const mapId = this.props.archInfo?.mapId || null;
+        if (mapId) {
+            values.mapId = mapId;
+        }
+
+        // Security
+        const restriction = this._getMapRestrictions();
+        if (restriction) {
+            values.restriction = restriction;
+        }
+
+        // Allow child classes to override via getMapOptions method
+        const childOptions = typeof this.getMapOptions === 'function' ? this.getMapOptions() : {};
+        if (childOptions && typeof childOptions === 'object') {
+            Object.assign(values, childOptions);
+        }
+
+        return values;
     }
 
     /**
@@ -324,11 +352,7 @@ export class BaseGoogleMapComponent extends Component {
         }, MAP_LOAD_TIMEOUT);
     }
 
-    /**
-     * Comprehensive cleanup when component is destroyed
-     * @private
-     */
-    _onWillDestroy() {
+    _cleanUp() {
         // Clear timeouts
         if (this.loadTimeout) {
             clearTimeout(this.loadTimeout);
@@ -397,19 +421,6 @@ export class BaseGoogleMapComponent extends Component {
         return this.errorMessage;
     }
 
-    /**
-     * Generate a unique ID using crypto API or fallback
-     * @private
-     * @returns {string} Unique identifier
-     */
-    _generateUniqueId() {
-        if (crypto && crypto.randomUUID) {
-            return `gmaps_${crypto.randomUUID()}`;
-        }
-        // Fallback for older browsers
-        return `gmaps_${Date.now()}_${Math.floor(Math.random() * 1000000)}`;
-    }
-
     // === VALIDATION METHODS ===
 
     /**
@@ -445,7 +456,7 @@ export class BaseGoogleMapComponent extends Component {
      * @returns {Object} Validated settings
      */
     _validateAndPrepareSettings() {
-        const settings = this.apiLoader.__settings;
+        const settings = this.apiLoader.getSettings();
 
         if (!settings.key) {
             throw new Error('Google Maps API key is required');
@@ -454,7 +465,7 @@ export class BaseGoogleMapComponent extends Component {
         if (!settings.map_id) {
             this.notificationService.add(
                 _t('Missing Map ID. Some features may not work properly.'),
-                { title: _t('Google Maps Warning'), type: 'warning' }
+                { type: 'warning' }
             );
         }
 
@@ -804,9 +815,7 @@ export class BaseGoogleMapComponent extends Component {
      * Notify state change to child components
      * @private
      */
-    _notifyStateChange() {
-        console.log(' --> _notifyStateChange');
-    }
+    _notifyStateChange() {}
 
     /**
      * Get map restrictions for security

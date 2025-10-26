@@ -1,16 +1,77 @@
-import { onMounted, onWillStart, onWillUnmount } from '@odoo/owl';
+/**
+ * @fileoverview Google Maps API loader for Odoo with advanced features.
+ *
+ * This module provides a robust solution for loading and managing the Google Maps JavaScript API
+ * in Odoo applications. It includes:
+ * - Automatic settings fetch from Odoo backend
+ * - Promise-based loading with retry logic
+ * - Caching and deduplication to prevent redundant requests
+ * - Status tracking and error handling
+ * - OWL component integration hooks
+ *
+ * @module base_google_map/utils/loader_google_map
+ */
+
+import { onWillStart, onWillUnmount } from '@odoo/owl';
 import { _t } from "@web/core/l10n/translation";
 import { rpc } from "@web/core/network/rpc";
 
+/**
+ * Default solution channel identifier for Google Maps API usage analytics.
+ * Used to track that the API is being used via Odoo addons.
+ * @constant {string}
+ */
 const DEFAULT_SOLUTION_CHANNEL = 'GMP_Odoo_Addons_v1';
+
+/**
+ * Debounce delay in milliseconds for status change notifications.
+ * Prevents excessive listener callbacks during rapid status changes.
+ * @constant {number}
+ */
 const DEBOUNCE_DELAY = 16;
+
+/**
+ * Network request timeout in milliseconds.
+ * Applied to RPC calls and Google Maps API script loading.
+ * @constant {number}
+ */
 const NETWORK_TIMEOUT = 10000;
+
+/**
+ * Maximum number of retry attempts for failed requests.
+ * Retry delays use exponential backoff: 1s, 2s, 4s, etc.
+ * @constant {number}
+ */
 const MAX_RETRY_ATTEMPTS = 3;
 
-// Security constants
+/**
+ * Regular expression for validating URL characters.
+ * Used for security validation of URL-like parameters.
+ * @constant {RegExp}
+ */
 const ALLOWED_URL_CHARS = /^[a-zA-Z0-9._~:/?#[\]@!$&'()*+,;=-]+$/;
+
+/**
+ * Regular expression for detecting dangerous characters in user input.
+ * Used to sanitize parameters before passing to Google Maps API.
+ * @constant {RegExp}
+ */
 const DANGEROUS_CHARS = /[<>"'&]/g;
 
+/**
+ * Enumeration of possible loader states.
+ * Used to track the current status of the Google Maps API loading process.
+ *
+ * @enum {string}
+ * @readonly
+ * @property {string} NOT_LOADED - API has not been loaded yet
+ * @property {string} LOADING - API is currently loading
+ * @property {string} LOADED - API loaded successfully and ready to use
+ * @property {string} FAILED - API loading failed due to an error
+ * @property {string} AUTH_FAILURE - API loading failed due to authentication error
+ * @property {string} NETWORK_ERROR - API loading failed due to network error
+ * @property {string} TIMEOUT - API loading timed out
+ */
 export const LOADER_STATUS = {
     NOT_LOADED: 'NOT_LOADED',
     LOADING: 'LOADING',
@@ -21,6 +82,18 @@ export const LOADER_STATUS = {
     TIMEOUT: 'TIMEOUT',
 };
 
+/**
+ * Enumeration of error types that can occur during loading.
+ * Used for error categorization and handling.
+ *
+ * @enum {string}
+ * @readonly
+ * @property {string} VALIDATION - Validation error (invalid parameters)
+ * @property {string} NETWORK - Network-related error
+ * @property {string} AUTH - Authentication/authorization error
+ * @property {string} TIMEOUT - Request timeout error
+ * @property {string} SCRIPT - Script loading error
+ */
 export const LOADER_ERROR_TYPES = {
     VALIDATION: 'VALIDATION_ERROR',
     NETWORK: 'NETWORK_ERROR',
@@ -289,23 +362,295 @@ export class GoogleMapsAPILoader {
     }
 }
 
+
+/**
+ * Prepares and transforms Google Maps API settings from Odoo backend format to Google Maps API format.
+ *
+ * Transforms the settings received from the Odoo backend into the format expected by the
+ * Google Maps JavaScript API. Handles default values, validation, and field name mapping.
+ *
+ * @param {Object} params - Raw settings from the Odoo backend
+ * @param {string} params.api_key - Google Maps API key (required)
+ * @param {string} [params.map_id] - Google Maps Map ID for advanced features
+ * @param {Array<string>} [params.libraries] - List of Google Maps libraries to load (defaults to ['geometry'])
+ * @param {string} [params.version='beta'] - Google Maps API version (e.g., 'weekly', 'quarterly', 'beta')
+ * @param {string} [params.region='US'] - Region localization code
+ * @param {string} [params.language='en_US'] - Language code for map labels and controls
+ * @param {number} [params.channel] - Optional channel number (0-999) for usage tracking
+ * @param {string} [params.solution_channel] - Solution channel identifier for analytics
+ * @param {string} [params.color_scheme='light'] - Color scheme ('light' or 'dark')
+ * @param {boolean} [params.is_places_search_enable=false] - Enable in-map place search
+ * @param {boolean} [params.restrict_language=false] - Restrict results to specified language
+ * @param {boolean} [params.autocomplete_restrict_country=false] - Enable country restrictions for autocomplete
+ * @param {Array<string>} [params.autocomplete_list_countries_restriction=[]] - List of country codes for autocomplete restrictions
+ * @param {string} [params.auth_referrer_policy] - Referrer policy for API requests
+ * @returns {Object} Settings object formatted for Google Maps API
+ *
+ * @example
+ * const settings = prepareSettingValues({
+ *   api_key: 'AIza...',
+ *   version: 'weekly',
+ *   libraries: ['places', 'geometry']
+ * });
+ * // Returns: { key: 'AIza...', v: 'weekly', libraries: 'places,geometry', ... }
+ */
+function prepareSettingValues(params) {
+    const settings = {};
+    // API Key - Required for Google Maps API authentication
+    settings.key = params.api_key;
+    // Map ID - Required for advanced map features (3D, Cloud styling, etc.)
+    settings.map_id = params.map_id;
+    // Libraries - Google Maps API libraries to load
+    let libraries = params.libraries;
+    const defaultLibraries = ['geometry'];
+    if (!Array.isArray(libraries) || libraries.length === 0) {
+        libraries = defaultLibraries;
+    }
+    settings.libraries = libraries.join(',');
+    // Version - API release channel
+    settings.v = params.version || 'beta';
+    // Region - Affects geocoding results and map behavior
+    settings.region = params.region || 'US';
+    // Language - UI and label translations
+    settings.language = params.language || 'en_US';
+    // Channel - Optional numeric identifier for usage analytics (0-999)
+    if (params.channel === undefined || params.channel < 0 || params.channel > 999) {
+        delete settings.channel;
+    }
+    // Solution Channel - Identifier for tracking specific implementations
+    if (params.solution_channel === undefined) {
+        settings.solutionChannel = DEFAULT_SOLUTION_CHANNEL;
+    } else if (params.solution_channel === null || params.solution_channel === '') {
+        delete settings.solutionChannel;
+    }
+    // Color scheme - Visual theme for map UI
+    settings.color_scheme = params.color_scheme || 'light';
+    // In Map Place Search - Enable/disable place search within map view
+    settings.in_map_place_search = params.is_places_search_enable || false;
+    // Restrict Language - Limit search results to specified language
+    settings.restrict_language = params.restrict_language || false;
+    // Restrict Country - Enable geographical restrictions for autocomplete
+    settings.autocomplete_restrict_country = params.autocomplete_restrict_country || false;
+    // List of country restrictions - ISO 3166-1 Alpha-2 country codes
+    settings.autocomplete_list_countries_restriction = params.autocomplete_list_countries_restriction || [];
+    // Auth Referrer Policy - Controls how much referrer information is sent with API requests
+    // Possible values per Referrer Policy specification:
+    // - 'no-referrer': No referrer information sent
+    // - 'no-referrer-when-downgrade': Referrer sent for HTTPS→HTTPS, not for HTTPS→HTTP (default)
+    // - 'origin': Only origin (scheme, host, port) sent as referrer
+    // - 'origin-when-cross-origin': Full URL for same-origin, origin only for cross-origin
+    // - 'same-origin': Referrer sent for same-origin requests only
+    // - 'strict-origin': Origin sent only when protocol security level stays same
+    // - 'strict-origin-when-cross-origin': Full URL for same-origin, origin for cross-origin when protocol matches
+    // - 'unsafe-url': Full URL always sent regardless of security
+    if (params.auth_referrer_policy) {
+        settings.authReferrerPolicy = params.auth_referrer_policy;
+    }
+    return settings;
+}
+
+// Module-level cache for Google Maps settings to prevent duplicate fetches
+const settingsCache = {};
+// Module-level loader state tracking
+const loaderState = { status: LOADER_STATUS.NOT_LOADED };
+// Promise cache to prevent concurrent duplicate fetch requests
+let fetchPromise = null;
+
+/**
+ * Internal function that fetches Google Maps settings from the Odoo backend with retry logic.
+ *
+ * Implements exponential backoff retry strategy for handling transient network failures.
+ * Will retry up to MAX_RETRY_ATTEMPTS times with increasing delays between attempts:
+ * - Attempt 1 failure: wait 1 second
+ * - Attempt 2 failure: wait 2 seconds
+ * - Attempt 3 failure: wait 4 seconds
+ *
+ * @private
+ * @async
+ * @returns {Promise<Object>} Validated settings object with API key
+ * @throws {Error} If all retry attempts fail or if API key is missing
+ * @throws {Error} If settings endpoint returns no data
+ * @throws {Error} If request times out after NETWORK_TIMEOUT milliseconds
+ *
+ * @example
+ * // Internal usage only - called by fetchSettings()
+ * const settings = await fetchSettingsWithRetry();
+ * // Returns: { key: 'AIza...', region: 'US', ... }
+ */
+async function fetchSettingsWithRetry() {
+    for (let attempt = 0; attempt <= MAX_RETRY_ATTEMPTS; attempt++) {
+        try {
+            const timeoutPromise = new Promise((_, reject) => {
+                setTimeout(() => reject(new Error('Settings fetch timeout')), NETWORK_TIMEOUT);
+            });
+
+            const dataPromise = rpc('/web/base_google_map/settings', {});
+            const data = await Promise.race([dataPromise, timeoutPromise]);
+
+            if (data) {
+                const values = prepareSettingValues(data);
+                Object.assign(settingsCache, values);
+
+                // Validate that we have the critical API key
+                if (!settingsCache.key) {
+                    throw new Error('Google Maps API key is missing from settings');
+                }
+
+                return settingsCache;
+            }
+
+            throw new Error('No data received from settings endpoint');
+        } catch (error) {
+            // If this is the last attempt, throw the error
+            if (attempt === MAX_RETRY_ATTEMPTS) {
+                console.error('Failed to fetch Google Maps settings after all retries:', error);
+                loaderState.status = LOADER_STATUS.FAILED;
+                throw error;
+            }
+
+            // Otherwise, log and retry with exponential backoff
+            const delay = Math.pow(2, attempt) * 1000; // 1s, 2s, 4s
+            console.warn(`Settings fetch attempt ${attempt + 1} failed, retrying in ${delay}ms...`, error.message);
+            await new Promise(resolve => setTimeout(resolve, delay));
+        }
+    }
+}
+
+/**
+ * Fetches Google Maps API settings from the Odoo backend with caching and deduplication.
+ *
+ * This function ensures settings are fetched only once, even when called by multiple
+ * component instances simultaneously. It implements:
+ * - Module-level caching: subsequent calls return cached settings
+ * - Promise deduplication: concurrent calls share the same fetch promise
+ * - Automatic retry with exponential backoff for network failures
+ * - API key validation to ensure settings are usable
+ *
+ * The settings are fetched from the '/web/base_google_map/settings' RPC endpoint
+ * and transformed into the format expected by the Google Maps JavaScript API.
+ *
+ * @public
+ * @async
+ * @returns {Promise<Object>} Google Maps API settings object
+ * @returns {string} returns.key - Google Maps API key
+ * @returns {string} returns.v - API version (e.g., 'beta', 'weekly', 'quarterly')
+ * @returns {string} returns.region - Region code
+ * @returns {string} returns.libraries - Comma-separated list of libraries
+ * @returns {string} returns.language - Language code
+ * @returns {string} returns.color_scheme - Color scheme ('light' or 'dark')
+ * @throws {Error} If settings fetch fails after all retry attempts
+ * @throws {Error} If API key is missing from the fetched settings
+ *
+ * @example
+ * // Fetch settings (first call makes RPC request)
+ * const settings = await fetchSettings();
+ * console.log(settings.key); // 'AIza...'
+ *
+ * @example
+ * // Subsequent calls return cached settings immediately
+ * const cachedSettings = await fetchSettings(); // No RPC call made
+ *
+ * @example
+ * // Multiple concurrent calls share the same promise
+ * const [settings1, settings2] = await Promise.all([
+ *   fetchSettings(), // Makes RPC request
+ *   fetchSettings()  // Reuses same promise, no duplicate request
+ * ]);
+ */
+export async function fetchSettings() {
+    // Reuse existing promise if already fetching (prevents duplicate concurrent requests)
+    if (fetchPromise) {
+        return fetchPromise;
+    }
+
+    // Return cached settings if available (prevents duplicate sequential requests)
+    if (Object.keys(settingsCache).length > 0) {
+        return settingsCache;
+    }
+
+    // Create new fetch promise and cache it
+    fetchPromise = fetchSettingsWithRetry().finally(() => {
+        // Clear promise cache after completion (success or failure)
+        fetchPromise = null;
+    });
+
+    return fetchPromise;
+}
+
+/**
+ * Hook for loading and managing Google Maps API in Odoo/OWL components.
+ *
+ * This composable provides a complete solution for loading the Google Maps JavaScript API
+ * in OWL components with the following features:
+ * - Automatic loading on component mount (onWillStart)
+ * - Settings fetch with retry and caching
+ * - Library import with timeout protection
+ * - Status tracking and error handling
+ * - Automatic cleanup on component unmount
+ *
+ * @param {Function} [onLoad] - Callback invoked when Google Maps API loads successfully
+ * @param {Function} [onError] - Callback invoked if loading fails, receives error object
+ * @returns {Object} API object with utility methods
+ * @returns {Function} returns.importLibrary - Function to import Google Maps libraries
+ * @returns {Function} returns.getSettings - Function to get current settings (returns a copy)
+ * @returns {Function} returns.isLoadedSuccessfully - Function to check if API loaded successfully
+ * @returns {Function} returns.getStatus - Function to get current loader status
+ * @returns {Function} returns.getStatusMessage - Function to get human-readable status message
+ * @returns {Function} returns.removeListener - Function to manually remove status listener
+ *
+ * @example
+ * import { useGoogleMapsAPILoader } from '@base_google_map/utils/loader_google_map';
+ *
+ * class MyMapComponent extends Component {
+ *   setup() {
+ *     this.gmapsLoader = useGoogleMapsAPILoader(
+ *       () => {
+ *        console.log('Google Maps API loaded successfully');
+ *       },
+ *       (error) => console.error('Failed to load:', error)
+ *     );
+ *   }
+ *
+ * }
+ */
 export const useGoogleMapsAPILoader = (
     onLoad = () => {},
     onError = () => {}
 ) => {
-    const state = {
-        region: 'US',
-        v: 'quarterly',
-        color_scheme: 'light',
-        status: LOADER_STATUS.NOT_LOADED,
-    };
     const loadedLibraries = new Map();
-    let settingsCache = null;
 
     /**
-     * Import Google Maps library with caching and error handling
-     * @param {string} name - Library name to import
-     * @returns {Promise<Object>} Imported library
+     * Imports a Google Maps JavaScript API library with caching and timeout protection.
+     *
+     * Dynamically imports Google Maps libraries (e.g., 'maps', 'places', 'marker', 'geometry')
+     * using the google.maps.importLibrary() method. Implements caching to prevent redundant
+     * loads and timeout protection to prevent hanging.
+     *
+     * Note: This method requires the Google Maps API to be loaded first (via onWillStart).
+     *
+     * @async
+     * @param {string} name - Name of the library to import (e.g., 'maps', 'places', 'marker')
+     * @returns {Promise<Object>} The imported library namespace
+     * @throws {Error} If library name is invalid (not a non-empty string)
+     * @throws {Error} If Google Maps API hasn't been loaded yet
+     * @throws {Error} If library loading times out (after NETWORK_TIMEOUT ms)
+     *
+     * @example
+     * // Import the core maps library
+     * const { Map } = await importLibrary('maps');
+     * const map = new Map(element, { center: { lat: 0, lng: 0 }, zoom: 8 });
+     *
+     * @example
+     * // Import multiple libraries
+     * const [{ Map }, { PlacesService }] = await Promise.all([
+     *   importLibrary('maps'),
+     *   importLibrary('places')
+     * ]);
+     *
+     * @example
+     * // Cached - second call returns immediately
+     * const { Map } = await importLibrary('maps'); // Makes actual import
+     * const { Map: MapCached } = await importLibrary('maps'); // Returns cached
      */
     async function importLibrary(name) {
         if (!name || typeof name !== 'string') {
@@ -338,53 +683,25 @@ export const useGoogleMapsAPILoader = (
         }
     }
 
-    const setLoadingStatus = (status) => {
-        state.status = status;
-    };
-
     /**
-     * Fetch settings with timeout and error handling
-     * @returns {Promise<Object>} Settings object
+     * Internal callback to update the loader state status.
+     * Called by GoogleMapsAPILoader when loading status changes.
+     * @private
      */
-    const fetchSettings = async () => {
-        if (settingsCache) return settingsCache;
-        
-        try {
-            const timeoutPromise = new Promise((_, reject) => {
-                setTimeout(() => reject(new Error('Settings fetch timeout')), NETWORK_TIMEOUT);
-            });
-            
-            const dataPromise = rpc('/web/base_google_map/settings', {});
-            const data = await Promise.race([dataPromise, timeoutPromise]);
-            
-            if (data) {
-                settingsCache = prepareSettingValues(data);
-            }
-            return settingsCache;
-        } catch (error) {
-            console.error('Failed to fetch Google Maps settings:', error);
-            // Return default settings on failure
-            return {
-                region: 'US',
-                v: 'quarterly',
-                color_scheme: 'light',
-                libraries: 'geometry',
-                language: 'en_US',
-            };
-        }
+    const setLoadingStatus = (status) => {
+        loaderState.status = status;
     };
 
+    // Automatically load Google Maps API when component mounts
     onWillStart(async () => {
         try {
-            const settings = await fetchSettings();
-            if (settings) {
-                Object.assign(state, settings);
-            }
-            await GoogleMapsAPILoader.load(state, setLoadingStatus);
+            await fetchSettings();
+            await GoogleMapsAPILoader.load(settingsCache, setLoadingStatus);
             if (typeof onLoad === 'function') {
                 onLoad();
             }
         } catch (error) {
+            loaderState.status = LOADER_STATUS.FAILED;
             if (typeof onError === 'function') {
                 onError(error);
             } else {
@@ -393,80 +710,76 @@ export const useGoogleMapsAPILoader = (
         }
     });
 
+    /**
+     * Removes the status change listener from GoogleMapsAPILoader.
+     * Useful for manual cleanup if needed before component unmount.
+     */
     const removeListener = () => {
         GoogleMapsAPILoader.removeListener(setLoadingStatus);
     };
 
+    // Automatically cleanup when component unmounts
     onWillUnmount(() => {
         removeListener();
     });
 
-    const prepareSettingValues = (params) => {
-        const settings = {};
-        // API Key
-        settings.key = params.api_key;
-        // Map ID
-        settings.map_id = params.map_id;
-        // Libraries
-        let libraries = params.libraries;
-        const defaultLibraries = ['geometry'];
-        if (!Array.isArray(libraries) || libraries.length === 0) {
-            libraries = defaultLibraries;
-        }
-        settings.libraries = libraries.join(',');
-        // Version
-        settings.v = params.version || 'beta';
-        // Region
-        settings.region = params.region || 'US';
-        // Language
-        settings.language = params.language || 'en_US';
-        // Channel
-        if (params.channel === undefined || params.channel < 0 || params.channel > 999) {
-            delete settings.channel;
-        }
-        // Solution Channel
-        if (params.solution_channel === undefined) {
-            settings.solutionChannel = DEFAULT_SOLUTION_CHANNEL;
-        } else if (params.solution_channel === null || params.solution_channel === '') {
-            delete settings.solutionChannel;
-        }
-        // Color scheme
-        settings.color_scheme = params.color_scheme || 'light';
-        // In Map Place Search
-        settings.in_map_place_search = params.is_places_search_enable || false;
-        // Restrict Language
-        settings.restrict_language = params.restrict_language || false;
-        // Restrict Country
-        settings.autocomplete_restrict_country = params.autocomplete_restrict_country || false;
-        // List of country restrictions
-        settings.autocomplete_list_countries_restriction = params.autocomplete_list_countries_restriction || [];
-        // Auth Referrer Policy
-        // The auth_referrer_policy can take several possible values, which are defined by the Referrer Policy specification.
-        // These values control how much referrer information should be included with requests made from your site. Here are the possible values:
-        // 1. `no-referrer`: No referrer information is sent along with requests.
-        // 2. `no-referrer-when-downgrade`: Default policy. Referrer is sent to the same protocol security level (HTTPS to HTTPS) but not when downgrading (HTTPS to HTTP).
-        // 3. `origin`: Only the origin (scheme, host, and port) of the document is sent as the referrer.
-        // 4. `origin-when-cross-origin`: Sends the full URL as the referrer when making same-origin requests, but only sends the origin when making cross-origin requests.
-        // 5. `same-origin`: Referrer is sent for same-origin requests, but not for cross-origin requests.
-        // 6. `strict-origin`: Only the origin is sent as the referrer, but only when the protocol security level remains the same.
-        // 7. `strict-origin-when-cross-origin`: Sends the full URL for same-origin requests, but only the origin for cross-origin requests, and only when the protocol security level remains the same.
-        // 8. `unsafe-url`: The full URL is always sent as the referrer, regardless of the security of the protocol.
-        if (params.auth_referrer_policy) {
-            settings.authReferrerPolicy = params.auth_referrer_policy;
-        }
-        return settings;
-    }
+    /**
+     * Returns a copy of the current Google Maps API settings.
+     * Returns a defensive copy to prevent accidental mutation of the cache.
+     *
+     * @returns {Object} Copy of settings object
+     *
+     * @example
+     * const settings = getSettings();
+     * console.log(settings.key); // 'AIza...'
+     * console.log(settings.region); // 'US'
+     */
+    const getSettings = () => ({ ...settingsCache });
 
-    const getSettings = () => {
-        return state;
-    };
+    /**
+     * Returns the current loading status.
+     *
+     * @returns {string} One of LOADER_STATUS values (NOT_LOADED, LOADING, LOADED, FAILED, etc.)
+     *
+     * @example
+     * const status = getStatus();
+     * if (status === LOADER_STATUS.LOADED) {
+     *   // API is ready to use
+     * }
+     */
+    const getStatus = () => loaderState.status;
 
-    const getStatus = () => state.status;
-
+    /**
+     * Checks if the Google Maps API has been loaded successfully.
+     *
+     * @returns {boolean} True if API is loaded and ready to use
+     *
+     * @example
+     * if (isLoadedSuccessfully()) {
+     *   const { Map } = await importLibrary('maps');
+     *   // Create map...
+     * }
+     */
     const isLoadedSuccessfully = () => {
-        return state.status === LOADER_STATUS.LOADED;
+        return loaderState.status === LOADER_STATUS.LOADED;
     };
 
+    /**
+     * Returns a human-readable, translated message for a given loader status.
+     *
+     * @param {string} status - Loader status from LOADER_STATUS enum
+     * @returns {string} Translated status message
+     *
+     * @example
+     * const message = getStatusMessage(LOADER_STATUS.LOADING);
+     * console.log(message); // "The Google Maps JavaScript API is currently loading."
+     *
+     * @example
+     * // Display current status to user
+     * const currentStatus = getStatus();
+     * const message = getStatusMessage(currentStatus);
+     * showNotification(message);
+     */
     const getStatusMessage = (status) => {
         switch (status) {
             case LOADER_STATUS.NOT_LOADED:
@@ -494,8 +807,6 @@ export const useGoogleMapsAPILoader = (
         isLoadedSuccessfully,
         getStatus,
         getStatusMessage,
-        fetchSettings,
         removeListener,
-        __settings: state,
     };
 };

@@ -6,10 +6,16 @@
     <t t-name="web_view_google_map.GeolocateBtn">
         <div id="custom-control-geolocate" class="button-geolocate-user">
             <div class="button_geolocate_user">
-                <button class="btn btn-sm btn-light my-2" type="button" title="Current location">
-                    <i class="fa fa-location-arrow fa-2x text-info"></i>
+                <button class="btn btn-sm btn-light rounded-5 shadow-sm" type="button" data-tooltip="Get Current location" aria-label="Get Current location" t-on-click="geolocateUser">
+                    <i class="fa fa-location-arrow fa-2x text-700"></i>
                 </button>
             </div>
         </div>
+    </t>
+    <t t-name="web_view_google_map.GeolocateMarker">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="red" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-map-pin">
+            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+            <circle cx="12" cy="10" r="3"></circle>
+        </svg>
     </t>
 </templates>

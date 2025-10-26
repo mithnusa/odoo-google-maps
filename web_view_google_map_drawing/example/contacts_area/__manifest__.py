@@ -19,8 +19,14 @@ Partner Area
     'data': [
         'security/ir.model.access.csv',
         'views/res_partner_area.xml',
-        # 'views/res_partner.xml',
+        'views/res_partner.xml',
+        'wizard/geojson_upload_wizard_views.xml',
     ],
+    'assets': {
+        'web.assets_backend': [
+            'contacts_area/static/src/views/*'
+        ]
+    },
     'demo': [],
     'installable': True,
 }

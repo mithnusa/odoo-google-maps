@@ -17,8 +17,8 @@ export class GoogleMapRendererCRM extends GoogleMapRenderer {
     /**
      * @override
      */
-    prepareInfoWindowValues(record, isMulti) {
-        let values = super.prepareInfoWindowValues(record, isMulti);
+    prepareInfoWindowValues(record) {
+        let values = super.prepareInfoWindowValues(record);
         const { other } = record.dataView;
         const { expectedRevenue, probability, dateDeadline } = other;
         values.expectedRevenue = expectedRevenue ? expectedRevenue.toLocaleString() : false;

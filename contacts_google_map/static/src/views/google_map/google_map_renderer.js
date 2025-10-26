@@ -10,8 +10,9 @@ export class GoogleMapRendererContactAvatar extends GoogleMapRenderer {
     /**
      * @override
      */
-    prepareInfoWindowValues(record, isMulti = false) {
-        let values = super.prepareInfoWindowValues(record, isMulti);
+    prepareInfoWindowValues(record) {
+        let values = super.prepareInfoWindowValues(record);
+        console.log('record in renderer avatar', record);
         values.avatarUrl = `/web/image/${record.resModel}/${record.resId}/${this.props.archInfo.sidebarAvatarField}`;
         return values;
     }

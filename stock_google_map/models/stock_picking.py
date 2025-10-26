@@ -7,3 +7,4 @@ class StockPicking(models.Model):
 
     partner_latitude = fields.Float(related='partner_id.partner_latitude', string='Delivery Latitude')
     partner_longitude = fields.Float(related='partner_id.partner_longitude', string='Delivery Longitude')
+    partner_contact_address = fields.Char(related='partner_id.contact_address', string='Delivery Contact Address')

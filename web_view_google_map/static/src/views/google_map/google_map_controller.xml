@@ -31,7 +31,7 @@
                         </t>
                     </div>
                 </t>
-                <t t-component="props.Renderer" list="model.root" archInfo="props.archInfo" activeActions="activeActions" allowSelectors="props.allowSelectors" readonly="true" openRecord.bind="openRecord" onAdd.bind="createRecord" showRecord.bind="showRecord" showRecordsByDomain.bind="showRecordsByDomain"/>
+                <t t-component="props.Renderer" t-props="rendererProps"/>
             </Layout>
         </div>
     </t>

@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
 {
-    'name': 'Partner Google Autocomplete',
+    'name': 'Contact Google Autocomplete',
     'summary': '''
-        Add Google Place Autocomplete to partner form
+        Adds Google Places autocomplete functionality to the Contact form.
+        It enhances the name and street fields with Google Places autocomplete,
+        allowing users to quickly fill in contact information by selecting from Google Places suggestions
     ''',
     'description': '''
-        Implementation of Google Autocomplete Element through widget
+        Adds Google Autocomplete to name and street in Contact form
     ''',
     'license': 'LGPL-3',
     'author': 'Yopi Angi',
@@ -13,7 +15,7 @@
     'support': 'yopiangi@gmail.com',
     'category': 'Extra Tools',
     'version': '1.0.0',
-    'depends': ['contacts', 'web_widget_google_map'],
+    'depends': ['contacts', 'web_widget_google_place_autocomplete'],
     'data': ['views/res_partner_views.xml'],
     'demo': [],
     'installable': True,

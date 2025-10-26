@@ -1,0 +1,46 @@
+gcloud compute scp /Users/yan/Downloads/odoo-addons-16.0-dev-121123.zip odoo16-gmaps-demo:/tmp
+gcloud compute ssh odoo16-gmaps-demo
+
+inside gcloud shell
+sudo unzip /tmp/odoo-addons-16.0-dev-121123.zip -d /opt/odoo/demo
+sudo unzip /tmp/odoo-addons-17.0-dev.zip -d /opt/odoo17/app
+
+docker image pull odoo:16.0
+docker rmi 4a5c0d3c8248
+
+web_view_google_map_selector_area
+
+
+docker-compose exec db psql -d demo -U odoo
+
+
+
+$pbkdf2-sha512$25000$xbh3rlUK4fx/j7EWIqS0tg$K8Sa/zkfEl.n09PsnV3AZ7JEpMkZ9RLpdd6yVHRSfPNtghqzpJVrSaEKp1J.kkbU0s8J.Gzpj9daEJfKLuGVIw
+
+Odoo 16
+sudo unzip /tmp/odoo-addons-16.0.zip -d /opt/odoo/demo
+
+Odoo 17
+sudo unzip /tmp/odoo-addons-17.0.zip -d /opt/odoo17/app
+
+
+Odoo 17
+
+Database manager password: KLKbW7pFbHfbE-5MuIt6jHNfpbT7qj4bk1sV-Jj0ZVQ
+Database demo12
+info@mithnusa.com | McROsT3qObLR-Tdk
+
+Odoo 18
+Database manager password: hj-D6Zcqor-c9YgCJB_IURisAqsdXwCYQfJupyGLDpw
+Database demo18
+info@mithnusa.com | BmGfpDfI3hjBXipQ
+
+
+odoo 16
+kbJszfTTtJAATjnaL7aYaRxWKu39Nhj5vGopX4Ru4nc=
+
+@Mithnusa-Odoov16_y4n
+
+
+
+https://maps.googleapis.com/maps/api/geocode/json?components=postal_code%3A42025%7Ccountry%3AUS&key=AIzaSyC7B2U0WT8VXv8pX_E3w_LFxMEwtsLQcWU

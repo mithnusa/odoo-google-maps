@@ -1,4 +1,5 @@
 import { Domain } from '@web/core/domain';
+import { patch } from '@web/core/utils/patch';
 import { GoogleMapModel } from '@web_view_google_map/views/google_map/google_map_model';
 
 export class GoogleMapDrawingModel extends GoogleMapModel {
@@ -6,14 +7,19 @@ export class GoogleMapDrawingModel extends GoogleMapModel {
      * @override
      */
     get mapDomain() {
-        if (this.viewConfig && this.viewConfig.shapeGeoJson) {
-            return Domain.and([
-                [[this.viewConfig.shapeGeoJson, '!=', false]],
+        if (
+            this.viewConfig &&
+            this.viewConfig.geoJsonField &&
+            this.config.fields[this.viewConfig.geoJsonField] &&
+            this.config.fields[this.viewConfig.geoJsonField].searchable
+        ) {
+            return Domain.or([
+                [[this.viewConfig.geoJsonField, '!=', false]],
                 [
                     [
-                        this.viewConfig.shapeGeoJson,
-                        'json_ne',
-                        {"type": "FeatureCollection", "features": []},
+                        this.viewConfig.geoJsonField,
+                        'json_eq',
+                        { type: 'FeatureCollection', features: [] },
                     ],
                 ],
             ]).toList({}); // Ensure the field is not empty or default empty structure

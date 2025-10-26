@@ -4,7 +4,7 @@
         <field name="name">view.res.partner.area.form</field>
         <field name="model">res.partner.area</field>
         <field name="arch" type="xml">
-            <form string="Area">
+            <form string="Land">
                 <sheet>
                     <group>
                         <group>
@@ -12,34 +12,17 @@
                             <field name="partner_id"/>
                         </group>
                         <group>
-                            <field name="gshape_type" invisible="1"/>
                             <label for="gshape_area"/>
                             <div>
                                 <field name="gshape_area" class="oe_inline" nolabel="1"/>
                                 <span>m</span>
                                 <sup>2</sup>
                             </div>
-                            <label for="gshape_radius" invisible="gshape_type != 'circle'"/>
-                            <div invisible="gshape_type != 'circle'">
-                                <field name="gshape_radius" class="oe_inline" nolabel="1"/>
-                                <span>m</span>
-                            </div>
-                            <label for="gshape_width" invisible="gshape_type != 'rectangle'"/>
-                            <div invisible="gshape_type != 'rectangle'">
-                                <field name="gshape_width" nolabel="1" class="oe_inline"/>
-                                <span>m</span>
-                            </div>
-                            <label for="gshape_height" invisible="gshape_type != 'rectangle'"/>
-                            <div invisible="gshape_type != 'rectangle'">
-                                <field name="gshape_height" nolabel="1" class="oe_inline"/>
-                                <span>m</span>
-                            </div>
+                            <field name="gshape_color" widget="color_picker"/>
                         </group>
                     </group>
                     <field name="gshape_description" placeholder="Description"/>
-                    <!-- <field nolabel="1" class="oe_inline" name="gshape_polygon_lines" invisible="gshape_type != 'polygon'"/> -->
-                    <field name="gshape_geojson" widget="google_map_terra_draw"/>
-                    <!-- <field name="gshape_geojson" widget="deckgl_editor"/> -->
+                    <field name="gshape_geojson" widget="google_map_terra_draw" options="{'map_type_id': 'hybrid', 'default_zoom': 14, 'default_center': [-6.175664127601439, 106.82703162885998], 'field_area': 'gshape_area'}"/>
                 </sheet>
             </form>
         </field>
@@ -48,12 +31,11 @@
         <field name="name">view.res.partner.area.tree</field>
         <field name="model">res.partner.area</field>
         <field name="arch" type="xml">
-            <list string="Areas">
+            <list string="Lands">
                 <field name="partner_id"/>
+                <field name="gshape_color" widget="color_picker" string=""/>
                 <field name="gshape_name"/>
-                <field name="gshape_type"/>
                 <field name="gshape_area"/>
-                <field name="gshape_radius"/>
                 <field name="gshape_description"/>
             </list>
         </field>
@@ -62,24 +44,27 @@
         <field name="name">view.res.partner.area.map</field>
         <field name="model">res.partner.area</field>
         <field name="arch" type="xml">
-            <google_map js_class="google_map_drawing" string="Areas" sidebar_title="gshape_name" sidebar_subtitle="partner_id">
+            <google_map js_class="google_map_drawing" geojson="gshape_geojson" string="Lands" color="gshape_color" sidebar_title="gshape_name" sidebar_subtitle="partner_id">
                 <field name="partner_id"/>
                 <field name="gshape_name"/>
-                <field name="gshape_type"/>
                 <field name="gshape_area"/>
-                <field name="gshape_radius"/>
                 <field name="gshape_description"/>
                 <field name="gshape_geojson"/>
+                <field name="gshape_color"/>
             </google_map>
         </field>
     </record>
     <record id="action_res_partner_area" model="ir.actions.act_window">
-        <field name="name">Areas</field>
+        <field name="name">Lands</field>
         <field name="type">ir.actions.act_window</field>
         <field name="res_model">res.partner.area</field>
         <field name="view_mode">google_map,list,form</field>
     </record>
 
-    <menuitem id="menu_partner_area" name="Areas" sequence="2" action="action_res_partner_area" parent="contacts.menu_contacts"/>
+    <record id="contacts.res_partner_menu_config" model="ir.ui.menu">
+        <field name="sequence">10</field>
+    </record>
+
+    <menuitem id="menu_partner_area" name="Lands" sequence="2" action="action_res_partner_area" parent="contacts.menu_contacts"/>
 
 </odoo>

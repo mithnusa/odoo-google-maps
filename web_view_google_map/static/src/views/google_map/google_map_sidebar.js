@@ -11,7 +11,7 @@ export class GoogleMapSidebar extends Component {
     static components = { CheckBox, Field };
     static props = {
         header: String,
-        title: String,
+        title: { type: String, optional: true },
         subTitle: String,
         getGroupsOrRecords: Function,
         createMarker: Function,
@@ -48,15 +48,17 @@ export class GoogleMapSidebar extends Component {
         } else {
             records = group.group.records;
         }
+        
+        const { AdvancedMarkerElement } = await this.env.apiLoader.importLibrary('marker');
         if (currentGroupRecords === 0) {
             records.forEach((record) => {
-                this.props.createMarker(record, group.group.markerColor);
+                this.props.createMarker(AdvancedMarkerElement, record, group.group.markerColor);
             });
             this.props.centerMapByGroup(records);
         } else {
             if (!ev.currentTarget.classList.contains('collapsed')) {
                 records.forEach((record) => {
-                    this.props.createMarker(record, group.group.markerColor);
+                    this.props.createMarker(AdvancedMarkerElement, record, group.group.markerColor);
                 });
                 this.props.centerMapByGroup(records);
             }

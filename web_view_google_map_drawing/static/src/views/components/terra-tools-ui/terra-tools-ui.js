@@ -1,30 +1,7 @@
-/**
- * @fileoverview Terra Draw Tools UI Component for Google Maps Integration
- * 
- * This module provides a comprehensive drawing interface for Google Maps using the Terra Draw library.
- * It includes support for multiple geometry types (Point, LineString, Polygon, Rectangle, Circle, Freehand),
- * real-time measurement calculations, undo/redo functionality, and feature management.
- * 
- * Key Features:
- * - Multiple drawing modes with visual toolbar
- * - Real-time measurement display for all geometry types
- * - Comprehensive measurement calculations (area, perimeter, length, coordinates)
- * - Professional number formatting with locale support
- * - Undo/redo history management
- * - Feature import/export capabilities
- * - Keyboard shortcuts for common operations
- * - Measurement unit toggling (metric/imperial)
- * - In-map overlay positioning for better UX
- * 
- * @author Yopi Angi - https://github.com/gityopie
- * @version 1.0.0
- * @requires Terra Draw Library
- * @requires Google Maps JavaScript API
- */
-
 import { _t } from '@web/core/l10n/translation';
-import { debounce } from '@web/core/utils/timing';
+import { sprintf } from '@web/core/utils/strings';
 import { useService } from '@web/core/utils/hooks';
+import { ConfirmationDialog } from "@web/core/confirmation_dialog/confirmation_dialog";
 import {
     Component,
     useEffect,
@@ -36,27 +13,13 @@ import {
 } from '@odoo/owl';
 import {
     loadTerraDrawAssets,
-    validateTerraDrawFeature, 
+    loadTurfJS,
     generateUUID, 
-    normalizeCoordinates, 
-    processComplexMultiPolygon,
+    normalizeCoordinates,
     TERRA_DRAW_CONFIG,
-    MEASUREMENT_CONFIG,
     getRandomColor,
-    calculatePolygonArea,
-    calculateLineStringLength,
-    calculateCircleArea,
-    formatNumber,
-    formatMeasurement
 } from '../../../utils/terra_draw_utils';
-import {
-    analyzeFeaturePerformance,
-    createEditableFeature,
-    createUltraSimplifiedFeature,
-    processLargeGeometriesAsync,
-    getPerformanceWarning,
-    GEOMETRY_PERFORMANCE_CONFIG
-} from '../../../utils/geometry_performance_utils';
+import { analyzeFeaturePerformance, createEditableFeature } from '../../../utils/geometry_performance_utils';
 
 
 export const MODE_BUTTONS = {
@@ -73,47 +36,23 @@ export const MODE_BUTTONS = {
 /**
  * Terra Draw Tools UI Component
  * 
- * A comprehensive drawing interface component that integrates Terra Draw with Google Maps
- * to provide advanced drawing capabilities for geographic features.
+ * Provides an interactive drawing interface using Terra Draw library integrated with Google Maps.
  * 
- * @class TerraDrawToolsUI
- * @extends Component
- * 
- * Features:
- * - Drawing modes: Point, LineString, Polygon, Rectangle, Circle, Freehand
- * - Selection and editing of existing features
- * - Real-time measurement calculations with professional formatting
+ * Core Features:
+ * - Drawing tools: Point, LineString, Polygon, Rectangle, Circle, Freehand
+ * - Feature selection and editing with performance optimization
  * - Undo/redo functionality with history management
- * - Feature import/export (GeoJSON format)
- * - Keyboard shortcuts (Delete, Ctrl+Z, Ctrl+Y, Ctrl+A, Escape)
- * - Measurement unit toggling (metric/imperial)
- * - In-map overlay positioning for optimal user experience
+ * - Keyboard shortcuts for efficient operation
+ * - Asynchronous feature processing to prevent UI blocking
+ * - Complex geometry handling with simplification options
  * 
- * Measurement Capabilities:
- * - Points: Coordinates with directional indicators (N/S, E/W)
- * - Lines: Length calculation with point count
- * - Polygons: Area and perimeter calculations
- * - Rectangles: Area and perimeter calculations  
- * - Circles: Area, radius, and circumference calculations
- * - Professional number formatting with appropriate units
+ * Performance Enhancements:
+ * - Chunked processing of large feature sets (50 features per chunk)
+ * - Feature complexity analysis and performance warnings
+ * - Automatic simplification for extremely complex features
+ * - Memory-efficient cleanup on component destruction
  * 
- * Event Handling:
- * - Drawing completion triggers measurement display (finish event)
- * - Feature selection shows measurements (select event)
- * - Change events only handle history/undo functionality (no measurements)
- *   to prevent interference with active drawing workflow
- * 
- * Props:
- * @param {Object} googleMap - Google Maps instance
- * @param {Function} saveFeatures - Callback function to save features
- * @param {Object} dataGeoJson - Initial GeoJSON data to load
- * 
- * State Management:
- * - currentMode: Active drawing mode
- * - selectedFeatureId: Currently selected feature ID
- * - measurementUnit: Current unit system (metric/imperial)
- * - showMeasurements: Whether to display measurements
- * - isRestoring/isSaving: State flags for async operations
+ * @extends Component
  */
 export class TerraDrawToolsUI extends Component {
     static template = 'web_view_google_map_drawing.TerraToolsUI';
@@ -126,6 +65,8 @@ export class TerraDrawToolsUI extends Component {
 
     setup() {
         this.notificationService = useService('notification');
+        this.dialogService = useService('dialog');
+        this.uiService = useService('ui');
         this.toolsUiRef = useRef('toolUiRef');
         this.state = useState({
             currentMode: null,
@@ -134,34 +75,33 @@ export class TerraDrawToolsUI extends Component {
             isRestoring: null,
             resizingEnabled: null,
             isSaving: null,
-            measurementUnit: MEASUREMENT_CONFIG.UNITS.METRIC,
-            showMeasurements: false,
         });
 
-        this.terraDrawInstance = null;
         this.history = [];
         this.redoHistory = [];
+        this.terraDrawInstance = null;
         this.debounceTimeout = null;
         this.latLngBounds = null;
         this.eventProjectionChanges = null;
         this.initTimeout = null;
 
-        this.debounceSaveChanges = debounce(this._saveChanges.bind(this), 3000);
-
-        // Add keyboard shortcuts
         useEffect(() => {
-            const handleKeydown = this._handleKeyboardShortcuts.bind(this);
-            document.addEventListener('keydown', handleKeydown);
-            
+            this.handleKeydown = this._handleKeyboardShortcuts.bind(this);
+            document.addEventListener('keydown', this.handleKeydown);
+
             return () => {
-                document.removeEventListener('keydown', handleKeydown);
+                if (this.handleKeydown) {
+                    document.removeEventListener('keydown', this.handleKeydown);
+                }
             };
         });
 
         onWillStart(async () => {
             try {
                 await loadTerraDrawAssets();
+                await loadTurfJS();
             } catch (error) {
+                console.error('Failed to load Terra Draw assets:', error);
                 this.notificationService.add(
                     _t('Failed to load Terra Draw assets. Please check javascript console for more information'),
                     { type: 'danger', title: _t('Error'), }
@@ -169,7 +109,7 @@ export class TerraDrawToolsUI extends Component {
             }
         });
 
-        onWillDestroy(this._cleanup);
+        onWillDestroy(() => this._cleanUp());
 
         onWillUpdateProps((nextProps) => {
             if (
@@ -192,7 +132,7 @@ export class TerraDrawToolsUI extends Component {
                         console.error('Failed to initialize Terra Draw:', error);
                         this.notificationService.add(
                             _t('Failed to initialize Terra Draw. Please check javascript console for more information'),
-                            { title: _t('Error'), type: 'danger' }
+                            { type: 'danger' }
                         );
                     });
                 }
@@ -209,6 +149,10 @@ export class TerraDrawToolsUI extends Component {
      * @private
      */
     async loadRecordData(geoJson) {
+        if (this._loadingData) {
+            console.warn('loadRecordData already in progress, skipping...');
+            return;
+        }
         if (!geoJson?.features || !Array.isArray(geoJson.features)) {
             console.warn('Invalid GeoJSON data provided', { geoJson });
             return; // nothing to load
@@ -219,125 +163,110 @@ export class TerraDrawToolsUI extends Component {
             return;
         }
 
+        this._loadingData = true;
+
         try {
             // Clear existing features before loading new ones
             if (this.terraDrawInstance.hasFeature()) {
                 this.terraDrawInstance.clear();
             }
             this.state.isRestoring = true;
-            console.log(JSON.stringify(geoJson));
 
-
-            // Ensure Terra Draw is in select mode for viewing features
-            if (this.terraDrawInstance.getMode() !== 'select') {
-                this.terraDrawInstance.setMode('select');
-            }
             const geometryToMode = {
                 'Point': 'point',
                 'LineString': 'linestring',
                 'Polygon': 'polygon',
-                'MultiPolygon': 'polygon', // Important!
-          };
-            // add id if missing
-            const features = geoJson.features.map((feature) => {
-                if (!feature.id) {
-                    feature.id = generateUUID();
-                }
-                feature.properties = { ...feature.properties, mode: geometryToMode[feature.geometry.type]}; // ensure properties exist
-                return feature;
-            });
+                'MultiPolygon': 'polygon'
+            };
 
+            // Process features asynchronously to prevent UI blocking
+            const features = await this._processGeoJsonFeaturesAsync(geoJson.features, geometryToMode);
 
-            this.terraDrawInstance.addFeatures(features);
-
-            // // Analyze features for performance
-            // const performanceReport = this._analyzeFeatureSetPerformance(geoJson.features);
-            
-            // // Show warning if complex features detected
-            // if (performanceReport.hasComplexFeatures) {
-            //     this._showPerformanceWarning(performanceReport);
-            // }
-
-            // // Process features while preserving all information
-            // let processedFeatures;
-            
-            // if (performanceReport.totalVertices > GEOMETRY_PERFORMANCE_CONFIG.MAX_VERTICES_FOR_DISPLAY) {
-            //     // Process large feature set asynchronously
-            //     processedFeatures = await this._processLargeFeaturesAsync(geoJson.features);
-            // } else {
-            //     processedFeatures = this._validateAndPrepareFeatures(geoJson.features);
-            // }
-
-            // // Validate feature structure before adding
-            // if (processedFeatures.length > 0) {
-            //     try {
-            //         validateTerraDrawFeature(processedFeatures[0]);
-            //     } catch (error) {
-            //         console.error(`❌ FEATURE VALIDATION FAILED:`, error);
-            //     }
-            // }
-            
-            // // Ensure Terra Draw is in select mode for viewing features
-            // if (this.terraDrawInstance.getMode() !== 'select') {
-            //     this.terraDrawInstance.setMode('select');
-            // }            
-            // this.terraDrawInstance.addFeatures(processedFeatures);
-
-            // setTimeout(() => {
-            //     const addedFeatures = this.terraDrawInstance.getSnapshot();
-                
-            //     // Try different approaches to make features visible
-            //     if (addedFeatures.length > 0) {
-            //         // Approach 1: Try switching modes to trigger a refresh
-            //         const currentMode = this.terraDrawInstance.getMode();
-            //         this.terraDrawInstance.setMode('static');
-            //         setTimeout(() => {
-            //             this.terraDrawInstance.setMode(currentMode);
-            //         }, 100);
-                    
-            //         // Force a render/redraw
-            //         google.maps.event.trigger(this.props.googleMap, 'resize');
-                    
-            //         // Try multiple approaches to force rendering
-                    
-            //         // Approach 1: Clear and re-add
-            //         this.terraDrawInstance.clear();
-            //         setTimeout(() => {
-            //             this.terraDrawInstance.addFeatures(addedFeatures);
-                        
-            //             // Approach 2: Force mode changes after re-adding
-            //             setTimeout(() => {
-            //                 this.terraDrawInstance.setMode('static');
-            //                 setTimeout(() => {
-            //                     this.terraDrawInstance.setMode('select');
-                                
-            //                     // Try to manually trigger render
-            //                     if (this.terraDrawInstance.render) {
-            //                         this.terraDrawInstance.render();
-            //                     }
-            //                 }, 100);
-            //             }, 100);
-            //         }, 100);
-            //     }
-            // }, 100);
+            // Add features to Terra Draw
+            if (features.length > 0) {
+                this.terraDrawInstance.addFeatures(features);
+            }
 
             this.setSelectedFeatureId(null);
-
             await new Promise(resolve => setTimeout(resolve, TERRA_DRAW_CONFIG.RESTORE_DELAY));
-            this.state.isRestoring = false;
-
-            // Create summary for user
-            // this._showProcessingSummary(geoJson.features, processedFeatures);
 
             // Fit map to bounds of loaded features
             this._fitMapToBounds(geoJson.features);
-            // Note: Measurements are disabled by default for cleaner view
-            // Users can enable them manually using the eye icon button
         } catch (error) {
             console.error('Failed to load existing features:', error);
-            this.notificationService.add(_t('Failed to load existing features'), { title: _t('Error'), type: 'danger' });
+            this.notificationService.add(_t('Failed to load existing features'), { type: 'danger' });
+        } finally {
             this.state.isRestoring = false;
+            this._loadingData = false;
         }
+    }
+
+    /**
+     * Process GeoJSON features asynchronously to prevent UI blocking
+     * @param {Array} geoJsonFeatures - Array of GeoJSON features to process
+     * @param {Object} geometryToMode - Mapping of geometry types to Terra Draw modes
+     * @returns {Promise<Array>} Promise resolving to processed features array
+     * @private
+     */
+    async _processGeoJsonFeaturesAsync(geoJsonFeatures, geometryToMode) {
+        const CHUNK_SIZE = 50; // Process 50 features at a time
+        const processedFeatures = [];
+        
+        for (let i = 0; i < geoJsonFeatures.length; i += CHUNK_SIZE) {
+            const chunk = geoJsonFeatures.slice(i, i + CHUNK_SIZE);
+            
+            const chunkResults = chunk.map((feature) => {
+                const plainFeature = JSON.parse(JSON.stringify(feature));
+
+                // Terra Draw doesn't support polygons with holes (interior rings)
+                const isPolygonWithHoles = plainFeature.geometry.type === 'Polygon' &&
+                                          plainFeature.geometry.coordinates.length > 1;
+                const isMultiPolygon = plainFeature.geometry.type === 'MultiPolygon';
+
+                if (isPolygonWithHoles) {
+                    return null; // Skip - will be rendered by DeckGL
+                }
+
+                if (isMultiPolygon) {
+                    const multiPolygonFeatures = [];
+                    plainFeature.geometry.coordinates.forEach((_polygonCoords) => {
+                        if (_polygonCoords.length > 1) return; // Skip parts with holes
+
+                        const polygonCoords = normalizeCoordinates(_polygonCoords, TERRA_DRAW_CONFIG.COORDINATE_PRECISION);
+                        multiPolygonFeatures.push({
+                            type: 'Feature',
+                            id: generateUUID(),
+                            geometry: { type: 'Polygon', coordinates: polygonCoords },
+                            properties: { mode: 'polygon' }
+                        });
+                    });
+                    return multiPolygonFeatures;
+                } else {
+                    if (!plainFeature.id || typeof plainFeature.id !== 'string') {
+                        plainFeature.id = generateUUID();
+                    }
+
+                    plainFeature.geometry.coordinates = normalizeCoordinates(
+                        plainFeature.geometry.coordinates,
+                        TERRA_DRAW_CONFIG.COORDINATE_PRECISION
+                    );
+
+                    plainFeature.properties = { mode: geometryToMode[plainFeature.geometry.type] };
+                    return plainFeature;
+                }
+            }).filter(Boolean); // Remove null values
+            
+            // Flatten array in case of MultiPolygon features
+            const flattenedChunk = chunkResults.flat();
+            processedFeatures.push(...flattenedChunk);
+            
+            // Yield control to prevent UI blocking (only if more chunks to process)
+            if (i + CHUNK_SIZE < geoJsonFeatures.length) {
+                await new Promise(resolve => setTimeout(resolve, 0));
+            }
+        }
+        
+        return processedFeatures;
     }
 
     /**
@@ -346,559 +275,32 @@ export class TerraDrawToolsUI extends Component {
      * @returns {Object} Performance analysis report
      * @private
      */
-    _analyzeFeatureSetPerformance(features) {
-        let totalVertices = 0;
-        let complexFeatures = 0;
-        let veryComplexFeatures = 0;
-        let extremelyComplexFeatures = 0;
-        const problematicFeatures = [];
-        
-        features.forEach((feature, index) => {
-            const analysis = analyzeFeaturePerformance(feature);
-            totalVertices += analysis.vertexCount;
-            
-            switch (analysis.complexity) {
-                case 'complex':
-                    complexFeatures++;
-                    break;
-                case 'very_complex':
-                    veryComplexFeatures++;
-                    problematicFeatures.push({ index, feature, analysis });
-                    break;
-                case 'extremely_complex':
-                    extremelyComplexFeatures++;
-                    problematicFeatures.push({ index, feature, analysis });
-                    break;
-            }
-        });
-        
-        return {
-            totalFeatures: features.length,
-            totalVertices,
-            complexFeatures,
-            veryComplexFeatures,
-            extremelyComplexFeatures,
-            hasComplexFeatures: complexFeatures + veryComplexFeatures + extremelyComplexFeatures > 0,
-            problematicFeatures,
-            recommendedAction: this._getRecommendedActionForFeatureSet(totalVertices, extremelyComplexFeatures)
-        };
-    }
-    
     /**
-     * Get recommended action for a feature set based on performance analysis
-     * @param {number} totalVertices - Total vertex count
-     * @param {number} extremelyComplexCount - Count of extremely complex features
-     * @returns {string} Recommended action
-     * @private
-     */
-    _getRecommendedActionForFeatureSet(totalVertices, extremelyComplexCount) {
-        if (extremelyComplexCount > 0 || totalVertices > GEOMETRY_PERFORMANCE_CONFIG.MAX_VERTICES_FOR_DISPLAY) {
-            return 'use_deckgl';
-        } else if (totalVertices > GEOMETRY_PERFORMANCE_CONFIG.MAX_VERTICES_FOR_EDITING) {
-            return 'limited_editing';
-        }
-        return 'normal_operation';
-    }
-    
-    /**
-     * Show performance warning to user
-     * @param {Object} report - Performance analysis report
-     * @private
-     */
-    _showPerformanceWarning(report) {
-        let message = '';
-        let type = 'warning';
-        
-        if (report.extremelyComplexFeatures > 0) {
-            message = `🚨 CRITICAL: ${report.extremelyComplexFeatures} extremely complex features detected (${report.totalVertices.toLocaleString()} total vertices). Terra Draw WILL FREEZE during editing! Features have been auto-simplified. Use Deck.gl renderer for full detail.`;
-            type = 'danger';
-        } else if (report.veryComplexFeatures > 0) {
-            message = `Caution: ${report.veryComplexFeatures} very complex features detected. Editing may be slow. Simplification recommended.`;
-        } else if (report.complexFeatures > 0) {
-            message = `Notice: ${report.complexFeatures} complex features detected. Some operations may be slower than usual.`;
-            type = 'info';
-        }
-        
-        if (message) {
-            this.notificationService.add(message, { 
-                title: 'Performance Warning', 
-                type,
-                sticky: type === 'danger'
-            });
-        }
-    }
-    
-    /**
-     * Process large feature sets asynchronously with progress indication
-     * @param {Array} features - Features to process
-     * @returns {Promise<Array>} Processed features
-     * @private
-     */
-    async _processLargeFeaturesAsync(features) {
-        this.notificationService.add('Processing large feature set...', { 
-            title: 'Loading', 
-            type: 'info' 
-        });
-        
-        return await processLargeGeometriesAsync(
-            features,
-            (feature) => this._processFeatureForPerformance(feature),
-            (progress, processed, total) => {
-                if (progress % 20 === 0) { // Update every 20%
-                    this.notificationService.add(
-                        `Processing features: ${processed}/${total} (${progress}%)`,
-                        { title: 'Loading', type: 'info' }
-                    );
-                }
-            }
-        );
-    }
-    
-    /**
-     * Process individual feature for performance optimization
-     * @param {Object} feature - Feature to process
-     * @returns {Object|Array} Processed feature(s)
-     * @private
-     */
-    _processFeatureForPerformance(feature) {
-        const analysis = analyzeFeaturePerformance(feature);
-        
-        // For features that would freeze Terra Draw (like the 183-vertex Aceh polygon), use minimal processing
-        if (analysis.vertexCount > GEOMETRY_PERFORMANCE_CONFIG.TERRA_DRAW_FREEZE_THRESHOLD) {
-            const ultraSimplified = createUltraSimplifiedFeature(feature);
-            if (ultraSimplified && ultraSimplified !== feature) {
-                console.warn(`🚨 COMPLEX FEATURE: Feature with ${analysis.vertexCount} vertices detected - proceeding without shape distortion`);
-                return this._processRegularFeature(ultraSimplified);
-            }
-        }
-        
-        // Special handling for geographic boundary data (like province borders)
-        if (analysis.vertexCount > GEOMETRY_PERFORMANCE_CONFIG.GEOGRAPHIC_BOUNDARY_THRESHOLD && 
-            (feature.properties?.state || feature.properties?.country || feature.properties?.province)) {
-            console.warn(`🗺️ GEOGRAPHIC SIMPLIFICATION: ${feature.properties?.state || 'Geographic feature'} with ${analysis.vertexCount} vertices being simplified for Terra Draw stability`);
-        }
-        
-        // If feature is too complex for Terra Draw but not freeze-level, try normal simplification
-        if (!analysis.canEdit && analysis.recommendedAction !== 'use_deckgl_only') {
-            const editableResult = createEditableFeature(feature);
-            if (editableResult && editableResult.isSimplified) {
-                return this._processRegularFeature(editableResult.feature);
-            }
-        }
-        // For MultiPolygon, use existing processing
-        if (feature.geometry.type === 'MultiPolygon') {
-            return processComplexMultiPolygon(feature, '#3388ff', false); // Use consistent blue for loaded features
-        }
-
-        return this._processRegularFeature(feature);
-    }
-    
-    /**
-     * Check if feature can be safely edited and show warning if not
+     * Check if feature can be safely edited and show warning if complex
      * @param {Object} feature - Feature to check
      * @returns {boolean} True if editing should proceed
      * @private
      */
     _checkEditingPerformance(feature) {
         const analysis = analyzeFeaturePerformance(feature);
-        const warning = getPerformanceWarning(analysis);
-        
-        if (warning) {
-            this.notificationService.add(warning.message, {
-                title: warning.title,
-                type: analysis.complexity === 'extremely_complex' ? 'danger' : 'warning',
-                sticky: analysis.complexity === 'extremely_complex'
-            });
-            
-            if (warning.suggestion) {
-                setTimeout(() => {
-                    this.notificationService.add(warning.suggestion, {
-                        title: 'Suggestion',
-                        type: 'info'
-                    });
-                }, 2000);
-            }
+
+        // Show warning for very complex and extremely complex features
+        if (analysis.complexity === 'very_complex' || analysis.complexity === 'extremely_complex') {
+            this.notificationService.add(
+                _t('⚠️ Complex feature detected (%s vertices). Click the simplify button to improve editing performance.', analysis.vertexCount),
+                { type: 'warning' }
+            );
+        } else if (analysis.complexity === 'complex') {
+            this.notificationService.add(
+                _t('Complex feature (%s vertices). Use the simplify button if editing is slow.', analysis.vertexCount),
+                { type: 'info' }
+            );
         }
-        
+
         return analysis.canEdit;
     }
-    
-    /**
-     * Force simplification of extremely complex features to prevent freezing
-     * @param {Object} feature - Feature to simplify
-     * @returns {Object} Aggressively simplified feature
-     * @public
-     */
-    forceSimplifyForEditing(feature) {
-        if (!feature) return null;
-        
-        const analysis = analyzeFeaturePerformance(feature);
-        
-        // If feature would freeze Terra Draw, warn but proceed
-        if (analysis.vertexCount > GEOMETRY_PERFORMANCE_CONFIG.TERRA_DRAW_FREEZE_THRESHOLD) {
-            const ultraSimplified = createUltraSimplifiedFeature(feature);
-            if (ultraSimplified) {
-                this.notificationService.add(
-                    `⚠️ COMPLEX FEATURE: Feature with ${analysis.vertexCount.toLocaleString()} vertices detected - editing may be slow`,
-                    { title: 'Complex Feature', type: 'warning', sticky: true }
-                );
-                return ultraSimplified;
-            }
-        }
-        
-        return this.createSimplifiedFeatureForEditing(feature);
-    }
 
-    /**
-     * Create simplified version of a feature for editing
-     * @param {Object} feature - Original feature
-     * @returns {Promise<Object>} Simplified feature or original if simplification fails
-     */
-    async createSimplifiedFeatureForEditing(feature) {
-        if (!feature) return null;
-        
-        try {
-            // Try to create an editable version with minimal changes
-            const editableResult = createEditableFeature(feature);
-            
-            if (editableResult && editableResult.isSimplified) {
-                this.notificationService.add(
-                    `Feature simplified for editing: ${editableResult.reductionRatio.toFixed(1)}% vertex reduction`,
-                    { title: 'Simplified', type: 'info' }
-                );
-                
-                return editableResult.feature;
-            }
-            
-            return feature;
-        } catch (error) {
-            console.error('Error creating simplified feature:', error);
-            this.notificationService.add(
-                'Failed to simplify feature. Using original.',
-                { title: 'Warning', type: 'warning' }
-            );
-            return feature;
-        }
-    }
 
-    /**
-     * Process complex MultiPolygon features for Terra Draw compatibility
-     * Preserves all data while creating Terra Draw compatible representations
-     * @param {Object} feature - Original GeoJSON feature
-     * @returns {Array} Array of Terra Draw compatible features
-     * @private
-     */
-    _processComplexMultiPolygon(feature) {
-        if (feature.geometry.type !== 'MultiPolygon') {
-            return [feature];
-        }
-        
-        const coordinates = feature.geometry.coordinates;
-        const originalProperties = feature.properties || {};
-        
-        // Create multiple Polygon features from the MultiPolygon
-        const polygonFeatures = coordinates.map((polygonCoords, index) => {
-            // Calculate area to identify main vs island polygons
-            const ringArea = this._calculateRingArea(polygonCoords[0]);
-            const isMainLandmass = index === 0 || ringArea > 1000; // Adjust threshold as needed
-            
-            return {
-                type: 'Feature',
-                id: generateUUID(), // Generate Terra Draw compatible UUID
-                geometry: {
-                    type: 'Polygon',
-                    coordinates: normalizeCoordinates(polygonCoords)
-                },
-                properties: {
-                    // Keep only essential Terra Draw properties
-                    mode: 'polygon',
-                    // Store metadata in a separate object to avoid conflicts
-                    _metadata: {
-                        ...originalProperties,
-                        originalType: 'MultiPolygon',
-                        originalId: feature.id,
-                        partIndex: index,
-                        totalParts: coordinates.length,
-                        isMainLandmass: isMainLandmass,
-                        partName: isMainLandmass ? 
-                            `${originalProperties.state || originalProperties.name || 'Region'} - Main Area` : 
-                            `${originalProperties.state || originalProperties.name || 'Region'} - Island ${index}`,
-                    }
-                }
-            };
-        });
-        
-        return polygonFeatures;
-    }
-
-    /**
-     * Calculate approximate area of a polygon ring for classification
-     * @param {Array} coordinates - Ring coordinates
-     * @returns {number} Approximate area
-     * @private
-     */
-    _calculateRingArea(coordinates) {
-        if (coordinates.length < 3) return 0;
-        
-        let area = 0;
-        for (let i = 0; i < coordinates.length - 1; i++) {
-            const [x1, y1] = coordinates[i];
-            const [x2, y2] = coordinates[i + 1];
-            area += (x2 - x1) * (y1 + y2);
-        }
-        return Math.abs(area / 2);
-    }
-
-    /**
-     * Normalize coordinates to match Terra Draw precision expectations
-     * @param {Array} coordinates - Coordinate array to normalize
-     * @returns {Array} Normalized coordinates
-     * @private
-     */
-    _normalizeCoordinates(coordinates) {
-        if (!Array.isArray(coordinates)) return coordinates;
-        
-        return coordinates.map(coord => {
-            if (Array.isArray(coord[0])) {
-                // This is a nested array (polygon ring)
-                return this._normalizeCoordinates(coord);
-            } else {
-                // This is a coordinate pair [lng, lat]
-                return [
-                    Number(parseFloat(coord[0]).toFixed(TERRA_DRAW_CONFIG.COORDINATE_PRECISION)),
-                    Number(parseFloat(coord[1]).toFixed(TERRA_DRAW_CONFIG.COORDINATE_PRECISION))
-                ];
-            }
-        });
-    }
-
-    /**
-     * Enhanced feature validation and preparation
-     * @param {Array} features - Array of GeoJSON features
-     * @returns {Array} Processed features ready for Terra Draw
-     * @private
-     */
-    _validateAndPrepareFeatures(features) {
-        const processedFeatures = [];
-        
-        features.forEach((feature, index) => {
-            try {
-                if (feature.geometry.type === 'MultiPolygon') {
-                    // Process MultiPolygon into multiple Polygon features
-                    const polygonFeatures = processComplexMultiPolygon(feature, '#3388ff', false); // Use consistent blue for loaded features
-                    processedFeatures.push(...polygonFeatures);
-                } else {
-                    // Process other geometry types normally
-                    const processedFeature = this._processRegularFeature(feature);
-                    if (processedFeature) {
-                        processedFeatures.push(processedFeature);
-                    }
-                }
-            } catch (error) {
-                console.error(`Error processing feature ${index}:`, error);
-                // Try to create a simplified version as fallback
-                const fallbackFeature = this._createFallbackFeature(feature, index);
-                if (fallbackFeature) {
-                    processedFeatures.push(fallbackFeature);
-                }
-            }
-        });
-
-        return processedFeatures;
-    }
-
-    /**
-     * Process regular (non-MultiPolygon) features
-     * @param {Object} feature - GeoJSON feature
-     * @returns {Object} Processed feature
-     * @private
-     */
-    _processRegularFeature(feature) {
-        // MINIMAL PROCESSING - Just add required Terra Draw properties
-        const processedFeature = {
-            id: feature.id || generateUUID(), // Ensure Terra Draw compatible UUID
-            type: 'Feature',
-            geometry: feature.geometry,
-            properties: {
-                // Essential Terra Draw properties
-                mode: feature.geometry.type.toLowerCase(),
-                // Add ALL possible styling properties to ensure visibility
-                pointColor: '#ff0000',        // Red for visibility
-                lineStringColor: '#ff0000',   // Red for visibility  
-                fillColor: '#ff0000',         // Red for visibility
-                outlineColor: '#ff0000',      // Red for visibility
-                // Preserve original properties
-                ...(feature.properties || {})
-            }
-        };
-        return processedFeature;
-    }
-
-    /**
-     * Create a fallback feature for problematic geometries
-     * @param {Object} feature - Original feature
-     * @param {number} index - Feature index
-     * @returns {Object|null} Fallback feature or null
-     * @private
-     */
-    _createFallbackFeature(feature, index) {
-        try {
-            // For complex features, create a point at the centroid
-            const centroid = this._calculateCentroid(feature.geometry);
-            if (!centroid) return null;
-            
-            return {
-                type: 'Feature',
-                id: generateUUID(), // Generate Terra Draw compatible UUID
-                geometry: {
-                    type: 'Point',
-                    coordinates: centroid
-                },
-                properties: {
-                    // Keep only essential Terra Draw properties
-                    mode: 'point',
-                    // Store metadata separately
-                    _metadata: {
-                        ...(feature.properties || {}),
-                        originalType: feature.geometry.type,
-                        fallback: true,
-                        fallbackReason: 'Complex geometry simplified to point',
-                    }
-                }
-            };
-        } catch (error) {
-            console.error('Failed to create fallback feature:', error);
-            return null;
-        }
-    }
-
-    /**
-     * Calculate centroid of any geometry type
-     * @param {Object} geometry - GeoJSON geometry
-     * @returns {Array|null} [lng, lat] coordinates or null
-     * @private
-     */
-    _calculateCentroid(geometry) {
-        const { type, coordinates } = geometry;
-        
-        try {
-            switch (type) {
-                case 'Point':
-                    return coordinates;
-                    
-                case 'LineString':
-                    const midIndex = Math.floor(coordinates.length / 2);
-                    return coordinates[midIndex];
-                    
-                case 'Polygon':
-                    return this._calculatePolygonCentroid(coordinates[0]);
-                    
-                case 'MultiPoint':
-                    const avgX = coordinates.reduce((sum, coord) => sum + coord[0], 0) / coordinates.length;
-                    const avgY = coordinates.reduce((sum, coord) => sum + coord[1], 0) / coordinates.length;
-                    return [avgX, avgY];
-                    
-                case 'MultiLineString':
-                    const allCoords = coordinates.flat();
-                    const midIdx = Math.floor(allCoords.length / 2);
-                    return allCoords[midIdx];
-                    
-                case 'MultiPolygon':
-                    // Use the centroid of the largest polygon
-                    let largestPolygon = coordinates[0];
-                    let maxArea = this._calculateRingArea(coordinates[0][0]);
-                    
-                    coordinates.forEach(polygon => {
-                        const area = this._calculateRingArea(polygon[0]);
-                        if (area > maxArea) {
-                            maxArea = area;
-                            largestPolygon = polygon;
-                        }
-                    });
-                    
-                    return this._calculatePolygonCentroid(largestPolygon[0]);
-                    
-                default:
-                    return null;
-            }
-        } catch (error) {
-            console.error('Error calculating centroid:', error);
-            return null;
-        }
-    }
-
-    /**
-     * Calculate centroid of a polygon ring
-     * @param {Array} coordinates - Polygon ring coordinates
-     * @returns {Array} [lng, lat] centroid coordinates
-     * @private
-     */
-    _calculatePolygonCentroid(coordinates) {
-        let area = 0;
-        let x = 0;
-        let y = 0;
-        
-        for (let i = 0; i < coordinates.length - 1; i++) {
-            const [x0, y0] = coordinates[i];
-            const [x1, y1] = coordinates[i + 1];
-            const a = x0 * y1 - x1 * y0;
-            area += a;
-            x += (x0 + x1) * a;
-            y += (y0 + y1) * a;
-        }
-        
-        area *= 0.5;
-        const factor = 1 / (6 * area);
-        
-        return [x * factor, y * factor];
-    }
-
-    /**
-     * Show processing summary to inform user about feature handling
-     * @param {Array} originalFeatures - Original features
-     * @param {Array} processedFeatures - Processed features
-     * @private
-     */
-    _showProcessingSummary(originalFeatures, processedFeatures) {
-        const summary = {
-            original: originalFeatures.length,
-            processed: processedFeatures.length,
-            multiPolygons: 0,
-            splitIntoPolygons: 0,
-            fallbacks: 0
-        };
-        
-        originalFeatures.forEach(f => {
-            if (f.geometry.type === 'MultiPolygon') {
-                summary.multiPolygons++;
-            }
-        });
-        
-        processedFeatures.forEach(f => {
-            if (f.properties?.originalType === 'MultiPolygon') {
-                summary.splitIntoPolygons++;
-            }
-            if (f.properties?.fallback) {
-                summary.fallbacks++;
-            }
-        });
-        
-        let message = `Loaded ${summary.processed} features`;
-        if (summary.multiPolygons > 0) {
-            message += ` (${summary.multiPolygons} MultiPolygon regions split into ${summary.splitIntoPolygons} individual areas)`;
-        }
-        if (summary.fallbacks > 0) {
-            message += ` (${summary.fallbacks} complex features simplified)`;
-        }
-        
-        this.notificationService.add(
-            _t(message),
-            { 
-                title: _t('Features Loaded'),
-                type: 'info' 
-            }
-        );
-    }
 
     /**
      * Group related polygon parts from MultiPolygon features
@@ -931,26 +333,7 @@ export class TerraDrawToolsUI extends Component {
         return groups;
     }
 
-    /**
-     * Select all parts of a MultiPolygon feature group
-     * @param {string} originalId - Original feature ID
-     * @public
-     */
-    selectFeatureGroup(originalId) {
-        const groups = this.getFeatureGroups();
-        const group = groups[originalId];
-        
-        if (group) {
-            group.parts.forEach(part => {
-                this.terraDrawInstance.selectFeature(part.id);
-            });
-            
-            this.notificationService.add(
-                _t('Selected all %d parts of %s', group.parts.length, group.state),
-                { type: 'info' }
-            );
-        }
-    }
+
 
     /**
      * Fit the map view to contain all the given features
@@ -1055,21 +438,7 @@ export class TerraDrawToolsUI extends Component {
                 case 's':
                     // Ctrl+S or Cmd+S - Save manually
                     event.preventDefault();
-                    this.debounceSaveChanges();
-                    break;
-                
-                case 'm':
-                    // Ctrl+M or Cmd+M - Toggle measurement unit
-                    event.preventDefault();
-                    this.toggleMeasurementUnit();
-                    break;
-                
-                case 'c':
-                    // Ctrl+C or Cmd+C - Copy measurements (only if no text is selected)
-                    if (window.getSelection().toString() === '') {
-                        event.preventDefault();
-                        this.copyMeasurementsToClipboard(!!this.state.selectedFeatureId);
-                    }
+                    this._actionSaveManually();
                     break;
                 
                 case 'e':
@@ -1136,13 +505,6 @@ export class TerraDrawToolsUI extends Component {
                     event.preventDefault();
                     this._actionClearMode();
                     break;
-                
-                case 'm':
-                case 'M':
-                    // M - Toggle measurement display
-                    event.preventDefault();
-                    this.toggleMeasurementDisplay();
-                    break;
             }
         }
     }
@@ -1155,8 +517,8 @@ export class TerraDrawToolsUI extends Component {
     onClickSetActiveMode(ev) {
         if (!this.terraDrawInstance) {
             this.notificationService.add(
-                _t('Terra Draw is not initialized properly. Please inform your administrator'),
-                { title: _t('Error'), type: 'danger' }
+                _t('Terra Draw is not initialized properly'),
+                { type: 'danger' }
             );
             return;
         }
@@ -1173,13 +535,12 @@ export class TerraDrawToolsUI extends Component {
     onClickActionButton(ev) {
         if (!this.terraDrawInstance) {
             this.notificationService.add(
-                _t('Terra Draw is not initialized properly. Please inform your administrator'),
-                { title: _t('Error'), type: 'danger' }
+                _t('Terra Draw is not initialized properly'),
+                { type: 'danger' }
             );
             return;
         }
-        const button = ev.currentTarget;
-        const action = button.id;
+        const action = ev.currentTarget.id;
         if (action === 'clear-mode') {
             this._actionClearMode();
             this.updateActiveButton(action);
@@ -1192,13 +553,56 @@ export class TerraDrawToolsUI extends Component {
             this._actionRedo();
         } else if (action === 'resize-button') {
             this._actionResize();
-        } else if (action === 'measurement-unit-button') {
-            this.toggleMeasurementUnit();
-        } else if (action === 'measurement-toggle-button') {
-            this.toggleMeasurementDisplay();
         } else if (action === 'simplify-feature-button') {
             this.simplifySelectedFeature();
+        } else if (action === 'save-button') {
+            this._actionSaveManually();
         }
+    }
+
+    /**
+     * Manually save changes to features
+     * Triggers immediate save without debounce
+     * @private
+     */
+    async _actionSaveManually() {
+        try {
+            await this._saveChanges();
+        } catch (error) {
+            console.error('Manual save failed:', error);
+            this.notificationService.add(
+                sprintf(_t('Failed to save changes: %s'), error.message),
+                { title: _t('Error'), type: 'danger' }
+            );
+        }
+    }
+
+    calculateArea(feature) {
+        if (!feature || !feature.geometry || !window.turf) return 0;
+
+        const { coordinates } = feature.geometry;
+        try {
+            const polygon = turf.polygon(coordinates);
+            return turf.area(polygon); // in square meters
+        } catch (error) {
+            console.error('turf.area failed', error);
+        }
+    }
+
+    calculateFeaturesTotalArea(features) {
+        let totalArea = 0;
+        if (!features || !Array.isArray(features) || features.length === 0) {
+            return totalArea;
+        }
+        features.forEach(feature => {
+            if (['Polygon', 'MultiPolygon'].includes(feature.geometry.type)) {
+                const area = this.calculateArea(feature);
+                if (!isNaN(area)) {
+                    totalArea += area;
+                }
+            }
+        });
+        return totalArea; // in square meters
     }
 
     /**
@@ -1212,8 +616,6 @@ export class TerraDrawToolsUI extends Component {
         this.state.selectedFeatureId = null;
         this.setActiveMode('clear-mode');
         this.notificationService.add(_t('All features cleared'), { type: 'info' });
-        // Save changes after clearing
-        this.debounceSaveChanges();
     }
 
     /**
@@ -1232,7 +634,6 @@ export class TerraDrawToolsUI extends Component {
                 // Delete selected feature
                 this.terraDrawInstance.removeFeatures([this.state.selectedFeatureId]);
                 this.state.selectedFeatureId = null;
-                this.notificationService.add(_t('Selected feature deleted'), { type: 'info' });
             } else {
                 // Delete last feature as fallback
                 const features = this.terraDrawInstance.getSnapshot();
@@ -1243,8 +644,6 @@ export class TerraDrawToolsUI extends Component {
                 if (nonSystemFeatures.length > 0) {
                     const lastFeature = nonSystemFeatures[nonSystemFeatures.length - 1];
                     this.terraDrawInstance.removeFeatures([lastFeature.id]);
-                    // Save changes after deletion
-                    this.debounceSaveChanges();
                     this.notificationService.add(_t('Last feature deleted'), { type: 'info' });
                 } else {
                     this.notificationService.add(_t('No features to delete'), { type: 'warning' });
@@ -1270,10 +669,8 @@ export class TerraDrawToolsUI extends Component {
         try {
             this.redoHistory.push(this.history.pop());
             const snapshotToRestore = this.history[this.history.length - 1];
-            
+
             this._restoreSnapshot(snapshotToRestore, 'Undo completed');
-            // Save changes after undo
-            this.debounceSaveChanges();
         } catch (error) {
             console.error('Error during undo:', error);
             this.notificationService.add(_t('Undo failed'), { title: _t('Error'), type: 'danger' });
@@ -1294,11 +691,8 @@ export class TerraDrawToolsUI extends Component {
         try {
             const snapshotToRestore = this.redoHistory.pop();
             this.history.push(snapshotToRestore);
-            
-            this._restoreSnapshot(snapshotToRestore, 'Redo completed');
 
-            // Save changes after redo
-            this.debounceSaveChanges();
+            this._restoreSnapshot(snapshotToRestore, 'Redo completed');
         } catch (error) {
             console.error('Error during redo:', error);
             this.notificationService.add(_t('Redo failed'), { type: 'danger' });
@@ -1493,12 +887,6 @@ export class TerraDrawToolsUI extends Component {
         });
     }
 
-    _triggerSaveChanges() {
-        // set to select-mode after finishing drawing
-        this.setActiveMode('select-mode');
-        this.debounceSaveChanges();
-    }
-
     /**
      * Create and configure the Terra Draw instance with Google Maps adapter
      * Handles both immediate initialization and delayed initialization via events
@@ -1523,7 +911,11 @@ export class TerraDrawToolsUI extends Component {
 
             this.terraDrawInstance.start();
             this.terraDrawInstance.on('ready', () => {
-                this.loadRecordData(this.props.dataGeoJson);
+                if (this.props.dataGeoJson && this.props.dataGeoJson.features && this.props.dataGeoJson.features.length > 0) {
+                    this.loadRecordData(this.props.dataGeoJson);
+                } else {
+                    console.warn('⚠️ No dataGeoJson available on Terra Draw ready event');
+                }
                 this.setActiveMode('select-mode');
                 this.terraDrawInstance.on('select', this.onDrawSelect.bind(this));
                 this.terraDrawInstance.on('deselect', this.onDrawDeselect.bind(this));
@@ -1531,11 +923,6 @@ export class TerraDrawToolsUI extends Component {
                     this._actionProcessSnapshotForUndo(this.terraDrawInstance.getSnapshot())
                 ); // push initial empty state
                 this.terraDrawInstance.on('change', this.onDrawChange.bind(this));
-                
-                // Handle drawing completion - this is the correct place for measurement calculations
-                // Using 'finish' event ensures measurements only show after drawing is complete,
-                // preventing interference with the active drawing workflow
-                this.terraDrawInstance.on('finish', this._triggerSaveChanges.bind(this));
             });
         };
 
@@ -1567,224 +954,6 @@ export class TerraDrawToolsUI extends Component {
             }, 2000); // 2 second fallback
         }
     }
-
-    /**
-     * Calculate measurements for a given feature based on its geometry type
-     * @param {Object} feature - GeoJSON feature to measure
-     * @param {Object} feature.geometry - Geometry object
-     * @param {string} feature.geometry.type - Geometry type
-     * @param {Array} feature.geometry.coordinates - Coordinate array
-     * @param {Object} [feature.properties] - Feature properties
-     * @returns {Object} Measurement results with formatted strings
-     * @private
-     */
-    _calculateFeatureMeasurement(feature) {
-        if (!feature || !feature.geometry) return null;
-        
-        const { type, coordinates } = feature.geometry;
-        const unit = this.state.measurementUnit;
-        const measurements = {};
-        
-        try {
-            switch (type) {
-                case 'Point':
-                    measurements.type = 'Point';
-                    const lat = coordinates[1];
-                    const lng = coordinates[0];
-                    const latDir = lat >= 0 ? 'N' : 'S';
-                    const lngDir = lng >= 0 ? 'E' : 'W';
-                    measurements.coordinates = `${Math.abs(lat).toFixed(MEASUREMENT_CONFIG.COORDINATE_PRECISION)}°${latDir}, ${Math.abs(lng).toFixed(MEASUREMENT_CONFIG.COORDINATE_PRECISION)}°${lngDir}`;
-                    break;
-                    
-                case 'LineString':
-                    const length = calculateLineStringLength(coordinates, unit);
-                    measurements.type = 'Line';
-                    measurements.length = formatMeasurement(length, 'distance', unit);
-                    measurements.points = formatPointCount(coordinates.length);
-                    break;
-                    
-                case 'Polygon':
-                    const area = calculatePolygonArea(coordinates[0], unit);
-                    const perimeter = calculateLineStringLength(coordinates[0], unit);
-                    measurements.type = 'Polygon';
-                    measurements.area = formatMeasurement(area, 'area', unit);
-                    measurements.perimeter = formatMeasurement(perimeter, 'distance', unit);
-                    measurements.points = formatPointCount(coordinates[0].length - 1); // Exclude closing point
-                    
-                    // Add MultiPolygon part information if applicable
-                    if (this.isMultiPolygonPart(feature)) {
-                        const metadata = feature.properties?._metadata || {};
-                        measurements.type = metadata.isMainLandmass ? 'Main Area' : `Island ${metadata.partIndex}`;
-                        measurements.partInfo = `Part ${metadata.partIndex + 1} of ${metadata.totalParts}`;
-                        if (metadata.partName) {
-                            measurements.partName = metadata.partName;
-                        }
-                    }
-                    break;
-                    
-                case 'MultiPoint':
-                    measurements.type = 'Multi Point';
-                    measurements.points = formatPointCount(coordinates.length);
-                    break;
-                    
-                case 'MultiLineString':
-                    let totalLength = 0;
-                    let totalPoints = 0;
-                    coordinates.forEach(line => {
-                        totalLength += calculateLineStringLength(line, unit);
-                        totalPoints += line.length;
-                    });
-                    measurements.type = 'Multi Line';
-                    measurements.length = formatMeasurement(totalLength, 'distance', unit);
-                    measurements.lines = `${formatNumber(coordinates.length, 0)} ${coordinates.length === 1 ? 'line' : 'lines'}`;
-                    measurements.points = formatPointCount(totalPoints);
-                    break;
-                    
-                case 'MultiPolygon':
-                    let totalArea = 0;
-                    let totalPerimeter = 0;
-                    let totalPolygonPoints = 0;
-                    coordinates.forEach(polygon => {
-                        totalArea += calculatePolygonArea(polygon[0], unit);
-                        totalPerimeter += calculateLineStringLength(polygon[0], unit);
-                        totalPolygonPoints += polygon[0].length - 1;
-                    });
-                    measurements.type = 'Multi Polygon';
-                    measurements.area = formatMeasurement(totalArea, 'area', unit);
-                    measurements.perimeter = formatMeasurement(totalPerimeter, 'distance', unit);
-                    measurements.polygons = `${formatNumber(coordinates.length, 0)} ${coordinates.length === 1 ? 'polygon' : 'polygons'}`;
-                    measurements.points = formatPointCount(totalPolygonPoints);
-                    break;
-            }
-            
-            // Handle special Terra Draw modes
-            if (feature.properties) {
-                if (feature.properties.mode === 'rectangle') {
-                    measurements.type = 'Rectangle';
-                    const area = calculatePolygonArea(coordinates[0], unit);
-                    const perimeter = calculateLineStringLength(coordinates[0], unit);
-                    measurements.area = formatMeasurement(area, 'area', unit);
-                    measurements.perimeter = formatMeasurement(perimeter, 'distance', unit);
-                } else if (feature.properties.mode === 'circle') {
-                    measurements.type = 'Circle';
-                    if (feature.properties.center && feature.properties.radiusKilometers) {
-                        const radiusInUnit = unit === MEASUREMENT_CONFIG.UNITS.IMPERIAL ? 
-                            feature.properties.radiusKilometers * 0.621371 : 
-                            feature.properties.radiusKilometers;
-                        const area = calculateCircleArea(radiusInUnit, unit);
-                        const circumference = 2 * Math.PI * radiusInUnit;
-                        measurements.radius = formatMeasurement(radiusInUnit, 'distance', unit);
-                        measurements.area = formatMeasurement(area, 'area', unit);
-                        measurements.circumference = formatMeasurement(circumference, 'distance', unit);
-                    }
-                } else if (feature.properties.mode === 'freehand') {
-                    measurements.type = 'Freehand';
-                    if (type === 'Polygon') {
-                        const area = calculatePolygonArea(coordinates[0], unit);
-                        const perimeter = calculateLineStringLength(coordinates[0], unit);
-                        measurements.area = formatMeasurement(area, 'area', unit);
-                        measurements.perimeter = formatMeasurement(perimeter, 'distance', unit);
-                    } else if (type === 'LineString') {
-                        const length = calculateLineStringLength(coordinates, unit);
-                        measurements.length = formatMeasurement(length, 'distance', unit);
-                    }
-                }
-            }
-            
-        } catch (error) {
-            console.error('Error calculating measurements:', error);
-            return null;
-        }
-        
-        return measurements;
-    }
-
-    /**
-     * Get measurements for all current features
-     * @returns {Array} Array of measurement objects for each feature
-     * @public
-     */
-    getAllFeatureMeasurements() {
-        if (!this.terraDrawInstance) return [];
-        
-        try {
-            const features = this.terraDrawInstance.getSnapshot();
-            const measurements = [];
-            
-            features.forEach((feature, index) => {
-                // Skip system features like midpoints and selection points
-                if (feature.properties?.midPoint || feature.properties?.selectionPoint) {
-                    return;
-                }
-                
-                const measurement = this._calculateFeatureMeasurement(feature);
-                if (measurement) {
-                    measurements.push({
-                        id: feature.id,
-                        index: index + 1,
-                        ...measurement
-                    });
-                }
-            });
-            
-            return measurements;
-        } catch (error) {
-            console.error('Error getting all measurements:', error);
-            return [];
-        }
-    }
-
-    /**
-     * Get measurement for the currently selected feature
-     * @returns {Object|null} Measurement object or null if no feature selected
-     * @public
-     */
-    getSelectedFeatureMeasurement() {
-        if (!this.state.selectedFeatureId || !this.terraDrawInstance) return {};
-        
-        try {
-            const features = this.terraDrawInstance.getSnapshot();
-            const selectedFeature = features.find(f => f.id === this.state.selectedFeatureId);
-            
-            if (selectedFeature) {
-                return this._calculateFeatureMeasurement(selectedFeature);
-            }
-        } catch (error) {
-            console.error('Error getting selected feature measurement:', error);
-        }
-        
-        return {};
-    }
-
-    /**
-     * Toggle measurement unit between metric and imperial
-     * @public
-     */
-    toggleMeasurementUnit() {
-        this.state.measurementUnit = this.state.measurementUnit === MEASUREMENT_CONFIG.UNITS.METRIC ? 
-            MEASUREMENT_CONFIG.UNITS.IMPERIAL : 
-            MEASUREMENT_CONFIG.UNITS.METRIC;
-        
-        const unitName = this.state.measurementUnit === MEASUREMENT_CONFIG.UNITS.METRIC ? 'Metric' : 'Imperial';
-        this.notificationService.add(
-            _t('Measurement unit changed to %s', unitName),
-            { type: 'info' }
-        );
-    }
-
-    /**
-     * Toggle measurement display on/off
-     * @public
-     */
-    toggleMeasurementDisplay() {
-        this.state.showMeasurements = !this.state.showMeasurements;
-        
-        const status = this.state.showMeasurements ? 'enabled' : 'disabled';
-        this.notificationService.add(
-            _t('Measurement display %s', status),
-            { type: 'info' }
-        );
-    }
     
     /**
      * Simplify the currently selected feature for better performance
@@ -1798,11 +967,11 @@ export class TerraDrawToolsUI extends Component {
             );
             return;
         }
-        
+
         try {
             const features = this.terraDrawInstance.getSnapshot();
             const selectedFeature = features.find(f => f.id === this.state.selectedFeatureId);
-            
+
             if (!selectedFeature) {
                 this.notificationService.add(
                     _t('Selected feature not found'),
@@ -1810,29 +979,41 @@ export class TerraDrawToolsUI extends Component {
                 );
                 return;
             }
-            
+
             const analysis = analyzeFeaturePerformance(selectedFeature);
-            
-            if (analysis.complexity === 'simple' || analysis.complexity === 'moderate') {
+            const originalVertexCount = analysis.vertexCount;
+            const complexity = analysis.complexity;
+
+            // Check if simplification is needed based on complexity
+            if (complexity === 'simple' || complexity === 'moderate') {
                 this.notificationService.add(
-                    _t('Feature is already simple enough for editing'),
+                    sprintf(_t('Feature is already simple enough for editing (%s vertices, complexity: %s)'), originalVertexCount, complexity),
                     { type: 'info' }
                 );
                 return;
             }
-            
+
+            // Show different messages based on complexity level
+            const complexityMessages = {
+                'complex': _t('Simplifying complex feature with %s vertices...', originalVertexCount),
+                'very_complex': _t('Simplifying very complex feature with %s vertices. This may take a moment...', originalVertexCount),
+                'extremely_complex': _t('Simplifying extremely complex feature with %s vertices. Please wait...', originalVertexCount)
+            };
+
             this.notificationService.add(
-                _t('Simplifying feature...'),
+                complexityMessages[complexity] || _t('Simplifying feature...'),
                 { title: 'Processing', type: 'info' }
             );
-            
-            const simplifiedFeature = await this.createSimplifiedFeatureForEditing(selectedFeature);
-            
-            if (simplifiedFeature && simplifiedFeature !== selectedFeature) {
+
+            const editableResult = createEditableFeature(selectedFeature);
+
+            if (editableResult && editableResult.isSimplified) {
+                const simplifiedFeature = editableResult.feature;
+
                 // Replace the original feature with the simplified version
                 this.terraDrawInstance.removeFeatures([this.state.selectedFeatureId]);
                 this.terraDrawInstance.addFeatures([simplifiedFeature]);
-                
+
                 // Update selection to the new feature
                 setTimeout(() => {
                     if (simplifiedFeature.id) {
@@ -1840,175 +1021,131 @@ export class TerraDrawToolsUI extends Component {
                         this.setSelectedFeatureId(simplifiedFeature.id);
                     }
                 }, 100);
-                
-                // Save changes
-                this.debounceSaveChanges();
-                
+
+                const iterationsInfo = editableResult.iterations ? ` in ${editableResult.iterations} iteration(s)` : '';
+                const successMessage = sprintf(_t('Feature simplified successfully %s! Complexity: %s. Vertex reduction: %s % (%s → %s vertices)'),
+                    iterationsInfo,
+                    complexity,
+                    editableResult.reductionRatio.toFixed(1),
+                    editableResult.originalVertexCount,
+                    editableResult.simplifiedVertexCount
+                );
+
+                this.notificationService.add(successMessage, { type: 'success' });
+            } else {
                 this.notificationService.add(
-                    _t('Feature simplified successfully. Editing should now be faster.'),
-                    { title: 'Success', type: 'success' }
+                    sprintf(_t('Could not simplify feature. Complexity: %s (%s vertices). Feature may already be at minimum complexity.'), complexity, originalVertexCount),
+                    { type: 'info' }
                 );
             }
-            
+
         } catch (error) {
             console.error('Error simplifying feature:', error);
             this.notificationService.add(
-                _t('Failed to simplify feature: %s', error.message),
+                sprintf(_t('Failed to simplify feature: %s'), error.message),
                 { title: 'Error', type: 'danger' }
             );
         }
     }
 
     /**
-     * Export all measurements as a structured object for external use
-     * @returns {Object} Structured measurement data
-     * @public
-     */
-    exportMeasurements() {
-        const measurements = this.getAllFeatureMeasurements();
-        const summary = {
-            unit: this.state.measurementUnit,
-            unitName: this.state.measurementUnit === MEASUREMENT_CONFIG.UNITS.METRIC ? 'Metric' : 'Imperial',
-            totalFeatures: measurements.length,
-            features: measurements,
-            exportedAt: new Date().toISOString()
-        };
-        
-        // Calculate totals by type
-        const totals = {
-            totalLength: 0,
-            totalArea: 0,
-            totalPerimeter: 0,
-            pointCount: 0,
-            lineCount: 0,
-            polygonCount: 0,
-            circleCount: 0
-        };
-        
-        measurements.forEach(m => {
-            if (m.type.toLowerCase().includes('point')) totals.pointCount++;
-            if (m.type.toLowerCase().includes('line')) totals.lineCount++;
-            if (m.type.toLowerCase().includes('polygon') || m.type.toLowerCase().includes('rectangle')) totals.polygonCount++;
-            if (m.type.toLowerCase().includes('circle')) totals.circleCount++;
-        });
-        
-        summary.totals = totals;
-        return summary;
-    }
-
-    /**
-     * Copy measurements to clipboard as formatted text
-     * @param {boolean} selectedOnly - If true, copy only selected feature measurement
-     * @returns {Promise<boolean>} Success status
-     * @public
-     */
-    async copyMeasurementsToClipboard(selectedOnly = false) {
-        try {
-            let text = '';
-            
-            if (selectedOnly && this.state.selectedFeatureId) {
-                const measurement = this.getSelectedFeatureMeasurement();
-                if (measurement) {
-                    text = this._formatMeasurementText(measurement);
-                } else {
-                    this.notificationService.add(_t('No measurement available for selected feature'), { type: 'warning' });
-                    return false;
-                }
-            } else {
-                const allMeasurements = this.getAllFeatureMeasurements();
-                if (allMeasurements.length === 0) {
-                    this.notificationService.add(_t('No features to copy measurements for'), { type: 'warning' });
-                    return false;
-                }
-                
-                const unitName = this.state.measurementUnit === MEASUREMENT_CONFIG.UNITS.METRIC ? 'Metric' : 'Imperial';
-                text = `Feature Measurements (${unitName})\n`;
-                text += '='.repeat(30) + '\n\n';
-                
-                allMeasurements.forEach((measurement, index) => {
-                    text += `${index + 1}. ${this._formatMeasurementText(measurement)}\n\n`;
-                });
-                
-                text += `Total: ${allMeasurements.length} feature(s)\n`;
-                text += `Exported: ${new Date().toLocaleString()}`;
-            }
-            
-            await navigator.clipboard.writeText(text);
-            this.notificationService.add(
-                _t('Measurements copied to clipboard'),
-                { type: 'success' }
-            );
-            return true;
-        } catch (error) {
-            console.error('Failed to copy measurements:', error);
-            this.notificationService.add(
-                _t('Failed to copy measurements to clipboard'),
-                { type: 'danger' }
-            );
-            return false;
-        }
-    }
-
-    /**
-     * Format a single measurement object as readable text
-     * @param {Object} measurement - Measurement object to format
-     * @returns {string} Formatted text
-     * @private
-     */
-    _formatMeasurementText(measurement) {
-        let text = measurement.type;
-        const details = [];
-        
-        if (measurement.coordinates) details.push(`Coordinates: ${measurement.coordinates}`);
-        if (measurement.length) details.push(`Length: ${measurement.length}`);
-        if (measurement.area) details.push(`Area: ${measurement.area}`);
-        if (measurement.perimeter) details.push(`Perimeter: ${measurement.perimeter}`);
-        if (measurement.radius) details.push(`Radius: ${measurement.radius}`);
-        if (measurement.circumference) details.push(`Circumference: ${measurement.circumference}`);
-        if (measurement.points) details.push(`Points: ${measurement.points}`);
-        
-        if (details.length > 0) {
-            text += '\n  ' + details.join('\n  ');
-        }
-        
-        return text;
-    }
-
-    /**
-     * Handle Terra Draw feature selection events with performance checking
-     * Ensures only one feature is selected at a time and displays measurements
-     * This is one of the two appropriate places for measurement calculations
-     * (the other being the 'finish' event for newly completed drawings)
+     * Handle Terra Draw feature selection events with performance checking and gating
      * @param {string} id - ID of the selected feature
      * @private
      */
-    onDrawSelect(id) {
-        if (this.state.selectedFeatureId && this.state.selectedFeatureId !== id) {
-            this.terraDrawInstance.deselectFeature(this.state.selectedFeatureId);
-        }
-        this.setSelectedFeatureId(id);
-        
-        // Check performance characteristics of selected feature
+    async onDrawSelect(id) {
         try {
+            this.uiService.block();
+            // STEP 1: Get feature data BEFORE selection
             const features = this.terraDrawInstance.getSnapshot();
-            const selectedFeature = features.find(f => f.id === id);
+            const targetFeature = features.find(f => f.id === id);
             
-            if (selectedFeature) {
-                // Check if the feature might cause performance issues when editing
-                this._checkEditingPerformance(selectedFeature);
+            if (!targetFeature) {
+                console.warn('Feature not found for selection:', id);
+                return;
             }
+            
+            // STEP 2: Analyze performance BEFORE selecting with error handling
+            let analysis;
+            try {
+                analysis = analyzeFeaturePerformance(targetFeature);
+                
+                // Validate that analysis has required properties
+                if (!analysis || typeof analysis.vertexCount !== 'number') {
+                    console.warn('Invalid analysis result, using fallback:', analysis);
+                    analysis = {
+                        vertexCount: 0,
+                        complexity: 'simple',
+                        canEdit: true,
+                        isVeryComplex: false,
+                        recommendedAction: 'normal_operation'
+                    };
+                }
+            } catch (analysisError) {
+                console.error('Error analyzing feature performance:', analysisError);
+                // Use safe fallback analysis
+                analysis = {
+                    vertexCount: 0,
+                    complexity: 'simple',
+                    canEdit: true,
+                    isVeryComplex: false,
+                    recommendedAction: 'normal_operation'
+                };
+            }
+
+            // STEP 3: Prevent selection of features that would crash the browser
+            if (analysis.isVeryComplex && this.state.selectedFeatureId !== id) {
+                setTimeout(() => {
+                    this.manuallyDeselectFeature();
+                }, 10);
+                this._handleComplexFeatureSelection(id, analysis);
+            } else {
+                // STEP 4: Proceed with normal selection
+                this.setSelectedFeatureId(id);
+                
+                // STEP 5: Show performance feedback to user
+                this._checkEditingPerformance(targetFeature);
+            }
+
         } catch (error) {
-            console.warn('Error checking feature performance:', error);
+            this.setSelectedFeatureId(null);
+            this.setActiveMode('select-mode');
+            console.error('Error in onDrawSelect:', error);
+            this.notificationService.add(
+                _t('Failed to select feature due to complexity'),
+                { type: 'danger' }
+            );
+        } finally {
+            this.uiService.unblock();
         }
-        
-        // Show measurement for selected feature if enabled
-        // Safe to calculate here as this only triggers when selecting existing features
-        // if (this.state.showMeasurements) {
-        //     const measurement = this.getSelectedFeatureMeasurement();
-        //     if (measurement) {
-        //         this._showMeasurementNotification(measurement);
-        //     }
-        // }
+    }
+
+    /**
+     * Handle selection of extremely complex features with performance safeguards
+     * @private
+     * @param {string} id - Feature ID
+     * @param {Object} feature - GeoJSON feature
+     * @param {Object} analysis - Feature complexity analysis
+     */
+    async _handleComplexFeatureSelection(id, analysis) {
+        this.dialogService.add(ConfirmationDialog, {
+            title: _t("⚠️ Very Complex Feature"),
+            body: sprintf(_t('This feature has %s vertices and may cause performance issues.\nWould you like to simplify it for better editing performance?'), analysis.vertexCount),
+            confirmLabel: _t("Yes, simplify the feature"),
+            cancelLabel: _t("No, keep original"),
+            confirm: async () => {
+                this.setSelectedFeatureId(id);
+                this.simplifySelectedFeature();
+            },
+            cancel: () => {
+                this.setSelectedFeatureId(id);
+                this.terraDrawInstance.selectFeature(id);
+            },
+            dismiss: () => {
+                this.setSelectedFeatureId(id);
+                this.terraDrawInstance.selectFeature(id);
+            }
+        });
     }
 
     /**
@@ -2017,6 +1154,14 @@ export class TerraDrawToolsUI extends Component {
      */
     onDrawDeselect() {
         this.setSelectedFeatureId(null);
+    }
+
+    manuallyDeselectFeature(id) {
+        if (this.terraDrawInstance) {
+            this.setActiveMode('select-mode');
+            this.terraDrawInstance.deselectFeature(id);
+            this.setSelectedFeatureId(null);
+        }
     }
 
     /**
@@ -2043,73 +1188,31 @@ export class TerraDrawToolsUI extends Component {
         }, 500);
     }
 
-    /**
-     * Show a notification with measurement information
-     * @param {Object} measurement - Measurement object to display
-     * @private
-     */
-    _showMeasurementNotification(measurement) {
-        if (!measurement) return;
-        
-        let message = `${measurement.type}`;
-        let details = [];
-        
-        if (measurement.coordinates) {
-            details.push(`Coordinates: ${measurement.coordinates}`);
-        }
-        if (measurement.length) {
-            details.push(`Length: ${measurement.length}`);
-        }
-        if (measurement.area) {
-            details.push(`Area: ${measurement.area}`);
-        }
-        if (measurement.perimeter) {
-            details.push(`Perimeter: ${measurement.perimeter}`);
-        }
-        if (measurement.radius) {
-            details.push(`Radius: ${measurement.radius}`);
-        }
-        if (measurement.circumference) {
-            details.push(`Circumference: ${measurement.circumference}`);
-        }
-        if (measurement.points) {
-            details.push(`Points: ${measurement.points}`);
-        }
-        
-        if (details.length > 0) {
-            message += ` - ${details.join(', ')}`;
-        }
-        
-        this.notificationService.add(
-            _t(message),
-            { title: _t('Measurement'), type: 'info' }
-        );
-    }
-
     async _saveChanges() {
         try {
-            this.terraDrawInstance.setMode('select');
+            this.state.isSaving = true;
+
+            this.uiService.block();
+            this.setActiveMode('select-mode'); // Switch to select mode before saving
+
             const snapshot = this.terraDrawInstance.getSnapshot();
             const geoJson = {
                 type: 'FeatureCollection',
                 features: snapshot,
             };
 
-            this.state.isSaving = true;
-            await this.props.saveFeatures(geoJson);
-
-            this.notificationService.add(
-                _t('Changes saved successfully'), 
-                { title: _t('Saved'), type: 'success' }
-            );
+            const totalArea = this.calculateFeaturesTotalArea(snapshot);
+            await this.props.saveFeatures(geoJson, totalArea);
+            this._fitMapToBounds(snapshot);
         } catch (error) {
             console.error('Save failed:', error);
             this.notificationService.add(
-                _t('Failed to save changes: %s', error.message), 
-                { title: _t('Error'), type: 'danger' }
+                sprintf(_t('Failed to save changes: %s'), error.message), 
+                { type: 'danger' }
             );
         } finally {
             this.state.isSaving = false;
+            this.uiService.unblock();
         }
     }
 
@@ -2242,10 +1345,11 @@ export class TerraDrawToolsUI extends Component {
         const color = this.getShapeColor();
         const opt = Object.assign(
             {
+                allowSelfIntersections: true, // Allow drawing polygons with overlapping/crossing lines
                 styles: {
                     fillColor: color,
                     outlineColor: color,
-                    outLineWidth: 0.2,
+                    outLineWidth: 0.1,
                 },
             },
             options || {}
@@ -2313,71 +1417,23 @@ export class TerraDrawToolsUI extends Component {
         return new window.terraDraw.TerraDrawFreehandMode(opt);
     }
 
-    /**
-     * Get performance statistics for all current features
-     * @returns {Object} Performance statistics
-     * @public
-     */
-    getPerformanceStatistics() {
-        if (!this.terraDrawInstance) {
-            return {
-                totalFeatures: 0,
-                totalVertices: 0,
-                complexityDistribution: {},
-                canEditAll: true,
-                recommendedAction: 'no_features'
-            };
-        }
-        
-        try {
-            const features = this.terraDrawInstance.getSnapshot()
-                .filter(f => !f.properties?.midPoint && !f.properties?.selectionPoint);
-            
-            if (features.length === 0) {
-                return {
-                    totalFeatures: 0,
-                    totalVertices: 0,
-                    complexityDistribution: {},
-                    canEditAll: true,
-                    recommendedAction: 'no_features'
-                };
-            }
-            
-            const report = this._analyzeFeatureSetPerformance(features);
-            
-            return {
-                totalFeatures: report.totalFeatures,
-                totalVertices: report.totalVertices,
-                complexityDistribution: {
-                    simple: report.totalFeatures - report.complexFeatures - report.veryComplexFeatures - report.extremelyComplexFeatures,
-                    complex: report.complexFeatures,
-                    veryComplex: report.veryComplexFeatures,
-                    extremelyComplex: report.extremelyComplexFeatures
-                },
-                canEditAll: report.extremelyComplexFeatures === 0,
-                recommendedAction: report.recommendedAction,
-                problematicFeatures: report.problematicFeatures.length
-            };
-        } catch (error) {
-            console.error('Error getting performance statistics:', error);
-            return {
-                totalFeatures: 0,
-                totalVertices: 0,
-                complexityDistribution: {},
-                canEditAll: false,
-                recommendedAction: 'error',
-                error: error.message
-            };
-        }
-    }
+
     
     /**
      * Clean up all resources when the component is destroyed
-     * Clears timeouts, removes event listeners, stops Terra Draw instance,
-     * resets state, and logs cleanup completion
+     * 
+     * Performs comprehensive cleanup of manually managed resources:
+     * - Clears pending timeouts to prevent execution after component destruction
+     * - Removes document and Google Maps event listeners to prevent memory leaks
+     * - Stops Terra Draw instance and removes all its event listeners
+     * - Clears history arrays and object references
+     * 
+     * Note: OWL useState and component refs are automatically managed by the framework
+     * and do not require manual cleanup.
+     * 
      * @private
      */
-    _cleanup() {
+    _cleanUp() {
         // Clear any pending timeouts first
         if (this.debounceTimeout) {
             clearTimeout(this.debounceTimeout);
@@ -2387,6 +1443,12 @@ export class TerraDrawToolsUI extends Component {
         if (this.initTimeout) {
             clearTimeout(this.initTimeout);
             this.initTimeout = null;
+        }
+        
+        // Remove keyboard event listener
+        if (this.handleKeydown) {
+            document.removeEventListener('keydown', this.handleKeydown);
+            this.handleKeydown = null;
         }
         
         // Remove Google Maps event listeners
@@ -2407,7 +1469,6 @@ export class TerraDrawToolsUI extends Component {
                 this.terraDrawInstance.off('select');
                 this.terraDrawInstance.off('deselect');
                 this.terraDrawInstance.off('change');
-                this.terraDrawInstance.off('finish');
                 
                 // Clear all features and stop the instance
                 this.terraDrawInstance.clear();
@@ -2419,19 +1480,12 @@ export class TerraDrawToolsUI extends Component {
         }
         
         // Clear history arrays
-        this.history = [];
-        this.redoHistory = [];
-        
-        // Reset state
-        this.state.currentMode = null;
-        this.state.activeButton = null;
-        this.state.selectedFeatureId = null;
-        this.state.isRestoring = null;
-        this.state.resizingEnabled = null;
-        this.state.isSaving = null;
-        // Keep measurement settings as they are user preferences
-        // this.state.measurementUnit = MEASUREMENT_CONFIG.UNITS.METRIC;
-        // this.state.showMeasurements = true;
+        if (this.history) {
+            this.history.length = 0;
+        }
+        if (this.redoHistory) {
+            this.redoHistory.length = 0;
+        }
         
         // Clear bounds
         this.latLngBounds = null;

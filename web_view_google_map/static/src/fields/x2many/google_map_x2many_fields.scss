@@ -1,10 +1,10 @@
 .o_field_google_map_one2many {
     width: 100%;
-    color: #6c757d;
+    // color: #6c757d;
 
     .o_field_x2many_google_map {
         .o_google_map_renderer {
-            min-height: 600px;
+            min-height: 400px;
 
             .o_google_map_view {
                 border: 1px solid $o-view-background-color;

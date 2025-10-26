@@ -3,4 +3,14 @@
     <t t-name="web_view_google_map.SearchPlaces">
         <div class="input-group google_search_places o_hidden" t-ref="searchPlaces"></div>
     </t>
+    <t t-name="web_view_google_map.SearchPlacesInfoWindow">
+        <div id="infowindow-content">
+            <span id="place-displayname" class="fs-4 fw-bolder">
+                <t t-esc="displayName"/>
+            </span><br />
+            <span id="place-address">
+                <t t-esc="formattedAddress"/>
+            </span>
+        </div>
+    </t>
 </templates>

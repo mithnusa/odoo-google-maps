@@ -40,12 +40,94 @@ const DECKGL_CONFIG = {
     ANIMATION_DURATION: 300, // Milliseconds for smooth transitions
 };
 
+/**
+ * Flag icon SVG for point markers
+ */
+const FLAG_ICON_SVG = `
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Flag pole -->
+  <line x1="6" y1="4" x2="6" y2="28" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+  <!-- Flag -->
+  <path d="M6 4 L24 8 L20 14 L24 20 L6 16 Z" fill="currentColor" stroke="currentColor" stroke-width="1"/>
+  <!-- Pole base -->
+  <circle cx="6" cy="28" r="2" fill="currentColor"/>
+</svg>`;
+
+/**
+ * Enable debug mode to see the flag canvas
+ * @type {boolean}
+ */
+window.DEBUG_DECKGL = true;
+
+/**
+ * Create icon atlas and mapping for Deck.gl IconLayer
+ */
+const createIconAtlas = () => {
+    const canvas = document.createElement('canvas');
+    const size = 64;
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext('2d');
+    
+    // Clear canvas with transparent background
+    ctx.clearRect(0, 0, size, size);
+    
+    // Create a simple flag icon on canvas
+    ctx.fillStyle = '#dc3545'; // Red flag
+    ctx.strokeStyle = '#2d3748'; // Dark pole
+    ctx.lineWidth = 3;
+
+    // Draw flag pole
+    ctx.beginPath();
+    ctx.moveTo(12, 8);
+    ctx.lineTo(12, 56);
+    ctx.stroke();
+    
+    // Draw flag
+    ctx.fillStyle = '#dc3545';
+    ctx.beginPath();
+    ctx.moveTo(12, 8);
+    ctx.lineTo(48, 16);
+    ctx.lineTo(40, 28);
+    ctx.lineTo(48, 40);
+    ctx.lineTo(12, 32);
+    ctx.closePath();
+    ctx.fill();
+    
+    // Add border to flag
+    ctx.strokeStyle = '#721c24';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    
+    // Draw pole base
+    ctx.fillStyle = '#2d3748';
+    ctx.beginPath();
+    ctx.arc(12, 56, 4, 0, 2 * Math.PI);
+    ctx.fill();
+
+    return canvas;
+};
+
+/**
+ * Icon mapping for Deck.gl IconLayer
+ */
+const ICON_MAPPING = {
+    flag: {
+        x: 0,
+        y: 0,
+        width: 64,
+        height: 64,
+        anchorY: 56, // Anchor at the bottom of the pole
+        anchorX: 12, // Anchor at the pole center
+        mask: false
+    }
+};
+
 
 export class DeckGlEditor extends Component {
     static template = 'web_view_google_map_drawing.DeckGlEditor';
     static props = {
         googleMap: Object,
-        saveFeatures: Function,
         dataGeoJson: { type: Object, optional: true },
         record: Object,
         onSelectionChange: { type: Function, optional: true }, // Callback for selection changes
@@ -68,10 +150,14 @@ export class DeckGlEditor extends Component {
         this.dragStartPosition = null;
         this.dragFeatureIds = new Set();
         
+        // Icon atlas for flag markers
+        this.iconAtlas = null;
+        
         this.debounceRenderGeoJsonData = debounce(this.renderGeoJsonData.bind(this), 500);
 
         onWillStart(async () => {
             await this._loadDeckGLAssets();
+            this._createIconAtlas();
         });
 
         useEffect(
@@ -104,7 +190,8 @@ export class DeckGlEditor extends Component {
 
         try {
             // Load Deck.gl core and Google Maps integration
-            await loadJS('/web_view_google_map_drawing/static/src/libs/deck-gl/9.1.14/dist.min.js');
+            // await loadJS('/web_view_google_map_drawing/static/src/libs/deck-gl/9.1.14/dist.min.js');
+            await loadJS('https://unpkg.com/deck.gl@9.2.2/dist.min.js');
 
             if (!window.deck) {
                 throw new Error('Deck.gl failed to load correctly.');
@@ -112,6 +199,19 @@ export class DeckGlEditor extends Component {
         } catch (error) {
             console.error('Error loading Deck.gl and Nebula GL assets:', error);
             throw new Error('Failed to load Deck.gl and Nebula GL assets: ' + error.message);
+        }
+    }
+
+    /**
+     * Create icon atlas for flag markers
+     * @private
+     */
+    _createIconAtlas() {
+        try {
+            this.iconAtlas = createIconAtlas();
+        } catch (error) {
+            console.error('Failed to create icon atlas:', error);
+            this.iconAtlas = null;
         }
     }
     
@@ -207,9 +307,6 @@ export class DeckGlEditor extends Component {
         if (this.props.onSelectionChange) {
             this.props.onSelectionChange(selectedFeatureIds);
         }
-        
-        // Could also trigger custom events here if needed
-        console.log(`Selection changed: ${selectedFeatureIds.length} features selected`);
     }
 
     /**
@@ -332,39 +429,87 @@ export class DeckGlEditor extends Component {
                 }
             }),
 
-            // Point layer for Point geometries
-            new window.deck.ScatterplotLayer({
-                id: 'pointsLayer',
-                data: points.map(f => ({
-                    ...f,
-                    position: f.geometry.type === 'Point'
-                        ? f.geometry.coordinates
-                        : f.geometry.coordinates[0]
-                })),
-                getPosition: d => d.position,
-                radiusMinPixels: 5,
-                radiusMaxPixels: 50,
-                pickable: true,
-                autoHighlight: false, // We handle highlighting manually
-                
-                // Dynamic styling
-                getRadius: d => this._getFeaturePointRadius(d, 10),
-                getFillColor: d => this._getFeatureFillColor(d, normalFillColor),
-                getLineColor: d => this._getFeatureStrokeColor(d, normalStrokeColor),
-                getLineWidth: d => this._getFeatureLineWidth(d, 2),
-                
-                // Update triggers
-                updateTriggers: {
-                    getRadius: [this.state.selectedFeatures, this.state.hoveredFeatureId],
-                    getFillColor: [this.state.selectedFeatures, this.state.hoveredFeatureId],
-                    getLineColor: [this.state.selectedFeatures, this.state.hoveredFeatureId],
-                    getLineWidth: [this.state.selectedFeatures, this.state.hoveredFeatureId],
-                }
-            })
+            // Try IconLayer for flags, fallback to ScatterplotLayer if it fails
+            this._createPointLayer(points, normalFillColor, normalStrokeColor)
         ];
 
         this.deckglOverlay.setProps({ layers });
         this.centerMapToFeatures(this.props.dataGeoJson.features);
+    }
+
+    /**
+     * Create point layer - try IconLayer first, fallback to ScatterplotLayer
+     * @private
+     */
+    _createPointLayer(points, normalFillColor, normalStrokeColor) {
+        // Check if IconLayer is available and atlas is ready
+        if (window.deck.IconLayer && this.iconAtlas) {
+            try {
+                return new window.deck.IconLayer({
+                    id: 'pointsLayer',
+                    data: points.map(f => ({
+                        ...f,
+                        position: f.geometry.type === 'Point'
+                            ? f.geometry.coordinates
+                            : f.geometry.coordinates[0],
+                        icon: 'flag'
+                    })),
+                    iconAtlas: this.iconAtlas,
+                    iconMapping: ICON_MAPPING,
+                    getPosition: d => d.position,
+                    getIcon: d => d.icon,
+                    sizeScale: 1,
+                    sizeMinPixels: 24,
+                    sizeMaxPixels: 80,
+                    pickable: true,
+                    autoHighlight: false,
+                    billboard: true,
+                    alphaCutoff: 0.05,
+                    
+                    // Dynamic sizing based on state
+                    getSize: d => this._getFeatureIconSize(d, 48),
+                    getColor: d => this._getFeatureIconColor(d),
+                    
+                    // Update triggers
+                    updateTriggers: {
+                        getSize: [this.state.selectedFeatures, this.state.hoveredFeatureId],
+                        getColor: [this.state.selectedFeatures, this.state.hoveredFeatureId],
+                    }
+                });
+            } catch (error) {
+                console.error('Failed to create IconLayer, falling back to ScatterplotLayer:', error);
+            }
+        }
+
+        // Fallback to ScatterplotLayer
+        return new window.deck.ScatterplotLayer({
+            id: 'pointsLayer',
+            data: points.map(f => ({
+                ...f,
+                position: f.geometry.type === 'Point'
+                    ? f.geometry.coordinates
+                    : f.geometry.coordinates[0]
+            })),
+            getPosition: d => d.position,
+            radiusMinPixels: 8,
+            radiusMaxPixels: 50,
+            pickable: true,
+            autoHighlight: false,
+            
+            // Dynamic styling
+            getRadius: d => this._getFeatureIconSize(d, 15), // Reuse the same sizing logic
+            getFillColor: d => this._getFeatureIconColor(d), // Reuse the same coloring logic
+            getLineColor: d => this._getFeatureStrokeColor(d, normalStrokeColor),
+            getLineWidth: d => this._getFeatureLineWidth(d, 2),
+            
+            // Update triggers
+            updateTriggers: {
+                getRadius: [this.state.selectedFeatures, this.state.hoveredFeatureId],
+                getFillColor: [this.state.selectedFeatures, this.state.hoveredFeatureId],
+                getLineColor: [this.state.selectedFeatures, this.state.hoveredFeatureId],
+                getLineWidth: [this.state.selectedFeatures, this.state.hoveredFeatureId],
+            }
+        });
     }
 
     /**
@@ -428,23 +573,43 @@ export class DeckGlEditor extends Component {
     }
 
     /**
-     * Get dynamic point radius based on feature state
+     * Get dynamic icon size based on feature state
      */
-    _getFeaturePointRadius(feature, normalRadius) {
+    _getFeatureIconSize(feature, normalSize) {
         const featureId = feature.properties?.id;
         
         if (featureId === this.state.hoveredFeatureId) {
-            // Hover state - larger point
-            return normalRadius + 5;
+            // Hover state - larger icon
+            return normalSize * 1.5;
         }
         
         if (this.state.selectedFeatures.has(featureId)) {
             // Selected state - slightly larger
-            return normalRadius + 2;
+            return normalSize * 1.2;
         }
         
         // Normal state
-        return normalRadius;
+        return normalSize;
+    }
+
+    /**
+     * Get dynamic icon color based on feature state
+     */
+    _getFeatureIconColor(feature) {
+        const featureId = feature.properties?.id;
+        
+        if (featureId === this.state.hoveredFeatureId) {
+            // Hover state - bright yellow/gold
+            return [255, 215, 0, 255];
+        }
+        
+        if (this.state.selectedFeatures.has(featureId)) {
+            // Selected state - orange
+            return [255, 140, 0, 255];
+        }
+        
+        // Normal state - red flag
+        return [220, 53, 69, 255];
     }
 
     async centerMapToFeatures(features) {

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="web_base_view_google_map.GoogleMapRenderer">
+        <div class="o_google_map_renderer">
+            <Geolocate googleMap="googleMap" t-if="state.isMapReady"/>
+            <div class="o_google_map_view" id="o_google_map_view" t-ref="map"></div>
+            <InMapSearchPlaces googleMap="googleMap" t-if="state.isMapReady"/>
+            <div t-attf-class="o_map_right_sidebar #{state.sidebarIsFolded ? 'closed': 'open'}">
+                <div class="content">
+                    <Sidebar t-props="sidebarProps" t-if="state.isMapReady"/>
+                </div>
+                <div class="toggle_right_sidenav">
+                    <button data-toggle="tooltip" data-placement="right" title="Expand side panel" t-on-click="toggleSidebar"></button>
+                </div>
+            </div>
+        </div>
+    </t>
+    <t t-name="web_base_view_google_map.MarkerInfoWindow">
+        <div class="infoWindow">
+            <hr t-if="isMulti"/>
+            <article role="link" class="o_kanban_record d-flex flex-grow-1 flex-md-shrink-1 flex-shrink-0 flex-row border-0">
+                <main class="ps-2">
+                    <div class="mb-1">
+                        <a href="#" role="button" class="text-decoration-none" id="btn-open_form">
+                            <h4 t-esc="title"/>
+                        </a>
+                    </div>
+                    <div>
+                        <t t-esc="subTitle"/>
+                    </div>
+                    <div class="pt-3 d-flex text-nowrap justify-content-between gap-1">
+                        <a t-attf-href="https://www.google.com/maps/dir/?api=1&amp;destination={{ destination }}" target="_blank" tabindex="-1" class="btn btn-sm btn-secondary" id="btn-navigate_to" data-toggle="tooltip" title="Navigate to this location">
+                            <i class="fa fa-map-signs"></i>
+                            <span class="ps-1 fw-light smaller">Navigate to</span>
+                        </a>
+                        <a t-attf-href="https://www.google.com/maps/search/?api=1&amp;query={{ destination }}" target="_blank" tabindex="-1" class="btn btn-sm btn-secondary" id="btn-view-on-googlemaps" data-toggle="tooltip" title="View on Google Maps website">
+                            <i class="fa fa-external-link"></i>
+                            <span class="ps-1 fw-light smaller">View on Google Maps</span>
+                        </a>
+                    </div>
+                </main>
+            </article>
+        </div>
+    </t>
+</templates>

@@ -5,22 +5,25 @@
             position: relative;
             height: 100%;
             background-color: $o-view-background-color;
-            transition: width 0.3s ease-in-out;
             z-index: 1;
             width: 25%; // Default width
+            max-width: 400px;
+            min-width: 300px;
+            will-change: width;
+            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
             .content {
-                display: flex;
-                flex-direction: column;
-                flex-wrap: wrap;
                 position: relative;
                 height: 100%;
                 width: 100%;
+                min-width: 200px;
                 padding: 0px 2px 0px 2px;
                 background-color: $o-view-background-color;
-                transform: translateX(0);
-                transition: transform 0.3s ease-in-out;
-                overflow-x: auto;
+                overflow-y: auto;
+                overflow-x: hidden;
+                opacity: 1;
+                will-change: opacity;
+                transition: opacity 0.25s ease-in-out;
 
                 button[data-bs-toggle="collapse"] {
                     .fa-caret-down {
@@ -38,20 +41,33 @@
                         }
                     }
                 }
-                .list-group {
-                    .list-group-item {
-                        padding: 0.25rem 0.5rem;
+
+                table tr td .o_map_sidebar_record > div, table tr td .o_map_sidebar_group {
+                    display: block; // Required for ellipsis to work
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    max-width: 250px; // Default for large screens
+
+                    // Responsive max-width adjustments
+                    @media (max-width: 1920px) {
+                        max-width: 200px;
+                    }
+                    @media (max-width: 1600px) {
+                        max-width: 160px;
+                    }
+                    @media (max-width: 1200px) {
+                        max-width: 140px;
                     }
                 }
-
             }
             .toggle_right_sidenav {
                 display: block;
                 position: absolute;
                 right: 100%;  // Position relative to the sidebar width
                 top: 25%;
-                z-index: 2;
-                transition: right 0.3s ease-in-out; // Add transition to match content
+                z-index: 999;
+                transition: right 0.1s ease-in-out;
 
                 button {
                     width: 25px;
@@ -60,7 +76,6 @@
                     border-top: 1.5px solid $o-view-background-color;
                     border-bottom: 1.5px solid $o-view-background-color;
                     border-right: 0px;
-                    box-shadow: 0px 1px 0px #989898;
                     border-radius: 4px 0px 0px 4px;
                     font-size: 20px;
                     background-color: $o-view-background-color;
@@ -80,11 +95,13 @@
             // Closed state
             &.closed {
                 width: 0;
-                box-shadow: none;
+                min-width: 0; // Override the min-width to allow full collapse
+                box-shadow: none !important; // Immediately remove shadow, no transition
 
                 .content {
-                    transform: translateX(100%);
-                    overflow: hidden;
+                    opacity: 0;
+                    transition: opacity 0.15s ease-out; // Faster fade out
+                    pointer-events: none;
                 }
 
                 .toggle_right_sidenav {
@@ -98,10 +115,13 @@
             // Open state
             &.open {
                 width: 25%;
+                max-width: 400px;
                 box-shadow: -0.9px 0 1px 0.1px $o-view-background-color;
+                transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s ease-in 0.1s; // Shadow appears with delay
 
                 .content {
-                    transform: translateX(0);
+                    opacity: 1;
+                    pointer-events: auto;
                 }
 
                 .toggle_right_sidenav {
@@ -112,18 +132,6 @@
                     }
                 }
             }
-            li {
-                &.disabled {
-                    background-color: invert($o-view-background-color, 0.5%);
-                    pointer-events: auto;
-                    cursor: no-drop;
-                    a {
-                        text-decoration: none;
-                    }
-                }
-            }
-
-
             .o_map_sidebar {
                 span {
                     &.text-muted {
@@ -136,6 +144,11 @@
                 table tr td {
                     vertical-align: middle;
                 }
+            }
+
+            // Responsive: hide sidebar on small screens and mobile devices
+            @media (max-width: 768px) {
+                display: none !important;
             }
         }
     }

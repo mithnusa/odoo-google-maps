@@ -70,7 +70,6 @@ export class GoogleAddressAutocompleteField extends BaseGoogleAutocomplete {
     }
 
     async populateAddress(place) {
-        console.log(' GoogleAddressAutocompleteField.populateAddress ');
         // geolocation
         const partner_geometry = this._prepareGeolocation(
             place.geometry.location.lat(),
@@ -78,11 +77,7 @@ export class GoogleAddressAutocompleteField extends BaseGoogleAutocomplete {
         );
         // address
         const google_address = await this.prepareAddressFields(place);
-        console.log('partner_geometry: ', partner_geometry);
-        console.log('google_address: ', google_address);
-        // merge
         const values = Object.assign({}, partner_geometry, google_address);
-        console.log('values: ', values);
         values[this.props.name] = place.name;
         this._update(values);
     }

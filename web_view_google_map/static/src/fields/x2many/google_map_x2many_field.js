@@ -1,6 +1,8 @@
 import { registry } from '@web/core/registry';
 import { _t } from '@web/core/l10n/translation';
 import { x2ManyField, X2ManyField } from '@web/views/fields/x2many/x2many_field';
+import { onWillUnmount} from "@odoo/owl";
+import { gMapViewAttrsContextManager } from '../../helpers/view_attrs_context_manager';
 import { GoogleMapRenderer } from '../../views/google_map/google_map_renderer';
 
 export class X2ManyFieldGoogleMap extends X2ManyField {
@@ -9,36 +11,48 @@ export class X2ManyFieldGoogleMap extends X2ManyField {
 
     setup() {
         super.setup();
-        const { creates } = this.archInfo;
-        if (['kanban', 'google_map'].indexOf(this.props.viewMode) >= 0) {
-            this.creates = creates.length
-                ? creates
-                : [
-                      {
-                          type: 'create',
-                          string: this.props.addLabel || _t('Add'),
-                          class: 'o-kanban-button-new',
-                      },
-                  ];
+        this.googleViewAttrContext = gMapViewAttrsContextManager;
+        this.controls = this.controls || [];
+        if (this.props.viewMode === 'google_map' && this.activeActions.create && !this.props.readonly) {
+            this.controls.push({
+                type: 'create',
+                string: this.props.addLabel || _t('Add'),
+            });
         }
+
+        onWillUnmount(() => {
+            this.googleViewAttrContext.clear();
+        });
+    }
+
+    get viewAttrsConfig() {
+        const { archInfo } = this;
+        return {
+            title: archInfo.sidebarTitleField,
+            subTitle: archInfo.sidebarSubtitleField,
+            __geoColor: archInfo.__geoColor,
+        };
     }
 
     get rendererProps() {
         if (this.props.viewMode === 'google_map') {
-            const archInfo = this.activeField.views[this.props.viewMode];
-            if (!archInfo.gestureHandling) {
-                archInfo.gestureHandling = 'cooperative';
-                archInfo.allowSelectors = false;
-            }
+            const { archInfo } = this;
+            const list = this.list;
+
+            const viewAttrsConfig = this.viewAttrsConfig;
+            this.googleViewAttrContext.update(viewAttrsConfig);
+
             const props = {
                 archInfo,
-                list: this.list,
+                list,
                 openRecord: this.openRecord.bind(this),
                 showRecord: this.openRecord.bind(this),
                 showRecordsByDomain: () => {},
                 allowSelectors: false,
+                viewAttrs: viewAttrsConfig,
             };
             props.readonly = this.props.readonly;
+
             return props;
         }
         return super.rendererProps;
@@ -46,7 +60,7 @@ export class X2ManyFieldGoogleMap extends X2ManyField {
 
     get displayControlPanelButtons() {
         return (
-            ['kanban', 'google_map'].indexOf(this.props.viewMode) >= 0 &&
+            this.props.viewMode === 'google_map' &&
             ('link' in this.activeActions ? this.activeActions.link : this.activeActions.create) &&
             !this.props.readonly
         );

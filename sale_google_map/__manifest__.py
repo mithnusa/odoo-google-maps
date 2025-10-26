@@ -11,6 +11,11 @@
     'version': '1.0.0',
     'depends': ['sale_management', 'web_view_google_map'],
     'data': ['views/sale_order.xml', 'views/res_partner.xml'],
+    'assets': {
+        'web.assets_backend': [
+            'sale_google_map/static/src/views/**/*',
+        ]
+    },
     'demo': [],
     'installable': True,
     'application': False,

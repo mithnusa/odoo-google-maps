@@ -4,11 +4,8 @@
         <xpath expr="//ListRenderer" position="after">
             <GoogleMapRenderer t-elif="props.viewMode === 'google_map'" t-props="rendererProps"/>
         </xpath>
-        <xpath expr="//KanbanRenderer" position="attributes">
-            <attribute name="t-elif">props.viewMode === 'kanban'</attribute>
-        </xpath>
         <xpath expr="//div[@t-ref='buttons']" position="inside">
-            <button type="button" class="btn btn-secondary" t-if="props.viewMode === 'google_map'" title="Center Map" t-on-click.prevent="() => this.centerMap()">
+            <button type="button" class="btn btn-secondary" t-if="props.viewMode === 'google_map'" data-tooltip="Center Map" t-on-click.prevent="() => this.centerMap()">
                 <span>Center Map</span>
             </button>
         </xpath>

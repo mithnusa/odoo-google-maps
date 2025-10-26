@@ -509,22 +509,12 @@ export class TerraDrawToolsUI extends Component {
                 this.terraDrawInstance.setMode('select');
             }
             
-            // Check Terra Draw state before adding features
-            console.log('Terra Draw current mode:', this.terraDrawInstance.getMode());
-            console.log('Terra Draw has features before adding:', this.terraDrawInstance.hasFeature());
-            
+
             this.terraDrawInstance.addFeatures(processedFeatures);
-            
-            // Check Terra Draw state after adding features
-            console.log('Terra Draw has features after adding:', this.terraDrawInstance.hasFeature());
 
             // Debug: Check what features Terra Draw actually has
             setTimeout(() => {
-                const addedFeatures = this.terraDrawInstance.getSnapshot();
-                console.log('Features actually added to Terra Draw:', addedFeatures);
-                console.log('Terra Draw has features:', this.terraDrawInstance.hasFeature());
-                console.log('Current Terra Draw mode:', this.terraDrawInstance.getMode());
-                
+                const addedFeatures = this.terraDrawInstance.getSnapshot();                
                 // Force a render/redraw
                 if (addedFeatures.length > 0) {
                     console.log('Forcing Terra Draw refresh...');
@@ -539,7 +529,6 @@ export class TerraDrawToolsUI extends Component {
                     this.terraDrawInstance.clear();
                     setTimeout(() => {
                         this.terraDrawInstance.addFeatures(addedFeatures);
-                        console.log('Re-added features. Has features now:', this.terraDrawInstance.hasFeature());
                         
                         // Approach 2: Force mode changes after re-adding
                         setTimeout(() => {
@@ -2021,11 +2010,6 @@ export class TerraDrawToolsUI extends Component {
 
             this.state.isSaving = true;
             await this.props.saveFeatures(geoJson);
-
-            this.notificationService.add(
-                _t('Changes saved successfully'), 
-                { title: _t('Saved'), type: 'success' }
-            );
         } catch (error) {
             console.error('Save failed:', error);
             this.notificationService.add(

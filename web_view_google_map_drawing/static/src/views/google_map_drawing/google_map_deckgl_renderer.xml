@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates xml:space="preserve">
+    <!-- Disabled the sidebar toggle button in the drawing view to cover deckgl issue related to resizing the browser window -->
+    <t t-name="web_view_google_map_drawing.GoogleMapDeckGlRenderer" t-inherit="web_view_google_map.GoogleMapRenderer" t-inherit-mode="primary">
+        <xpath expr="//div[hasclass('toggle_right_sidenav')]" position="attributes">
+            <attribute name="class" add="d-none" separator=" "/>
+        </xpath>
+        <xpath expr="//div[hasclass('toggle_right_sidenav')]/button" position="attributes">
+            <attribute name="disabled">disabled</attribute>
+            <attribute name="class" add="disabled" separator=" "/>
+        </xpath>
+    </t>
+    <t t-name="web_view_google_map_drawing.FeatureProperties">
+        <div>
+            <p class="mb-0 pb-0 fs-4" t-out="title"/>
+            <div class="mt-1" t-if="displayNames">
+                <ul class="list-group list-group-flush">
+                    <t t-foreach="displayNames" t-as="displayName" t-key="displayNameIndex">
+                        <li class="list-group-item p-1">
+                            <small class="font-monospace text-muted" t-out="displayName"/>
+                        </li>
+                    </t>
+                </ul>
+            </div>
+        </div>
+    </t>
+</templates>

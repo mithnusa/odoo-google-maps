@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="web_base_view_google_map.GoogleMapView">
+        <div t-att-class="className" t-ref="root">
+            <Layout className="model.useSampleModel ? 'o_view_sample_data' : ''" display="display">
+                <t t-set-slot="control-panel-create-button">
+                    <t t-if="!model.root.editedRecord and activeActions.create and !env.inDialog">
+                        <button type="button" class="btn btn-primary o_list_button_add" data-hotkey="c" t-on-click="onClickCreate" data-bounce-button="">
+                            New
+                        </button>
+                    </t>
+                </t>
+                <t t-set-slot="layout-buttons">
+                    <t t-call="{{ props.buttonTemplate }}"/>
+                </t>
+                <t t-set-slot="layout-actions">
+                    <SearchBar t-if="searchBarToggler.state.showSearchBar" autofocus="firstLoad"/>
+                </t>
+                <t t-set-slot="control-panel-navigation-additional">
+                    <t t-component="searchBarToggler.component" t-props="searchBarToggler.props"/>
+                </t>
+                <t t-set-slot="control-panel-additional-actions">
+                    <CogMenu t-if="!nbSelected"/>
+                </t>
+                <t t-set-slot="control-panel-selection-actions">
+                    <div t-if="nbSelected" class="d-flex gap-1">
+                        <SelectionBox root="this.model.root"/>
+                        <t t-if="props.info.actionMenus">
+                            <ActionMenus getActiveIds="() => model.root.selection.map((r) => r.resId)" context="props.context" domain="props.domain" items="actionMenuItems" isDomainSelected="model.root.isDomainSelected" resModel="model.root.resModel" onActionExecuted="() => model.load()"/>
+                        </t>
+                    </div>
+                </t>
+                <t t-component="props.Renderer" list="model.root" archInfo="props.archInfo" activeActions="activeActions" allowSelectors="props.allowSelectors" readonly="true" openRecord.bind="openRecord" onAdd.bind="createRecord" showRecord.bind="showRecord" showRecordsByDomain.bind="showRecordsByDomain"/>
+            </Layout>
+        </div>
+    </t>
+
+    <t t-name="web_base_view_google_map.GoogleMapView.Buttons">
+        <div t-if="props.showButtons" class="o_list_buttons d-flex gap-1 d-empty-none align-items-baseline" role="toolbar" aria-label="Main actions">
+            <button type="button" class="btn btn-outline-secondary o-google_map-button-center-map" t-on-click="centerMap">
+                Center Map
+            </button>
+        </div>
+    </t>
+
+</templates>

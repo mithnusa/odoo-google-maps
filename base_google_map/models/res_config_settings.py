@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
+import ast
 from odoo import api, fields, models, _
+
+from odoo.exceptions import ValidationError
 
 
 GMAPS_LANG_LOCALIZATION = [
@@ -178,6 +181,7 @@ class ResConfigSettings(models.TransientModel):
         string='Color Scheme',
         config_parameter='base_google_map.color_scheme',
     )
+    is_web_google_map_installed = fields.Boolean(string="Is the Sale Module Installed")
 
     @api.depends('google_autocomplete_country_restriction_str')
     def _compute_country_restriction(self):
@@ -209,3 +213,15 @@ class ResConfigSettings(models.TransientModel):
             google_map_libraries += ['places']
 
         self.google_maps_libraries = ','.join(google_map_libraries)
+
+    @api.model
+    def get_values(self):
+        res = super(ResConfigSettings, self).get_values()
+        is_web_google_map_installed = self.env['ir.module.module'].search_count([
+            ('name', '=', 'web_view_google_map'),
+            ('state', '=', 'installed'),
+        ]) > 0
+        res.update(
+            is_web_google_map_installed=is_web_google_map_installed,
+        )
+        return res

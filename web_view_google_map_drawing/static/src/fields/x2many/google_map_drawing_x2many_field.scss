@@ -1,0 +1,40 @@
+.o_field_google_map_drawing_one2many, .o_field_google_map_drawing_many2many {
+    width: 100%;
+
+    .o_field_x2many_google_map {
+        .o_google_map_renderer {
+            min-height: 400px;
+
+            .o_google_map_view {
+                border: 1px solid $o-view-background-color;
+            }
+
+            .o_map_right_sidebar {
+                &.closed {
+                    position: relative;
+                }
+                .content {
+                    table tr td .o_map_sidebar_record > div {
+                        margin-left: 4px;
+                        display: block; // Required for ellipsis to work
+                        white-space: nowrap;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                        max-width: 250px; // Default for large screens
+
+                        // Responsive max-width adjustments
+                        @media (max-width: 1920px) {
+                            max-width: 200px;
+                        }
+                        @media (max-width: 1600px) {
+                            max-width: 160px;
+                        }
+                        @media (max-width: 1200px) {
+                            max-width: 140px;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

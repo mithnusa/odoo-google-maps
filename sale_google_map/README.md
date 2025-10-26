@@ -1,0 +1,18 @@
+# Sales Google Maps
+
+## Overview
+
+The `sale_google_map` module adds Google Maps view to the Sales application. It allows you to visualize sales orders on an interactive Google Map based on customer locations, helping sales teams analyze geographical sales patterns.
+
+## Features
+- Interactive Google Map view for Sales Orders with clustering and sidebar
+- Quick actions from the map sidebar to open sales order records
+- View sales orders plotted on the map based on customer addresses
+- Records displayed on the map are grouped by customer (partner)
+
+
+## Installation & Configuration
+1. Install the module (depends on `sale_management` and `web_view_google_map`)
+2. Configure your Google Maps API key in `Settings > General Settings > Google Maps`
+3. Navigate to `Sales > Orders` and switch to the Google Map view
+4. View your sales orders plotted on the map based on customer addresses

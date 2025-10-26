@@ -17,7 +17,7 @@ export class GoogleMapArchParser {
 
         const groupListArchParser = new GroupListArchParser();
 
-        const viewTitle = xmlDoc.getAttribute('string') || 'Google Map';
+        const viewTitle = xmlDoc.getAttribute('string') || '';
 
         const fieldNodes = {};
         const googleMapAttr = {};
@@ -83,59 +83,7 @@ export class GoogleMapArchParser {
                     fields: models[coModelName].fields,
                 };
             } else if (node.tagName === 'google_map') {
-                const activeActions = {
-                    ...getActiveActions(xmlDoc),
-                    exportXlsx: exprToBoolean(xmlDoc.getAttribute('export_xlsx'), true),
-                };
-                googleMapAttr.activeActions = activeActions;
-                googleMapAttr.multiEdit = activeActions.edit
-                    ? exprToBoolean(node.getAttribute('multi_edit') || '')
-                    : false;
-
-                const limitAttr = node.getAttribute('limit');
-                googleMapAttr.limit = limitAttr ? parseInt(limitAttr, 10) : this.defaultLimit;
-
-                const countLimitAttr = node.getAttribute('count_limit');
-                googleMapAttr.countLimit = countLimitAttr && parseInt(countLimitAttr, 10);
-
-                googleMapAttr.defaultOrder = stringToOrderBy(
-                    xmlDoc.getAttribute('default_order') || null
-                );
-
-                // custom open action when clicking on record row
-                const action = xmlDoc.getAttribute('action');
-                const type = xmlDoc.getAttribute('type');
-                googleMapAttr.openAction = action && type ? { action, type } : null;
-
-                const markerColor = xmlDoc.getAttribute('color');
-                googleMapAttr.markerColor = markerColor;
-
-                const latitudeField = xmlDoc.getAttribute('lat');
-                googleMapAttr.latitudeField = latitudeField;
-
-                const longitudeField = xmlDoc.getAttribute('lng');
-                googleMapAttr.longitudeField = longitudeField;
-
-                const sidebarTitleField = xmlDoc.getAttribute('sidebar_title');
-                googleMapAttr.sidebarTitleField = sidebarTitleField;
-
-                const sidebarSubtitleField = xmlDoc.getAttribute('sidebar_subtitle');
-                googleMapAttr.sidebarSubtitleField = sidebarSubtitleField;
-
-                const onCreate = xmlDoc.getAttribute('on_create');
-                googleMapAttr.onCreate = onCreate;
-
-                const gestureHandling = xmlDoc.getAttribute('gesture_handling') || false;
-                googleMapAttr.gestureHandling = gestureHandling;
-
-                const disableMarkerCluster = exprToBoolean(
-                    xmlDoc.getAttribute('disable_cluster_marker'),
-                    false
-                );
-                googleMapAttr.disableMarkerCluster = disableMarkerCluster;
-
-                const defaultGroupBy = xmlDoc.getAttribute('default_group_by');
-                googleMapAttr.defaultGroupBy = defaultGroupBy;
+                this.parseGoogleMapAttrs(xmlDoc, node, googleMapAttr);
             }
         });
         return {
@@ -148,5 +96,68 @@ export class GoogleMapArchParser {
             groupBy,
             ...googleMapAttr,
         };
+    }
+
+    parseGoogleMapAttrs(xmlDoc, node, attrs) {
+        const activeActions = {
+            ...getActiveActions(xmlDoc),
+            exportXlsx: exprToBoolean(xmlDoc.getAttribute('export_xlsx'), true),
+        };
+        attrs.activeActions = activeActions;
+        attrs.multiEdit = activeActions.edit
+            ? exprToBoolean(node.getAttribute('multi_edit') || '')
+            : false;
+
+        const limitAttr = node.getAttribute('limit');
+        attrs.limit = limitAttr ? parseInt(limitAttr, 10) : this.defaultLimit;
+
+        const countLimitAttr = node.getAttribute('count_limit');
+        attrs.countLimit = countLimitAttr && parseInt(countLimitAttr, 10);
+
+        attrs.defaultOrder = stringToOrderBy(
+            xmlDoc.getAttribute('default_order') || null
+        );
+
+        // custom open action when clicking on record row
+        const action = xmlDoc.getAttribute('action');
+        const type = xmlDoc.getAttribute('type');
+        attrs.openAction = action && type ? { action, type } : null;
+
+        const mapId = xmlDoc.getAttribute('map_id');
+        attrs.mapId = mapId;
+
+        const markerColor = xmlDoc.getAttribute('color');
+        attrs.__geoColor = markerColor;
+
+        const latitudeField = xmlDoc.getAttribute('lat');
+        attrs.latitudeField = latitudeField;
+
+        const longitudeField = xmlDoc.getAttribute('lng');
+        attrs.longitudeField = longitudeField;
+
+        const sidebarTitleField = xmlDoc.getAttribute('sidebar_title');
+        attrs.sidebarTitleField = sidebarTitleField;
+
+        const sidebarSubtitleField = xmlDoc.getAttribute('sidebar_subtitle');
+        attrs.sidebarSubtitleField = sidebarSubtitleField;
+
+        const onCreate = xmlDoc.getAttribute('on_create');
+        attrs.onCreate = onCreate;
+
+        const gestureHandling = xmlDoc.getAttribute('gesture_handling') || false;
+        attrs.gestureHandling = gestureHandling || 'auto';
+
+        const mapType = xmlDoc.getAttribute('map_type') || 'roadmap';
+        attrs.mapType = mapType;
+
+        const disableMarkerCluster = exprToBoolean(
+            xmlDoc.getAttribute('disable_cluster_marker'),
+            false
+        );
+        attrs.disableMarkerCluster = disableMarkerCluster;
+
+        const defaultGroupBy = xmlDoc.getAttribute('default_group_by');
+        attrs.defaultGroupBy = defaultGroupBy;
+
     }
 }

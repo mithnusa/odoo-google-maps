@@ -14,13 +14,14 @@
     'website': 'https://github.com/mithnusa',
     'support': 'yopiangi@gmail.com',
     'category': 'Extra Tools',
-    'version': '1.0.2',
+    'version': '1.0.0',
     'depends': ['base_google_map'],
     'data': ['data/gmap_libraries.xml'],
     'assets': {
         'web.assets_backend': [
             'web_view_google_map/static/src/views/**/*',
             'web_view_google_map/static/src/fields/**/*',
+            'web_view_google_map/static/src/helpers/*',
             ('remove', 'web_view_google_map/static/src/views/**/*.dark.scss'),
         ],
         'web.dark_mode_assets_backend': [

@@ -1,12 +1,4 @@
-import {
-    useRef,
-    useState,
-    useSubEnv,
-    useEffect,
-    onPatched,
-    onWillUpdateProps,
-    useExternalListener,
-} from '@odoo/owl';
+import { useRef, useState, useSubEnv, useEffect, onPatched, onWillUpdateProps } from '@odoo/owl';
 import { _t } from '@web/core/l10n/translation';
 import { renderToString } from '@web/core/utils/render';
 import { debounce } from '@web/core/utils/timing';
@@ -20,7 +12,12 @@ import { KanbanRecord } from '@web/views/kanban/kanban_record';
 import { GoogleMapSidebar } from './google_map_sidebar';
 import { GoogleMapGeolocate } from './components/geolocate/geolocate';
 import { GoogleMapSearchPlaces } from './components/search_places/search_places';
-import { invertColorDarken } from './utils';
+import {
+    invertColorDarken,
+    AdvancedMarkerBoxSelector,
+    getRecordDataView,
+    generateUUID,
+} from './utils';
 
 /**
  * Maximum zoom level to apply when fitting bounds
@@ -64,12 +61,14 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
         onAdd: { type: Function, optional: true },
         activeActions: { type: Object, optional: true },
         allowSelectors: Boolean,
+        viewAttrs: Object,
     };
 
     setup() {
         super.setup();
         this.mapRef = useRef('map');
         this.googleMapBounds = null;
+        this.googleMapBoundsSelected = null;
         this.markerClusterer = null;
 
         // Make sidebar state non-reactive
@@ -85,15 +84,17 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
         });
         this.markerInfoWindow = null;
         this.cache = new Map();
-        this.isShiftKeyPressed = false;
-        this._markerPositionIndex = null;
-        this._markerEventListeners = new Map();
-
+        this.cacheRecordDataView = new Map();
+        this.mapBoxSelector = null;
         this.lastGroupsOrRecordsProps = null;
         this.cachedGroupsOrRecords = null;
 
+        this._markerEventListeners = new Map();
+        this._markerPositionIndex = new Map();
+
         this.debounceToggleRecordSelection = debounce(this.toggleRecordSelection.bind(this), 500);
         this.debounceRenderGeolocationData = debounce(this.renderGeolocationData.bind(this), 500);
+        this.debounceSelectedMarkers = debounce(this.onSelectedMarkers.bind(this), 500);
 
         useEffect(
             () => {
@@ -109,7 +110,7 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
             if (this.isMapLoaded() && !this.state.groupDatalistId && !this._isSidebarAction) {
                 const isGrouped = this.props.list.isGrouped;
                 if (isGrouped) {
-                    this.state.groupDatalistId = this._generateUniqueId();
+                    this.state.groupDatalistId = generateUUID();
                 } else {
                     this.debounceRenderGeolocationData();
                 }
@@ -127,7 +128,7 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
 
         onWillUpdateProps((nextProps) => {
             this._invalidateMarkerPositionIndex();
-            this.state.groupDatalistId = this._generateUniqueId();
+            this.state.groupDatalistId = generateUUID();
         });
 
         onPatched(() => {
@@ -139,12 +140,40 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
             }
         });
 
-        useExternalListener(window, 'keydown', this._handleKeyDown, { capture: true });
-        useExternalListener(window, 'keyup', this._handleKeyUp, { capture: true });
-
         if (this.props.allowSelectors) {
             useBus(this.uiService.bus, 'google-map-center-map', this.centerMap);
         }
+    }
+
+    /**
+     * @override
+     */
+    async onMapReady(map) {
+        await super.onMapReady(map);
+
+        if (!this.googleMapBounds) {
+            // Import marker library earlier
+            await this.apiLoader.importLibrary('marker');
+            const { LatLngBounds } = await this.apiLoader.importLibrary('core');
+            this.googleMapBounds = new LatLngBounds();
+            this.googleMapBoundsSelected = new LatLngBounds();
+        }
+        if (!this.markerInfoWindow) {
+            // this.markerInfoWindow = new google.maps.InfoWindow({ disableAutoPan: true });
+            this.markerInfoWindow = new google.maps.InfoWindow();
+        }
+        this.initMapboxSelector();
+    }
+
+    /**
+     * Initialize the map box selector for selecting markers
+     * @returns
+     */
+    initMapboxSelector() {
+        if (this.mapBoxSelector) return;
+        this.mapBoxSelector = new AdvancedMarkerBoxSelector(this.googleMap);
+        // Handle selection changes from the box selector
+        this.mapBoxSelector.onSelectionChange = this.debounceSelectedMarkers.bind(this);
     }
 
     /**
@@ -167,14 +196,30 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
      * Render all markers on the map
      * @param {boolean} [noClear=false] Whether to clear existing markers
      */
-    renderGeolocationData(noClear = false) {
+    renderGeolocationData() {
         if (!this.isMapLoaded()) return;
 
-        if (!noClear) {
-            this.clearMarkers();
-        }
+        this.clearMarkers();
 
         this.renderMarkers();
+    }
+
+    onSelectedMarkers(selectedMarkers) {
+        if (selectedMarkers.length === 0) {
+            this.notificationService.add(
+                _t(
+                    'No markers are currently selected. Please ensure the map is not tilted, try to zoom in closer, and try again'
+                ),
+                {
+                    type: 'info',
+                }
+            );
+            return;
+        }
+        const records = selectedMarkers
+            .map((marker) => marker._odooRecord)
+            .filter((record) => !!record);
+        this._processSelectionInBatches(records, true);
     }
 
     /**
@@ -189,9 +234,9 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
 
         // Render markers differently based on grouping
         if (this.props.list.isGrouped) {
-            this._renderGroupedMarkers(datas);
+            await this._renderGroupedMarkers(datas);
         } else {
-            this._renderUngroupedMarkers(datas);
+            await this._renderUngroupedMarkers(datas);
         }
 
         // Fit map to bounds once all markers are rendered
@@ -251,39 +296,35 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
      * Create or update a marker for a record
      * @param {Object} record The record to create a marker for
      * @param {string} [markerColor] Optional color override for the marker
+     * @param {boolean} [skipFitBounds=false] Whether to skip fitting bounds after creation
      * @returns {Promise<Object>} The marker object
      */
-    async createMarker(record, markerColor) {
-        if (!record?.dataView?.geolocation) return null;
+    async createMarker(record, markerColor, skipFitBounds = false) {
+        const dataView = this.getRecordDataView(record);
+        if (!dataView?.geolocation) return null;
 
-        const { geolocation, other } = record.dataView;
+        const { geolocation, other } = dataView;
         if (!this.isMapLoaded() || !geolocation) return null;
 
         try {
-            const { AdvancedMarkerElement, PinElement } =
-                await this.apiLoader.importLibrary('marker');
-
-            // Determine marker scale based on selection state
-            const scale = record.selected ? 1.3 : 1;
-
             // Create marker visual elements
-            const elementValues = this._createMarkerElementValues(other, markerColor, scale);
-            const pinEl = new PinElement(elementValues);
+            const elementValues = this._createMarkerElementValues(other, markerColor);
 
             // Update existing marker if it exists
             if (this.cache.has(record.id)) {
-                return this._updateExistingMarker(record, geolocation, pinEl);
+                return this._updateExistingMarker(record, geolocation, skipFitBounds);
             }
 
             // Create new marker
-            return this._createNewMarker(
+            const marker = await this._createNewMarker(
                 record,
                 geolocation,
                 other,
-                pinEl,
                 elementValues,
-                AdvancedMarkerElement
+                skipFitBounds
             );
+            this.mapBoxSelector?.addMarker(marker);
+            return marker;
         } catch (error) {
             this._handleMarkerError(error);
             return null;
@@ -300,40 +341,51 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
             this.markerClusterer.clearMarkers();
         }
 
+        if (this.mapBoxSelector) {
+            this.mapBoxSelector.clearSelection(true);
+        }
+
         // Remove all markers from the map and clear event listeners
         this.cache.forEach((marker, id) => {
             marker.map = null;
             this._removeMarkerEventListeners(id);
         });
 
+        this.cacheRecordDataView.clear();
+        this._markerEventListeners.clear();
+        this._markerPositionIndex.clear();
         this.cache.clear();
         this._invalidateMarkerPositionIndex();
 
         // Reset map bounds
         const { LatLngBounds } = await this.apiLoader.importLibrary('core');
         this.googleMapBounds = new LatLngBounds();
+        this.googleMapBoundsSelected = new LatLngBounds();
     }
 
     /**
      * Center the map to show all markers
+     * @async
+     * @param {boolean} [silent=false] Whether to suppress notifications when no markers found
+     * @returns {Promise<void>}
      */
     async centerMap() {
         if (!this.isMapLoaded()) return;
 
-        const { LatLngBounds } = await this.apiLoader.importLibrary('core');
-        const mapBounds = new LatLngBounds();
-
-        let hasMarkers = false;
-
-        this.cache.forEach((marker) => {
-            if (marker.map) {
-                mapBounds.extend(marker.position);
-                hasMarkers = true;
-            }
-        });
-
-        if (hasMarkers) {
+        try {
+            const { LatLngBounds } = await this.apiLoader.importLibrary('core');
+            const mapBounds = new LatLngBounds();
+            this.cache.forEach((marker) => {
+                if (marker.map) {
+                    mapBounds.extend(marker.position);
+                }
+            });
             this._fitMapBoundsWithLimit(mapBounds);
+        } catch (error) {
+            console.error('Error centering map:', error);
+            this.notificationService.add(_t('Failed to center map. Please try again.'), {
+                type: 'warning',
+            });
         }
     }
 
@@ -383,9 +435,24 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
         this.markerInfoWindow?.close();
         this.googleMap.panTo(position);
 
+        if (marker._isShifted) {
+            this.notificationService.add(
+                _t(
+                    "This marker's location has been slightly shifted to prevent overlap with other markers." +
+                        '\nCheck the other end of the line connected to this marker for its original location.'
+                ),
+                { type: 'info' }
+            );
+        }
+
         google.maps.event.addListenerOnce(this.googleMap, 'idle', () => {
-            google.maps.event.trigger(marker, 'gmp-click');
-            if (this.googleMap.getZoom() < 14) this.googleMap.setZoom(14);
+            const currentZoom = this.googleMap.getZoom();
+            google.maps.event.trigger(marker, 'click');
+            if (marker._isShifted && currentZoom < 21) {
+                this.googleMap.setZoom(21);
+            } else if ((currentZoom < 14 || currentZoom >= 21) && !marker._isShifted) {
+                this.googleMap.setZoom(14);
+            }
             this.markerInfoWindow.setPosition(position);
         });
     }
@@ -488,23 +555,42 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
         }
     }
 
+    /**
+     * Get data view for a record, with caching
+     * @param {*} record
+     * @returns Object Data view for the record
+     */
+    getRecordDataView(record) {
+        if (this.cacheRecordDataView.has(record.id)) {
+            const cachedDataView = this.cacheRecordDataView.get(record.id);
+            return cachedDataView;
+        }
+        const dataView = getRecordDataView(record, this.props.viewAttrs || {});
+        this.cacheRecordDataView.set(record.id, dataView);
+        return dataView;
+    }
+
+    /**
+     * Prepare values for info window template
+     * @private
+     * @param {Object} record Record data
+     * @returns {Object} Template values
+     */
+    prepareInfoWindowValues(record) {
+        const dataView = this.getRecordDataView(record);
+        const { geolocation, other } = dataView;
+
+        return {
+            title: other.title || '',
+            destination: geolocation ? `${geolocation.lat},${geolocation.lng}` : '',
+            subTitle: other.subTitle || '',
+        };
+    }
+
     //--------------------------------------------------------------------------
     // Private Methods
     //--------------------------------------------------------------------------
 
-    /**
-     * @override
-     */
-    async onMapReady(map) {
-        await super.onMapReady(map);
-        if (!this.googleMapBounds) {
-            const { LatLngBounds } = await this.apiLoader.importLibrary('core');
-            this.googleMapBounds = new LatLngBounds();
-        }
-        if (!this.markerInfoWindow) {
-            this.markerInfoWindow = new google.maps.InfoWindow({ disableAutoPan: true });       
-        }
-    }
     /**
      * Apply visual changes to a selected marker
      * @private
@@ -519,28 +605,10 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
             this.googleMap.setZoom(14);
 
             // Trigger click to show info
-            google.maps.event.trigger(marker, 'gmp-click');
+            google.maps.event.trigger(marker, 'click');
         } catch (error) {
             console.error('Error selecting marker:', error);
         }
-    }
-
-    /**
-     * Prepare values for info window template
-     * @private
-     * @param {Object} record Record data
-     * @param {boolean} isMulti Whether this is one of multiple records
-     * @returns {Object} Template values
-     */
-    prepareInfoWindowValues(record, isMulti = false) {
-        const { geolocation, other } = record.dataView;
-
-        return {
-            title: other.title || '',
-            destination: geolocation ? `${geolocation.lat},${geolocation.lng}` : '',
-            subTitle: other.subTitle || '',
-            isMulti,
-        };
     }
 
     /**
@@ -613,15 +681,15 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
      * @param {number} scale Marker scale
      * @returns {Object} Marker element configuration
      */
-    _createMarkerElementValues(data, markerColor, scale = 1) {
-        const color = markerColor || data.markerColor || this.props.archInfo.markerColor || 'red';
+    _createMarkerElementValues(data, markerColor) {
+        const color = markerColor || data.__geoColor || this.props.archInfo.__geoColor || 'red';
         const borderColor = invertColorDarken(color);
 
         return {
+            color,
             background: color,
             glyphColor: borderColor,
             borderColor: borderColor,
-            scale,
         };
     }
     /**
@@ -640,34 +708,14 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
     }
 
     /**
-     * Handle keydown event for shift key detection
-     * @private
-     * @param {KeyboardEvent} event The keyboard event
-     */
-    _handleKeyDown(event) {
-        if (event.keyCode === SHIFT_KEY_CODE || event.which === SHIFT_KEY_CODE) {
-            event.preventDefault();
-            this.isShiftKeyPressed = true;
-        }
-    }
-
-    /**
-     * Handle keyup event for shift key detection
-     * @private
-     * @param {KeyboardEvent} event The keyboard event
-     */
-    _handleKeyUp(event) {
-        if (event.keyCode === SHIFT_KEY_CODE || event.which === SHIFT_KEY_CODE) {
-            event.preventDefault();
-            this.isShiftKeyPressed = false;
-        }
-    }
-
-    /**
      * Fit the map to current bounds with animation
      * @private
      */
     _fitBoundsWhenReady() {
+        if (this.googleMapBoundsSelected && !this.googleMapBoundsSelected.isEmpty()) {
+            this._fitMapBoundsWithLimit(this.googleMapBoundsSelected);
+            return;
+        }
         if (this.googleMapBounds && !this.googleMapBounds.isEmpty()) {
             this._fitMapBoundsWithLimit(this.googleMapBounds);
         }
@@ -677,47 +725,62 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
      * Render markers for ungrouped records with batching for performance
      * @private
      * @param {Array} datas Record data array
+     * @returns {Promise} Promise that resolves when all markers are rendered
      */
     _renderUngroupedMarkers(datas) {
-        if (!datas.length) return;
+        if (!datas.length) return Promise.resolve();
 
-        const processBatch = (startIndex) => {
-            const endIndex = Math.min(startIndex + MARKER_BATCH_SIZE, datas.length);
+        return new Promise((resolve) => {
+            const processBatch = (startIndex) => {
+                const endIndex = Math.min(startIndex + MARKER_BATCH_SIZE, datas.length);
 
-            for (let i = startIndex; i < endIndex; i++) {
-                this.createMarker(datas[i].record);
-            }
-
-            if (endIndex < datas.length) {
-                // Use requestIdleCallback if available, otherwise setTimeout
-                if (window.requestIdleCallback) {
-                    window.requestIdleCallback(() => processBatch(endIndex));
-                } else {
-                    setTimeout(() => processBatch(endIndex), 10);
+                for (let i = startIndex; i < endIndex; i++) {
+                    // Skip fitting bounds during batch creation for performance
+                    this.createMarker(datas[i].record, undefined, true);
                 }
+
+                if (endIndex < datas.length) {
+                    // Use requestIdleCallback if available, otherwise setTimeout
+                    if (window.requestIdleCallback) {
+                        window.requestIdleCallback(() => processBatch(endIndex));
+                    } else {
+                        setTimeout(() => processBatch(endIndex), 10);
+                    }
+                } else {
+                    // All markers have been created, resolve the promise
+                    resolve();
+                }
+            };
+
+            if (window.requestIdleCallback) {
+                window.requestIdleCallback(() => processBatch(0));
+            } else {
+                setTimeout(() => processBatch(0), 10);
             }
-        };
-        if (window.requestIdleCallback) {
-            window.requestIdleCallback(() => processBatch(0));
-        } else {
-            setTimeout(() => processBatch(0), 10);
-        }
+        });
     }
 
     /**
      * Render markers for grouped records
      * @private
      * @param {Array} datas Grouped data array
+     * @returns {Promise} Promise that resolves when all markers are rendered
      */
-    _renderGroupedMarkers(datas) {
-        datas.forEach(async ({ group }) => {
+    async _renderGroupedMarkers(datas) {
+        const groupPromises = datas.map(async ({ group }) => {
             try {
                 const records = await group.groupRecords();
-                records.forEach((record) => this.createMarker(record, group.markerColor));
+                records.forEach((record) => {
+                    // Skip fitting bounds during batch creation for performance
+                    this.createMarker(record, group.groupColor, true);
+                });
             } catch (error) {
                 console.error('Failed to load group records:', error);
             }
         });
+
+        // Wait for all groups to finish creating their markers
+        await Promise.all(groupPromises);
     }
 
     /**
@@ -735,9 +798,17 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
         // Extend map bounds
         this.googleMapBounds.extend(marker.position);
 
+        if (marker._odooRecord?.selected) {
+            this.googleMapBoundsSelected.extend(marker.position);
+        }
+
         // Fit bounds if requested
         if (!skipFitBounds) {
-            this._fitMapBoundsWithLimit(this.googleMapBounds);
+            if (!this.googleMapBoundsSelected.isEmpty()) {
+                this._fitMapBoundsWithLimit(this.googleMapBoundsSelected);
+            } else {
+                this._fitMapBoundsWithLimit(this.googleMapBounds);
+            }
         }
     }
 
@@ -749,13 +820,18 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
     _fitMapBoundsWithLimit(bounds) {
         if (!this.isMapLoaded() || bounds.isEmpty()) return;
 
-        this.googleMap.fitBounds(bounds);
+        // Add padding to prevent markers from being pushed to the edge
+        // Padding is in pixels and creates space between markers and viewport edges
+        this.googleMap.fitBounds(bounds, 50);
 
         // Limit zoom level after bounds fit
-        google.maps.event.addListenerOnce(this.googleMap, 'idle', () => {
-            google.maps.event.trigger(this.googleMap, 'resize');
-            if (this.googleMap && this.googleMap.getZoom() > MAX_AUTO_ZOOM) this.googleMap.setZoom(MAX_AUTO_ZOOM);
-        });
+        if (google.maps?.event) {
+            google.maps.event.addListenerOnce(this.googleMap, 'idle', () => {
+                if (this.googleMap && this.googleMap.getZoom() > MAX_AUTO_ZOOM) {
+                    this.googleMap.setZoom(MAX_AUTO_ZOOM);
+                }
+            });
+        }
     }
 
     /**
@@ -818,14 +894,11 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
      * @private
      * @param {Object} record Record data
      * @param {Object} geolocation Position data
-     * @param {Object} pinElement Pin element
+     * @param {boolean} [skipFitBounds=false] Whether to skip fitting bounds
      * @returns {Object} Updated marker
      */
-    _updateExistingMarker(record, geolocation, pinElement) {
+    _updateExistingMarker(record, geolocation, skipFitBounds = false) {
         const marker = this.cache.get(record.id);
-
-        // Update marker properties
-        marker.content = pinElement.element;
 
         // Add to map if not already present
         if (!marker.map) {
@@ -836,7 +909,7 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
         marker.position = geolocation;
 
         // Update bounds
-        this._updateMapBounds(marker);
+        this._updateMapBounds(marker, skipFitBounds);
 
         return marker;
     }
@@ -847,15 +920,15 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
      * @param {Object} record Record data
      * @param {Object} geolocation Position data
      * @param {Object} data Additional marker data
-     * @param {Object} pinElement Pin element
      * @param {Object} elementValues Values for marker styling
-     * @param {Class} AdvancedMarkerElement Google Maps marker class
+     * @param {boolean} [skipFitBounds=false] Whether to skip fitting bounds
      * @returns {Object} New marker
      */
-    _createNewMarker(record, geolocation, data, pinElement, elementValues, AdvancedMarkerElement) {
-        // Create marker options
+    async _createNewMarker(record, geolocation, data, elementValues, skipFitBounds = false) {
+        const { AdvancedMarkerElement } = await this.apiLoader.importLibrary('marker');
+        const content = this._createMarkerElement(record, elementValues);
         const options = this._createMarkerOptions(geolocation, data);
-        options.content = pinElement.element;
+        options.content = content;
 
         // Create marker
         const marker = new AdvancedMarkerElement(options);
@@ -865,24 +938,132 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
         marker._markerOptionValues = options;
         marker._elementValues = elementValues;
 
+        // Store the original position before any shifts
+        marker._originalPosition = {
+            lat: geolocation.lat,
+            lng: geolocation.lng,
+        };
+
         // Store marker with record
         record._marker = marker;
+        marker._isShifted = false;
 
         // Add click listener and store it for cleanup
         const clickListener = marker.addListener(
-            'gmp-click',
+            'click',
             this._handleMarkerClick.bind(this, marker)
         );
 
-        this._storeMarkerEventListener(record.id, 'gmp-click', clickListener);
+        this._storeMarkerEventListener(record.id, 'click', clickListener);
 
         // Store marker in cache
         this.cache.set(record.id, marker);
 
+        // Handle overlapping markers
+        this._handleMarkersOverlapAt(marker);
+
         // Update map bounds
-        this._updateMapBounds(marker);
+        this._updateMapBounds(marker, skipFitBounds);
 
         return marker;
+    }
+
+    /**
+     * Slightly shift markers that overlap at the same position
+     * Arranges overlapping markers in a circular pattern
+     * @param {*} marker
+     */
+    _handleMarkersOverlapAt(marker) {
+        const OVERLAP_OFFSET_RADIUS = 0.00009; // ~10 meters at equator
+
+        // Get the original position of the new marker
+        const originalLat = marker._originalPosition.lat;
+        const originalLng = marker._originalPosition.lng;
+
+        // Count how many markers already exist at this original position
+        let overlapIndex = 0;
+
+        for (const [, m] of this.cache) {
+            if (m !== marker && m._originalPosition) {
+                // Compare against the original positions (before any shifts)
+                if (
+                    Math.abs(m._originalPosition.lat - originalLat) < 0.000001 &&
+                    Math.abs(m._originalPosition.lng - originalLng) < 0.000001
+                ) {
+                    overlapIndex++;
+                }
+            }
+        }
+
+        // If there's overlap, arrange markers in a circle
+        if (overlapIndex > 0) {
+            // Calculate angle for this marker's position in the circle
+            // Distribute markers evenly around 360 degrees
+            const angle = (overlapIndex * 2 * Math.PI) / (overlapIndex + 1);
+
+            // Calculate offset using polar coordinates
+            const offsetLat = Math.sin(angle) * OVERLAP_OFFSET_RADIUS;
+            const offsetLng = Math.cos(angle) * OVERLAP_OFFSET_RADIUS;
+
+            // Apply the offset to the original position
+            marker.position = {
+                lat: originalLat + offsetLat,
+                lng: originalLng + offsetLng,
+            };
+
+            marker._isShifted = true;
+
+            // Draw a line from shifted marker to original position
+            this._drawConnectionLine(marker);
+        }
+    }
+
+    /**
+     * Draw a line connecting a shifted marker to its original position
+     * @param {*} marker The shifted marker
+     */
+    _drawConnectionLine(marker) {
+        if (!marker._isShifted || !marker._originalPosition) return;
+
+        const lineSymbol = {
+            path: 'M 0,-1 0,1',
+            strokeOpacity: 0.6,
+            strokeWeight: 1,
+            scale: 2,
+        };
+
+        const line = new google.maps.Polyline({
+            path: [
+                marker._originalPosition,
+                { lat: marker.position.lat, lng: marker.position.lng },
+            ],
+            strokeColor: '#999999',
+            strokeOpacity: 0,
+            strokeWeight: 1,
+            icons: [
+                {
+                    icon: lineSymbol,
+                    offset: '0',
+                    repeat: '10px',
+                },
+            ],
+            map: this.googleMap,
+        });
+
+        // Store the line reference on the marker for cleanup
+        marker._connectionLine = line;
+    }
+
+    _createMarkerElement(record, elementValues) {
+        const content = document.createElement('div');
+        if (record.selected) {
+            content.className = 'marker-circle selected';
+        } else {
+            content.className = 'marker-circle';
+        }
+        content.style.background = elementValues.background;
+        content.style.border = '2px solid #fafafa';
+        return content;
     }
 
     /**
@@ -939,42 +1120,21 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
     }
 
     /**
-     * Find other markers at the same position
-     * @private
-     * @param {Object} marker Marker to find others for
-     * @returns {Array} Other records at same position
-     */
-    _findMarkersAtSamePosition(marker) {
-        this._rebuildMarkerPositionIndexIfNeeded();
-
-        const posKey = `${marker.position.lat},${marker.position.lng}`;
-        const markersAtPosition = this._markerPositionIndex.get(posKey) || [];
-
-        return markersAtPosition
-            .filter((m) => m._odooRecord !== marker._odooRecord)
-            .map((m) => m._odooRecord);
-    }
-
-    /**
      * Rebuild marker position index if it's invalid
      * @private
      */
     _rebuildMarkerPositionIndexIfNeeded() {
-        if (!this._markerPositionIndex) {
-            this._markerPositionIndex = new Map();
+        this.cache.forEach((m) => {
+            if (m.position) {
+                const posKey = `${m.position.lat},${m.position.lng}`;
 
-            this.cache.forEach((m) => {
-                if (m.position) {
-                    const posKey = `${m.position.lat},${m.position.lng}`;
-
-                    if (!this._markerPositionIndex.has(posKey)) {
-                        this._markerPositionIndex.set(posKey, []);
-                    }
-
-                    this._markerPositionIndex.get(posKey).push(m);
+                if (!this._markerPositionIndex.has(posKey)) {
+                    this._markerPositionIndex.set(posKey, []);
                 }
-            });
-        }
+
+                this._markerPositionIndex.get(posKey).push(m);
+            }
+        });
     }
 
     /**
@@ -982,7 +1142,7 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
      * @private
      */
     _invalidateMarkerPositionIndex() {
-        this._markerPositionIndex = null;
+        this._markerPositionIndex.clear();
         if (this.markerInfoWindow) {
             this.markerInfoWindow.close();
         }
@@ -1000,72 +1160,30 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
 
         try {
             // Add main marker info
-            const markerContent = this._createInfoWindowContent(marker._odooRecord, false);
+            const markerContent = this._createInfoWindowContent(marker._odooRecord);
             if (markerContent) {
                 bodyContent.appendChild(markerContent);
-            }
-
-            // Add info for other records at same position (up to MAX_INLINE_MARKERS)
-            const otherRecords = this._findMarkersAtSamePosition(marker);
-
-            if (otherRecords.length > 0) {
-                otherRecords.slice(0, MAX_INLINE_MARKERS).forEach((record) => {
-                    const otherContent = this._createInfoWindowContent(record, true);
-                    if (otherContent) {
-                        bodyContent.appendChild(otherContent);
-                    }
-                });
-
-                // Add "Show more" button if needed
-                if (otherRecords.length > MAX_INLINE_MARKERS) {
-                    this._addShowMoreButton(bodyContent, marker);
-                }
             }
 
             // Show info window
             this.markerInfoWindow.setContent(bodyContent);
             this.markerInfoWindow.open(this.googleMap, marker);
-
-            // Handle shift-click for selection
-            if (this.isShiftKeyPressed && marker._odooRecord) {
-                this.debounceToggleRecordSelection(marker._odooRecord);
-            }
         } catch (error) {
             console.error('Error handling marker click:', error);
         }
     }
 
     /**
-     * Add "Show more" button to info window
-     * @private
-     * @param {HTMLElement} container Container element
-     * @param {Object} marker Marker object
-     */
-    _addShowMoreButton(container, marker) {
-        const moreRecords = document.createElement('div');
-        moreRecords.classList.add('pt-3', 'pb-3', 'text-center');
-
-        const showMoreButton = document.createElement('button');
-        showMoreButton.type = 'button';
-        showMoreButton.className = 'btn btn-link';
-        showMoreButton.textContent = _t('Show more');
-        showMoreButton.addEventListener('click', () => this._handleShowMoreClick(marker), false);
-
-        moreRecords.appendChild(showMoreButton);
-        container.appendChild(moreRecords);
-    }
-
-    /**
      * Create info window content for a record
      * @private
      * @param {Object} record Record to show in info window
-     * @param {boolean} isMulti Whether this is one of multiple records
      * @returns {HTMLElement} Info window content
      */
-    _createInfoWindowContent(record, isMulti = false) {
-        if (!record?.dataView) return null;
+    _createInfoWindowContent(record) {
+        const dataView = this.getRecordDataView(record);
+        if (!dataView) return null;
 
-        const content = this._generateInfoWindowHtml(record, isMulti);
+        const content = this._generateInfoWindowHtml(record);
 
         try {
             const divContent = new DOMParser()
@@ -1090,14 +1208,12 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
      * Generate HTML for info window
      * @private
      * @param {Object} record Record data
-     * @param {boolean} isMulti Whether this is one of multiple records
      * @returns {string} HTML content
      */
-    _generateInfoWindowHtml(record, isMulti = false) {
-        const values = this.prepareInfoWindowValues(record, isMulti);
+    _generateInfoWindowHtml(record) {
+        const values = this.prepareInfoWindowValues(record);
         return renderToString(this.infoWindowTemplate, values);
     }
-
 
     /**
      * Handle "Show more" button click
@@ -1174,6 +1290,30 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
             this._selectMarker(this.cache.get(record.id));
         } else {
             this._deselectMarker(this.cache.get(record.id));
+        }
+    }
+
+    _cleanUp() {
+        super._cleanUp();
+        // Remove all markers from the map and clear event listeners
+        for (const [id, marker] of this.cache) {
+            // Remove connection line if exists
+            if (marker._connectionLine) {
+                marker._connectionLine.setMap(null);
+                delete marker._connectionLine;
+            }
+            marker.map = null;
+            this._removeMarkerEventListeners(id);
+        }
+        this.cacheRecordDataView.clear();
+        this.cache.clear();
+
+        this._markerPositionIndex.clear();
+        this._markerEventListeners.clear();
+
+        if (this.mapBoxSelector) {
+            this.mapBoxSelector.destroy();
+            this.mapBoxSelector = null;
         }
     }
 }
