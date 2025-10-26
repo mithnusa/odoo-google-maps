@@ -1,4 +1,7 @@
+# -*- coding: utf-8 -*-
 import secrets
+from odoo import Command
+
 
 def _post_install_hook_configure_contact_google_place_mapping(env):
     google_place_mapping = env['google.places.mapping']
@@ -33,17 +36,25 @@ def _post_install_hook_configure_contact_google_place_mapping(env):
     # Geo fields
     field_latitude_id = env['ir.model.fields'].search([
         ('model', '=', 'res.partner'),
-        ('name', '=', 'latitude'),
+        ('name', '=', 'partner_latitude'),
     ], limit=1).id
     field_longitude_id = env['ir.model.fields'].search([
         ('model', '=', 'res.partner'),
-        ('name', '=', 'longitude'),
+        ('name', '=', 'partner_longitude'),
     ], limit=1).id
 
     # Other fields
     field_name_id = env['ir.model.fields'].search([
         ('model', '=', 'res.partner'),
         ('name', '=', 'name'),
+    ], limit=1).id
+    field_website_id = env['ir.model.fields'].search([
+        ('model', '=', 'res.partner'),
+        ('name', '=', 'website'),
+    ], limit=1).id
+    field_phone_id = env['ir.model.fields'].search([
+        ('model', '=', 'res.partner'),
+        ('name', '=', 'phone'),
     ], limit=1).id
 
     # Create Google Places Mapping for res.partner if not exists
@@ -57,39 +68,54 @@ def _post_install_hook_configure_contact_google_place_mapping(env):
             'code': secrets.token_urlsafe(6),
             'model_id': model_contact_id,
             'mode': 'places',
-            'gplace_place_fetch_fields': "['addressComponents', 'displayName', 'location']",
+            'gplace_place_fetch_fields': "['addressComponents', 'displayName', 'location', 'websiteURI', 'internationalPhoneNumber']",
             'latitude': field_latitude_id,
             'longitude': field_longitude_id,
             'mapping_address_ids': [
-                (0, 0, {
+                Command.create({
                     'field_id': field_street_id,
                     'gplace_component': "['street_number', 'route']",
+                    'handling_mode': 'concat',
                 }),
-                (0, 0, {
+                Command.create({
                     'field_id': field_street2_id,
-                    'gplace_component': "['sublocality', 'sublocality_level_1']",
+                    'gplace_component': "['administrative_area_level_4', 'administrative_area_level_3', 'administrative_area_level_5']",
+                    'handling_mode': 'concat',
+                    'separator': 'comma',
                 }),
-                (0, 0, {
+                Command.create({
                     'field_id': field_city_id,
-                    'gplace_component': "['locality']",
+                    'gplace_component': "['locality', 'administrative_area_level_2']",
+                    'handling_mode': 'fallback',
                 }),
-                (0, 0, {
+                Command.create({
                     'field_id': field_state_id,
                     'gplace_component': "['administrative_area_level_1']",
+                    'handling_mode': 'direct',
                 }),
-                (0, 0, {
+                Command.create({
                     'field_id': field_zip_id,
                     'gplace_component': "['postal_code']",
+                    'handling_mode': 'direct',
                 }),
-                (0, 0, {
+                Command.create({
                     'field_id': field_country_id,
                     'gplace_component': "['country']",
+                    'handling_mode': 'direct',
                 }),
             ],
             'mapping_other_ids': [
-                (0, 0, {
+                Command.create({
                     'field_id': field_name_id,
                     'gplace_component': "'displayName'",
+                }),
+                Command.create({
+                    'field_id': field_website_id,
+                    'gplace_component': "'websiteURI'",
+                }),
+                Command.create({
+                    'field_id': field_phone_id,
+                    'gplace_component': "'internationalPhoneNumber'",
                 }),
             ],
         })
@@ -108,29 +134,36 @@ def _post_install_hook_configure_contact_google_place_mapping(env):
             'latitude': field_latitude_id,
             'longitude': field_longitude_id,
             'mapping_address_ids': [
-                (0, 0, {
+                Command.create({
                     'field_id': field_street_id,
                     'gplace_component': "['street_number', 'route']",
+                    'handling_mode': 'concat',
                 }),
-                (0, 0, {
+                Command.create({
                     'field_id': field_street2_id,
-                    'gplace_component': "['sublocality', 'sublocality_level_1']",
+                    'gplace_component': "['administrative_area_level_4', 'administrative_area_level_3', 'administrative_area_level_5']",
+                    'handling_mode': 'concat',
+                    'separator': 'comma',
                 }),
-                (0, 0, {
+                Command.create({
                     'field_id': field_city_id,
-                    'gplace_component': "['locality']",
+                    'gplace_component': "['locality', 'administrative_area_level_2']",
+                    'handling_mode': 'fallback',
                 }),
-                (0, 0, {
+                Command.create({
                     'field_id': field_state_id,
                     'gplace_component': "['administrative_area_level_1']",
+                    'handling_mode': 'direct',
                 }),
-                (0, 0, {
+                Command.create({
                     'field_id': field_zip_id,
                     'gplace_component': "['postal_code']",
+                    'handling_mode': 'direct',
                 }),
-                (0, 0, {
+                Command.create({
                     'field_id': field_country_id,
                     'gplace_component': "['country']",
+                    'handling_mode': 'direct',
                 }),
             ],
         })

@@ -32,9 +32,9 @@ export class GooglePlaceAutocompleteField extends BaseGoogleAutocomplete {
             // key: odoo field
             // value: google place field
             general: {
-                name: 'displayName',
-                website: 'websiteURI',
-                phone: ['internationalPhoneNumber', 'nationalPhoneNumber'],
+                name: 'name',
+                website: 'website',
+                phone: ['international_phone_number', 'formatted_phone_number'],
             },
             // mapping address fields
             // key: alias
@@ -105,12 +105,12 @@ export class GooglePlaceAutocompleteField extends BaseGoogleAutocomplete {
 
     getGoogleFieldsRestriction() {
         return [
-            'addressComponents',
-            'displayName',
-            'websiteURI',
-            'location',
+            'address_components',
+            'name',
+            'website',
+            'geometry',
             'international_phone_number',
-            'internationalPhoneNumber',
+            'formatted_phone_number',
         ];
     }
 
@@ -128,7 +128,6 @@ export class GooglePlaceAutocompleteField extends BaseGoogleAutocomplete {
     }
 
     async populateAddress(place) {
-        console.log(' GooglePlaceAutocompleteField.populateAddress ');
         // address
         const google_address = await this.prepareAddressFields(place);
         // general info
@@ -140,7 +139,6 @@ export class GooglePlaceAutocompleteField extends BaseGoogleAutocomplete {
         );
         const values = Object.assign({}, google_address, google_place, google_geolocation);
         values[this.props.name] = place.name;
-        console.log('values: ', values);
         this._update(values);
     }
 }

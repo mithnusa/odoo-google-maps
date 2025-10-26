@@ -9,28 +9,6 @@ class GoogleMapViewMixins(models.AbstractModel):
     _description = 'Google Map View Mixins'
 
     @api.model
-    def handle_see_more(self, xml_id, domain=None, context=None):
-        action = self.sudo().env.ref(xml_id).read()[0]
-        if domain:
-            if action.get('domain'):
-                if isinstance(action['domain'], str):
-                    action['domain'] = Domain.AND(
-                        [safe_eval(action['domain']), domain]
-                    )
-                else:
-                    action['domain'] = Domain.AND([action['domain'], domain])
-            else:
-                action['domain'] = domain
-
-        if context:
-            if action.get('context'):
-                action['context'] = safe_eval(action['context'])
-                action['context'].update(context)
-            else:
-                action['context'] = context
-        return action
-
-    @api.model
     def handle_get_geolocation_fields(self, model, field_lat, field_lng):
         if not field_lat or not field_lng or not model:
             return False
@@ -52,27 +30,6 @@ class GoogleMapViewMixins(models.AbstractModel):
                 values[rec.name] = rec.related
 
         return values
-
-    @api.model
-    def handle_find_action(self, actionId):
-        if not actionId:
-            return False
-
-        action_data = (
-            self.env['ir.model.data']
-            .sudo()
-            .search_read(
-                [('res_id', '=', actionId), ('model', '=', 'ir.actions.act_window')],
-                ['name', 'module'],
-                limit=1,
-            )
-        )
-        if not action_data:
-            return False
-
-        return '{model}.{key}'.format(
-            model=action_data[0]['module'], key=action_data[0]['name']
-        )
 
     @api.model
     def handle_find_action_form_view(self, action_id, res_id):

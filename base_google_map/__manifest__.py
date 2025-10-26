@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 {
-    'name': 'Base Google Map',
+    'name': 'Base Google Maps',
     'summary': '''
-        Base module for Google maps integration
+        Base module for Google Maps integration
     ''',
     'description': '''
-        Base module for Google maps integration,
+        Base module for Google Maps integration,
         only contain a config to setup Google API Key
     ''',
     'license': 'AGPL-3',
@@ -13,7 +13,7 @@
     'website': 'https://github.com/mithnusa',
     'support': 'yopiangi@gmail.com',
     'category': 'Extra Tools',
-    'version': '1.0.2',
+    'version': '1.0.0',
     'depends': ['web', 'base_geolocalize'],
     'data': [
         'data/google_map.xml',
@@ -22,7 +22,7 @@
     ],
     'assets': {
         'web.assets_backend': [
-            'base_google_map/static/src/utils/*.js',
+            'base_google_map/static/src/utils/**/*',
         ]
     },
     'demo': [],

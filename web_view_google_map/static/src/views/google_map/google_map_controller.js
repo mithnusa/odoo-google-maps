@@ -47,6 +47,7 @@ export class GoogleMapController extends Component {
         showButtons: { type: Boolean, optional: true },
         allowSelectors: { type: Boolean, optional: true },
         onSelectionChanged: { type: Function, optional: true },
+        readonly: { type: Boolean, optional: true },
     };
     static defaultProps = {
         createRecord: () => {},
@@ -151,7 +152,7 @@ export class GoogleMapController extends Component {
             openGroupsByDefault: false,
         };
 
-        const viewConfig = this.getViewMapConfig();
+        const viewConfig = this.viewMapConfig;
         return {
             config: modelConfig,
             state: this.props.state?.modelState,
@@ -160,7 +161,7 @@ export class GoogleMapController extends Component {
             countLimit: this.archInfo.countLimit,
             defaultOrderBy: this.archInfo.defaultOrder,
             defaultGroupBy: this.archInfo.defaultGroupBy,
-            groupsLimit: this.archInfo.groupsLimit,
+            groupsLimit: this.archInfo.groupsLimit || Number.MAX_SAFE_INTEGER,
             multiEdit: this.archInfo.multiEdit,
             activeIdsLimit: session.active_ids_limit,
             hooks: {
@@ -699,20 +700,36 @@ export class GoogleMapController extends Component {
         }
     }
 
-    getViewMapConfig() {
+    get rendererProps() {
+        return {
+            list: this.model.root,
+            archInfo: this.props.archInfo,
+            viewAttrs: this.viewMapConfig,
+            activeActions: this.activeActions,
+            allowSelectors: this.props.allowSelectors,
+            readonly: true,
+            openRecord: this.openRecord.bind(this),
+            onAdd: this.createRecord.bind(this),
+            showRecord: this.showRecord.bind(this),
+            showRecordsByDomain: this.showRecordsByDomain.bind(this),
+        };
+    }
+
+    get viewMapConfig() {
         const {
             latitudeField,
             longitudeField,
             sidebarTitleField,
             sidebarSubtitleField,
-            markerColor,
+            __geoColor,
         } = this.archInfo;
+
         return {
             lat: latitudeField,
             lng: longitudeField,
             title: sidebarTitleField,
             subTitle: sidebarSubtitleField,
-            markerColor,
+            __geoColor,
         };
     }
 }

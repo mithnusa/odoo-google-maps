@@ -20,12 +20,7 @@
 }
 
 .o_terra_tools_ui {
-    // Commented out absolute positioning - now uses overlay system for in-map positioning
-    // position: absolute;
-    // top: 10px;
-    // top: 25vh; /* Start from middle of the viewport */
-    // left: 25px;
-    background: white;
+    // background: white;
     padding: 8px;
     display: flex;
     flex-flow: column;
@@ -33,32 +28,32 @@
     .o_terra_toolbar {
         display: flex;
         flex-flow: column;
-        gap: 5px;
+        gap: 3px;
     }
 
     button {
         margin: 5px 0;
         cursor: pointer;
+        // background-color: white;
     }
 
     .mode-button {
-        width: 30px;
-        height: 30px;
-        // border: 1px solid #ccc;
+        width: 32px;
+        height: 32px;
+        border: 1px solid #ccc;
         background-color: white;
-        padding: 2px;
+        padding: 4px;
         box-sizing: border-box;
         -webkit-box-sizing: border-box; /* For Safari */
 
-        img {
+        img, span {
             width: 100%;
-            height: 100%;
             display: block;
-            user-select: none;
         }
 
         &.active {
-            background-color: #84e0d8;
+            // background-color: #84e0d8;
+            background-color: #71639e;
         }
     }
 
@@ -84,9 +79,20 @@
         filter: brightness(0) invert(1);
     }
 
+    #save-button {
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        span {
+            color: #000000;
+        }
+    }
+
     /* Special buttons active/click states */
     #select-mode.active {
-        background-color: #84e0d8; /* dark grey */
+        background-color: #71639e;
     }
 
     #clear-mode:active,
@@ -95,153 +101,18 @@
     #redo-button:active,
     #export-button:active,
     #upload-button:active,
-    #resize-button.active {
-        background-color: #84e0d8; /* dark grey */
+    #resize-button:active,
+    #save-button:active,
+    #simplify-feature-button:active {
+        background-color: #71639e;
     }
 
-    /* Measurement unit and toggle buttons */
-    #measurement-unit-button,
-    #measurement-toggle-button {
+    #simplify-feature-button, #delete-selected-button {
         background-color: #000000;
         color: white;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-
-        span {
-            color: white;
+        &:disabled, &[disabled] {
+            background-color: #dcdcdc;
+            cursor: not-allowed;
         }
-
-        &:hover {
-            background-color: #0056b3;
-        }
-
-        &:active {
-            background-color: #004494;
-        }
-    }
-
-    /* Measurement panel overlay - positioned inside map */
-    .o_measurement_panel_overlay {
-        position: absolute;
-        // top: 20px;
-        // right: 20px;
-        z-index: 1000;
-        pointer-events: none; // Allow map interaction behind panel
-        bottom: 30px;
-        left: 20px;
-        opacity: 0.95;
-        
-        .o_measurement_panel {
-            pointer-events: auto; // Re-enable interactions on the panel itself
-        }
-    }
-
-    /* Measurement panel styles */
-    .o_measurement_panel {
-        background: rgba(255, 255, 255, 0.98);
-        // border: 1px solid #ddd;
-        border-radius: 8px;
-        padding: 12px;
-        font-size: 12px;
-        min-width: 220px;
-        max-width: 280px;
-        max-height: 400px;
-        overflow-y: auto;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        backdrop-filter: blur(8px);
-
-        .o_measurement_header {
-            font-weight: bold;
-            color: #007BFF;
-            margin-bottom: 8px;
-            padding-bottom: 6px;
-            border-bottom: 1px solid #eee;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            
-            .o_measurement_close {
-                background: none;
-                border: none;
-                color: #666;
-                cursor: pointer;
-                padding: 2px 4px;
-                border-radius: 3px;
-                font-size: 12px;
-                margin: 0;
-                
-                &:hover {
-                    background-color: #f0f0f0;
-                    color: #333;
-                }
-            }
-        }
-
-        .o_measurement_item {
-            padding: 6px 0;
-            border-bottom: 1px solid #f0f0f0;
-
-            &:last-child {
-                border-bottom: none;
-            }
-
-            &.selected {
-                background-color: #e3f2fd;
-                padding: 8px;
-                border-radius: 4px;
-                border: 1px solid #2196F3;
-                margin: 4px 0;
-            }
-
-            .o_measurement_type {
-                font-weight: 600;
-                color: #333;
-                margin-bottom: 3px;
-                display: flex;
-                align-items: center;
-            }
-
-            .o_measurement_detail {
-                margin: 2px 0;
-                color: #666;
-
-                small {
-                    font-size: 11px;
-                }
-            }
-        }
-
-        .o_measurement_summary {
-            .o_measurement_count {
-                font-weight: 600;
-                color: #007BFF;
-                margin-bottom: 6px;
-            }
-        }
-
-        .o_measurement_more {
-            text-align: center;
-            padding-top: 6px;
-            border-top: 1px solid #f0f0f0;
-        }
-
-        .text-muted {
-            color: #999;
-            font-style: italic;
-        }
-
-        // Responsive behavior
-        @media (max-width: 768px) {
-            min-width: 180px;
-            max-width: 200px;
-            font-size: 11px;
-        }
-    }
-
-    // Old measurement panel styles (remove the original styles)
-    .o_measurement_panel:not(.o_measurement_panel_overlay .o_measurement_panel) {
-        // Remove old panel styles that were inline with toolbar
-        display: none;
     }
 }

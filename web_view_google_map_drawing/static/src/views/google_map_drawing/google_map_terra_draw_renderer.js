@@ -36,6 +36,7 @@ import {
 } from '@odoo/owl';
 import { isNull } from '@web/views/utils';
 import { BaseGoogleMapComponent } from '@base_google_map/utils/base_google_map';
+import { generateUUID } from '@web_view_google_map/views/google_map/utils';
 import { GoogleMapGeolocate } from '@web_view_google_map/views/google_map/components/geolocate/geolocate';
 import { MAX_AUTO_ZOOM, MARKER_BATCH_SIZE } from '@web_view_google_map/views/google_map/google_map_renderer'; 
 import { GoogleMapSearchPlaces } from '@web_view_google_map/views/google_map/components/search_places/search_places';
@@ -160,7 +161,7 @@ export class GoogleMapTerraDrawRenderer extends BaseGoogleMapComponent {
                 if (!this.state.groupDatalistId && !this._isSidebarAction && this.terraDrawInstance !== null && this.isMapLoaded()) {
                     const isGrouped = this.props.list.isGrouped;
                     if (isGrouped) {
-                        this.state.groupDatalistId = this._generateUniqueId();
+                        this.state.groupDatalistId = generateUUID();
                     } else {
                         this.debounceRenderGeolocationData();
                     }
@@ -170,7 +171,7 @@ export class GoogleMapTerraDrawRenderer extends BaseGoogleMapComponent {
         );
 
         onWillUpdateProps(() => {
-            this.state.groupDatalistId = this._generateUniqueId();
+            this.state.groupDatalistId = generateUUID();
         });
 
         onPatched(() => {

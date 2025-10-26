@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_res_country_form_inherit" model="ir.ui.view">
+        <field name="name">view.res.country.form.inherit</field>
+        <field name="model">res.country</field>
+        <field name="inherit_id" ref="base.view_country_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//group[@name='advanced_address_formatting']" position="after">
+                <group name="google_address_street_format" string="Google Address Street Format" groups="base.group_no_one">
+                    <field name="google_street_format" widget="radio"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+</odoo>

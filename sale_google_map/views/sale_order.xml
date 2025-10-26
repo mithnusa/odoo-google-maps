@@ -5,7 +5,7 @@
         <field name="model">sale.order</field>
         <field name="priority" eval="100"/>
         <field name="arch" type="xml">
-            <google_map disable_area_selector="1" default_group_by="partner_id" string="Quotations" lat="partner_latitude" lng="partner_longitude" sidebar_title="name" sidebar_subtitle="partner_id">
+            <google_map js_class="google_map_sale_order" disable_cluster_marker="1" default_group_by="partner_id" string="Quotations" lat="partner_latitude" lng="partner_longitude" sidebar_title="name" sidebar_subtitle="partner_id">
                 <field name="partner_latitude"/>
                 <field name="partner_longitude"/>
                 <field name="name"/>
@@ -104,7 +104,7 @@
         <field name="model">sale.order</field>
         <field name="priority" eval="100"/>
         <field name="arch" type="xml">
-            <google_map default_group_by='partner_id' disable_area_selector="1" string="Orders to Upsell" lat="partner_latitude" lng="partner_longitude" sidebar_title="name" sidebar_subtitle="partner_id">
+            <google_map js_class="google_map_sale_order" disable_cluster_marker="1" default_group_by="partner_id" string="Orders to Upsell" lat="partner_latitude" lng="partner_longitude" sidebar_title="name" sidebar_subtitle="partner_id">
                 <field name="partner_latitude"/>
                 <field name="partner_longitude"/>
                 <field name="name"/>

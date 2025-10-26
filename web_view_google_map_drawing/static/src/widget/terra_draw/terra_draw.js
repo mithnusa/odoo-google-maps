@@ -4,7 +4,6 @@ import {
     useRef,
     useSubEnv,
     useState,
-    onRendered,
     onWillUpdateProps,
 } from '@odoo/owl';
 import { standardFieldProps } from '@web/views/fields/standard_field_props';
@@ -17,10 +16,6 @@ import { TerraDrawToolsUI } from '../../views/components/terra-tools-ui/terra-to
 import { DeckGlEditor } from '../../views/components/deck-gl-editor/deck-gl-editor';
 
 import { MapConfig } from '../../utils/map_config';
-import { 
-    analyzeFeaturePerformance,
-    GEOMETRY_PERFORMANCE_CONFIG 
-} from '../../utils/geometry_performance_utils';
 
 
 export class GoogleMapTerraDrawField extends BaseGoogleMapComponent {
@@ -39,19 +34,23 @@ export class GoogleMapTerraDrawField extends BaseGoogleMapComponent {
         ...standardFieldProps,
         placeholder: { type: String, optional: true },
         dynamicPlaceholder: { type: Boolean, optional: true },
-        options: { type: Object, optional: true },
+        defaultCenter: { type: Array, optional: true },
+        defaultZoom: { type: Number, optional: true },
+        mapTypeId: { type: String, optional: true },
+        fieldArea: { type: String, optional: true },
     };
 
     setup() {
         super.setup();
+        this.validateProps();
+
         this.mapRef = useRef('map');
         this.googleMapBounds = null;
 
         this.state = useState({
             ...this.state,
             sidebarIsFolded: false,
-            renderingMode: null, // 'terra-draw' or 'deckgl' or null (not determined)
-            complexityAnalysis: null,
+            renderingMode: 'terra-draw',
         });
 
         useSubEnv({
@@ -59,18 +58,9 @@ export class GoogleMapTerraDrawField extends BaseGoogleMapComponent {
             isMapLoaded: this.isMapLoaded.bind(this),
         });
 
-        // Setup lifecycle hooks
         onWillUpdateProps((nextProps) => {
-            this.state.renderingMode = null; // Reset rendering mode on record change
-            this.state.complexityAnalysis = null;
             this.determineRenderingMode(nextProps.record.data[nextProps.name] || {});
         });
-    }
-
-    _handleRendered() {
-        if (this.isMapLoaded()) {
-            this.renderMap();
-        }
     }
 
     /**
@@ -84,8 +74,21 @@ export class GoogleMapTerraDrawField extends BaseGoogleMapComponent {
      * @override
      */
     _prepareMapOptions(options) {
-        options.mapTypeId = google.maps.MapTypeId.HYBRID;
-        return options;
+        const values = super._prepareMapOptions(options);
+        if (this.props.mapTypeId && google.maps.MapTypeId[this.props.mapTypeId.toUpperCase()]) {
+            values.mapTypeId = google.maps.MapTypeId[this.props.mapTypeId.toUpperCase()];
+        }
+        if (this.props.defaultCenter && this.props.defaultCenter.length === 2) {
+            values.center = {
+                lat: parseFloat(this.props.defaultCenter[0]),
+                lng: parseFloat(this.props.defaultCenter[1]),
+            };
+        }
+        if (this.props.defaultZoom) {
+            values.zoom = this.props.defaultZoom;
+        }
+        values.clickableIcons = false;
+        return values;
     }
 
     /**
@@ -97,27 +100,21 @@ export class GoogleMapTerraDrawField extends BaseGoogleMapComponent {
             const { LatLngBounds } = await this.apiLoader.importLibrary('core');
             this.googleMapBounds = new LatLngBounds();
         }
-        
-        // Determine the appropriate rendering mode based on feature complexity
         this.determineRenderingMode();
-    }
-
-    renderMap() {
-        if (!this.isMapLoaded()) return;
-        // this._loadExistingShape();
     }
 
     get geoJson() {
         const value = this.props.record.data[this.props.name];
         if (!value) return {};
+
         try {
             const parsed = typeof value === 'string' ? JSON.parse(value) : value;
-            
-            // If we have new data and rendering mode hasn't been determined, trigger analysis
-            if (parsed?.features?.length > 0 && this.state.renderingMode === null && this.state.isMapReady) {
-                setTimeout(() => this.determineRenderingMode(), 100);
+
+            // Determine rendering mode if map is ready
+            if (parsed?.features?.length > 0 && this.state.isMapReady) {
+                this.determineRenderingMode(parsed);
             }
-            
+
             return parsed;
         } catch (error) {
             console.error('Invalid GeoJSON data:', error);
@@ -125,15 +122,14 @@ export class GoogleMapTerraDrawField extends BaseGoogleMapComponent {
         }
     }
 
-    async handleSave(features) {
+    async handleSave(features, totalArea) {
         if (features) {
             try {
-                await this.props.record.update({[this.props.name]: features});
-                // Add notification for successful save
-                this.notificationService.add(_t('Shape changes saved successfully'), {
-                    type: 'success',
-                    title: _t('Success'),
-                });
+                const values = { [this.props.name]: features };
+                if (this.props.fieldArea && this.props.record.fields[this.props.fieldArea] !== undefined) {
+                    values[this.props.fieldArea] = totalArea;
+                }
+                await this.props.record.update(values);
             } catch (error) {
                 console.error('Failed to save shape changes:', error);
                 this.notificationService.add(_t('Failed to save shape changes'), {
@@ -149,90 +145,39 @@ export class GoogleMapTerraDrawField extends BaseGoogleMapComponent {
     }
 
     /**
-     * Analyze GeoJSON features and determine optimal rendering approach
-     * @returns {Object} Analysis result with rendering recommendation
+     * Determine rendering mode based on feature support
+     * Terra Draw doesn't support polygons with holes (interior rings), use DeckGL for those
      */
-    analyzeFeatureComplexity(geojson) {
+    determineRenderingMode(geojson) {
         const geoJson = typeof geojson === 'undefined' ? this.geoJson : geojson;
-        
-        if (!geoJson?.features || !Array.isArray(geoJson.features) || geoJson.features.length === 0) {
-            return {
-                shouldUseDeckGL: false,
-                reason: 'no_features',
-                totalFeatures: 0,
-                complexFeatures: 0,
-                maxVertices: 0,
-                recommendation: 'terra-draw'
-            };
+
+        if (!geoJson?.features?.length) {
+            this.state.renderingMode = 'terra-draw';
+            return;
         }
 
-        let complexFeatures = 0;
-        let maxVertices = 0;
-        let totalVertices = 0;
-        const featureAnalysis = [];
-
-        // Analyze each feature
-        geoJson.features.forEach((feature) => {
-            const analysis = analyzeFeaturePerformance(feature);
-            featureAnalysis.push(analysis);
-            
-            maxVertices = Math.max(maxVertices, analysis.vertexCount);
-            totalVertices += analysis.vertexCount;
-            
-            // Count features that would be problematic for Terra Draw
-            if (analysis.vertexCount > GEOMETRY_PERFORMANCE_CONFIG.MAX_VERTICES_FOR_EDITING || 
-                analysis.recommendedAction === 'use_deckgl_only') {
-                complexFeatures++;
+        // Check if any feature has holes (interior rings)
+        const hasPolygonsWithHoles = geoJson.features.some((feature) => {
+            if (feature.geometry.type === 'Polygon') {
+                return feature.geometry.coordinates.length > 1;
+            } else if (feature.geometry.type === 'MultiPolygon') {
+                return feature.geometry.coordinates.some(polygon => polygon.length > 1);
             }
+            return false;
         });
 
-        const shouldUseDeckGL = 
-            // Use DeckGL if any feature would freeze Terra Draw
-            maxVertices > GEOMETRY_PERFORMANCE_CONFIG.TERRA_DRAW_FREEZE_THRESHOLD ||
-            // Use DeckGL if too many complex features
-            complexFeatures > Math.ceil(geoJson.features.length * 0.3) || // More than 30% complex
-            // Use DeckGL if total vertex count is very high
-            totalVertices > GEOMETRY_PERFORMANCE_CONFIG.MAX_VERTICES_FOR_DISPLAY;
-
-        const analysisResult = {
-            shouldUseDeckGL,
-            reason: shouldUseDeckGL ? this._getComplexityReason(maxVertices, complexFeatures, totalVertices, geoJson.features.length) : 'terra_draw_suitable',
-            totalFeatures: geoJson.features.length,
-            complexFeatures,
-            maxVertices,
-            totalVertices,
-            averageVertices: Math.round(totalVertices / geoJson.features.length),
-            recommendation: shouldUseDeckGL ? 'deckgl' : 'terra-draw',
-            featureAnalysis
-        };
-        
-        return analysisResult;
+        this.state.renderingMode = hasPolygonsWithHoles ? 'deckgl' : 'terra-draw';
     }
 
-    /**
-     * Get human-readable reason for complexity decision
-     */
-    _getComplexityReason(maxVertices, complexFeatures, totalVertices, totalFeatures) {
-        if (maxVertices > GEOMETRY_PERFORMANCE_CONFIG.TERRA_DRAW_FREEZE_THRESHOLD) {
-            return `feature_too_complex_${maxVertices}_vertices`;
+    validateProps() {
+        if (this.props.fieldsArea && this.props.record.fields[this.props.fieldsArea] === undefined) {
+            this.notificationService.add(
+                _t(
+                    `The field area '${this.props.fieldsArea}' does not exist on the model '${this.props.record.model}'. Please check the field configuration.`
+                ),
+                { type: 'warning'}
+            );
         }
-        if (complexFeatures > Math.ceil(totalFeatures * 0.3)) {
-            return `too_many_complex_features_${complexFeatures}_of_${totalFeatures}`;
-        }
-        if (totalVertices > GEOMETRY_PERFORMANCE_CONFIG.MAX_VERTICES_FOR_DISPLAY) {
-            return `total_vertices_too_high_${totalVertices}`;
-        }
-        return 'unknown';
-    }
-
-    /**
-     * Determine and set the appropriate rendering mode based on feature complexity
-     */
-    determineRenderingMode(geoJson) {
-        const analysis = this.analyzeFeatureComplexity(geoJson);
-        
-        this.state.complexityAnalysis = analysis;
-        this.state.renderingMode = analysis.recommendation;
     }
 
 }
@@ -244,7 +189,10 @@ export const googleMapTerraDrawField = {
     extractProps: ({ attrs, options }) => ({
         placeholder: attrs.placeholder,
         dynamicPlaceholder: options?.dynamic_placeholder || false,
-        options,
+        defaultCenter: options?.default_center || undefined,
+        defaultZoom: options?.default_zoom || 5,
+        mapTypeId: options?.map_type_id || 'hybrid',
+        fieldArea: options?.field_area || undefined,
     }),
 };
 

@@ -3,7 +3,10 @@ import { DynamicGroupList } from '@web/model/relational_model/dynamic_group_list
 import { Group } from '@web/model/relational_model/group';
 import { Record } from '@web/model/relational_model/record';
 import { Domain } from '@web/core/domain';
-import { parseRecord } from './utils';
+import { patch } from '@web/core/utils/patch';
+import { parseRecord, generateColor } from './utils';
+import { gMapViewAttrsContextManager } from '../../helpers/view_attrs_context_manager';
+
 
 export class GoogleMapGroup extends Group {
     /**
@@ -11,7 +14,7 @@ export class GoogleMapGroup extends Group {
      */
     setup() {
         super.setup(...arguments);
-        this.markerColor = this.generateRandomColor();
+        this.groupColor = generateColor();
     }
 
     get groupByLabel() {
@@ -34,19 +37,10 @@ export class GoogleMapGroup extends Group {
             if (record && record.data) {
                 const data = parseRecord(record, this.model.viewConfig, true);
                 geolocation = data.geolocation;
-                other = Object.assign({}, data.other, { groupColor: this.markerColor });
+                other = Object.assign({}, data.other, { groupColor: this.groupColor });
             }
         }
         return { geolocation, other };
-    }
-
-    generateRandomColor() {
-        return (
-            '#' +
-            Math.floor(Math.random() * 0xffffff)
-                .toString(16)
-                .padStart(6, '0')
-        );
     }
 }
 
@@ -105,6 +99,8 @@ export class GoogleMapModel extends RelationalModel {
             this.viewConfig &&
             this.viewConfig.lat &&
             this.viewConfig.lng &&
+            this.config.fields[this.viewConfig.lat] &&
+            this.config.fields[this.viewConfig.lng] &&
             this.config.fields[this.viewConfig.lat].searchable &&
             this.config.fields[this.viewConfig.lng].searchable
         ) {
@@ -132,6 +128,14 @@ export class GoogleMapRecord extends Record {
         return parseRecord(this, this.model.viewConfig);
     }
 }
+
+patch(Record.prototype, {
+    get dataView() {
+        const viewAttrsCtx = gMapViewAttrsContextManager.getAll();
+        const viewAttrs = this.model.viewConfig || viewAttrsCtx || {};
+        return parseRecord(this, viewAttrs);
+    },
+});
 
 GoogleMapModel.Group = GoogleMapGroup;
 GoogleMapModel.DynamicGroupList = GoogleMapDynamicGroupList;

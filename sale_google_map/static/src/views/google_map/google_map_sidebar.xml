@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="sale_google_map.GroupItem" t-inherit="web_view_google_map.GroupItem" t-inherit-mode="primary">
+        <xpath expr="//div[hasclass('collapse')]" position="replace"/>
+        <xpath expr="//button[hasclass('collapsed')]" position="replace">
+            <div class="ps-1 cursor-pointer o_map_sidebar_group" t-on-click="() => fnPinPointInMap(group.group.id)">
+                <t t-set="title" t-value="(group.group.displayName || 'None') + ' (' + group.group.count + ')' " />
+                <span class="ps-1 pe-1" t-out="title" t-att-data-tooltip="title"/>
+            </div>
+        </xpath>
+        <xpath expr="//i[hasclass('fa-map-marker')]" position="replace"/>
+    </t>
+</templates>

@@ -8,9 +8,13 @@ class ResPartnerArea(models.Model):
     _name = 'res.partner.area'
     _inherit = 'google.drawing.shape'
     _description = 'Partner Area'
+    _order = 'gshape_name asc, id desc'
 
     partner_id = fields.Many2one(
-        'res.partner', required=True, ondelete='cascade'
+        'res.partner',
+        required=False,
+        ondelete='cascade',
+        string='Contact',
     )
 
 

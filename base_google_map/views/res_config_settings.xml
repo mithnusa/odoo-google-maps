@@ -8,28 +8,29 @@
         <field name="arch" type="xml">
             <xpath expr="//block[@name='integration']" position="after">
                 <block name="base_google_map" title="Google Maps">
-                    <setting id="google_maps_view_api_key_setting" help="Google Maps Platform products are secured from unauthorized use by restricting API calls to those that provide proper authentication credentials. These credentials are in the form of an API key - a unique alphanumeric string that associates your Google billing account with your project, and with the specific API or SDK" documentation="https://developers.google.com/maps/documentation/javascript/get-api-key">
+                    <field name="is_web_google_map_installed" invisible="1"/>
+                    <setting id="google_maps_view_api_key_setting" help="A Google Maps API key is a unique alphanumeric string that authenticates your application when accessing Google Maps Platform services" documentation="https://developers.google.com/maps/documentation/javascript/get-api-key">
                         <field name="google_maps_view_api_key" string="API Key"/>
                     </setting>
-                    <setting id="google_map_id_setting" help="A map ID is a unique identifier that represents Google Maps styling and configuration settings that are stored in Google Cloud." documentation="https://developers.google.com/maps/documentation/get-map-id#create_map_ids">
+                    <setting id="google_map_id_setting" invisible="not is_web_google_map_installed" help="A map ID is a unique identifier that represents Google Maps styling and configuration settings that are stored in Google Cloud." documentation="https://developers.google.com/maps/documentation/get-map-id#create_map_ids">
                         <field name="google_map_id" string="Map ID"/>
                     </setting>
                     <setting id="google_maps_libraries_setting">
                         <field name="google_maps_libraries" string="Libraries"/>
                     </setting>
-                    <setting id="google_maps_lang_localization_setting" >
+                    <setting id="google_maps_lang_localization_setting" invisible="not is_web_google_map_installed">
                         <field name="google_maps_lang_localization" string="Language"/>
                     </setting>
                     <setting id="google_maps_region_localization_setting" help="If you set the language of the map, it's important to consider setting the region too. This helps ensure that your application complies with local laws.">
                         <field name="google_maps_region_localization" string="Region"/>
                     </setting>
-                    <setting id="google_map_color_scheme_setting" help="Set Map Color" documentation="https://developers.google.com/maps/documentation/javascript/mapcolorscheme">
+                    <setting id="google_map_color_scheme_setting" invisible="not is_web_google_map_installed" help="Set Map Color" documentation="https://developers.google.com/maps/documentation/javascript/mapcolorscheme">
                         <field name="google_map_color_scheme" widget="radio"/>
                     </setting>
                     <setting id="google_autocomplete_lang_restrict_setting" help="The language code, indicating in which language the results should be returned, if possible. Searches are also biased to the selected language; results in the selected language may be given a higher ranking.">
                         <field name="google_autocomplete_lang_restrict"/>
                     </setting>
-                    <setting id="google_enable_map_place_search_setting" help="Enable Google Places Search Autocomplete in Google Maps. This feature required the &#8220;Places API&#8221; to be enabled in your Google API key.">
+                    <setting id="google_enable_map_place_search_setting" invisible="not is_web_google_map_installed" help="Enable Google Places Search Autocomplete in Google Maps. This feature required the &#8220;Places API&#8221; to be enabled in your Google API key.">
                         <field name="google_enable_map_place_search"/>
                     </setting>
                     <setting id="google_autocomplete_country_restrict_setting" help="Restrict search results to a specific country. This is especially helpful if you want restrict the search within a country. Support up to 5 countries.">

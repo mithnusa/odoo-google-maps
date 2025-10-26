@@ -1,18 +1,19 @@
 import { registry } from '@web/core/registry';
 import { _t } from '@web/core/l10n/translation';
-import { exprToBoolean } from '@web/core/utils/strings';
-import {
-    PartnerAutoCompleteCharField,
-    partnerAutoCompleteCharField,
-} from '@partner_autocomplete/js/partner_autocomplete_fieldchar';
-import { useGooglePlaceAutocomplete } from '@web_widget_google_map/hooks/use_google_place_autocomplete';
+import { useService } from '@web/core/utils/hooks';
+import { useState, useRef, onWillUnmount } from '@odoo/owl';
+import { PartnerAutoCompleteCharField, partnerAutoCompleteCharField } from '@partner_autocomplete/js/partner_autocomplete_fieldchar';
+import { useGooglePlaceAutocompleteMapping } from '@web_widget_google_place_autocomplete/hooks/use_google_place_autocomplete_mapping';
+import { GooglePlaceAutocompleteElement } from '@web_widget_google_place_autocomplete/component/google_place_autocomplete';
 
-/**
- * Combines PartnerAutoCompleteCharField with Google Place Autocomplete functionality
- * Uses composition via useGooglePlaceAutocomplete hook instead of inheritance
- */
+
 export class PartnerAutoCompleteCharFieldWithGooglePlace extends PartnerAutoCompleteCharField {
-    static template = 'contacts_gautocomplete_places.PartnerAutoCompleteCharFieldWithGooglePlace';
+    static template =
+        'partner_autocomplete_with_google_autocomplete.PartnerAutoCompleteCharFieldWithGooglePlace';
+    static components = {
+        ...PartnerAutoCompleteCharField.components,
+        GooglePlaceAutocompleteElement,
+    };
     static props = {
         ...PartnerAutoCompleteCharField.props,
         mappingCode: { type: String, optional: true },
@@ -21,40 +22,98 @@ export class PartnerAutoCompleteCharFieldWithGooglePlace extends PartnerAutoComp
 
     setup() {
         super.setup();
+        this.notificationService = useService('notification');
+        this.googleAutocompleteToggleRef = useRef('googleAutocompleteToggle');
+        this.state = useState({
+            mappingId: 0,
+            isCollapseOpen: false,
+        });
+        this.placeMapping = useGooglePlaceAutocompleteMapping();
+        this.widgetId = this.placeMapping.getUniqueWidgetId();
+        this.mappingConfig = {};
 
-        // Use the composable hook for Google Place functionality
-        const googlePlace = useGooglePlaceAutocomplete();
-
-        // Expose to component instance
-        this.googlePlace = googlePlace;
-        this.divInputRef = googlePlace.refs.divInputRef;
+        onWillUnmount(() => {
+            this.mappingConfig = {};
+        });
     }
 
-    get mappingUrl() {
-        return this.googlePlace.methods.getMappingUrl();
+    async saveChanges(data) {
+        try {
+            const values = {};
+            if (data.address) {
+                Object.assign(values, data.address);
+            }
+            if (data.other && this.mappingConfig.mode === 'places') {
+                Object.assign(values, data.other);
+            }
+
+            const preparedValues = this._prepareValues(values);
+            if (Object.keys(preparedValues).length > 0) {
+                await this.props.record.update(preparedValues);
+            }
+
+            const geolocationValues = this._prepareValues(data.geolocation);
+            if (Object.keys(geolocationValues).length > 0) {
+                await this.props.record.update(geolocationValues);
+            }
+
+            this.closeGoogleAutocomplete();
+        } catch (error) {
+            console.error('Failed to populate values from Google Place:', { error, data });
+            this.notificationService.add(
+                _t('Failed to populate values from Google Place. Please try again.'),
+                { type: 'warning' }
+            );
+        }
     }
 
-    get widgetId() {
-        return this.googlePlace.methods.getWidgetId();
+    _prepareValues(values) {
+        try {
+            if (!values || Object.keys(values).length === 0) return {};
+            const fields = this.props.record.fields;
+            const changes = {};
+            for (const key in values) {
+                if (Object.prototype.hasOwnProperty.call(fields, key)) {
+                    changes[key] = this.parse(values[key]);
+                }
+            }
+            return changes;
+        } catch (error) {
+            console.error('Error preparing values:', { error, values });
+            return {}
+        }
     }
 
-    get mappingId() {
-        const state = this.googlePlace.methods.getState();
-        return state.mappingId;
+    async toggleCollapse(ev) {
+        const isClosed = ev.currentTarget.classList.contains('collapsed');
+        this.state.isCollapseOpen = !isClosed;
+        if (!isClosed) {
+            const mappingConfig = await this.placeMapping.getMappingConfig();
+            this.state.mappingId = mappingConfig.id;
+            delete mappingConfig.id;
+            Object.assign(this.mappingConfig, mappingConfig);
+        }
     }
 
-    get mappingMode() {
-        const state = this.googlePlace.methods.getState();
-        return state.mappingMode;
+    closeGoogleAutocomplete() {
+        if (!this.googleAutocompleteToggleRef.el) {
+            return;
+        }
+        const isClosed = this.googleAutocompleteToggleRef.el.classList.contains('collapsed');
+        const collapseEl = document.getElementById(
+            this.googleAutocompleteToggleRef.el.getAttribute('href').substring(1)
+        );
+        if (!isClosed && collapseEl && collapseEl.classList.contains('show')) {
+            collapseEl.classList.remove('show');
+            this.googleAutocompleteToggleRef.el.setAttribute('aria-expanded', 'false');
+        }
     }
 
-    get mappingCode() {
-        const state = this.googlePlace.methods.getState();
-        return state.mappingCode;
-    }
-
-    openMappingConfig() {
-        this.googlePlace.methods.openMappingConfig();
+    parse(value) {
+        if (this.shouldTrim && typeof value === 'string') {
+            return value.trim();
+        }
+        return value;
     }
 }
 
@@ -63,12 +122,7 @@ export const partnerAutoCompleteCharFieldWithGooglePlace = {
     component: PartnerAutoCompleteCharFieldWithGooglePlace,
     displayName: _t('Partner Autocomplete with Google Place'),
     extractProps: ({ attrs, options, placeholder }) => ({
-        isPassword: exprToBoolean(attrs.password),
-        dynamicPlaceholder: options.dynamic_placeholder || false,
-        dynamicPlaceholderModelReferenceField:
-            options.dynamic_placeholder_model_reference_field || '',
-        autocomplete: attrs.autocomplete,
-        placeholder,
+        ...partnerAutoCompleteCharField.extractProps({ attrs, options, placeholder }),
         mappingCode: options.mapping_code || '',
         mappingMode: options.mapping_mode || 'places',
     }),

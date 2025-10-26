@@ -1,0 +1,12 @@
+.o_field_gplace_autocomplete_el > div {
+    width: inherit;
+}
+
+// Toggle icon based on collapse state
+.o_gplace_toggle[aria-expanded="false"] .o_gplace_toggle_icon::before {
+    content: "\f107"; // fa-angle-down
+}
+
+.o_gplace_toggle[aria-expanded="true"] .o_gplace_toggle_icon::before {
+    content: "\f106"; // fa-angle-up
+}

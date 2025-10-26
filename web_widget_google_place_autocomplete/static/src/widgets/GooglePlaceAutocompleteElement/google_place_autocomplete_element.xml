@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="web_widget_google_place_autocomplete.GooglePlaceAutocompleteElementInit" t-inherit="web.CharField" t-inherit-mode="primary">
+        <xpath expr="//input" position="after">
+            <div class="o_gplace_autocomplete_wrapper" id="o_google_place_autocomplete_wrapper">
+                <div class="d-flex align-items-stretch gap-1"/>
+            </div>
+        </xpath>
+        <xpath expr="//div[hasclass('o_field_input_buttons')]" position="replace"/>
+    </t>
+    <t t-name="web_widget_google_place_autocomplete.GooglePlaceAutocompleteCharField" t-inherit="web_widget_google_place_autocomplete.GooglePlaceAutocompleteElementInit" t-inherit-mode="primary">
+        <xpath expr="//div[@id='o_google_place_autocomplete_wrapper']/div" position="inside">
+            <xpath expr="//input" position="move"/>
+            <a t-attf-href="#{ '#' + widgetId }"
+                t-if="!props.readonly"
+                class="btn btn-light align-content-center o_gplace_toggle collapsed"
+                role="button"
+                data-bs-toggle="collapse"
+                aria-expanded="false"
+                t-on-click.prevent="toggleCollapse"
+                t-attf-aria-controls="#{ widgetId }"
+                data-tooltip="Google Autocomplete"
+                title="Google Autocomplete"
+                t-ref="googleAutocompleteToggle">
+                <div class="d-flex gap-1 align-items-center">
+                    <i class="fa fa-google"></i>
+                    <i class="fa fa-angle-down o_gplace_toggle_icon"></i>
+                </div>
+            </a>
+        </xpath>
+        <xpath expr="//div[@id='o_google_place_autocomplete_wrapper']" position="inside">
+            <!-- Collapsible Google Places Container -->
+            <div class="collapse" t-attf-id="#{ widgetId }" t-if="!props.readonly">
+                <t t-if="state.mappingId > 0">
+                    <GooglePlaceAutocompleteElement
+                        id="state.mappingId"
+                        code="mappingConfig.code"
+                        mode="mappingConfig.mode"
+                        options="mappingConfig.options"
+                        fields="mappingConfig.fields"
+                        resModel="props.record.resModel"
+                        elementId="widgetId + '_google_places'"
+                        callback.bind="saveChanges"
+                        isCollapseOpen="state.isCollapseOpen"
+                    />
+                </t>
+                <t t-elif="state.mappingId == 0">
+                    <div class="bg-100 ps-2 pe-2 pb-2 pt-1 mt-1 rounded-2 shadow-sm">
+                        <p class="small mb-0 text-warning text-center">
+                            <i class="fa fa-refresh fa-spin fa-fw"></i>
+                            <span class="sr-only">Loading...</span>
+                        </p>
+                    </div>
+                </t>
+                <t t-else="">
+                    <div class="bg-100 ps-2 pe-2 pb-2 pt-1 mt-1 rounded-2 shadow-sm">
+                        <p class="small mb-0 text-danger text-center">
+                            <i class="fa fa-exclamation-triangle text-danger"></i>
+                            <span class="ps-1">No valid mapping configuration found.</span>
+                        </p>
+                    </div>
+                </t>
+            </div>
+        </xpath>
+    </t>
+</templates>

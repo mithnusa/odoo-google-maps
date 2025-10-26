@@ -13,17 +13,17 @@
  * Performance configuration constants
  */
 export const GEOMETRY_PERFORMANCE_CONFIG = {
-    MAX_VERTICES_FOR_EDITING: 150,      // Reduced further: Terra Draw freezes with 183-vertex polygons
-    MAX_VERTICES_FOR_DISPLAY: 1000,    // Adjusted: Maximum vertices for display
-    TERRA_DRAW_FREEZE_THRESHOLD: 180,  // Lowered further: Features with 195 vertices disappear in Terra Draw
-    SIMPLIFICATION_TOLERANCE: 0.003,    // Increased: More aggressive simplification for geographic data
-    AGGRESSIVE_SIMPLIFICATION_TOLERANCE: 0.008, // More aggressive for detailed coastlines
+    MAX_VERTICES_FOR_EDITING: 150,      // Safe editing threshold for Terra Draw
+    MAX_VERTICES_FOR_DISPLAY: 1000,     // Maximum vertices for display
+    TERRA_DRAW_FREEZE_THRESHOLD: 195,   // Features with 195+ vertices may cause performance issues
+    SIMPLIFICATION_TOLERANCE: 0.005,    // Normal simplification for geographic data
+    AGGRESSIVE_SIMPLIFICATION_TOLERANCE: 0.015, // Aggressive simplification to get below 150 vertices
     CHUNK_SIZE: 500,                    // Chunk size for processing large geometries
     PROCESSING_DELAY: 100,              // Delay between processing chunks (ms)
-    
+
     // Special handling for geographic boundary data
     GEOGRAPHIC_BOUNDARY_THRESHOLD: 150, // Specific threshold for province/country boundaries
-    GEOGRAPHIC_SIMPLIFICATION_TOLERANCE: 0.004, // Optimized for coastlines and borders
+    GEOGRAPHIC_SIMPLIFICATION_TOLERANCE: 0.008, // Optimized for coastlines and borders
 };
 
 /**
@@ -92,7 +92,8 @@ export function analyzeFeaturePerformance(feature) {
             canDisplay: false,
             vertexCount: 0,
             complexity: 'invalid',
-            recommendedAction: 'invalid_feature'
+            recommendedAction: 'invalid_feature',
+            isVeryComplex: false,
         };
     }
     
@@ -101,6 +102,7 @@ export function analyzeFeaturePerformance(feature) {
     const canDisplay = vertexCount <= GEOMETRY_PERFORMANCE_CONFIG.MAX_VERTICES_FOR_DISPLAY;
     
     let complexity, recommendedAction;
+    let isVeryComplex = false;
     
     if (vertexCount <= 50) {
         complexity = 'simple';
@@ -117,6 +119,7 @@ export function analyzeFeaturePerformance(feature) {
     } else {
         complexity = 'extremely_complex';
         recommendedAction = 'use_deckgl_only';
+        isVeryComplex = true;
     }
     
     return {
@@ -124,6 +127,7 @@ export function analyzeFeaturePerformance(feature) {
         canDisplay,
         vertexCount,
         complexity,
+        isVeryComplex,
         recommendedAction,
         estimatedProcessingTime: Math.ceil(vertexCount / 1000) * 100, // Rough estimate in ms
     };
@@ -414,9 +418,9 @@ function calculateGeometryBounds(geometry) {
  */
 export function createEditableFeature(feature, tolerance = GEOMETRY_PERFORMANCE_CONFIG.SIMPLIFICATION_TOLERANCE) {
     if (!feature) return null;
-    
+
     const analysis = analyzeFeaturePerformance(feature);
-    
+
     if (analysis.canEdit) {
         // Feature is already editable, return as-is
         return {
@@ -427,88 +431,105 @@ export function createEditableFeature(feature, tolerance = GEOMETRY_PERFORMANCE_
             analysis
         };
     }
-    
-    // For extremely complex features, just return original with warning
-    if (analysis.vertexCount > GEOMETRY_PERFORMANCE_CONFIG.TERRA_DRAW_FREEZE_THRESHOLD) {
-        console.warn(`⚠️ Very complex feature with ${analysis.vertexCount} vertices - Terra Draw editing may be slow`);
-        return {
-            feature,
-            isSimplified: false,
-            originalVertexCount: analysis.vertexCount,
-            simplifiedVertexCount: analysis.vertexCount,
-            analysis,
-            warning: `Complex feature with ${analysis.vertexCount} vertices - editing may be slow`
-        };
-    }
-    
-    // Try aggressive simplification first
+
+    // Iterative simplification - keep simplifying until we reach target vertex count
+    const targetVertexCount = GEOMETRY_PERFORMANCE_CONFIG.MAX_VERTICES_FOR_EDITING;
+    const maxIterations = 10;
+    let currentFeature = feature;
+    let currentVertexCount = analysis.vertexCount;
     let usedTolerance = tolerance;
-    let simplifiedFeature = {
-        ...feature,
-        geometry: simplifyGeometry(feature.geometry, tolerance),
-        properties: {
-            ...feature.properties,
-            _simplified: true,
-            _originalVertexCount: analysis.vertexCount,
-            _simplificationTolerance: tolerance
-        }
-    };
-    
-    let simplifiedAnalysis = analyzeFeaturePerformance(simplifiedFeature);
-    
-    // Validate the simplified feature - if invalid, return original feature
-    if (!isValidGeometry(simplifiedFeature.geometry)) {
-        console.warn(`⚠️ Normal simplification produced invalid geometry. Using original feature.`);
-        return {
-            feature,
-            isSimplified: false,
-            originalVertexCount: analysis.vertexCount,
-            simplifiedVertexCount: analysis.vertexCount,
-            analysis,
-            warning: 'Simplification failed - using original feature'
-        };
-    }
-    
-    // If still too complex after normal simplification, try aggressive simplification
-    if (simplifiedAnalysis.vertexCount > GEOMETRY_PERFORMANCE_CONFIG.MAX_VERTICES_FOR_EDITING) {
+    let iterations = 0;
+
+    // Start with aggressive tolerance for very complex features
+    if (currentVertexCount > GEOMETRY_PERFORMANCE_CONFIG.TERRA_DRAW_FREEZE_THRESHOLD) {
         usedTolerance = GEOMETRY_PERFORMANCE_CONFIG.AGGRESSIVE_SIMPLIFICATION_TOLERANCE;
-        simplifiedFeature = {
-            ...feature,
-            geometry: simplifyGeometry(feature.geometry, usedTolerance),
+        console.log(`⚠️ Extremely complex feature with ${currentVertexCount} vertices - starting with aggressive simplification`);
+    }
+
+    let lastValidFeature = null;
+    let lastValidVertexCount = currentVertexCount;
+
+    while (currentVertexCount > targetVertexCount && iterations < maxIterations) {
+        iterations++;
+
+        // Try simplification with current tolerance
+        const simplifiedFeature = {
+            ...currentFeature,
+            geometry: simplifyGeometry(currentFeature.geometry, usedTolerance),
             properties: {
-                ...feature.properties,
+                ...currentFeature.properties,
                 _simplified: true,
-                _aggressivelySimplified: true,
                 _originalVertexCount: analysis.vertexCount,
-                _simplificationTolerance: usedTolerance
+                _simplificationTolerance: usedTolerance,
+                _iterations: iterations
             }
         };
-        simplifiedAnalysis = analyzeFeaturePerformance(simplifiedFeature);
-        
-        // Validate aggressive simplification - if invalid, return original feature
+
+        // Validate the simplified feature
         if (!isValidGeometry(simplifiedFeature.geometry)) {
-            console.warn(`⚠️ Aggressive simplification produced invalid geometry. Using original feature.`);
-            return {
-                feature,
-                isSimplified: false,
-                originalVertexCount: analysis.vertexCount,
-                simplifiedVertexCount: analysis.vertexCount,
-                analysis,
-                warning: 'Aggressive simplification failed - using original feature'
-            };
+            console.warn(`⚠️ Iteration ${iterations}: Simplification with tolerance ${usedTolerance.toFixed(4)} produced invalid geometry`);
+
+            // If we have a valid previous result, use it
+            if (lastValidFeature) {
+                console.log(`✓ Using last valid simplification: ${lastValidVertexCount} vertices`);
+                break;
+            }
+
+            // Otherwise, try with smaller tolerance increase
+            usedTolerance = usedTolerance * 0.9;
+            continue;
+        }
+
+        const newVertexCount = getVertexCount(simplifiedFeature.geometry);
+        console.log(`Iteration ${iterations}: ${currentVertexCount} → ${newVertexCount} vertices (tolerance: ${usedTolerance.toFixed(4)})`);
+
+        // Save this valid result
+        lastValidFeature = simplifiedFeature;
+        lastValidVertexCount = newVertexCount;
+        currentFeature = simplifiedFeature;
+        currentVertexCount = newVertexCount;
+
+        // If we've reached the target, we're done
+        if (currentVertexCount <= targetVertexCount) {
+            console.log(`✓ Target reached: ${currentVertexCount} vertices`);
+            break;
+        }
+
+        // Check if we're making progress
+        const oldVertexCount = lastValidVertexCount;
+        lastValidVertexCount = newVertexCount;
+        const reductionRatio = oldVertexCount > 0 ? (1 - newVertexCount / oldVertexCount) * 100 : 0;
+
+        if (reductionRatio < 5 && iterations > 1) {
+            // Less than 5% reduction, need more aggressive tolerance
+            usedTolerance = usedTolerance * 1.5;
+            console.log(`⚠️ Low reduction (${reductionRatio.toFixed(1)}%), increasing tolerance to ${usedTolerance.toFixed(4)}`);
+        } else {
+            // Good progress, increase tolerance moderately
+            usedTolerance = usedTolerance * 1.2;
         }
     }
-    
+
+    // Use the best result we achieved
+    const finalFeature = lastValidFeature || currentFeature;
+    const finalVertexCount = lastValidVertexCount;
+    const simplifiedAnalysis = analyzeFeaturePerformance(finalFeature);
+
+    if (finalVertexCount > targetVertexCount) {
+        console.warn(`⚠️ Could not reach target vertex count after ${iterations} iterations. Final: ${finalVertexCount} (target: ${targetVertexCount})`);
+    }
+
     return {
-        feature: simplifiedFeature,
-        isSimplified: true,
-        isAggressivelySimplified: usedTolerance === GEOMETRY_PERFORMANCE_CONFIG.AGGRESSIVE_SIMPLIFICATION_TOLERANCE,
+        feature: finalFeature,
+        isSimplified: finalVertexCount !== analysis.vertexCount,
+        isAggressivelySimplified: usedTolerance >= GEOMETRY_PERFORMANCE_CONFIG.AGGRESSIVE_SIMPLIFICATION_TOLERANCE,
         originalVertexCount: analysis.vertexCount,
-        simplifiedVertexCount: simplifiedAnalysis.vertexCount,
-        reductionRatio: (1 - simplifiedAnalysis.vertexCount / analysis.vertexCount) * 100,
+        simplifiedVertexCount: finalVertexCount,
+        reductionRatio: (1 - finalVertexCount / analysis.vertexCount) * 100,
         analysis: simplifiedAnalysis,
         originalAnalysis: analysis,
-        tolerance: usedTolerance
+        tolerance: usedTolerance,
+        iterations: iterations
     };
 }
 

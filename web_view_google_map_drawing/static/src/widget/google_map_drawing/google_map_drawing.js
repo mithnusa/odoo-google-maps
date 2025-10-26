@@ -106,10 +106,10 @@ export class GoogleMapDrawingField extends BaseGoogleMapComponent {
     /**
      * @override
      */
-    _prepareMapOptions(options) {
-        options.mapTypeId = google.maps.MapTypeId.HYBRID;
-        return options;
-    }
+    // _prepareMapOptions(options) {
+    //     options.mapTypeId = google.maps.MapTypeId.HYBRID;
+    //     return options;
+    // }
 
     /**
      * @override

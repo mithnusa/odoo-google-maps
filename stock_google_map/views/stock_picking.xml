@@ -4,11 +4,11 @@
         <field name="name">view.stock.picking.google_map</field>
         <field name="model">stock.picking</field>
         <field name="arch" type="xml">
-            <google_map string="Locations" lat="partner_latitude" lng="partner_longitude" sidebar_title="name" sidebar_subtitle="partner_id" color="teal">
+            <google_map string="Locations" lat="partner_latitude" lng="partner_longitude" sidebar_title="name" sidebar_subtitle="partner_contact_address" color="teal">
                 <field name="partner_latitude"/>
                 <field name="partner_longitude"/>
                 <field name="name"/>
-                <field name="partner_id"/>
+                <field name="partner_contact_address"/>
             </google_map>
         </field>
     </record>

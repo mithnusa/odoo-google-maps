@@ -10,17 +10,17 @@
             </t>
             <td>
                 <div class="d-flex gap-2 align-items-center cursor-pointer" t-on-click="() => fnPinPointInMap(record.id)">
-                    <div class="o_map_sidebar_record">
+                    <div class="o_map_sidebar_record" t-att-data-tooltip="data.other?.title">
                         <Field id="props.title" name="props.title" record="record" readonly="true"/>
                     </div>
                 </div>
             </td>
             <td>
-                <div class="d-flex align-items-center justify-content-end">
-                    <span class="me-1" t-if="_showMarker">
-                        <i class="fa fa-map-marker" t-attf-style="color: #{data?.other?.markerColor || 'red'};" />
+                <div class="d-flex align-items-center justify-content-center">
+                    <span class="me-2" t-if="_showMarker">
+                        <i class="fa fa-map-marker" t-attf-style="color: #{data?.other?.__geoColor || 'red'};" />
                     </span>
-                    <button type="button" class="btn btn-sm btn-light" id="open-record" title="Open form" t-on-click.prevent="() => fnOpenRecord(record)">
+                    <button type="button" class="btn btn-sm btn-light" id="open-record" data-tooltip="Open" t-on-click.prevent="() => fnOpenRecord(record)">
                         <i class="fa fa-lg fa-angle-right" />
                     </button>
                 </div>
@@ -31,20 +31,29 @@
         <tr>
             <td colspan="99">
                 <div class="d-flex justify-content-between align-items-center">
-                    <button class="btn btn-link collapsed" t-attf-id="btn-group-collapse-#{group.key}" t-att-data-group_id="group.key" type="button" data-bs-toggle="collapse" t-attf-data-bs-target="#collapseGroup_#{ group.key }" aria-expanded="false" t-attf-aria-controls="collapseGroup_#{ group.key }" t-on-click.prevent="(ev) => this.handleGroupCollapse(ev, group.key)">
-                        <div class="d-flex align-items-center">
+                    <button 
+                        class="btn btn-link collapsed"
+                        t-attf-id="btn-group-collapse-#{group.key}"
+                        t-att-data-group_id="group.key"
+                        type="button"
+                        data-bs-toggle="collapse"
+                        t-attf-data-bs-target="#collapseGroup_#{ group.key }"
+                        aria-expanded="false"
+                        t-attf-aria-controls="collapseGroup_#{ group.key }"
+                        t-on-click.prevent="(ev) => this.handleGroupCollapse(ev, group.key)">
+                        <div class="d-flex align-items-center o_map_sidebar_group">
+                            <t t-set="title" t-value="(group.group.displayName || 'None') + ' (' + group.group.count + ')' " />
                             <span class="me-2">
                                 <i class="fa fa-caret-right" />
                                 <i class="fa fa-caret-down" />
                             </span>
-                            <span class="me-1">
-                                <i class="fa fa-map-marker" t-attf-style="color: #{group.group.markerColor || 'red'};" />
-                            </span>
-                            <span class="ps-1 pe-1 text-truncate d-inline-block" t-out="group.group.displayName || 'None'" style="max-width: 200px;" data-toggle="tooltip" t-attf-title="#{group.group.displayName || 'None'}"/>
-                            (<span t-out="group.group.count" />)
+                            <span class="ps-1 pe-1" t-out="title" t-attf-data-tooltip="title"/>
                         </div>
                     </button>
                     <div t-if="group.group.count">
+                        <span class="me-1">
+                            <i class="fa fa-map-marker" t-attf-style="color: #{group.group.groupColor || 'red'};" />
+                        </span>
                         <button type="button" class="btn btn-sm btn-light" t-on-click="() => this.actionShowGroupRecords(group)">
                             <i class="fa fa-lg fa-angle-double-right" />
                         </button>
@@ -115,7 +124,7 @@
                     </t>
                     <h3 t-if="props.header" t-esc="props.header" />
                     <small class="ms-2 text-muted">
-                        <span data-toggle="tooltip" title="Only those with geolocation data set are displayed">
+                        <span data-tooltip="Only records with geolocation data set are displayed">
                             <i class="fa fa-info" />
                         </span>
                     </small>

@@ -5,6 +5,7 @@ import { isNull } from '@web/views/utils';
 import { useBus } from '@web/core/utils/hooks';
 
 import { BaseGoogleMapComponent } from '@base_google_map/utils/base_google_map';
+import { generateUUID } from '@web_view_google_map/views/google_map/utils';
 import { GoogleMapGeolocate } from '@web_view_google_map/views/google_map/components/geolocate/geolocate';
 import { GoogleMapSearchPlaces } from '@web_view_google_map/views/google_map/components/search_places/search_places';
 import { GoogleMapsDrawingSidebar } from './google_map_drawing_sidebar';
@@ -88,7 +89,7 @@ export class GoogleMapDrawingRenderer extends BaseGoogleMapComponent {
             if (this.isMapLoaded() && !this.state.groupDatalistId && !this._isSidebarAction) {
                 const isGrouped = this.props.list.isGrouped;
                 if (isGrouped) {
-                    this.state.groupDatalistId = this._generateUniqueId();
+                    this.state.groupDatalistId = generateUUID();
                 } else {
                     this.renderGeolocationData();
                 }
@@ -97,7 +98,7 @@ export class GoogleMapDrawingRenderer extends BaseGoogleMapComponent {
         });
 
         onWillUpdateProps(() => {
-            this.state.groupDatalistId = this._generateUniqueId();
+            this.state.groupDatalistId = generateUUID();
         });
 
         onPatched(() => {
@@ -122,7 +123,7 @@ export class GoogleMapDrawingRenderer extends BaseGoogleMapComponent {
         this.state.sidebarIsFolded = !this.state.sidebarIsFolded;
     }
 
-    _onWillDestroy() {
+    _cleanUp() {
         this.shapeManager.cleanup();
         if (this.shapes) {
             this.shapes.forEach((shape, key) => {
@@ -135,7 +136,7 @@ export class GoogleMapDrawingRenderer extends BaseGoogleMapComponent {
             this.markerInfoWindow.close();
             google.maps.event.clearInstanceListeners(this.markerInfoWindow);
         }
-        super._onWillDestroy();
+        super._cleanUp();
     }
 
     /**
@@ -161,12 +162,12 @@ export class GoogleMapDrawingRenderer extends BaseGoogleMapComponent {
     /**
      * @override
      */
-    _prepareMapOptions(options) {
-        const values = super._prepareMapOptions(options);
-        values.mapTypeId = google.maps.MapTypeId.HYBRID;
-        values.gestureHandling = this.props.archInfo?.gestureHandling || 'auto';
-        return values;
-    }
+    // _prepareMapOptions(options) {
+    //     const values = super._prepareMapOptions(options);
+    //     values.mapTypeId = google.maps.MapTypeId.HYBRID;
+    //     values.gestureHandling = this.props.archInfo?.gestureHandling || 'auto';
+    //     return values;
+    // }
 
     /**
      * @override

@@ -10,14 +10,13 @@
                     <Sidebar t-props="sidebarProps" t-if="state.isMapReady"/>
                 </div>
                 <div class="toggle_right_sidenav">
-                    <button data-toggle="tooltip" data-placement="right" title="Expand side panel" t-on-click="toggleSidebar"></button>
+                    <button data-toggle="tooltip" data-placement="right" t-attf-data-tooltip="{{ state.sidebarIsFolded ? 'Expand side panel' : 'Collapse side panel' }}" t-on-click="toggleSidebar"></button>
                 </div>
             </div>
         </div>
     </t>
     <t t-name="web_view_google_map.MarkerInfoWindow">
         <div class="infoWindow">
-            <hr t-if="isMulti"/>
             <article role="link" class="o_kanban_record d-flex flex-grow-1 flex-md-shrink-1 flex-shrink-0 flex-row border-0">
                 <main class="ps-2">
                     <div class="mb-1">

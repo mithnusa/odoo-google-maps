@@ -3,23 +3,24 @@
     <t t-name="crm_google_map.RecordItem" t-inherit="web_view_google_map.RecordItem" t-inherit-mode="primary">
         <xpath expr="//div[hasclass('o_map_sidebar_record')]/.." position="after">
             <div class="d-flex justify-content-between mt-1">
-                <small class="text-muted" title="Customer">
-                    <i class="fa fa-user"/>
+                <small class="text-muted" data-tooltip="Customer" t-if="record.data?.partner_id">
+                    <i class="fa fa-user-o"/>
                     <Field id="'partner_id'" name="'partner_id'" record="record" class="'ps-1'" readonly="true"/>
                 </small>
-                <small class="text-muted" title="Salesperson">
+                <small class="text-muted" data-tooltip="Salesperson" t-if="record?.data?.user_id">
                     <Field id="'user_id'" name="'user_id'" record="record" class="'ps-1'" readonly="true"/>
                 </small>
             </div>
             <div class="d-flex justify-content-between mt-1">
-                <small class="text-muted" title="Expected Revenue">
-                    <i class="fa fa-usd"></i>
-                    <Field id="'expected_revenue'" name="'expected_revenue'" record="record" type="monetary" class="'ps-1'" readonly="true"/>
+                <small class="text-muted" data-tooltip="Expected Revenue">
+                    <i class="fa fa-money"></i>
+                    <Field id="'expected_revenue'" name="'expected_revenue'" record="record" type="'monetary'" class="'ps-1'" readonly="true"/>
                 </small>
-                <small class="text-muted" title="Probability">
+                <small class="text-muted" data-tooltip="Probability">
                     <Field id="'probability'" name="'probability'" record="record" class="'ps-1'" readonly="true"/><span>%</span>
                 </small>
-                <small class="text-muted" title="Expected Closing">
+                <small class="text-muted" data-tooltip="Expected Closing" t-if="data?.other?.dateDeadline">
+                    <i class="fa fa-calendar-o"></i>
                     <Field id="'date_deadline'" name="'date_deadline'" record="record" class="'ps-1'" readonly="true"/>
                 </small>
             </div>

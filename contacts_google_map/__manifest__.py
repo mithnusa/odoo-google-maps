@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 {
-    'name': 'Contacts Google Map',
+    'name': 'Contacts Google Maps',
     'summary': '''
-        Show your contacts in Google maps view
+        Show your contacts in a new view Google Maps
     ''',
     'description': '''
-        A new view 'Google maps' added on Contacts, gives you
-        an ability to show your contact location in Google maps
+        A new view 'Google Maps' added on Contacts, gives you
+        an ability to show your contact location in Google Maps
     ''',
     'license': 'AGPL-3',
     'author': 'Yopi Angi',
@@ -18,6 +18,7 @@
         'base_geolocalize',
         'contacts',
         'web_view_google_map',
+        'web_widget_google_map',
     ],
     'data': ['data/cron_contact_geolocalize.xml', 'views/res_partner.xml'],
     'assets': {

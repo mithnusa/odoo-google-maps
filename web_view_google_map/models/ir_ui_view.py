@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
-import warnings
 from lxml import etree
-from lxml.builder import E
 
 from odoo import _, api, fields, models
 from odoo.tools.view_validation import get_expression_field_names
+
 
 class IrUiView(models.Model):
     _inherit = 'ir.ui.view'
@@ -23,6 +22,7 @@ class IrUiView(models.Model):
         att_js_class = node.get('js_class')
         att_lat = node.get('lat')
         att_lng = node.get('lng')
+        att_color = node.get('color')
         att_sidebar_title = node.get('sidebar_title')
 
         if not att_sidebar_title:
@@ -30,18 +30,24 @@ class IrUiView(models.Model):
 
         if ((att_js_class and not 'drawing' in att_js_class) or (not att_js_class)) and not att_lat and not att_lng:
             self._raise_view_error(_('Missing mandatory attribute for google_map view: "lat" and "lng"'), node)
-
+        
         fields_name = [child.get('name') for child in node.iterchildren(tag=etree.Element) if child.tag == 'field']
 
         if att_lat and not att_lat in fields_name:
-            self._raise_view_error(_('Field %(name)s assigned to attribute "lat" does not exist. All fields used in google_map view attribute must be loaded', name=att_lat), node)
+            self._raise_view_error(_('Field %(name)s assigned to attribute "lat" but the field is not loaded. All fields used in "google_map" view attribute must be loaded', name=att_lat), node)
 
         if att_lng and not att_lng in fields_name:
-            self._raise_view_error(_('Field %(name)s assigned to attribute "lng" does not exist. All fields used in google_map view attribute must be loaded', name=att_lng), node)
+            self._raise_view_error(_('Field %(name)s assigned to attribute "lng" but the field is not loaded. All fields used in "google_map" view attribute must be loaded', name=att_lng), node)
 
         if att_sidebar_title and not att_sidebar_title in fields_name:
-            self._raise_view_error(_('Field %(name)s assigned to attribute "sidebar_title" does not exist. All fields used in google_map view attribute must be loaded', name=att_sidebar_title), node)
+            self._raise_view_error(_('Field %(name)s assigned to attribute "sidebar_title" but the field is not loaded. All fields used in "google_map" view attribute must be loaded', name=att_sidebar_title), node)
+        
+        if att_color and name_manager.model._fields.get(att_color) and att_color not in fields_name:
+            self._raise_view_error(_('Field %(name)s assigned to attribute "color" but the field is not loaded. All fields used in "google_map" view attribute must be loaded', name=att_color), node)
 
+
+    # The following methods are mostly copied from ir.ui.view and modified to
+    # support google_map view type for x2many fields
     def _postprocess_tag_field(self, node, name_manager, node_info):
         name = node.get('name')
         if not name:
@@ -145,3 +151,19 @@ class IrUiView(models.Model):
             self._raise_view_error(msg, node)
 
         name_manager.has_field(node, name, node_info, {'id': node.get('id'), 'select': node.get('select')})
+
+    @api.model
+    def _get_view_fields(self, view_type, models):
+        models = super()._get_view_fields(view_type, models)
+        if view_type == 'google_map':
+            for model, model_fields in models.items():
+                model_fields.add('id')
+                if 'write_date' in self.env[model]._fields:
+                    model_fields.add('write_date')
+        return models
+
+    def _modifiers_from_model(self, node):
+        modifier_names = super()._modifiers_from_model(node)
+        if node.tag == 'google_map' and not all(name in modifier_names for name in ('readonly', 'required')):
+            modifier_names += ['readonly', 'required']
+        return modifier_names

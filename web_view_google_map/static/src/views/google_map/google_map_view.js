@@ -8,10 +8,12 @@ import { registry } from '@web/core/registry';
 export const googleMapView = {
     type: 'google_map',
     display_name: 'Google Maps',
+
     ArchParser: GoogleMapArchParser,
     Controller: GoogleMapController,
     Model: GoogleMapModel,
     Renderer: GoogleMapRenderer,
+
     buttonTemplate: 'web_view_google_map.GoogleMapView.Buttons',
 
     props: (genericProps, view) => {
@@ -21,6 +23,7 @@ export const googleMapView = {
 
         return {
             ...genericProps,
+            readonly: genericProps.readonly || !archInfo.activeActions?.edit,
             Model: view.Model,
             Renderer: view.Renderer,
             buttonTemplate: view.buttonTemplate,

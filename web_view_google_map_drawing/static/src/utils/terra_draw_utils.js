@@ -24,6 +24,7 @@
  */
 
 import { loadJS } from '@web/core/assets';
+import { formatNumber } from '@web_view_google_map/views/google_map/utils';
 
 /**
  * Terra Draw mode mapping
@@ -61,19 +62,13 @@ export const TERRA_DRAW_CONFIG = {
 export const COLOR_PALETTE = [
     '#E74C3C', // Red
     '#F39C12', // Yellow-Orange
-    '#FF0066', // Pink
-    '#9B59B6', // Purple
     '#673AB7', // Deep Purple
     '#3F51B5', // Indigo
     '#3498DB', // Blue
-    '#03A9F4', // Light Blue
     '#00BCD4', // Cyan
     '#009688', // Teal
-    '#27AE60', // Green
     '#8BC34A', // Light Green
-    '#CDDC39', // Lime
     '#F1C40F', // Yellow
-    '#FFC107', // Amber
     '#F39C12', // Orange
     '#FF5722', // Deep Orange
     '#795548', // Brown
@@ -103,14 +98,29 @@ export async function loadTerraDrawAssets() {
         return;
     }
     try {
-        await loadJS('/web_view_google_map_drawing/static/src/libs/terra/1.13.0/terra-draw.umd.js');
-        await loadJS('/web_view_google_map_drawing/static/src/libs/terra-google-maps-adapter/1.0.2/terra-draw-google-maps-adapter.umd.js');
+        await loadJS('https://unpkg.com/terra-draw@1.18.0/dist/terra-draw.umd.js');
+        await loadJS('https://unpkg.com/terra-draw-google-maps-adapter@1.1.0/dist/terra-draw-google-maps-adapter.umd.js');
         if (!window.terraDraw || !window.terraDrawGoogleMapsAdapter) {
             throw new Error('Terra Draw or its Google Maps adapter failed to load correctly.');
         }
     } catch (error) {
         console.error('Error loading Terra Draw assets:', error);
         throw new Error('Failed to load Terra Draw assets: ' + error.message);
+    }
+}
+
+export async function loadTurfJS() {
+    if (window.turf) {
+        return;
+    }
+    try {
+        await loadJS('https://unpkg.com/@turf/turf@7.2.0/turf.min.js');
+        if (!window.turf) {
+            throw new Error('Turf.js failed to load correctly.');
+        }
+    } catch (error) {
+        console.error('Error loading Turf.js:', error);
+        throw new Error('Failed to load Turf.js: ' + error.message);
     }
 }
 
@@ -170,7 +180,7 @@ export function generateUUID() {
  * @param {number} precision - Number of decimal places (default: 10)
  * @returns {Array} - Normalized coordinates
  */
-export function normalizeCoordinates(coordinates, precision = 10) {
+export function normalizeCoordinates(coordinates, precision = 9) {
     if (!Array.isArray(coordinates)) return coordinates;
 
     return coordinates.map((coord) => {
@@ -206,11 +216,6 @@ export function processComplexMultiPolygon(multiPolygonFeature, color, isReadonl
             properties: {
                 ...multiPolygonFeature.properties,
                 mode: 'polygon',
-                // Readonly properties (if applicable)
-                // ...getFeaturePermissions(isReadonly),
-                // Styling
-                // ...getStylePropertiesForGeometry('Polygon', color),
-                // Metadata
                 originalFeatureId: multiPolygonFeature.id,
                 partIndex: index,
                 totalParts: coordinates.length,
@@ -524,19 +529,6 @@ export function calculateCircleArea(radius, unit = MEASUREMENT_CONFIG.UNITS.METR
 }
 
 /**
- * Format a number with thousand separators for better readability
- * @param {number} num - The number to format
- * @param {number} decimals - Number of decimal places
- * @returns {string} Formatted number with commas
- */
-export function formatNumber(num, decimals = 2) {
-    return num.toLocaleString('en-US', {
-        minimumFractionDigits: decimals,
-        maximumFractionDigits: decimals,
-    });
-}
-
-/**
  * Format point count with appropriate singular/plural form
  * @param {number} count - The number of points
  * @returns {string} Formatted point count string
@@ -552,33 +544,33 @@ export function formatPointCount(count) {
  * @param {string} unit - Unit system ('metric' or 'imperial')
  * @returns {string} Formatted measurement string
  */
-export function formatMeasurement(value, type, unit = MEASUREMENT_CONFIG.UNITS.METRIC) {
+export function formatMeasurement(value, type, unit = MEASUREMENT_CONFIG.UNITS.METRIC, locale = 'en-US') {
     if (type === 'distance') {
         if (unit === MEASUREMENT_CONFIG.UNITS.IMPERIAL) {
             if (value < 0.1) {
                 // Very short distances in feet with no decimals for readability
                 const feet = value * 5280;
-                return `${formatNumber(feet, 0)} ft`;
+                return `${formatNumber(feet, 0, locale)} ft`;
             } else if (value < 1) {
                 // Short distances in feet with 1 decimal
                 const feet = value * 5280;
-                return `${formatNumber(feet, 1)} ft`;
+                return `${formatNumber(feet, 1, locale)} ft`;
             } else {
                 // Longer distances in miles
-                return `${formatNumber(value, 2)} mi`;
+                return `${formatNumber(value, 2, locale)} mi`;
             }
         } else {
             if (value < 0.001) {
                 // Very short distances in centimeters
                 const cm = value * 100000;
-                return `${formatNumber(cm, 0)} cm`;
+                return `${formatNumber(cm, 0, locale)} cm`;
             } else if (value < 1) {
                 // Short distances in meters
                 const meters = value * 1000;
-                return `${formatNumber(meters, meters < 10 ? 1 : 0)} m`;
+                return `${formatNumber(meters, meters < 10 ? 1 : 0, locale)} m`;
             } else {
                 // Longer distances in kilometers
-                return `${formatNumber(value, 2)} km`;
+                return `${formatNumber(value, 2, locale)} km`;
             }
         }
     } else if (type === 'area') {
@@ -586,29 +578,29 @@ export function formatMeasurement(value, type, unit = MEASUREMENT_CONFIG.UNITS.M
             if (value < 0.0015625) {
                 // Very small areas in square feet
                 const sqFeet = value * 27878400; // 1 sq mile = 27,878,400 sq ft
-                return `${formatNumber(sqFeet, 0)} ft²)`;
+                return `${formatNumber(sqFeet, 0, locale)} ft²)`;
             } else if (value < 1) {
                 // Small to medium areas in acres
                 const acres = value * 640;
-                return `${formatNumber(acres, acres < 1 ? 2 : 1)} acres`;
+                return `${formatNumber(acres, acres < 1 ? 2 : 1, locale)} acres`;
             } else {
                 // Large areas in square miles
-                return `${formatNumber(value, 2)} m²`;
+                return `${formatNumber(value, 2, locale)} m²`;
             }
         } else {
             if (value < 0.01) {
                 // Small areas in square meters
                 const sqMeters = value * 1000000;
-                return `${formatNumber(sqMeters, sqMeters < 100 ? 1 : 0)} sq m`;
+                return `${formatNumber(sqMeters, sqMeters < 100 ? 1 : 0, locale)} sq m`;
             } else if (value < 1) {
                 // Medium areas in hectares
                 const hectares = value * 100;
-                return `${formatNumber(hectares, 2)} ha`;
+                return `${formatNumber(hectares, 2, locale)} ha`;
             } else {
                 // Large areas in square kilometers
-                return `${formatNumber(value, 2)} km²`;
+                return `${formatNumber(value, 2, locale)} km²`;
             }
         }
     }
-    return formatNumber(value, 2);
+    return formatNumber(value, 2, locale);
 }

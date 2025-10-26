@@ -7,18 +7,25 @@
 .o_google_map_renderer, .o_dialog {
     display: flex;
     align-content: stretch;
-    overflow-x: visible;
+    overflow-x: hidden;
     height: 100%;
 
     .o_google_map_view {
         width: 100%;
+        // Use GPU-accelerated transform to prevent layout shifts affecting Deck.gl
+        transform: translateZ(0);
+        will-change: transform;
 
-        .gm-style-iw {
+        .gm-style-iw:has(.infoWindow) {
             min-width: 300px;
             background-color: $o-view-background-color;
             scrollbar-color: $o-view-background-color;
             overflow-y: auto !important;
             overflow-x: hidden !important;
+
+            @media (max-width: 768px) {
+                white-space: break-spaces;
+            }
 
             .gm-style-iw-chr {
                 position: absolute !important;
@@ -28,22 +35,43 @@
             .gm-style-iw-d {
                 padding-top: 8px !important;
             }
-          }
-          .gm-style-iw > div {
-            overflow: visible !important;
-          }
-          .infoWindow {
+        }
+        .gm-style-iw:has(.infoWindow) > div {
             overflow: hidden !important;
+
+            @media (max-width: 768px) {
+                overflow: inherit !important;
+            }
+
+        }
+        .infoWindow {
             &:focus, &:focus-within, &:active {
                 outline: none;
                 box-shadow: none;
                 border: none;
             }
-          }
+        }
 
-          .gm-style-iw-tc::after {
+        .gm-style-iw-tc::after {
             background: $o-view-background-color;
-          }
+        }
+        .marker-circle {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 3px solid #ffffff;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+            
+        .marker-circle.selected {
+            width: 28px;
+            height: 28px;
+            border: 4px solid #ffffff;
+            box-shadow: 0 0 0 3px #4285F4, 0 4px 12px rgba(0,0,0,0.4);
+            transform: scale(1.0);
+        }
     }
 
     .o_map_button {
@@ -275,6 +303,9 @@
     .o_kanban_group {
         padding: 0 var(--KanbanGroup-padding-h) var(--KanbanGroup-padding-bottom);
         width: 400px;
+        @media (max-width: 768px) {
+            width: inherit;
+        }
 
         .o_kanban_header > .o_kanban_header_title {
             &:hover .o_kanban_config,
@@ -309,5 +340,6 @@
             }
         }
     }
+
 
 }

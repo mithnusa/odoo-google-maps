@@ -11,9 +11,7 @@ class ResPartner(models.Model):
     def action_cron_geolocalize(self):
         self.search(
             [
-                '&',
                 ('country_id', '!=', False),
-                '|',
                 ('partner_latitude', '=', False),
                 ('partner_longitude', '=', False),
             ],

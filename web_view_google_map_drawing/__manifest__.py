@@ -2,10 +2,10 @@
 {
     'name': 'Web View Google Map Drawing',
     'summary': '''
-        Present your geographical data in a new view "Google maps"
+        Present your geographical data in a new view "Google Maps"
     ''',
     'description': '''
-        A view that allows you to add Google maps in Odoo and gives a
+        A view that allows you to add Google Maps in Odoo and gives a
         possibility to see your geographical data in Google maps without
         leaving Odoo
     ''',
@@ -14,12 +14,10 @@
     'website': 'https://github.com/mithnusa',
     'support': 'yopiangi@gmail.com',
     'category': 'Extra Tools',
-    'version': '1.0.1',
+    'version': '1.0.0',
     'depends': ['web_view_google_map'],
     'data': [
         'data/gmap_libraries.xml',
-        'security/ir.model.access.csv',
-        'wizard/geojson_upload_wizard_views.xml',
     ],
     'assets': {
         'web.assets_backend': [

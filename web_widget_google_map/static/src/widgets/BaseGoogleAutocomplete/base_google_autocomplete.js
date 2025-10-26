@@ -76,7 +76,7 @@ export class BaseGoogleAutocomplete extends Component {
     }
 
     getGoogleFieldsRestriction() {
-        return ['addressComponents', 'displayName', 'location', 'formattedAddress'];
+        return ['address_components', 'name', 'geometry', 'formatted_address'];
     }
 
     async initGplacesAutocomplete() {
@@ -213,7 +213,17 @@ export class BaseGoogleAutocomplete extends Component {
     }
 
     _update(values) {
-        this.props.record.update(values);
+        if (!values || Object.keys(values).length === 0) return;
+
+        const changes = {};
+        for (const key in values) {
+            if (Object.prototype.hasOwnProperty.call(this.props.record.fields, key)) {
+                changes[key] = this.parse(values[key]);
+            }
+        }
+        if (Object.keys(changes).length > 0) {
+            this.props.record.update(changes);
+        }
     }
 
     get shouldTrim() {

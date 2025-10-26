@@ -13,7 +13,7 @@
     'support': 'yopiangi@gmail.com',
     'category': 'Extra Tools',
     'version': '1.0.0',
-    'depends': ['partner_autocomplete', 'web_widget_google_map'],
+    'depends': ['partner_autocomplete', 'contacts_google_autocomplete'],
     'assets': {
         'web.assets_backend': [
             'partner_autocomplete_with_google_autocomplete/static/src/js/*',

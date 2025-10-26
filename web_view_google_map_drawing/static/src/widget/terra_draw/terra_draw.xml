@@ -6,29 +6,37 @@
             <div class="o_google_map_view" id="o_google_map_view" t-ref="map"></div>
             <Geolocate googleMap="googleMap" t-if="state.isMapReady"/>
             
-            <!-- Complexity Analysis Banner -->
-            <div class="o_complexity_banner" t-if="state.isMapReady and state.complexityAnalysis">
-                <div class="alert alert-warning" t-if="state.renderingMode === 'deckgl'">
-                    <strong>Readonly Mode:</strong> 
-                    Complex features detected (<t t-esc="state.complexityAnalysis.totalFeatures"/> features, max <t t-esc="state.complexityAnalysis.maxVertices"/> vertices).
+            <!-- Readonly Mode Banner for features with holes -->
+            <div class="o_complexity_banner" t-if="state.isMapReady and state.renderingMode === 'deckgl'">
+                <div class="alert alert-warning">
+                    <strong>Readonly Mode:</strong> Features contain polygons with holes (interior rings) which are not supported for editing.
                 </div>
             </div>
-            
-            <!-- Conditional Rendering: Terra Draw for simple features -->
-            <TerraDrawToolsUI 
-                dataGeoJson="geoJson" 
-                googleMap="googleMap" 
-                saveFeatures.bind="handleSave" 
-                record="props.record" 
-                t-if="state.isMapReady and state.renderingMode === 'terra-draw'"/>
-            
-            <!-- Conditional Rendering: DeckGL for complex features -->
-            <DeckGlEditor 
-                dataGeoJson="geoJson" 
-                googleMap="googleMap" 
-                saveFeatures.bind="handleSave" 
-                record="props.record" 
-                t-if="state.isMapReady and state.renderingMode === 'deckgl'"/>
+
+            <t t-if="props.readonly">
+                <!-- Conditional Rendering: DeckGL for complex features -->
+                <DeckGlEditor 
+                    dataGeoJson="geoJson" 
+                    googleMap="googleMap" 
+                    record="props.record" 
+                    t-if="state.isMapReady"/>
+            </t>
+            <t t-else="">
+                <!-- Conditional Rendering: Terra Draw for simple features -->
+                <TerraDrawToolsUI 
+                    dataGeoJson="geoJson" 
+                    googleMap="googleMap" 
+                    saveFeatures.bind="handleSave" 
+                    record="props.record" 
+                    t-if="state.isMapReady and state.renderingMode === 'terra-draw'"/>
+                
+                <!-- Conditional Rendering: DeckGL for complex features -->
+                <DeckGlEditor 
+                    dataGeoJson="geoJson" 
+                    googleMap="googleMap" 
+                    record="props.record" 
+                    t-if="state.isMapReady and state.renderingMode === 'deckgl'"/>
+            </t>
         </div>
     </div>
 </templates>

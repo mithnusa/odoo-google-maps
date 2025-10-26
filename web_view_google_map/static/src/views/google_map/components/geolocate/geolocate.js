@@ -1,5 +1,5 @@
 import { _t } from '@web/core/l10n/translation';
-import { Component, onRendered, onWillDestroy } from '@odoo/owl';
+import { Component, onRendered, onWillUnmount } from '@odoo/owl';
 import { useService } from '@web/core/utils/hooks';
 import { renderToString } from '@web/core/utils/render';
 
@@ -9,8 +9,10 @@ export class GoogleMapGeolocate extends Component {
 
     setup() {
         this.notificationService = useService('notification');
+        // Store bound reference for proper cleanup
+        this._boundGeolocation = this.geolocation.bind(this);
         onRendered(this._onRendered);
-        onWillDestroy(this._cleanup);
+        onWillUnmount(this._cleanup);
     }
 
     /**
@@ -30,7 +32,7 @@ export class GoogleMapGeolocate extends Component {
                 this.geolocateBtn
             );
 
-            this.geolocateBtn.addEventListener('click', this.geolocation.bind(this));
+            this.geolocateBtn.addEventListener('click', this._boundGeolocation);
         }
     }
 
@@ -41,7 +43,8 @@ export class GoogleMapGeolocate extends Component {
     async geolocation() {
         try {
             if (!navigator.geolocation) {
-                throw new Error('Geolocation not supported');
+                this.notificationService.add(_t('Geolocation is not supported by your browser.'), { type: 'warning' });
+                return;
             }
 
             const position = await new Promise((resolve, reject) => {
@@ -52,6 +55,7 @@ export class GoogleMapGeolocate extends Component {
 
             this._geolocationSuccess(position);
         } catch (error) {
+            console.warn('Geolocation error:', error);
             this._geolocationFailed(error);
         }
     }
@@ -68,8 +72,10 @@ export class GoogleMapGeolocate extends Component {
         if (!this.marker) {
             const { AdvancedMarkerElement } = await this.env.apiLoader.importLibrary('marker');
 
-            const mapPinElement = document.createElement('div');
-            mapPinElement.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="red" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-map-pin"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>`;
+            const markerContent = renderToString('web_view_google_map.GeolocateMarker', {});
+            const mapPinElement = new DOMParser()
+                .parseFromString(markerContent, 'text/html')
+                .querySelector('svg');
 
             this.marker = new AdvancedMarkerElement({
                 map: this.props.googleMap,
@@ -88,6 +94,8 @@ export class GoogleMapGeolocate extends Component {
                 this.infoWindow.setOptions({ content });
                 this.infoWindow.open(this.props.googleMap, this.marker);
             });
+
+            // Hide marker when info window is closed
             this.infoWindow.addListener('closeclick', () => {
                 this.marker.map = null;
             });
@@ -100,7 +108,6 @@ export class GoogleMapGeolocate extends Component {
         this.props.googleMap.panTo(this.marker.position);
 
         google.maps.event.addListenerOnce(this.props.googleMap, 'idle', () => {
-            google.maps.event.trigger(this.props.googleMap, 'resize');
             if (this.props.googleMap.getZoom() < 16) this.props.googleMap.setZoom(16);
             google.maps.event.trigger(this.marker, 'gmp-click');
         });
@@ -108,27 +115,33 @@ export class GoogleMapGeolocate extends Component {
 
     /**
      * Handle geolocation errors and display appropriate notifications
-     * @param {GeolocationPositionError} error - The error object from geolocation API
+     * @param {GeolocationPositionError|Error} error - The error object from geolocation API
      * @returns {void}
      * @private
      */
     _geolocationFailed(error) {
-        let message = '';
-        switch (error.code) {
-            case error.PERMISSION_DENIED:
-                message = _t('User denied the request for Geolocation.');
-                break;
-            case error.POSITION_UNAVAILABLE:
-                message = _t('Location information is unavailable.');
-                break;
-            case error.TIMEOUT:
-                message = _t('The request to get user location timed out.');
-                break;
-            case error.UNKNOWN_ERROR:
-                message = _t('An unknown error occurred.');
-                break;
+        let message = _t('An unknown error occurred.');
+
+        if (error.code !== undefined) {
+            switch (error.code) {
+                case error.PERMISSION_DENIED:
+                    message = _t('Geolocation is disabled. Please enable it in your browser settings if you want browser to detect your location.');
+                    break;
+                case error.POSITION_UNAVAILABLE:
+                    message = _t('Location information is unavailable.');
+                    break;
+                case error.TIMEOUT:
+                    message = _t('The request to get user location timed out.');
+                    break;
+                case error.UNKNOWN_ERROR:
+                    message = _t('An unknown error occurred.');
+                    break;
+            }
+        } else if (error.message) {
+            message = error.message;
         }
-        this.notificationService.add(message, { type: 'error' });
+
+        this.notificationService.add(message, { type: 'danger' });
     }
 
     /**
@@ -143,9 +156,18 @@ export class GoogleMapGeolocate extends Component {
         }
         if (this.infoWindow) {
             this.infoWindow.close();
+            google.maps.event.clearListeners(this.infoWindow, 'closeclick');
         }
-        if (this.geolocateBtn) {
-            this.geolocateBtn.removeEventListener('click', this.geolocation);
+        if (this.geolocateBtn && this._boundGeolocation) {
+            this.geolocateBtn.removeEventListener('click', this._boundGeolocation);
+            // Remove button from map controls
+            if (this.props.googleMap) {
+                const controls = this.props.googleMap.controls[google.maps.ControlPosition.RIGHT_BOTTOM];
+                const index = controls ? (controls.getArray() || []).indexOf(this.geolocateBtn) : -1;
+                if (index > -1) {
+                    controls.removeAt(index);
+                }
+            }
         }
     }
 }
