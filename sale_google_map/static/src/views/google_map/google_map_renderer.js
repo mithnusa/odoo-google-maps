@@ -1,5 +1,5 @@
 import { _t } from '@web/core/l10n/translation';
-import { user } from "@web/core/user";
+import { user } from '@web/core/user';
 import { GoogleMapRenderer } from '@web_view_google_map/views/google_map/google_map_renderer';
 import { formatNumber } from '@web_view_google_map/views/google_map/utils';
 import { GoogleMapSidebarSaleOrder } from './google_map_sidebar';
@@ -12,12 +12,13 @@ export class GoogleMapRendererSaleOrder extends GoogleMapRenderer {
 
     /**
      * @override
+     * Disable marker selector
      */
     initMapboxSelector() {}
 
     /**
      * @override
-     * @param {*} datas 
+     * @param {*} datas
      */
     async _renderGroupedMarkers(datas) {
         const groupPromises = datas.map(async ({ group }) => {
@@ -34,10 +35,10 @@ export class GoogleMapRendererSaleOrder extends GoogleMapRenderer {
 
     /**
      * @override
-     * @param {*} group 
-     * @param {*} record 
-     * @param {*} skipFitBounds 
-     * @returns 
+     * @param {*} group
+     * @param {*} record
+     * @param {*} skipFitBounds
+     * @returns
      */
     async createMarker(group, record, skipFitBounds = false) {
         const { aggregates } = group;
@@ -59,13 +60,18 @@ export class GoogleMapRendererSaleOrder extends GoogleMapRenderer {
     _createMarkerElement(displayName, amountTotal) {
         const content = document.createElement('div');
         const formattedAmount = formatNumber(amountTotal, 2, user.context.lang);
-
         content.className = 'sale_order marker-drop-animation';
-        // content.style.backgroundColor = '#fafafa';
-        content.innerHTML = `
-            <p class="mb-0 fs-6">${displayName}</p>
-            <small class="font-monospace">$${formattedAmount}</small>
-        `;
+
+        const pEl = document.createElement('p');
+        pEl.className = 'mb-0 fs-6';
+        pEl.textContent = displayName;
+
+        const smallEl = document.createElement('small');
+        smallEl.className = 'font-monospace';
+        smallEl.textContent = '$ ' + formattedAmount;
+
+        content.appendChild(pEl);
+        content.appendChild(smallEl);
 
         return content;
     }
@@ -115,12 +121,16 @@ export class GoogleMapRendererSaleOrder extends GoogleMapRenderer {
 
         content.addEventListener('mouseenter', handleMouseEnter);
         content.addEventListener('mouseleave', handleMouseLeave);
+        content.addEventListener('touchstart', handleMouseEnter);
+        content.addEventListener('touchend', handleMouseLeave);
 
         // Store event listener references for cleanup
         marker._customContentEvListeners = {
             content,
             mouseenter: handleMouseEnter,
             mouseleave: handleMouseLeave,
+            touchstart: handleMouseEnter,
+            touchend: handleMouseLeave,
         };
 
         // Store marker in cache
@@ -128,6 +138,20 @@ export class GoogleMapRendererSaleOrder extends GoogleMapRenderer {
 
         // Handle overlapping markers
         this._handleMarkersOverlapAt(marker);
+
+        if (marker._isShifted) {
+            const iconI = document.createElement('i');
+            iconI.className = 'fa fa-info-circle ms-1 text-info float-end';
+            iconI.style.cursor = 'help';
+            iconI.dataset.tooltip = _t("This marker has been adjusted slightly so it doesn't overlap with others. The line points to its original location.");
+            iconI.onclick = () => {
+                if (this.googleMap) {
+                    this.googleMap.panTo(marker._originalPosition);
+                    this.googleMap.setZoom(22);
+                }
+            };
+            content.prepend(iconI);
+        }
 
         // Update map bounds
         this._updateMapBounds(marker, skipFitBounds);
@@ -137,8 +161,8 @@ export class GoogleMapRendererSaleOrder extends GoogleMapRenderer {
 
     /**
      * @override
-     * @param {*} groupId 
-     * @returns 
+     * @param {*} groupId
+     * @returns
      */
     pointInMap(groupId) {
         const marker = this.cache.get(groupId);
@@ -147,21 +171,17 @@ export class GoogleMapRendererSaleOrder extends GoogleMapRenderer {
         const position = marker.position;
         this.googleMap.panTo(position);
 
-        if (marker._isShifted) {
-            this.notificationService.add(
-                _t(
-                    "This marker's location has been slightly shifted to prevent overlap with other markers." +
-                        '\nCheck the other end of the line connected to this marker for its original location.'
-                ),
-                { type: 'info' }
-            );
-        }
-
         google.maps.event.addListenerOnce(this.googleMap, 'idle', () => {
             const currentZoom = this.googleMap.getZoom();
+            const mouseEnterEvent = new MouseEvent('mouseenter', {
+                view: window, // The window in which the event occurred
+                bubbles: true, // Whether the event bubbles up through the DOM tree
+                cancelable: true, // Whether the event can be cancelled
+            });
+            marker._customContentEvListeners?.content.dispatchEvent(mouseEnterEvent);
             if (marker._isShifted && currentZoom < 22) {
                 this.googleMap.setZoom(22);
-            } else if ((currentZoom < 14 || currentZoom >= 21) && !marker._isShifted) {
+            } else if (currentZoom < 14 && !marker._isShifted) {
                 this.googleMap.setZoom(14);
             }
         });
@@ -172,10 +192,12 @@ export class GoogleMapRendererSaleOrder extends GoogleMapRenderer {
         if (this.cache) {
             for (const [, marker] of this.cache) {
                 if (marker._customContentEvListeners) {
-                    const { content, mouseenter, mouseleave } = marker._customContentEvListeners;
+                    const { content, mouseenter, mouseleave, touchstart, touchend } = marker._customContentEvListeners;
                     if (content) {
                         content.removeEventListener('mouseenter', mouseenter);
                         content.removeEventListener('mouseleave', mouseleave);
+                        content.removeEventListener('touchstart', touchstart);
+                        content.removeEventListener('touchend', touchend);
                     }
                     delete marker._customContentEvListeners;
                 }

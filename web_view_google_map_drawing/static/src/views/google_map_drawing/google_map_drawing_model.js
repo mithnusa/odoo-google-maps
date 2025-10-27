@@ -1,5 +1,4 @@
 import { Domain } from '@web/core/domain';
-import { patch } from '@web/core/utils/patch';
 import { GoogleMapModel } from '@web_view_google_map/views/google_map/google_map_model';
 
 export class GoogleMapDrawingModel extends GoogleMapModel {

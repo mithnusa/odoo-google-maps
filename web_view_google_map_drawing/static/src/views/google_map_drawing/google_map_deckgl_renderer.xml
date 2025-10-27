@@ -10,6 +10,22 @@
             <attribute name="class" add="disabled" separator=" "/>
         </xpath>
     </t>
+    <t t-name="web_view_google_map_drawing.ShapeInfoWindow">
+        <div class="infoWindow">
+            <article role="link" class="o_kanban_record d-flex flex-grow-1 flex-md-shrink-1 flex-shrink-0 flex-row border-0">
+                <main class="ps-2">
+                    <div class="mb-1">
+                        <a href="#" role="button" class="text-decoration-none" id="btn-open_form">
+                            <h4 t-esc="title"/>
+                        </a>
+                    </div>
+                    <div t-if="subTitle">
+                        <t t-esc="subTitle"/>
+                    </div>
+                </main>
+            </article>
+        </div>
+    </t>
     <t t-name="web_view_google_map_drawing.FeatureProperties">
         <div>
             <p class="mb-0 pb-0 fs-4" t-out="title"/>

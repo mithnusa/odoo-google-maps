@@ -1,7 +1,8 @@
 .o_google_map_renderer, .o_dialog {
     .o_google_map_view {
         .sale_order {
-            width: 180px;
+            min-width: 180px;
+            max-width: 250px;
             border-radius: 8px;
             font-size: 14px;
             text-align: center;
@@ -9,9 +10,8 @@
             position: relative;
             transform: translateY(-8px);
             box-shadow: 10px 8px 5px rgba(0, 0, 0, 0.2);
-            color: light-dark(black, white);
-            // background-color: #fafafa;
-            background-color: light-dark(white, black);
+            color: light-dark(black, #fafafa);
+            background-color: light-dark(#fafafa, black);
             transition: transform 0.3s ease, font-size 0.3s ease;
             border: 1px solid light-dark(rgba(0, 0, 0, 0.2), rgba(94, 94, 94, 0.2));
 
@@ -25,7 +25,7 @@
                 height: 0;
                 border-left: 12px solid transparent;
                 border-right: 12px solid transparent;
-                border-top: 12px solid light-dark(white, black);
+                border-top: 12px solid light-dark(#fafafa, black);
             }
         }
         @keyframes markerDrop {
@@ -45,7 +45,7 @@
         }
 
         .marker-hover-animation {
-            box-shadow: 0 0 14px 10px light-dark(rgba(0, 0, 0, 0.3), rgba(37, 37, 37, 0.5)) ;
+            box-shadow: 0 0 14px 10px light-dark(rgba(0, 0, 0, 0.3), rgba(47, 47, 47, 0.5));
             border: 1px solid light-dark(rgba(0, 0, 0, 0.2), rgba(69, 68, 68, 0.2));
             font-size: large;
         }

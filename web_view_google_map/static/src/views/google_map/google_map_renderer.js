@@ -45,6 +45,7 @@ export const SHIFT_KEY_CODE = 16;
 
 export class GoogleMapRenderer extends BaseGoogleMapComponent {
     static template = 'web_view_google_map.GoogleMapRenderer';
+    static templateInfoWindow = 'web_view_google_map.MarkerInfoWindow';
     static components = {
         KanbanRecord,
         Geolocate: GoogleMapGeolocate,
@@ -435,22 +436,12 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
         this.markerInfoWindow?.close();
         this.googleMap.panTo(position);
 
-        if (marker._isShifted) {
-            this.notificationService.add(
-                _t(
-                    "This marker's location has been slightly shifted to prevent overlap with other markers." +
-                        '\nCheck the other end of the line connected to this marker for its original location.'
-                ),
-                { type: 'info' }
-            );
-        }
-
         google.maps.event.addListenerOnce(this.googleMap, 'idle', () => {
             const currentZoom = this.googleMap.getZoom();
             google.maps.event.trigger(marker, 'click');
             if (marker._isShifted && currentZoom < 21) {
                 this.googleMap.setZoom(21);
-            } else if ((currentZoom < 14 || currentZoom >= 21) && !marker._isShifted) {
+            } else if (currentZoom < 14) {
                 this.googleMap.setZoom(14);
             }
             this.markerInfoWindow.setPosition(position);
@@ -526,13 +517,6 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
             allowSelectors: this.props.allowSelectors,
             isGrouped: !!this.props.list.isGrouped,
         };
-    }
-
-    /**
-     * Get info window template name
-     */
-    get infoWindowTemplate() {
-        return 'web_view_google_map.MarkerInfoWindow';
     }
 
     /**
@@ -1160,7 +1144,7 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
 
         try {
             // Add main marker info
-            const markerContent = this._createInfoWindowContent(marker._odooRecord);
+            const markerContent = this._createInfoWindowContent(marker._odooRecord, marker._isShifted);
             if (markerContent) {
                 bodyContent.appendChild(markerContent);
             }
@@ -1179,11 +1163,11 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
      * @param {Object} record Record to show in info window
      * @returns {HTMLElement} Info window content
      */
-    _createInfoWindowContent(record) {
+    _createInfoWindowContent(record, isShifted = false) {
         const dataView = this.getRecordDataView(record);
         if (!dataView) return null;
 
-        const content = this._generateInfoWindowHtml(record);
+        const content = this._generateInfoWindowHtml(record, isShifted);
 
         try {
             const divContent = new DOMParser()
@@ -1210,74 +1194,9 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
      * @param {Object} record Record data
      * @returns {string} HTML content
      */
-    _generateInfoWindowHtml(record) {
+    _generateInfoWindowHtml(record, isShifted = false) {
         const values = this.prepareInfoWindowValues(record);
-        return renderToString(this.infoWindowTemplate, values);
-    }
-
-    /**
-     * Handle "Show more" button click
-     * @private
-     * @param {Object} marker Marker object
-     */
-    async _handleShowMoreClick(marker) {
-        try {
-            const { lat, lng } = marker.position;
-            const domain = await this._generatePositionDomain(lat, lng);
-            const title = _t(`At same location (lat: ${lat.toFixed(6)}, lng: ${lng.toFixed(6)})`);
-
-            if (!domain.length) {
-                this.notificationService.add(
-                    _t('Failed to construct domain. Please contact your administrator'),
-                    { type: 'danger' }
-                );
-                return;
-            }
-
-            this.props.showRecordsByDomain(title, domain);
-        } catch (error) {
-            console.error("Error handling 'show more' action:", error);
-            this.notificationService.add(
-                _t('An error occurred while fetching additional records'),
-                {
-                    type: 'danger',
-                }
-            );
-        }
-    }
-
-    /**
-     * Generate domain to find records at specific coordinates
-     * @private
-     * @param {number} lat Latitude
-     * @param {number} lng Longitude
-     * @returns {Promise<Array>} Domain array
-     */
-    async _generatePositionDomain(lat, lng) {
-        const { latitudeField, longitudeField } = this.props.archInfo;
-
-        try {
-            const data = await this.props.list.model.orm.call(
-                'google.map.view.mixins',
-                'handle_get_geolocation_fields',
-                [this.props.list.resModel, latitudeField, longitudeField]
-            );
-
-            if (!data) return [];
-
-            const domain = [];
-            Object.keys(data).forEach((key) => {
-                if (key === latitudeField) {
-                    domain.push([data[key], '=', lat]);
-                } else if (key === longitudeField) {
-                    domain.push([data[key], '=', lng]);
-                }
-            });
-            return Promise.resolve(domain);
-        } catch (error) {
-            console.error('Error generating position domain:', error);
-            return Promise.resolve([]);
-        }
+        return renderToString(this.constructor.templateInfoWindow, { ...values, isShifted });
     }
 
     /**

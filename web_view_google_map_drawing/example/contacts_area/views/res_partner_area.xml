@@ -31,7 +31,7 @@
         <field name="name">view.res.partner.area.tree</field>
         <field name="model">res.partner.area</field>
         <field name="arch" type="xml">
-            <list string="Lands">
+            <list string="Land">
                 <field name="partner_id"/>
                 <field name="gshape_color" widget="color_picker" string=""/>
                 <field name="gshape_name"/>
@@ -44,7 +44,7 @@
         <field name="name">view.res.partner.area.map</field>
         <field name="model">res.partner.area</field>
         <field name="arch" type="xml">
-            <google_map js_class="google_map_drawing" geojson="gshape_geojson" string="Lands" color="gshape_color" sidebar_title="gshape_name" sidebar_subtitle="partner_id">
+            <google_map js_class="google_map_drawing" geojson="gshape_geojson" string="Land" color="gshape_color" sidebar_title="gshape_name" sidebar_subtitle="partner_id">
                 <field name="partner_id"/>
                 <field name="gshape_name"/>
                 <field name="gshape_area"/>
@@ -55,7 +55,7 @@
         </field>
     </record>
     <record id="action_res_partner_area" model="ir.actions.act_window">
-        <field name="name">Lands</field>
+        <field name="name">Land</field>
         <field name="type">ir.actions.act_window</field>
         <field name="res_model">res.partner.area</field>
         <field name="view_mode">google_map,list,form</field>
@@ -65,6 +65,6 @@
         <field name="sequence">10</field>
     </record>
 
-    <menuitem id="menu_partner_area" name="Lands" sequence="2" action="action_res_partner_area" parent="contacts.menu_contacts"/>
+    <menuitem id="menu_partner_area" name="Land" sequence="2" action="action_res_partner_area" parent="contacts.menu_contacts"/>
 
 </odoo>

@@ -50,6 +50,8 @@ export class GoogleMapGeolocate extends Component {
             const position = await new Promise((resolve, reject) => {
                 navigator.geolocation.getCurrentPosition(resolve, reject, {
                     enableHighAccuracy: true,
+                    timeout: 10000, // 10 seconds
+                    maximumAge: 0,
                 });
             });
 
@@ -73,27 +75,17 @@ export class GoogleMapGeolocate extends Component {
             const { AdvancedMarkerElement } = await this.env.apiLoader.importLibrary('marker');
 
             const markerContent = renderToString('web_view_google_map.GeolocateMarker', {});
-            const mapPinElement = new DOMParser()
+            const content = new DOMParser()
                 .parseFromString(markerContent, 'text/html')
                 .querySelector('svg');
 
             this.marker = new AdvancedMarkerElement({
                 map: this.props.googleMap,
                 position: latLng,
-                content: mapPinElement,
+                content,
             });
 
-            const content = new DOMParser()
-                .parseFromString(
-                    '<div class="infoWindow p-3 mt-3">' + _t('Your location') + '</div>',
-                    'text/html'
-                )
-                .querySelector('div');
-
-            this.marker.addListener('gmp-click', () => {
-                this.infoWindow.setOptions({ content });
-                this.infoWindow.open(this.props.googleMap, this.marker);
-            });
+            this.marker.addListener('click', this._onMarkerClick.bind(this));
 
             // Hide marker when info window is closed
             this.infoWindow.addListener('closeclick', () => {
@@ -113,6 +105,15 @@ export class GoogleMapGeolocate extends Component {
         });
     }
 
+    _onMarkerClick() {
+        const content = document.createElement('div');
+        content.classList.add('infoWindow', 'p-3', 'mt-3');
+        content.innerText = _t('Your location');
+        
+        this.infoWindow.setOptions({ content });
+        this.infoWindow.open(this.props.googleMap, this.marker);
+    }
+
     /**
      * Handle geolocation errors and display appropriate notifications
      * @param {GeolocationPositionError|Error} error - The error object from geolocation API
@@ -120,22 +121,21 @@ export class GoogleMapGeolocate extends Component {
      * @private
      */
     _geolocationFailed(error) {
-        let message = _t('An unknown error occurred.');
+        let message = _t('An unknown error occurred. Please check Javascript console for details.');
 
-        if (error.code !== undefined) {
+        if (typeof error.code === 'number') {
             switch (error.code) {
-                case error.PERMISSION_DENIED:
+                case 1: // PERMISSION_DENIED
                     message = _t('Geolocation is disabled. Please enable it in your browser settings if you want browser to detect your location.');
                     break;
-                case error.POSITION_UNAVAILABLE:
+                case 2: // POSITION_UNAVAILABLE
                     message = _t('Location information is unavailable.');
                     break;
-                case error.TIMEOUT:
+                case 3: // TIMEOUT
                     message = _t('The request to get user location timed out.');
                     break;
-                case error.UNKNOWN_ERROR:
-                    message = _t('An unknown error occurred.');
-                    break;
+                default:
+                    message = _t('An unknown error occurred. Please check Javascript console for details.');
             }
         } else if (error.message) {
             message = error.message;
@@ -152,7 +152,7 @@ export class GoogleMapGeolocate extends Component {
     _cleanup() {
         if (this.marker) {
             this.marker.map = null;
-            google.maps.event.clearListeners(this.marker, 'gmp-click');
+            google.maps.event.clearListeners(this.marker, 'click');
         }
         if (this.infoWindow) {
             this.infoWindow.close();

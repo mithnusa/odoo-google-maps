@@ -1,12 +1,13 @@
 import { registry } from '@web/core/registry';
 import { _t } from '@web/core/l10n/translation';
+import { sprintf } from '@web/core/utils/strings';
+import { standardFieldProps } from '@web/views/fields/standard_field_props';
 import {
     useRef,
     useSubEnv,
     useState,
     onWillUpdateProps,
 } from '@odoo/owl';
-import { standardFieldProps } from '@web/views/fields/standard_field_props';
 
 import { BaseGoogleMapComponent } from '@base_google_map/utils/base_google_map';
 import { GoogleMapGeolocate } from '@web_view_google_map/views/google_map/components/geolocate/geolocate';
@@ -14,7 +15,6 @@ import { GoogleMapSearchPlaces } from '@web_view_google_map/views/google_map/com
 
 import { TerraDrawToolsUI } from '../../views/components/terra-tools-ui/terra-tools-ui';
 import { DeckGlEditor } from '../../views/components/deck-gl-editor/deck-gl-editor';
-
 import { MapConfig } from '../../utils/map_config';
 
 
@@ -132,14 +132,15 @@ export class GoogleMapTerraDrawField extends BaseGoogleMapComponent {
                 await this.props.record.update(values);
             } catch (error) {
                 console.error('Failed to save shape changes:', error);
-                this.notificationService.add(_t('Failed to save shape changes'), {
-                    type: 'danger',
-                    title: _t('Error'),
-                });
+                this.notificationService.add(_t('Failed to save shape changes'), { type: 'danger' });
             }
         }
     }
 
+    /**
+     * @override
+     * @returns {google.maps.MapOptions} Map options for Google Maps instance
+     */
     getMapOptions() {
         return MapConfig.MAP_OPTIONS;
     }
@@ -172,9 +173,7 @@ export class GoogleMapTerraDrawField extends BaseGoogleMapComponent {
     validateProps() {
         if (this.props.fieldsArea && this.props.record.fields[this.props.fieldsArea] === undefined) {
             this.notificationService.add(
-                _t(
-                    `The field area '${this.props.fieldsArea}' does not exist on the model '${this.props.record.model}'. Please check the field configuration.`
-                ),
+                sprintf(_t('The field area "%s" does not exist on the model "%s". Please check the field configuration.'), this.props.fieldsArea, this.props.record.model),
                 { type: 'warning'}
             );
         }

@@ -1,6 +1,6 @@
 # Change Log
 
-## 19.0.2.0.0 - Terra Draw Integration with Advanced Measurements
+## 19.0.1.0.0 - Terra Draw & Deck.Gl Integration with Advanced Measurements
 ### Added
 - **Comprehensive Measurement System**: Added real-time measurement calculations for all geometry types
   - Point coordinates with directional indicators (N/S, E/W)
@@ -36,6 +36,3 @@
 - Documented all measurement calculation methods
 - Added inline comments explaining the drawing mode bug fix
 - Updated configuration constants with detailed explanations
-
-## 18.0.1.0.0
-Migration to version 18.0

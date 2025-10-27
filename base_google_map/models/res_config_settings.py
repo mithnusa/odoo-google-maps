@@ -176,7 +176,7 @@ class ResConfigSettings(models.TransientModel):
         selection=[
             ('light', 'Light'),
             ('dark', 'Dark'),
-            ('system', 'Auto'),
+            ('system', 'System'),
         ],
         string='Color Scheme',
         config_parameter='base_google_map.color_scheme',

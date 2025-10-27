@@ -11,6 +11,7 @@ import {
     onWillDestroy,
     onWillUpdateProps,
 } from '@odoo/owl';
+import { hexToRgba, generateColor } from '@web_view_google_map/views/google_map/utils';
 
 
 /**
@@ -39,19 +40,6 @@ const DECKGL_CONFIG = {
     SELECT_RADIUS: 15, // Pixels for selection detection
     ANIMATION_DURATION: 300, // Milliseconds for smooth transitions
 };
-
-/**
- * Flag icon SVG for point markers
- */
-const FLAG_ICON_SVG = `
-<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <!-- Flag pole -->
-  <line x1="6" y1="4" x2="6" y2="28" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-  <!-- Flag -->
-  <path d="M6 4 L24 8 L20 14 L24 20 L6 16 Z" fill="currentColor" stroke="currentColor" stroke-width="1"/>
-  <!-- Pole base -->
-  <circle cx="6" cy="28" r="2" fill="currentColor"/>
-</svg>`;
 
 /**
  * Enable debug mode to see the flag canvas
@@ -190,7 +178,6 @@ export class DeckGlEditor extends Component {
 
         try {
             // Load Deck.gl core and Google Maps integration
-            // await loadJS('/web_view_google_map_drawing/static/src/libs/deck-gl/9.1.14/dist.min.js');
             await loadJS('https://unpkg.com/deck.gl@9.2.2/dist.min.js');
 
             if (!window.deck) {
@@ -379,9 +366,9 @@ export class DeckGlEditor extends Component {
         const points = this.props.dataGeoJson.features.filter(f => ['Point', 'MultiPoint'].includes(f.geometry.type));
         const lines = this.props.dataGeoJson.features.filter(f => ['LineString', 'MultiLineString'].includes(f.geometry.type));
 
-        const color = this._generateFeatureColor();
-        const normalFillColor = this._hexToRgba(color, 0.4);
-        const normalStrokeColor = this._hexToRgba(color, 1.0);
+        const color = generateColor();
+        const normalFillColor = hexToRgba(color, 0.4, DECKGL_CONFIG.DEFAULT_COLORS.FILL);
+        const normalStrokeColor = hexToRgba(color, 1.0, DECKGL_CONFIG.DEFAULT_COLORS.FILL);
 
         const layers = [
             // Polygon layer for filled shapes
@@ -690,30 +677,4 @@ export class DeckGlEditor extends Component {
         }
     }
 
-    /**
-     * Generate random color for features
-     * @private
-     */
-    _generateFeatureColor() {
-        const colors = [
-            '#E74C3C', '#F39C12', '#FF0066', '#9B59B6', '#673AB7',
-            '#3F51B5', '#3498DB', '#03A9F4', '#00BCD4', '#009688',
-            '#27AE60', '#8BC34A', '#CDDC39', '#F1C40F', '#FFC107'
-        ];
-        return colors[Math.floor(Math.random() * colors.length)];
-    }
-
-    /**
-     * Convert hex color to RGBA array
-     * @private
-     */
-    _hexToRgba(hex, alpha = 1.0) {
-        const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-        return result ? [
-            parseInt(result[1], 16),
-            parseInt(result[2], 16),
-            parseInt(result[3], 16),
-            Math.round(alpha * 255)
-        ] : DECKGL_CONFIG.DEFAULT_COLORS.FILL;
-    }
 }

@@ -1,16 +1,10 @@
 # Web View Google Maps Drawing
 
-This module allows you to manage GeoJSON data using Google Maps integrated with Terra Draw library, Deck.gl, and Turf.js.
-As Google Maps Drawing has been deprecated, and as an alternative (suggested by Google) this module uses Terra Draw to provide drawing capabilities on Google Maps.
+This module allows you to manage GeoJSON data using Google Maps integrated with [Terra Draw library](https://terradraw.io/), [Deck.gl](https://deck.gl/), and [Turf.js](https://turfjs.org/).
+The Google Maps Drawing has been deprecated ([source](https://developers.google.com/maps/deprecations#drawing_library_deprecated_as_of_aug_8_2025)). As an alternative (suggested by Google) this module uses Terra Draw to provide drawing capabilities on Google Maps.
 
-During the development, I discovered a limitation with Terra Draw:
-- It doesn't support GeoJSON that has hole or inner shape (e.g., Polygon or Multipolygon with hole). At this time, this type of GeoJSON will be rendered using deck.gl in read-only.
-- Editing very large GeoJSON data may cause performance issues.
-
-### 1. Sub-view of `google_map` view
+### 1. `google_map_drawing` a sub-view of `google_map` view
 A new view to display geolocation data using Google Maps Drawing
-
-In order to use this view, the model needs to inherit from an `AbstractModel` model `google.drawing.shape`
 
 How to create the view?
 
@@ -47,10 +41,10 @@ Mandatory attributes:
 
 Optional attributes:
 - `sidebar_subtitle`: attribute to be used on a sidebar of map, to display secondary info that you would like to display (only support field `Char` and field `Many2one`)
-- `color`: attribute to be used to set color of shape, can use hex color (e.g., #FF0000), CSS color name (e.g., red), or field name (Integer) paired with widget="color_picker" in a form view.
+- `color`: attribute to be used to set color of shape, can use hex color (e.g., #FF0000), CSS color name (e.g., red), or field name (Integer) paired with widget="color_picker" in form view.
 - `map_type`: roadmap | satellite | hybrid | terrain (default: roadmap)
 - `gesture_handling`: auto | cooperative | greedy | none (default: auto)
-- `map_id`: to set specific Map ID configured in Google Cloud Console
+- `map_id`: to set specific Map ID configured in Google Cloud Console, configured this attribute overrides the Map ID configured in Settings > General Settings > Google Maps
 
 
 ### Use `google_map` view inside `form` view
@@ -73,7 +67,7 @@ Example:
 ```
 
 ### 2. New widget `google_map_terra_draw`
-In order to activate the drawing mode, it's a must to apply widget `google_map_terra_draw` to field `gshape_geojson` in view `form`
+In order to activate the drawing mode, it's a must to apply widget `google_map_terra_draw` to field `gshape_geojson` (or any fields on your own) in view `form`
 
 Example:
 ```xml
@@ -97,5 +91,16 @@ Widget options:
 - `default_center`: default center of the map when loading, format: [lat, lng] (default: [0, 0])
 - `field_area`: field name to store area value (in square meters) calculated from the drawn shape. This field should be of type Float.
 
+This module contains a demo module `contacts_area` that you can find in folder example, a module to demonstrate how to use the view and the widget.
+
 
 If you have difficulties implement or use the view and the widget on your custom module, please do not hesitate to open an issue.
+
+
+### Known issues and limitations:
+- Terra Draw doesn't support GeoJSON with holes or interior rings. Such GeoJSON will be rendered in read-only mode using deck.gl.
+- Editing very large GeoJSON data may lead to performance issues. Use the "Simplify Selected Feature" button in the drawing toolbar to reduce complexity, but be aware that this may result in a loss of detail.
+- Resize the browser window may cause the map to not render properly. To fix this issue, you can refresh the browser page.
+
+## Authors
+- [Yopi Angi](https://www.github.com/gityopie)
