@@ -6,13 +6,13 @@ This widget give you full control over how Google Places data is mapped to your 
 
 
 <div style="display: flex; gap: 4px; justify-content: center; margin-bottom: 50px;">
-  <img src="static/img/google_fields_mapping.png" alt="Google Fields Mapping" style="width: 50%; max-width: 300px; height: auto;">
-  <img src="static/img/mapping_test.png" alt="Google Places Autocomplete Mapping test" style="width: 50%; max-width: 300px; height: auto;">
+  <img src="static/img/google_fields_mapping.png" alt="Google Fields Mapping" style="width: 40%; max-width: 300px; height: auto;">
+  <img src="static/img/mapping_test.png" alt="Google Places Autocomplete Mapping test" style="width: 40%; max-width: 300px; height: auto;">
 </div>
 
 You can also access the mapping configuration quickly via the shortcut button next to the autocomplete input field in the form view.
 <div style="display: flex; gap: 4px; justify-content: center;">
-  <img src="static/img/shortcut_to_access_the_mapping.png" alt="Quick access to mapping configurationn" style="width: 50%; max-width: 300px; height: auto;">
+  <img src="static/img/shortcut_to_access_the_mapping.png" alt="Quick access to mapping configurationn" style="width: 40%; max-width: 300px; height: auto;">
 </div>
 
 ### Installation & Configuration

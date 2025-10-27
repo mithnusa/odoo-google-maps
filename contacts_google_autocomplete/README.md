@@ -8,8 +8,8 @@ The `contacts_google_autocomplete` module adds [Google Places Autocomplete Eleme
 - Configurable field mappings between Google Places data and Odoo Contact fields
 
 <div style="display: flex; gap: 4px; justify-content: center;">
-  <img src="static/img/contact_autocomplete.png" alt="Google Places Autocomplete in Contact Form" style="width: 50%; max-width: 300px; height: auto;">
-  <img src="static/img/google_fields_mapping.png" alt="Google Fields Mapping" style="width: 50%; max-width: 300px; height: auto;">
+  <img src="static/img/contact_autocomplete.png" alt="Google Places Autocomplete in Contact Form" style="width: 40%; max-width: 300px; height: auto;">
+  <img src="static/img/google_fields_mapping.png" alt="Google Fields Mapping" style="width: 40%; max-width: 300px; height: auto;">
 </div>
 
 
