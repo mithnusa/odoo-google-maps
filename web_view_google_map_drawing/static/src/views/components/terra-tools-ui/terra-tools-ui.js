@@ -104,7 +104,7 @@ export class TerraDrawToolsUI extends Component {
                 console.error('Failed to load Terra Draw assets:', error);
                 this.notificationService.add(
                     _t('Failed to load Terra Draw assets. Please check javascript console for more information'),
-                    { type: 'danger', title: _t('Error'), }
+                    { type: 'danger' }
                 );
             }
         });
@@ -287,12 +287,12 @@ export class TerraDrawToolsUI extends Component {
         // Show warning for very complex and extremely complex features
         if (analysis.complexity === 'very_complex' || analysis.complexity === 'extremely_complex') {
             this.notificationService.add(
-                _t('⚠️ Complex feature detected (%s vertices). Click the simplify button to improve editing performance.', analysis.vertexCount),
+                sprintf(_t('⚠️ Complex feature detected (%s vertices). Click the simplify button to improve editing performance.'), analysis.vertexCount),
                 { type: 'warning' }
             );
         } else if (analysis.complexity === 'complex') {
             this.notificationService.add(
-                _t('Complex feature (%s vertices). Use the simplify button if editing is slow.', analysis.vertexCount),
+                sprintf(_t('Complex feature (%s vertices). Use the simplify button if editing is slow.'), analysis.vertexCount),
                 { type: 'info' }
             );
         }
@@ -323,7 +323,7 @@ export class TerraDrawToolsUI extends Component {
                         parts: [],
                         totalParts: metadata.totalParts || 1,
                         originalType: metadata.originalType,
-                        state: metadata.state || metadata.name || 'Unknown Region'
+                        state: metadata.state || metadata.name || _t('Unknown Region'),
                     };
                 }
                 groups[originalId].parts.push(feature);
@@ -572,7 +572,7 @@ export class TerraDrawToolsUI extends Component {
             console.error('Manual save failed:', error);
             this.notificationService.add(
                 sprintf(_t('Failed to save changes: %s'), error.message),
-                { title: _t('Error'), type: 'danger' }
+                { type: 'danger' }
             );
         }
     }
@@ -673,7 +673,7 @@ export class TerraDrawToolsUI extends Component {
             this._restoreSnapshot(snapshotToRestore, 'Undo completed');
         } catch (error) {
             console.error('Error during undo:', error);
-            this.notificationService.add(_t('Undo failed'), { title: _t('Error'), type: 'danger' });
+            this.notificationService.add(_t('Undo failed'), { type: 'danger' });
         }
     }
 
@@ -718,7 +718,7 @@ export class TerraDrawToolsUI extends Component {
             }
             
             await new Promise(resolve => setTimeout(resolve, TERRA_DRAW_CONFIG.UNDO_RESTORE_DELAY));
-            this.notificationService.add(_t(successMessage), { title: _t('Restore'), type: 'success' });
+            this.notificationService.add(_t(successMessage), { type: 'success' });
         } finally {
             this.state.isRestoring = false;
         }
@@ -995,14 +995,14 @@ export class TerraDrawToolsUI extends Component {
 
             // Show different messages based on complexity level
             const complexityMessages = {
-                'complex': _t('Simplifying complex feature with %s vertices...', originalVertexCount),
-                'very_complex': _t('Simplifying very complex feature with %s vertices. This may take a moment...', originalVertexCount),
-                'extremely_complex': _t('Simplifying extremely complex feature with %s vertices. Please wait...', originalVertexCount)
+                'complex': sprintf(_t('Simplifying complex feature with %s vertices...'), originalVertexCount),
+                'very_complex': sprintf(_t('Simplifying very complex feature with %s vertices. This may take a moment...'), originalVertexCount),
+                'extremely_complex': sprintf(_t('Simplifying extremely complex feature with %s vertices. Please wait...'), originalVertexCount)
             };
 
             this.notificationService.add(
                 complexityMessages[complexity] || _t('Simplifying feature...'),
-                { title: 'Processing', type: 'info' }
+                { type: 'info' }
             );
 
             const editableResult = createEditableFeature(selectedFeature);
@@ -1043,7 +1043,7 @@ export class TerraDrawToolsUI extends Component {
             console.error('Error simplifying feature:', error);
             this.notificationService.add(
                 sprintf(_t('Failed to simplify feature: %s'), error.message),
-                { title: 'Error', type: 'danger' }
+                { type: 'danger' }
             );
         }
     }
@@ -1259,7 +1259,7 @@ export class TerraDrawToolsUI extends Component {
                 console.error(`Failed to create ${name} mode:`, error);
                 this.notificationService.add(
                     _t('Failed to initialize %s drawing mode', name),
-                    { title: _t('Error'), type: 'warning' }
+                    { type: 'warning' }
                 );
             }
         });
@@ -1416,8 +1416,6 @@ export class TerraDrawToolsUI extends Component {
         );
         return new window.terraDraw.TerraDrawFreehandMode(opt);
     }
-
-
     
     /**
      * Clean up all resources when the component is destroyed

@@ -124,7 +124,7 @@
                     </t>
                     <h3 t-if="props.header" t-esc="props.header" />
                     <small class="ms-2 text-muted">
-                        <span data-tooltip="Only records with geolocation data set are displayed">
+                        <span data-tooltip="Only records with geolocation data set are displayed" style="cursor: help;">
                             <i class="fa fa-info" />
                         </span>
                     </small>

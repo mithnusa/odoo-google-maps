@@ -5,32 +5,22 @@ In this version I tried to use the latest version of Google Maps, so it's recomm
 Most of the implementation in this modules are inspired from the samples that you can find in the Google Maps Javascript Guide [https://developers.google.com/maps/documentation/javascript](https://developers.google.com/maps/documentation/javascript)
 
 
-
 ## Modules
 
 | Module | Version | Description |
 |--------|---------|-------------|
-| base_google_map | 18.0.1.0.0 | Base module of Google Maps contains settings to setup Google API Key |
-| base_google_places | 18.0.1.0.0 | Base module of Google places, inherit `"base_google_maps"`, contains abstract model to store Google Place data |
-| contacts_gautocomplete_address_form | 18.0.1.0.0 | Implementation of widget Google Address Form Autocomplete on Contacts |
-| contacts_gautocomplete_address_form_extended | 18.0.1.0.0 | Inherit `"contacts_gautocomplete_address_form"` and add more data to contact from Google Place such as Google Address, Place ID, Place URL, Opening Hours, Types, Global Code, Compound Code, Plus Code URL, and Vicinity |
-| contacts_gautocomplete_places | 18.0.1.0.0 | Implementation of widget Google Places Autocomplete on Contacts |
-| contacts_gautocomplete_places_extended | 18.0.1.0.0 | Inherit `"contacts_gautocomplete_places"` and add more data to a contact from Google Place such as Google Address, Place ID, Place URL, Opening Hours, Types, Global Code, Compound Code, Plus Code URL, and Vicinity |
-| contacts_google_map | 18.0.1.0.0 | Implementation of view "Google map" on Contacts |
-| contacts_google_places | 18.0.1.0.0 | Implementation of Google Places in the Google Maps view, allowing users to search for locations in a given area on maps and save them to Contacts. |
-| crm_gautocomplete_address_form | 18.0.1.0.0 | Implementation of widget Google Address Form autocomplete on CRM |
-| crm_gautocomplete_address_form_extended | 18.0.1.0.0 | Inherit `"crm_gautocomplete_address_form"` and add more data to lead from Google Place such as Google Address, Place ID, Place URL, Opening Hours, Types, Global Code, Compound Code, Plus Code URL, and Vicinity |
-| crm_gautocomplete_places | 18.0.1.0.0 | Implementation of widget Google Places Autocomplete on CRM |
-| crm_gautocomplete_places_extended | 18.0.1.0.0 | Inherit `"crm_gautocomplete_places"` and add more data to lead from Google Place such as Google Address, Place ID, Place URL, Opening Hours, Types, Global Code, Compound Code, Plus Code URL, and Vicinity |
-| crm_google_map | 18.0.1.0.0 | Implementation of view "Google map" on CRM |
-| crm_google_places | 18.0.1.0.0 | Implementation of Google Places in the Google Maps view, allowing users to search for locations in a given area on maps and save them as your Lead |
-| web_view_google_map | 18.0.1.0.0 | Base module for a new view "google_map" |
-| web_view_google_map_drawing | 18.0.1.0.0 | Base module for sub view of "google_map" for drawing capability |
-| sale_google_map | 18.0.1.0.0 | Implementation of view "Google map" on Sale Order |
-| stock_google_map | 18.0.1.0.0 | Implementation of view "Google map" on Inventory |
-| web_view_google_map_selector_area | 18.0.1.0.0 | An extension feature added to the Google Map view. It allows users to select an area on the map and capture all markers within that area |
-| web_widget_google_map | 18.0.1.0.0 | Base module of widget Google Autocomplete |
-| web_widget_google_places | 18.0.1.0.0 | Inherit web_widget_google_map and add more data from Google Places fields |
+| [base_google_map](/base_google_map/README.md) | 19.0.1.0.0 | Base module of Google Maps contains settings to setup Google API Key |
+| [contacts_google_autocomplete](/contacts_google_autocomplete/README.md) | 19.0.1.0.0 | Implementation of Google Places Autocomplete on Contacts |
+| [contacts_google_map](/contacts_google_map/README.md) | 19.0.1.0.0 | Implementation of view "Google Maps" on Contacts |
+| [crm_google_autocomplete](/crm_google_autocomplete/README.md) | 19.0.1.0.0 | Implementation of Google Places Autocomplete on CRM Leads/Opportunities |
+| [crm_google_map](/crm_google_map/README.md) | 19.0.1.0.0 | Implementation of view "Google Maps" on CRM |
+| [partner_autocommplete_with_google_autocomplete](/partner_autocomplete_with_google_autocomplete/README.md) | 19.0.1.0.0 | Implementation of Google Places Autocomplete along with existing Odoo Partner Autocomplete on Contact form |
+| [web_view_google_map](/web_view_google_map/README.md) | 19.0.1.0.0 | Base module for a new view "google_map" |
+| [web_view_google_map_drawing](/web_view_google_map_drawing/README.md) | 19.0.1.0.0 | Base module for sub view of "google_map" for drawing capability |
+| [sale_google_map](/sale_google_map/README.md) | 19.0.1.0.0 | Implementation of view "Google Maps" on Sale Order |
+| [stock_google_map](/stock_google_map/README.md) | 19.0.1.0.0 | Implementation of view "Google Maps" on Inventory |
+| [web_widget_google_map](/web_widget_google_map/README.md) | 19.0.1.0.0 | Base module of widget Google Autocomplete |
+| [web_widget_google_place_autocomplete](/web_widget_google_place_autocomplete/README.md) | 19.0.1.0.0 | Implementation of Google Places Autocomplete widget |
 
 
 ## Usage
@@ -44,7 +34,6 @@ For more details please check this link [https://developers.google.com/maps/docu
 Please activate the following Services/API for your Google API Key:
 1. Geocoding API
 2. Maps JavaScript API
-3. Places API
 4. Places API (New)
 5. Maps Embed API
 

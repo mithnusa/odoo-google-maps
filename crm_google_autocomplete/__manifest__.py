@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 {
-    'name': 'CRM Google Autocomplete',
+    'name': 'CRM Google Places Autocomplete',
     'summary': '''
         Add Google Places Autocomplete to Company Name and Street in Lead form
     ''',

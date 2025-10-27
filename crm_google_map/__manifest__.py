@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 {
-    'name': 'CRM Google Map',
+    'name': 'CRM Google Maps',
     'summary': '''
-        Show leads or opportunities in Google maps view
+        Show leads or opportunities in Google Maps view
     ''',
     'description': '''
-        A new view 'Google maps' added on leads or opportunities, gives you
-        an ability to show the location in Google maps
+        A new view 'Google Maps' added on leads or opportunities, gives you
+        an ability to show the location in Google Maps
     ''',
     'license': 'AGPL-3',
     'author': 'Yopi Angi',

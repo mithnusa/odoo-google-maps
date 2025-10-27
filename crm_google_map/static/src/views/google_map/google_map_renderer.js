@@ -6,13 +6,7 @@ export class GoogleMapRendererCRM extends GoogleMapRenderer {
         ...GoogleMapRenderer.components,
         Sidebar: GoogleMapSidebarCRM,
     };
-
-    /**
-     * @overwrite
-     */
-    get infoWindowTemplate() {
-        return 'crm_google_map.MarkerInfoWindow';
-    }
+    static templateInfoWindow = 'crm_google_map.MarkerInfoWindow';
 
     /**
      * @override

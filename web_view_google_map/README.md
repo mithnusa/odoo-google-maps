@@ -44,19 +44,15 @@ Attributes reference
 - Visuals
     - `color`: marker color. Accepts a hex (e.g., #FF0000), a CSS color name (e.g., red), or a field name (Integer) paired with widget="color_picker" in a form view.
         Examples:
-        1) Fixed color
+        1) Fixed hex color or color name
         ```xml
         <google_map color="#FF0000">...</google_map>
         ```
         2) Color from a field
         ```xml
         <google_map color="marker_color">...</google_map>
-        <!-- In the form view -->
+        <!-- Make sure the field is paired with widget "color_picker" in form view -->
         <field name="marker_color" widget="color_picker"/>
-        ```
-        3) CSS color name
-        ```xml
-        <google_map color="red">...</google_map>
         ```
 - Map behavior
     - `map_type`: roadmap | satellite | hybrid | terrain (default: roadmap)
@@ -102,3 +98,6 @@ Setup and configuration
    - Maps JavaScript API
    - Geocoding API
    - Places API (NEW) -> optional but required for in-map place search and (later) if Google Places Autocomplete module is installed.
+
+## Authors
+- [Yopi Angi](https://www.github.com/gityopie)

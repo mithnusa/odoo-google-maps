@@ -12,7 +12,10 @@ The `sale_google_map` module adds Google Maps view to the Sales application. It 
 
 
 ## Installation & Configuration
-1. Install the module (depends on `sale_management` and `web_view_google_map`)
-2. Configure your Google Maps API key in `Settings > General Settings > Google Maps`
-3. Navigate to `Sales > Orders` and switch to the Google Map view
-4. View your sales orders plotted on the map based on customer addresses
+1. Configure your Google Maps API key in `Settings > General Settings > Google Maps`
+2. Navigate to `Sales > Orders` and switch to the Google Map view
+3. View your sales orders plotted on the map based on customer addresses
+4. Maps JavaScript API must be enabled in your Google Cloud Console.
+
+## Authors
+- [Yopi Angi](https://www.github.com/gityopie)

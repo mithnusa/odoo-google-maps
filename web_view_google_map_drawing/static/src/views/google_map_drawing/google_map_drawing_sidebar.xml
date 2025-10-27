@@ -2,12 +2,12 @@
 <templates xml:space="preserve">
     <t t-name="web_view_google_map_drawing.RecordItem" t-inherit="web_view_google_map.RecordItem" t-inherit-mode="primary">
         <xpath expr="//i[hasclass('fa fa-map-marker')]" position="attributes">
-            <attribute name="class" remove="fa-map-marker" add="fa-paint-brush" separator=" "/>
+            <attribute name="class" remove="fa-map-marker" add="fa-circle" separator=" "/>
         </xpath>
     </t>
     <t t-name="web_view_google_map_drawing.GroupItem" t-inherit="web_view_google_map.GroupItem" t-inherit-mode="primary">
         <xpath expr="//i[hasclass('fa fa-map-marker')]" position="attributes">
-            <attribute name="class" remove="fa-map-marker" add="fa-paint-brush" separator=" "/>
+            <attribute name="class" remove="fa-map-marker" add="fa-circle" separator=" "/>
         </xpath>
     </t>
 </templates>

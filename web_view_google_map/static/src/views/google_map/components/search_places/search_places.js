@@ -32,40 +32,6 @@ export class GoogleMapSearchPlaces extends Component {
     }
 
     /**
-     * Cleanup method to remove markers, info windows, and event listeners
-     * @returns {void}
-     * @private
-     */
-    _cleanup() {
-        if (this.markerPlacesSearch) {
-            this.markerPlacesSearch.map = null;
-            google.maps.event.clearInstanceListeners(this.markerPlacesSearch);
-        }
-        if (this.markerInfoWindow) {
-            this.markerInfoWindow.close();
-            google.maps.event.clearListeners(this.markerInfoWindow, 'closeclick');
-        }
-        if (this.placeAutocomplete) {
-            google.maps.event.clearListeners(this.placeAutocomplete, 'gmp-select');
-            // Remove from DOM
-            if (this.placeAutocomplete.parentNode) {
-                this.placeAutocomplete.remove();
-            }
-        }
-        // Remove search control from map
-        if (this.searchRef?.el && this.props.googleMap) {
-            const controls = this.props.googleMap.controls[google.maps.ControlPosition.TOP_RIGHT];
-            const index = controls ? (controls.getArray() || []).indexOf(this.searchRef.el) : -1;
-            if (index > -1) {
-                controls.removeAt(index);
-            }
-        }
-        if (this.boundsChangedListener) {
-            google.maps.event.removeListener(this.boundsChangedListener);
-        }
-    }
-
-    /**
      * Initialize the Places Autocomplete search box
      * @returns {Promise<void>}
      * @private
@@ -218,5 +184,39 @@ export class GoogleMapSearchPlaces extends Component {
 
         content.innerHTML = htmlString;
         return content;
+    }
+
+    /**
+     * Cleanup method to remove markers, info windows, and event listeners
+     * @returns {void}
+     * @private
+     */
+    _cleanup() {
+        if (this.markerPlacesSearch) {
+            this.markerPlacesSearch.map = null;
+            google.maps.event.clearInstanceListeners(this.markerPlacesSearch);
+        }
+        if (this.markerInfoWindow) {
+            this.markerInfoWindow.close();
+            google.maps.event.clearListeners(this.markerInfoWindow, 'closeclick');
+        }
+        if (this.placeAutocomplete) {
+            google.maps.event.clearListeners(this.placeAutocomplete, 'gmp-select');
+            // Remove from DOM
+            if (this.placeAutocomplete.parentNode) {
+                this.placeAutocomplete.remove();
+            }
+        }
+        // Remove search control from map
+        if (this.searchRef?.el && this.props.googleMap) {
+            const controls = this.props.googleMap.controls[google.maps.ControlPosition.TOP_RIGHT];
+            const index = controls ? (controls.getArray() || []).indexOf(this.searchRef.el) : -1;
+            if (index > -1) {
+                controls.removeAt(index);
+            }
+        }
+        if (this.boundsChangedListener) {
+            google.maps.event.removeListener(this.boundsChangedListener);
+        }
     }
 }

@@ -177,6 +177,7 @@ const ICON_MAPPING = {
  */
 export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
     static template = 'web_view_google_map_drawing.GoogleMapDeckGlRenderer';
+    static templateInfoWindow = 'web_view_google_map_drawing.ShapeInfoWindow';
 
     static components = {
         Geolocate: GoogleMapGeolocate,
@@ -1234,7 +1235,7 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
      */
     _generateInfoWindowHtml(record) {
         const values = this._prepareInfoWindowValues(record);
-        return renderToString(this.infoWindowTemplate, values);
+        return renderToString(this.constructor.templateInfoWindow, values);
     }
 
     /**
@@ -1261,13 +1262,6 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
             values.subTitle = '';
         }
         return values;
-    }
-
-    /**
-     * Get info window template name
-     */
-    get infoWindowTemplate() {
-        return 'web_view_google_map_drawing.ShapeInfoWindow';
     }
 
     /**

@@ -6,22 +6,15 @@ export class GoogleMapRendererContactAvatar extends GoogleMapRenderer {
         ...GoogleMapRenderer.components,
         Sidebar: GoogleMapSidebarContactAvatar,
     };
+    static templateInfoWindow = 'contacts_google_map.MarkerInfoWindow';
 
     /**
      * @override
      */
     prepareInfoWindowValues(record) {
         let values = super.prepareInfoWindowValues(record);
-        console.log('record in renderer avatar', record);
         values.avatarUrl = `/web/image/${record.resModel}/${record.resId}/${this.props.archInfo.sidebarAvatarField}`;
         return values;
-    }
-
-    /**
-     * @override
-     */
-    get infoWindowTemplate() {
-        return 'contacts_google_map.MarkerInfoWindow';
     }
 
     /**

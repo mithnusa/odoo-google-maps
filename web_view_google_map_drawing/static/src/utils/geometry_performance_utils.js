@@ -8,6 +8,8 @@
  * @author Yopi Angi - https://github.com/gityopie
  * @version 1.0.0
  */
+import { _t } from '@web/core/l10n/translation';
+import { sprintf } from '@web/core/utils/strings';
 
 /**
  * Performance configuration constants
@@ -317,7 +319,7 @@ export function createUltraSimplifiedFeature(feature) {
                 ...feature.properties,
                 _complexFeature: true,
                 _originalVertexCount: analysis.vertexCount,
-                _warningMessage: `Complex feature with ${analysis.vertexCount} vertices - editing may be slow`
+                _warningMessage: sprintf(_t('Complex feature with %s vertices - editing may be slow'), analysis.vertexCount),
             }
         };
     }
@@ -692,19 +694,19 @@ export function getPerformanceWarning(analysis) {
         simple: null,
         moderate: null,
         complex: {
-            title: 'Complex Feature Detected',
-            message: `This feature has ${analysis.vertexCount.toLocaleString()} vertices. Editing may be slow.`,
-            suggestion: 'Consider simplifying the feature for better performance.'
+            title: _t('Complex Feature Detected'),
+            message: sprintf(_t('This feature has %s vertices. Editing may be slow.'), analysis.vertexCount),
+            suggestion: _t('Consider simplifying the feature for better performance.'),
         },
         very_complex: {
-            title: 'Very Complex Feature',
-            message: `This feature has ${analysis.vertexCount.toLocaleString()} vertices. Terra Draw may freeze during editing.`,
-            suggestion: 'Strongly recommend simplifying or using the high-performance Deck.gl renderer for editing.'
+            title: _t('Very Complex Feature'),
+            message: sprintf(_t('This feature has %s vertices. Terra Draw may freeze during editing.'), analysis.vertexCount),
+            suggestion: _t('Strongly recommend simplifying or using the high-performance Deck.gl renderer for editing.'),
         },
         extremely_complex: {
-            title: 'Extremely Complex Feature',
-            message: `This feature has ${analysis.vertexCount.toLocaleString()} vertices. It will be automatically simplified to preserve shape while maintaining Terra Draw performance.`,
-            suggestion: 'The feature will be simplified while preserving its essential shape. Use Deck.gl renderer for full detail visualization.'
+            title: _t('Extremely Complex Feature'),
+            message: sprintf(_t('This feature has %s vertices. It will be automatically simplified to preserve shape while maintaining Terra Draw performance.'), analysis.vertexCount),
+            suggestion: _t('The feature will be simplified while preserving its essential shape. Use Deck.gl renderer for full detail visualization.'),
         }
     };
     

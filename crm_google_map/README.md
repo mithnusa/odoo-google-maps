@@ -1,6 +1,4 @@
-# CRM Google Map
-
-## Overview
+# CRM Google Maps
 
 The `crm_google_map` module adds Google Maps view to the CRM application for leads and opportunities. It allows you to visualize your leads and opportunities on an interactive Google Map, helping sales teams identify geographical clusters and plan territory coverage.
 
@@ -12,7 +10,10 @@ The `crm_google_map` module adds Google Maps view to the CRM application for lea
 
 ## Installation & Configuration
 
-1. Install the module (depends on `crm` and `web_view_google_map`)
-2. Configure your Google Maps API key in `Settings > General Settings > Google Maps`
-3. Navigate to `CRM > Leads` or `CRM > Opportunities` and switch to the Google Map view
-4. View your leads/opportunities plotted on the map based on their addresses
+1. Configure your Google Maps API key in `Settings > General Settings > Google Maps`
+2. Navigate to `CRM > Leads` or `CRM > Opportunities` and switch to the Google Map view
+3. View your leads/opportunities plotted on the map based on their addresses
+4. Maps JavaScript API must be enabled in your Google Cloud Console.
+
+## Authors
+- [Yopi Angi](https://www.github.com/gityopie)

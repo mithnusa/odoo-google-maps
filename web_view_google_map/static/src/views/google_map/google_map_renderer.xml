@@ -26,6 +26,7 @@
                     </div>
                     <div>
                         <t t-esc="subTitle"/>
+                        <i t-if="isShifted" class="fa fa-info-circle ps-1 text-info" style="cursor: help;" data-tooltip="This marker has been adjusted slightly so it doesn't overlap with others. The line points to its original location."></i>
                     </div>
                     <div class="pt-3 d-flex text-nowrap justify-content-between gap-1">
                         <a t-attf-href="https://www.google.com/maps/dir/?api=1&amp;destination={{ destination }}" target="_blank" tabindex="-1" class="btn btn-sm btn-secondary" id="btn-navigate_to" data-toggle="tooltip" title="Navigate to this location">
