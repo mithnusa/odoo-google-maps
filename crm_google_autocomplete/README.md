@@ -10,7 +10,7 @@ The `crm_google_autocomplete` module adds [Google Places Autocomplete Element](h
 - Configurable field mappings between Google Places data and Odoo Lead/Opportunity fields
 
 
-<div style="display: flex; gap: 10px; justify-content: center;">
+<div style="display: flex; gap: 4px; justify-content: center;">
   <img src="static/img/lead_autocomplete.png" alt="Google Places Autocomplete in Contact Form" style="width: 50%; max-width: 300px; height: auto;">
 </div>
 

@@ -1,0 +1,55 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* partner_autocomplete_with_google_autocomplete
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 19.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-10-27 10:48+0000\n"
+"PO-Revision-Date: 2025-10-27 10:48+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: partner_autocomplete_with_google_autocomplete
+#: model:ir.model,name:partner_autocomplete_with_google_autocomplete.model_res_partner
+msgid "Contact"
+msgstr ""
+
+#. module: partner_autocomplete_with_google_autocomplete
+#: model:ir.model.fields,field_description:partner_autocomplete_with_google_autocomplete.field_res_partner__display_name
+msgid "Display Name"
+msgstr ""
+
+#. module: partner_autocomplete_with_google_autocomplete
+#. odoo-javascript
+#: code:addons/partner_autocomplete_with_google_autocomplete/static/src/js/partner_autocomplete_with_google_place.js:0
+msgid "Failed to populate values from Google Place. Please try again."
+msgstr ""
+
+#. module: partner_autocomplete_with_google_autocomplete
+#. odoo-javascript
+#: code:addons/partner_autocomplete_with_google_autocomplete/static/src/js/partner_autocomplete_with_google_place.xml:0
+msgid "Google Autocomplete"
+msgstr ""
+
+#. module: partner_autocomplete_with_google_autocomplete
+#: model:ir.model.fields,field_description:partner_autocomplete_with_google_autocomplete.field_res_partner__id
+msgid "ID"
+msgstr ""
+
+#. module: partner_autocomplete_with_google_autocomplete
+#. odoo-javascript
+#: code:addons/partner_autocomplete_with_google_autocomplete/static/src/js/partner_autocomplete_with_google_place.xml:0
+msgid "Loading..."
+msgstr ""
+
+#. module: partner_autocomplete_with_google_autocomplete
+#. odoo-javascript
+#: code:addons/partner_autocomplete_with_google_autocomplete/static/src/js/partner_autocomplete_with_google_place.js:0
+msgid "Partner Autocomplete with Google Place"
+msgstr ""

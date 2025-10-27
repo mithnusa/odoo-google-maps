@@ -1,0 +1,768 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* web_widget_google_place_autocomplete
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 19.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-10-27 10:50+0000\n"
+"PO-Revision-Date: 2025-10-27 10:50+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: web_widget_google_place_autocomplete
+#. odoo-python
+#: code:addons/web_widget_google_place_autocomplete/models/google_places_mapping_other_line.py:0
+msgid "%s cannot be empty."
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#. odoo-python
+#: code:addons/web_widget_google_place_autocomplete/models/google_places_mapping.py:0
+#: code:addons/web_widget_google_place_autocomplete/models/google_places_mapping_address_line.py:0
+msgid "%s cannot contain empty strings."
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#. odoo-python
+#: code:addons/web_widget_google_place_autocomplete/models/google_places_mapping_address_line.py:0
+msgid ""
+"%s handling mode requires at least two components. Please adjust the Google "
+"Address Component for field '%s'."
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#. odoo-python
+#: code:addons/web_widget_google_place_autocomplete/models/google_places_mapping.py:0
+#: code:addons/web_widget_google_place_autocomplete/models/google_places_mapping_address_line.py:0
+msgid "%s list cannot be empty."
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#. odoo-python
+#: code:addons/web_widget_google_place_autocomplete/models/google_places_mapping.py:0
+msgid "%s must be a %s."
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#. odoo-python
+#: code:addons/web_widget_google_place_autocomplete/models/google_places_mapping.py:0
+msgid "%s must be a list of strings."
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#. odoo-python
+#: code:addons/web_widget_google_place_autocomplete/models/google_places_mapping.py:0
+msgid ""
+"%s must be a valid JSON string.\n"
+"%s"
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#. odoo-python
+#: code:addons/web_widget_google_place_autocomplete/models/google_places_mapping_address_line.py:0
+msgid "%s must contain only strings."
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#: model_terms:ir.ui.view,arch_db:web_widget_google_place_autocomplete.view_google_places_mapping_form
+msgid "<i class=\"fa fa-question-circle-o\" title=\"Documentation\"/>"
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#: model_terms:ir.ui.view,arch_db:web_widget_google_place_autocomplete.view_google_places_mapping_form
+msgid ""
+"<small>Please make sure to test before using the mapping</small>\n"
+"                            <br/>\n"
+"                            <small>When testing the mapping, please reload the page whenever a value is changed.</small>"
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#: model_terms:ir.ui.view,arch_db:web_widget_google_place_autocomplete.view_google_places_mapping_form
+msgid "<span class=\"fs-4 fw-bold\">Address Mapping</span>"
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#: model_terms:ir.ui.view,arch_db:web_widget_google_place_autocomplete.view_google_places_mapping_form
+msgid "<span class=\"fs-4 fw-bold\">Other</span>"
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#: model_terms:ir.ui.view,arch_db:web_widget_google_place_autocomplete.view_google_places_mapping_form
+msgid ""
+"<span>\"addressComponents\" is not configured in \"Google Places Fetch "
+"Fields\". This value is required for address mapping</span>"
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#: model_terms:ir.ui.view,arch_db:web_widget_google_place_autocomplete.view_google_places_mapping_form
+msgid ""
+"<span>\"location\" is not configured in \"Google Places Property Fields\". "
+"This value is required for latitude and longitude mapping</span>"
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#: model_terms:ir.ui.view,arch_db:web_widget_google_place_autocomplete.view_google_places_mapping_form
+msgid ""
+"<span>Before configure the value please check this document first </span>"
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#: model:ir.model.fields,field_description:web_widget_google_place_autocomplete.field_google_places_mapping__active
+msgid "Active"
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#. odoo-javascript
+#: code:addons/web_widget_google_place_autocomplete/static/src/component/google_place_autocomplete.xml:0
+#: code:addons/web_widget_google_place_autocomplete/static/src/widgets/GooglePlaceMappingTest/google_place_mapping_test.xml:0
+#: model:ir.model.fields.selection,name:web_widget_google_place_autocomplete.selection__google_places_mapping__mode__address
+#: model_terms:ir.ui.view,arch_db:web_widget_google_place_autocomplete.view_google_places_mapping_search
+msgid "Address"
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#: model:ir.model.fields,field_description:web_widget_google_place_autocomplete.field_google_places_mapping__mapping_address_ids
+msgid "Address Field Mappings"
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#: model_terms:ir.ui.view,arch_db:web_widget_google_place_autocomplete.view_google_places_mapping_form
+msgid "Address types and address component types"
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#: model_terms:ir.ui.view,arch_db:web_widget_google_place_autocomplete.view_google_places_mapping_form
+#: model_terms:ir.ui.view,arch_db:web_widget_google_place_autocomplete.view_google_places_mapping_search
+msgid "Archived"
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#: model:ir.model.fields.selection,name:web_widget_google_place_autocomplete.selection__google_places_mapping_address_line__separator__back_slash
+msgid "Back Slash"
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#. odoo-python
+#: code:addons/web_widget_google_place_autocomplete/models/google_places_mapping.py:0
+msgid ""
+"Cannot delete mapping \"%s\" as it is currently in use by the following views:\n"
+" - %s"
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#: model:ir.model.fields,help:web_widget_google_place_autocomplete.field_google_places_mapping_address_line__text_option
+msgid ""
+"Choose whether to use the short or long text from the Google Places API for "
+"this component."
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#. odoo-javascript
+#: code:addons/web_widget_google_place_autocomplete/static/src/widgets/GooglePlaceMappingTest/google_place_mapping_test.js:0
+msgid "Close"
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#: model:ir.model.fields,field_description:web_widget_google_place_autocomplete.field_google_places_mapping__code
+msgid "Code"
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#: model:ir.model.constraint,message:web_widget_google_place_autocomplete.constraint_google_places_mapping_code_unique
+msgid "Code must be unique!"
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#: model:ir.model.fields.selection,name:web_widget_google_place_autocomplete.selection__google_places_mapping_address_line__separator__comma
+msgid "Comma"
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#: model:ir.model.fields.selection,name:web_widget_google_place_autocomplete.selection__google_places_mapping_address_line__handling_mode__concat
+msgid "Concatenate"
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#: model:ir.model,name:web_widget_google_place_autocomplete.model_res_country
+#: model_terms:ir.ui.view,arch_db:web_widget_google_place_autocomplete.view_google_places_mapping_form
+msgid "Country"
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#: model:ir.model.fields,field_description:web_widget_google_place_autocomplete.field_google_places_mapping__create_uid
+#: model:ir.model.fields,field_description:web_widget_google_place_autocomplete.field_google_places_mapping_address_line__create_uid
+#: model:ir.model.fields,field_description:web_widget_google_place_autocomplete.field_google_places_mapping_other_line__create_uid
+msgid "Created by"
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#: model:ir.model.fields,field_description:web_widget_google_place_autocomplete.field_google_places_mapping__create_date
+#: model:ir.model.fields,field_description:web_widget_google_place_autocomplete.field_google_places_mapping_address_line__create_date
+#: model:ir.model.fields,field_description:web_widget_google_place_autocomplete.field_google_places_mapping_other_line__create_date
+msgid "Created on"
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#: model_terms:ir.actions.act_window,help:web_widget_google_place_autocomplete.action_google_places_mapping
+msgid "Define Google Places Mappings here."
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#: model:ir.model.fields,help:web_widget_google_place_autocomplete.field_res_country__google_street_format
+msgid ""
+"Define the format of the street address.\n"
+"For example, \"123 Main St\" can be formatted as \"Main St 123\" or \"123 Main St\"."
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#: model:ir.model.fields,field_description:web_widget_google_place_autocomplete.field_google_places_mapping__description
+msgid "Description"
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#: model:ir.model.fields.selection,name:web_widget_google_place_autocomplete.selection__google_places_mapping_address_line__handling_mode__direct
+msgid "Direct"
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#. odoo-python
+#: code:addons/web_widget_google_place_autocomplete/models/google_places_mapping_address_line.py:0
+msgid ""
+"Direct handling mode can only be used with a single component. Please adjust"
+" the Google Address Component for field '%s'."
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#: model:ir.model.fields,field_description:web_widget_google_place_autocomplete.field_google_places_mapping__display_name
+#: model:ir.model.fields,field_description:web_widget_google_place_autocomplete.field_google_places_mapping_address_line__display_name
+#: model:ir.model.fields,field_description:web_widget_google_place_autocomplete.field_google_places_mapping_other_line__display_name
+#: model:ir.model.fields,field_description:web_widget_google_place_autocomplete.field_res_country__display_name
+msgid "Display Name"
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#. odoo-python
+#: code:addons/web_widget_google_place_autocomplete/models/google_places_mapping.py:0
+msgid ""
+"Duplicate field mapping found in Address and Other mappings. Please ensure "
+"each field is mapped only once."
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#. odoo-javascript
+#: code:addons/web_widget_google_place_autocomplete/static/src/widgets/GooglePlaceAutocompleteElement/google_place_autocomplete_element.js:0
+msgid ""
+"Error retrieving mapping configuration for Google Place Autocomplete. Please"
+" try again."
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#. odoo-javascript
+#: code:addons/web_widget_google_place_autocomplete/static/src/component/google_place_autocomplete.js:0
+msgid ""
+"Failed to load Google Maps API.\n"
+"%s"
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#. odoo-javascript
+#: code:addons/web_widget_google_place_autocomplete/static/src/component/google_place_autocomplete.js:0
+#: code:addons/web_widget_google_place_autocomplete/static/src/hooks/use_google_place_autocomplete_mapping.js:0
+msgid "Failed to parse place data. Please try again."
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#. odoo-javascript
+#: code:addons/web_widget_google_place_autocomplete/static/src/widgets/GooglePlaceMappingTest/google_place_mapping_test.js:0
+msgid "Failed to populate address fields from Google Place. Please try again."
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#. odoo-javascript
+#: code:addons/web_widget_google_place_autocomplete/static/src/widgets/GooglePlaceAutocompleteElement/google_place_autocomplete_element.js:0
+msgid "Failed to populate values from Google Place. Please try again."
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#. odoo-javascript
+#: code:addons/web_widget_google_place_autocomplete/static/src/hooks/use_google_place_autocomplete_mapping.js:0
+msgid "Failed to retrieve mapping configuration. Please try again."
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#: model:ir.model.fields.selection,name:web_widget_google_place_autocomplete.selection__google_places_mapping_address_line__handling_mode__fallback
+msgid "Fallback"
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#: model:ir.model.fields,field_description:web_widget_google_place_autocomplete.field_google_places_mapping__gplace_address_fetch_fields
+#: model:ir.model.fields,field_description:web_widget_google_place_autocomplete.field_google_places_mapping__gplace_place_fetch_fields
+msgid "Fetch Fields"
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#: model:ir.model.fields,field_description:web_widget_google_place_autocomplete.field_google_places_mapping_address_line__field_id
+#: model:ir.model.fields,field_description:web_widget_google_place_autocomplete.field_google_places_mapping_other_line__field_id
+msgid "Field"
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#: model:ir.model.constraint,message:web_widget_google_place_autocomplete.constraint_google_places_mapping_address_line_mapping_fields_unique
+#: model:ir.model.constraint,message:web_widget_google_place_autocomplete.constraint_google_places_mapping_other_line_mapping_fields_unique
+msgid "Field must be unique per mapping"
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#: model:ir.model.fields,help:web_widget_google_place_autocomplete.field_google_places_mapping__latitude
+msgid "Field to store latitude value"
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#: model:ir.model.fields,help:web_widget_google_place_autocomplete.field_google_places_mapping__longitude
+msgid "Field to store longitude value"
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#: model:ir.model.fields.selection,name:web_widget_google_place_autocomplete.selection__google_places_mapping_address_line__separator__forward_slash
+msgid "Forward Slash"
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#. odoo-javascript
+#: code:addons/web_widget_google_place_autocomplete/static/src/widgets/GooglePlaceMappingTest/google_place_mapping_test.xml:0
+#: model_terms:ir.ui.view,arch_db:web_widget_google_place_autocomplete.view_google_places_mapping_form
+msgid "Geolocation"
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#: model:ir.model.fields,field_description:web_widget_google_place_autocomplete.field_google_places_mapping_address_line__gplace_component
+msgid "Google Address Component"
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#: model_terms:ir.ui.view,arch_db:web_widget_google_place_autocomplete.view_res_country_form_inherit
+msgid "Google Address Street Format"
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#. odoo-javascript
+#: code:addons/web_widget_google_place_autocomplete/static/src/widgets/GooglePlaceAutocompleteElement/google_place_autocomplete_element.xml:0
+msgid "Google Autocomplete"
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#. odoo-javascript
+#: code:addons/web_widget_google_place_autocomplete/static/src/widgets/GooglePlaceAutocompleteElement/google_place_autocomplete_element.js:0
+msgid "Google Place Autocomplete Element"
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#: model:ir.model.fields,field_description:web_widget_google_place_autocomplete.field_google_places_mapping_other_line__gplace_component
+msgid "Google Place Component"
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#. odoo-javascript
+#: code:addons/web_widget_google_place_autocomplete/static/src/widgets/GooglePlaceMappingTest/google_place_mapping_test.xml:0
+msgid "Google Place JSON"
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#. odoo-javascript
+#: code:addons/web_widget_google_place_autocomplete/static/src/component/google_place_autocomplete.js:0
+msgid "Google Place Mapping Configuration"
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#: model:ir.model,name:web_widget_google_place_autocomplete.model_google_places_mapping
+#: model:ir.ui.menu,name:web_widget_google_place_autocomplete.menu_google_places_mapping
+#: model_terms:ir.ui.view,arch_db:web_widget_google_place_autocomplete.view_google_places_mapping_form
+msgid "Google Places Mapping"
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#: model:ir.model,name:web_widget_google_place_autocomplete.model_google_places_mapping_address_line
+msgid "Google Places Mapping to Odoo Address Fields"
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#: model:ir.model,name:web_widget_google_place_autocomplete.model_google_places_mapping_other_line
+msgid "Google Places Mapping to Odoo Other Fields"
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#: model:ir.actions.act_window,name:web_widget_google_place_autocomplete.action_google_places_mapping
+#: model_terms:ir.ui.view,arch_db:web_widget_google_place_autocomplete.view_google_places_mapping_search
+#: model_terms:ir.ui.view,arch_db:web_widget_google_place_autocomplete.view_google_places_mapping_tree
+msgid "Google Places Mappings"
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#: model_terms:ir.ui.view,arch_db:web_widget_google_place_autocomplete.view_google_places_mapping_form
+msgid "Google Places Options"
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#: model_terms:ir.ui.view,arch_db:web_widget_google_place_autocomplete.view_google_places_mapping_form
+msgid "Google Places Property Fields"
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#: model:ir.model.fields,field_description:web_widget_google_place_autocomplete.field_google_places_mapping_address_line__handling_mode
+msgid "Handling Mode"
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#: model:ir.model.fields,help:web_widget_google_place_autocomplete.field_google_places_mapping_address_line__handling_mode
+msgid ""
+"How to handle multiple components when mapping:\n"
+"• Direct: Use only the first component (requires exactly 1 component)\n"
+"• Fallback: Use first available component from the list (requires 2+ components)\n"
+"• Concatenate: Join all available components with separator (requires 2+ components)\n"
+"Examples:\n"
+"- Direct: ['locality'] → Use locality value\n"
+"- Fallback: ['locality', 'administrative_area_level_2'] → Use locality if available, otherwise use administrative_area_level_2\n"
+"- Concatenate: ['street_number', 'route'] → '123 Main St'"
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#: model:ir.model.fields.selection,name:web_widget_google_place_autocomplete.selection__google_places_mapping_address_line__separator__hyphen
+msgid "Hyphen"
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#: model:ir.model.fields,field_description:web_widget_google_place_autocomplete.field_google_places_mapping__id
+#: model:ir.model.fields,field_description:web_widget_google_place_autocomplete.field_google_places_mapping_address_line__id
+#: model:ir.model.fields,field_description:web_widget_google_place_autocomplete.field_google_places_mapping_other_line__id
+#: model:ir.model.fields,field_description:web_widget_google_place_autocomplete.field_res_country__id
+msgid "ID"
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#. odoo-javascript
+#: code:addons/web_widget_google_place_autocomplete/static/src/widgets/GooglePlaceAutocompleteElement/google_place_autocomplete_element.js:0
+msgid ""
+"Invalid mapping mode: \"${this.props.mappingMode}\" for Google Place "
+"Autocomplete widget"
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#. odoo-javascript
+#: code:addons/web_widget_google_place_autocomplete/static/src/component/google_place_autocomplete.js:0
+#: code:addons/web_widget_google_place_autocomplete/static/src/hooks/use_google_place_autocomplete_mapping.js:0
+msgid "Invalid place data provided."
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#: model:ir.model.fields,field_description:web_widget_google_place_autocomplete.field_google_places_mapping__is_address_component_missing
+msgid "Is Address Component Missing"
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#: model:ir.model.fields,field_description:web_widget_google_place_autocomplete.field_google_places_mapping__is_location_field_missing
+msgid "Is Location Field Missing"
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#: model:ir.model.fields,field_description:web_widget_google_place_autocomplete.field_google_places_mapping__write_uid
+#: model:ir.model.fields,field_description:web_widget_google_place_autocomplete.field_google_places_mapping_address_line__write_uid
+#: model:ir.model.fields,field_description:web_widget_google_place_autocomplete.field_google_places_mapping_other_line__write_uid
+msgid "Last Updated by"
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#: model:ir.model.fields,field_description:web_widget_google_place_autocomplete.field_google_places_mapping__write_date
+#: model:ir.model.fields,field_description:web_widget_google_place_autocomplete.field_google_places_mapping_address_line__write_date
+#: model:ir.model.fields,field_description:web_widget_google_place_autocomplete.field_google_places_mapping_other_line__write_date
+msgid "Last Updated on"
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#: model_terms:ir.ui.view,arch_db:web_widget_google_place_autocomplete.view_google_places_mapping_form
+msgid "Latitude"
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#: model:ir.model.fields,field_description:web_widget_google_place_autocomplete.field_google_places_mapping__latitude
+msgid "Latitude Field"
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#. odoo-javascript
+#: code:addons/web_widget_google_place_autocomplete/static/src/widgets/GooglePlaceAutocompleteElement/google_place_autocomplete_element.xml:0
+msgid "Loading..."
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#: model:ir.model.fields.selection,name:web_widget_google_place_autocomplete.selection__google_places_mapping_address_line__text_option__longtext
+msgid "Long Text"
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#: model_terms:ir.ui.view,arch_db:web_widget_google_place_autocomplete.view_google_places_mapping_form
+msgid "Longitude"
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#: model:ir.model.fields,field_description:web_widget_google_place_autocomplete.field_google_places_mapping__longitude
+msgid "Longitude Field"
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#: model:ir.model.fields,field_description:web_widget_google_place_autocomplete.field_google_places_mapping_address_line__mapping_id
+#: model:ir.model.fields,field_description:web_widget_google_place_autocomplete.field_google_places_mapping_other_line__mapping_id
+msgid "Mapping"
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#. odoo-javascript
+#: code:addons/web_widget_google_place_autocomplete/static/src/component/google_place_autocomplete.js:0
+#: code:addons/web_widget_google_place_autocomplete/static/src/hooks/use_google_place_autocomplete_mapping.js:0
+msgid "Mapping code is required to parse the place."
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#. odoo-javascript
+#: code:addons/web_widget_google_place_autocomplete/static/src/component/google_place_autocomplete.js:0
+msgid ""
+"Mapping configuration is not available. Please set up the mapping first."
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#: model_terms:ir.ui.view,arch_db:web_widget_google_place_autocomplete.view_google_places_mapping_form
+msgid "Mappings"
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#. odoo-javascript
+#: code:addons/web_widget_google_place_autocomplete/static/src/component/google_place_autocomplete.xml:0
+msgid "Missing mapping code or mapping mode"
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#: model:ir.model.fields,field_description:web_widget_google_place_autocomplete.field_google_places_mapping__mode
+msgid "Mode"
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#: model:ir.model.fields,field_description:web_widget_google_place_autocomplete.field_google_places_mapping__model_id
+#: model:ir.model.fields,field_description:web_widget_google_place_autocomplete.field_google_places_mapping_address_line__model_id
+#: model:ir.model.fields,field_description:web_widget_google_place_autocomplete.field_google_places_mapping_other_line__model_id
+msgid "Model"
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#: model:ir.model.fields.selection,name:web_widget_google_place_autocomplete.selection__google_places_mapping_address_line__separator__new_line
+msgid "New Line"
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#. odoo-javascript
+#: code:addons/web_widget_google_place_autocomplete/static/src/widgets/GooglePlaceAutocompleteElement/google_place_autocomplete_element.js:0
+msgid ""
+"No valid mapping configuration found for Google Place Autocomplete. Please "
+"check the settings."
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#. odoo-javascript
+#: code:addons/web_widget_google_place_autocomplete/static/src/widgets/GooglePlaceAutocompleteElement/google_place_autocomplete_element.xml:0
+msgid "No valid mapping configuration found."
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#. odoo-javascript
+#: code:addons/web_widget_google_place_autocomplete/static/src/component/google_place_autocomplete.xml:0
+msgid "Open Mapping Configuration"
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#. odoo-javascript
+#: code:addons/web_widget_google_place_autocomplete/static/src/widgets/GooglePlaceMappingTest/google_place_mapping_test.xml:0
+msgid "Other"
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#: model:ir.model.fields,field_description:web_widget_google_place_autocomplete.field_google_places_mapping__mapping_other_ids
+msgid "Other Field Mappings"
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#. odoo-javascript
+#: code:addons/web_widget_google_place_autocomplete/static/src/component/google_place_autocomplete.xml:0
+#: model:ir.model.fields.selection,name:web_widget_google_place_autocomplete.selection__google_places_mapping__mode__places
+msgid "Place"
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#: model:ir.model.fields,field_description:web_widget_google_place_autocomplete.field_google_places_mapping__gplace_options
+msgid "Place Autocomplete Element Options "
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#. odoo-python
+#: code:addons/web_widget_google_place_autocomplete/models/google_places_mapping.py:0
+msgid "Place Autocomplete Element Options keys and values cannot be empty"
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#. odoo-python
+#: code:addons/web_widget_google_place_autocomplete/models/google_places_mapping.py:0
+msgid "Place Autocomplete Element Options keys must be string"
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#: model_terms:ir.ui.view,arch_db:web_widget_google_place_autocomplete.view_google_places_mapping_form
+msgid "Place Class Data Fields"
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#: model:ir.model.fields,field_description:web_widget_google_place_autocomplete.field_google_places_mapping__place_id_test
+msgid "Place ID Test"
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#: model_terms:ir.ui.view,arch_db:web_widget_google_place_autocomplete.view_google_places_mapping_form
+msgid "Place Types"
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#: model:ir.model.fields,help:web_widget_google_place_autocomplete.field_google_places_mapping__gplace_options
+msgid "PlaceAutocompleteElement options"
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#: model:ir.model.fields,help:web_widget_google_place_autocomplete.field_google_places_mapping__gplace_address_fetch_fields
+#: model:ir.model.fields,help:web_widget_google_place_autocomplete.field_google_places_mapping__gplace_place_fetch_fields
+msgid "PlaceAutocompleteElement options \"fields\" parameter."
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#: model_terms:ir.ui.view,arch_db:web_widget_google_place_autocomplete.view_google_places_mapping_form
+msgid "PlaceAutocompleteElementOptions interface"
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#: model_terms:ir.ui.view,arch_db:web_widget_google_place_autocomplete.view_google_places_mapping_search
+msgid "Places"
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#: model_terms:ir.ui.view,arch_db:web_widget_google_place_autocomplete.view_google_places_mapping_form
+msgid "Places Autocomplete"
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#: model_terms:ir.ui.view,arch_db:web_widget_google_place_autocomplete.view_google_places_mapping_form
+msgid "References:"
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#. odoo-javascript
+#: code:addons/web_widget_google_place_autocomplete/static/src/widgets/GooglePlaceMappingTest/google_place_mapping_test.js:0
+msgid "Result"
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#: model:ir.model.fields.selection,name:web_widget_google_place_autocomplete.selection__res_country__google_street_format__route_street_number
+msgid "Route + Street Number"
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#. odoo-javascript
+#: code:addons/web_widget_google_place_autocomplete/static/src/component/google_place_autocomplete.xml:0
+msgid "Search Google"
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#: model:ir.model.fields,field_description:web_widget_google_place_autocomplete.field_google_places_mapping_address_line__separator
+msgid "Separator"
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#: model:ir.model.fields,help:web_widget_google_place_autocomplete.field_google_places_mapping_address_line__separator
+msgid ""
+"Separator to use when concatenating multiple components. Only used with "
+"Concatenate handling mode."
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#: model:ir.model.fields,field_description:web_widget_google_place_autocomplete.field_google_places_mapping__sequence
+msgid "Sequence"
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#: model:ir.model.fields.selection,name:web_widget_google_place_autocomplete.selection__google_places_mapping_address_line__text_option__shorttext
+msgid "Short Text"
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#. odoo-javascript
+#: code:addons/web_widget_google_place_autocomplete/static/src/component/google_place_autocomplete.js:0
+msgid ""
+"Something went wrong while initializing Google Autocomplete widget.\n"
+"%s"
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#. odoo-javascript
+#: code:addons/web_widget_google_place_autocomplete/static/src/component/google_place_autocomplete.js:0
+msgid "Something went wrong with the Google Autocomplete widget."
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#. odoo-javascript
+#: code:addons/web_widget_google_place_autocomplete/static/src/component/google_place_autocomplete.js:0
+msgid ""
+"Something went wrong with the Google Autocomplete widget.\n"
+"%s"
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#: model:ir.model.fields.selection,name:web_widget_google_place_autocomplete.selection__google_places_mapping_address_line__separator__space
+msgid "Space"
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#: model:ir.model.fields,field_description:web_widget_google_place_autocomplete.field_res_country__google_street_format
+msgid "Street Format"
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#: model:ir.model.fields.selection,name:web_widget_google_place_autocomplete.selection__res_country__google_street_format__street_number_route
+msgid "Street Number + Route"
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#. odoo-javascript
+#: code:addons/web_widget_google_place_autocomplete/static/src/widgets/GooglePlaceMappingTest/google_place_mapping_test.js:0
+msgid "Test Google Place Mapping"
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#: model:ir.model.fields,field_description:web_widget_google_place_autocomplete.field_google_places_mapping_address_line__text_option
+msgid "Text Option"
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#: model_terms:ir.ui.view,arch_db:web_widget_google_place_autocomplete.view_google_places_mapping_form
+msgid ""
+"The format of \"route\" and \"street_number\" will be configured dynamically"
+" based on the address's country. Check the"
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#: model:ir.model.fields.selection,name:web_widget_google_place_autocomplete.selection__google_places_mapping_address_line__separator__underscore
+msgid "Underscore"
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#: model_terms:ir.ui.view,arch_db:web_widget_google_place_autocomplete.view_google_places_mapping_form
+msgid "setting if you want to change the order."
+msgstr ""

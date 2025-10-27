@@ -4,16 +4,23 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo Server 18.0\n"
+"Project-Id-Version: Odoo Server 19.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-20 04:46+0000\n"
-"PO-Revision-Date: 2025-03-20 04:46+0000\n"
+"POT-Creation-Date: 2025-10-27 10:44+0000\n"
+"PO-Revision-Date: 2025-10-27 10:44+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: \n"
+
+#. module: base_google_map
+#: model_terms:ir.ui.view,arch_db:base_google_map.res_config_settings_view_form
+msgid ""
+"A Google Maps API key is a unique alphanumeric string that authenticates "
+"your application when accessing Google Maps Platform services"
+msgstr ""
 
 #. module: base_google_map
 #: model_terms:ir.ui.view,arch_db:base_google_map.res_config_settings_view_form
@@ -66,11 +73,6 @@ msgstr ""
 #. module: base_google_map
 #: model:ir.model.fields.selection,name:base_google_map.selection__res_config_settings__google_maps_theme__aubergine
 msgid "Aubergine"
-msgstr ""
-
-#. module: base_google_map
-#: model:ir.model.fields.selection,name:base_google_map.selection__res_config_settings__google_map_color_scheme__system
-msgid "Auto"
 msgstr ""
 
 #. module: base_google_map
@@ -159,6 +161,12 @@ msgid "Config Settings"
 msgstr ""
 
 #. module: base_google_map
+#. odoo-javascript
+#: code:addons/base_google_map/static/src/utils/components/warning_missing_view_dialog/warning_missing_view_dialog.js:0
+msgid "Configuration: Missing Required Google Map Form View"
+msgstr ""
+
+#. module: base_google_map
 #: model:ir.model.fields,field_description:base_google_map.field_res_config_settings__google_autocomplete_country_restriction
 msgid "Countries"
 msgstr ""
@@ -197,6 +205,17 @@ msgstr ""
 #. module: base_google_map
 #: model:ir.model.fields.selection,name:base_google_map.selection__res_config_settings__google_maps_theme__default
 msgid "Default"
+msgstr ""
+
+#. module: base_google_map
+#. odoo-javascript
+#: code:addons/base_google_map/static/src/utils/components/warning_missing_view_dialog/warning_missing_view_dialog.xml:0
+msgid "Dismiss"
+msgstr ""
+
+#. module: base_google_map
+#: model:ir.model.fields,field_description:base_google_map.field_res_config_settings__display_name
+msgid "Display Name"
 msgstr ""
 
 #. module: base_google_map
@@ -245,8 +264,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/base_google_map/static/src/utils/base_google_map.js:0
 msgid ""
-"Failed to load Google Maps. Please check your internet connection or API key"
-" configuration. You might check the Javascript console for more details."
+"Failed to load Google Maps. Please refresh the page or contact support."
 msgstr ""
 
 #. module: base_google_map
@@ -262,6 +280,12 @@ msgstr ""
 #. module: base_google_map
 #: model:ir.model.fields.selection,name:base_google_map.selection__res_config_settings__google_maps_lang_localization__fi
 msgid "Finnish"
+msgstr ""
+
+#. module: base_google_map
+#. odoo-javascript
+#: code:addons/base_google_map/static/src/utils/components/warning_missing_view_dialog/warning_missing_view_dialog.xml:0
+msgid "Following example view of how to create one"
 msgstr ""
 
 #. module: base_google_map
@@ -311,24 +335,8 @@ msgid "Google Maps API authentication failed."
 msgstr ""
 
 #. module: base_google_map
-#. odoo-javascript
-#: code:addons/base_google_map/static/src/utils/base_google_map.js:0
-msgid "Google Maps Error"
-msgstr ""
-
-#. module: base_google_map
 #: model:ir.model.fields,field_description:base_google_map.field_res_config_settings__google_maps_lang_localization
 msgid "Google Maps Language Localization"
-msgstr ""
-
-#. module: base_google_map
-#: model_terms:ir.ui.view,arch_db:base_google_map.res_config_settings_view_form
-msgid ""
-"Google Maps Platform products are secured from unauthorized use by "
-"restricting API calls to those that provide proper authentication "
-"credentials. These credentials are in the form of an API key - a unique "
-"alphanumeric string that associates your Google billing account with your "
-"project, and with the specific API or SDK"
 msgstr ""
 
 #. module: base_google_map
@@ -344,7 +352,7 @@ msgstr ""
 #. module: base_google_map
 #. odoo-javascript
 #: code:addons/base_google_map/static/src/utils/base_google_map.js:0
-msgid "Google Maps Warning"
+msgid "Google Maps loading timed out. Please try again."
 msgstr ""
 
 #. module: base_google_map
@@ -370,6 +378,11 @@ msgstr ""
 #. module: base_google_map
 #: model:ir.model.fields.selection,name:base_google_map.selection__res_config_settings__google_maps_lang_localization__hu
 msgid "Hungarian"
+msgstr ""
+
+#. module: base_google_map
+#: model:ir.model.fields,field_description:base_google_map.field_res_config_settings__id
+msgid "ID"
 msgstr ""
 
 #. module: base_google_map
@@ -399,6 +412,11 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/base_google_map/static/src/utils/base_google_map.js:0
 msgid "Invalid Google Maps API key. Please check your configuration."
+msgstr ""
+
+#. module: base_google_map
+#: model:ir.model.fields,field_description:base_google_map.field_res_config_settings__is_web_google_map_installed
+msgid "Is the Sale Module Installed"
 msgstr ""
 
 #. module: base_google_map
@@ -501,7 +519,7 @@ msgstr ""
 #. module: base_google_map
 #. odoo-javascript
 #: code:addons/base_google_map/static/src/utils/base_google_map.js:0
-msgid "Missing Map ID. Map ID is required to load Google Maps"
+msgid "Missing Map ID. Some features may not work properly."
 msgstr ""
 
 #. module: base_google_map
@@ -526,8 +544,20 @@ msgid "Network error while loading Google Maps. Please check your connection."
 msgstr ""
 
 #. module: base_google_map
+#. odoo-javascript
+#: code:addons/base_google_map/static/src/utils/loader_google_map.js:0
+msgid "Network error while loading the Google Maps JavaScript API."
+msgstr ""
+
+#. module: base_google_map
 #: model:ir.model.fields.selection,name:base_google_map.selection__res_config_settings__google_maps_theme__night
 msgid "Night"
+msgstr ""
+
+#. module: base_google_map
+#. odoo-javascript
+#: code:addons/base_google_map/static/src/utils/components/warning_missing_view_dialog/warning_missing_view_dialog.xml:0
+msgid "No view for Google Map Form were found in this model!"
 msgstr ""
 
 #. module: base_google_map
@@ -538,12 +568,6 @@ msgstr ""
 #. module: base_google_map
 #: model:ir.model.fields.selection,name:base_google_map.selection__res_config_settings__google_maps_theme__pale_down
 msgid "Pale down"
-msgstr ""
-
-#. module: base_google_map
-#. odoo-javascript
-#: code:addons/base_google_map/static/src/utils/base_google_map.js:0
-msgid "Please specify the element for Google Maps"
 msgstr ""
 
 #. module: base_google_map
@@ -586,6 +610,12 @@ msgstr ""
 #. module: base_google_map
 #: model:ir.model.fields.selection,name:base_google_map.selection__res_config_settings__google_maps_theme__retro
 msgid "Retro"
+msgstr ""
+
+#. module: base_google_map
+#. odoo-javascript
+#: code:addons/base_google_map/static/src/utils/base_google_map.js:0
+msgid "Retry"
 msgstr ""
 
 #. module: base_google_map
@@ -659,6 +689,11 @@ msgid "Swedish"
 msgstr ""
 
 #. module: base_google_map
+#: model:ir.model.fields.selection,name:base_google_map.selection__res_config_settings__google_map_color_scheme__system
+msgid "System"
+msgstr ""
+
+#. module: base_google_map
 #: model:ir.model.fields.selection,name:base_google_map.selection__res_config_settings__google_maps_lang_localization__ta
 msgid "Tamil"
 msgstr ""
@@ -705,6 +740,12 @@ msgid "Theme"
 msgstr ""
 
 #. module: base_google_map
+#. odoo-javascript
+#: code:addons/base_google_map/static/src/utils/loader_google_map.js:0
+msgid "Timeout while loading the Google Maps JavaScript API."
+msgstr ""
+
+#. module: base_google_map
 #: model:ir.model.fields.selection,name:base_google_map.selection__res_config_settings__google_maps_lang_localization__tr
 msgid "Turkish"
 msgstr ""
@@ -733,6 +774,12 @@ msgstr ""
 #. module: base_google_map
 #: model:ir.model.fields.selection,name:base_google_map.selection__res_config_settings__google_maps_lang_localization__ur
 msgid "Urdu"
+msgstr ""
+
+#. module: base_google_map
+#. odoo-javascript
+#: code:addons/base_google_map/static/src/utils/base_google_map.js:0
+msgid "Use arrow keys to pan, plus/minus to zoom"
 msgstr ""
 
 #. module: base_google_map

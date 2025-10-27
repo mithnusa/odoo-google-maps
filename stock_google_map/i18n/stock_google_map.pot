@@ -1,0 +1,51 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* stock_google_map
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 19.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-10-27 10:48+0000\n"
+"PO-Revision-Date: 2025-10-27 10:48+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: stock_google_map
+#: model:ir.model.fields,field_description:stock_google_map.field_stock_picking__partner_contact_address
+msgid "Delivery Contact Address"
+msgstr ""
+
+#. module: stock_google_map
+#: model:ir.model.fields,field_description:stock_google_map.field_stock_picking__partner_latitude
+msgid "Delivery Latitude"
+msgstr ""
+
+#. module: stock_google_map
+#: model:ir.model.fields,field_description:stock_google_map.field_stock_picking__partner_longitude
+msgid "Delivery Longitude"
+msgstr ""
+
+#. module: stock_google_map
+#: model:ir.model.fields,field_description:stock_google_map.field_stock_picking__display_name
+msgid "Display Name"
+msgstr ""
+
+#. module: stock_google_map
+#: model:ir.model.fields,field_description:stock_google_map.field_stock_picking__id
+msgid "ID"
+msgstr ""
+
+#. module: stock_google_map
+#: model_terms:ir.ui.view,arch_db:stock_google_map.view_stock_picking_google_map
+msgid "Locations"
+msgstr ""
+
+#. module: stock_google_map
+#: model:ir.model,name:stock_google_map.model_stock_picking
+msgid "Transfer"
+msgstr ""
