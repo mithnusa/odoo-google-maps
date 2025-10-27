@@ -113,32 +113,6 @@ class ResConfigSettings(models.TransientModel):
         string='Google Maps Region Localization',
         config_parameter='base_google_map.region_localization',
     )
-    google_maps_theme = fields.Selection(
-        selection=[
-            ('default', 'Default'),
-            ('aubergine', 'Aubergine'),
-            ('night', 'Night'),
-            ('dark', 'Dark'),
-            ('retro', 'Retro'),
-            ('silver', 'Silver'),
-            ('atlas', 'Atlas'),
-            ('muted_blue', 'Muted blue'),
-            ('pale_down', 'Pale down'),
-            ('subtle_gray', 'Subtle gray'),
-            ('shift_worker', 'Shift worker'),
-            ('even_lighter', 'Even lighter'),
-            ('unsaturated_brown', 'Unsaturated brown'),
-            ('uber', 'Uber'),
-            ('wy', 'WY'),
-            ('interface_map', 'Interface map'),
-            ('blue_water', 'Blue water'),
-            ('blue_essense', 'Blue essense'),
-            ('line_drawing', 'Line drawing'),
-            ('blueprint', 'Blue print'),
-        ],
-        string='Theme',
-        config_parameter='base_google_map.theme',
-    )
     google_maps_libraries = fields.Char(
         string='Libraries', config_parameter='base_google_map.libraries'
     )
@@ -178,6 +152,7 @@ class ResConfigSettings(models.TransientModel):
             ('dark', 'Dark'),
             ('system', 'System'),
         ],
+        default='system',
         string='Color Scheme',
         config_parameter='base_google_map.color_scheme',
     )
