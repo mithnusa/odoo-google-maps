@@ -2,6 +2,10 @@
 
 The `crm_google_map` module adds Google Maps view to the CRM application for leads and opportunities. It allows you to visualize your leads and opportunities on an interactive Google Map, helping sales teams identify geographical clusters and plan territory coverage.
 
+<div style="display: flex; gap: 4px; justify-content: center;">
+  <img src="static/img/google_maps_view_preview.png" alt="Preview" style="width: 100%; max-width: 600px; height: auto;">
+</div>
+
 ## Features
 - Interactive Google Map view for CRM leads and opportunities with clustering and sidebar
 - Quick actions from the map sidebar to open lead/opportunity records
