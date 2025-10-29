@@ -223,12 +223,8 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
     onSelectedMarkers(selectedMarkers) {
         if (selectedMarkers.length === 0) {
             this.notificationService.add(
-                _t(
-                    'No markers are currently selected. Please ensure the map is not tilted, try to zoom in closer, and try again'
-                ),
-                {
-                    type: 'info',
-                }
+                _t('No markers are currently selected. Please ensure the map is not tilted, try to zoom in closer, and try again'),
+                { type: 'info' }
             );
             return;
         }
@@ -243,21 +239,22 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
      * @private
      */
     async renderMarkers() {
-        const datas = this.getGroupsOrRecords();
+        try {
+            this.uiService.block();
+            const datas = this.getGroupsOrRecords();
 
-        // Import marker library
-        await this.apiLoader.importLibrary('marker');
-
-        // Render markers differently based on grouping
-        if (this.props.list.isGrouped) {
-            await this._renderGroupedMarkers(datas);
-        } else {
-            await this._renderUngroupedMarkers(datas);
+            // Render markers differently based on grouping
+            if (this.props.list.isGrouped) {
+                await this._renderGroupedMarkers(datas);
+            } else {
+                await this._renderUngroupedMarkers(datas);
+            }
+            // Fit map to bounds once all markers are rendered
+            // This now happens after the async batch processing completes
+            this._fitBoundsWhenReady();
+        } finally {
+            this.uiService.unblock();
         }
-
-        // Fit map to bounds once all markers are rendered
-        // This now happens after the async batch processing completes
-        this._fitBoundsWhenReady();
     }
 
     /**
