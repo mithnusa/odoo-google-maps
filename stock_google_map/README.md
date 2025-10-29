@@ -2,6 +2,10 @@
 
 The `stock_google_map` module adds Google Maps view to the Inventory/Delivery application. It allows you to visualize delivery orders and stock pickings on an interactive Google Map, helping logistics teams optimize delivery routes and plan warehouse operations.
 
+<div style="display: flex; gap: 4px; justify-content: center;">
+  <img src="static/img/google_maps_view_preview.png" alt="Preview" style="width: 100%; max-width: 600px; height: auto;">
+</div>
+
 ## Features
 - Interactive Google Map view for Delivery Orders with clustering and sidebar
 - Quick actions from the map sidebar to open delivery order records

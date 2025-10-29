@@ -4,7 +4,7 @@ This module allows you to manage GeoJSON data using Google Maps integrated with 
 The Google Maps Drawing has been deprecated ([source](https://developers.google.com/maps/deprecations#drawing_library_deprecated_as_of_aug_8_2025)). As an alternative (suggested by Google) this module uses Terra Draw to provide drawing capabilities on Google Maps.
 
 <div style="display: flex; gap: 4px; justify-content: center;">
-  <img src="static/img/screenshot/geojson_views.png" alt="Spread out markers" style="width: 100%; max-width: 600px; height: auto;">
+  <img src="static/img/screenshot/geojson_views.png" alt="GeoJSON Preview" style="width: 100%; max-width: 600px; height: auto;">
 </div>
 
 ### 1. `google_map_drawing` a sub-view of `google_map` view
@@ -74,7 +74,7 @@ Example:
 In order to activate the drawing mode, it's a must to apply widget `google_map_terra_draw` to field `gshape_geojson` (or any fields on your own) in view `form`
 
 <div style="display: flex; gap: 4px; justify-content: center;">
-  <img src="static/img/screenshot/widget_drawing_tools.png" alt="Spread out markers" style="width: 100%; max-width: 400px; height: auto;">
+  <img src="static/img/screenshot/widget_drawing_tools.png" alt="Drawing Tools Widget" style="width: 100%; max-width: 400px; height: auto;">
 </div>
 
 Example:

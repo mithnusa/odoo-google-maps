@@ -4,6 +4,10 @@ The `sale_google_map` module adds Google Maps view to the Sales application. It 
 
 The data shown on the map is grouped by customer (partner), with markers representing each customer's location. Clicking on a marker reveals a sidebar with quick actions to open the associated sales order records.
 
+<div style="display: flex; gap: 4px; justify-content: center;">
+  <img src="static/img/google_maps_preview.png" alt="Previews" style="width: 100%; max-width: 600px; height: auto;">
+</div>
+
 ## Features
 - Interactive Google Map view for Sales Orders with clustering and sidebar
 - Quick actions from the map sidebar to open sales order records
