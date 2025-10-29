@@ -1,7 +1,6 @@
 import { _t } from '@web/core/l10n/translation';
 import { useService, useBus } from '@web/core/utils/hooks';
 import { debounce } from '@web/core/utils/timing';
-import { loadJS } from '@web/core/assets';
 import { renderToString } from '@web/core/utils/render';
 import { user } from "@web/core/user";
 import {
@@ -26,7 +25,8 @@ import {
     formatMeasurement,
     formatPointCount,
     MEASUREMENT_CONFIG,
-} from '../../utils/terra_draw_utils';
+    loadDeckGlAssets,
+} from '../../utils/utils';
 
 /**
  * Deck.gl configuration constants
@@ -311,12 +311,7 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
      * @private
      */
     async _loadDeckGLAssets() {
-        if (window.deck) return;
-
-        await loadJS('https://unpkg.com/deck.gl@latest/dist.min.js');
-        if (!window.deck) {
-            throw new Error('Deck.gl failed to load correctly.');
-        }
+        loadDeckGlAssets();
     }
 
     /**

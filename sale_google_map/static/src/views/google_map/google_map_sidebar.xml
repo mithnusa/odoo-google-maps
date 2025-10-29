@@ -5,7 +5,11 @@
         <xpath expr="//button[hasclass('collapsed')]" position="replace">
             <div class="ps-1 cursor-pointer o_map_sidebar_group" t-on-click="() => fnPinPointInMap(group.group.id)">
                 <t t-set="title" t-value="(group.group.displayName || 'None') + ' (' + group.group.count + ')' " />
-                <span class="ps-1 pe-1" t-out="title" t-att-data-tooltip="title"/>
+                <t t-set="avatar_url" t-value="this.getAvatarUrl(group)"/>
+                <div class="d-inline-block position-relative opacity-trigger-hover" t-if="avatar_url">
+                    <img loading="lazy" t-att-src="avatar_url" class="img img-fluid o_avatar rounded" alt="Avatar" height="24" width="24" style="height: 24px; width: 24px;"/>
+                </div>
+                <span class="ms-1 ps-1 pe-1" t-out="title" t-att-data-tooltip="title"/>
             </div>
         </xpath>
         <xpath expr="//i[hasclass('fa-map-marker')]" position="replace"/>

@@ -4,6 +4,34 @@ import { GoogleMapRenderer } from '@web_view_google_map/views/google_map/google_
 import { formatNumber } from '@web_view_google_map/views/google_map/utils';
 import { GoogleMapSidebarSaleOrder } from './google_map_sidebar';
 
+/**
+ * Configuration constants for sale order marker behavior and styling
+ */
+const SALE_MARKER_CONFIG = {
+    VISUAL: {
+        CLASSES: {
+            CONTAINER: 'sale_order marker-drop-animation',
+            LAYOUT: 'd-flex align-items-center justify-content-end gap-2',
+            INFO_SECTION: 'flex-grow-1',
+            NAME: 'mb-0 fs-6',
+            AMOUNT: 'font-monospace',
+            BUTTON: 'btn btn-link btn-sm flex-shrink-0',
+            ICON: 'fa fa-angle-double-right fa-lg',
+            INFO_ICON: 'fa fa-info-circle ms-1 text-info float-end',
+            IMG_LOGO_CONTAINER: 'd-inline-block position-relative opacity-trigger-hover',
+            IMG_LOGO: 'img img-fluid o_avatar rounded',
+        },
+        Z_INDEX: {
+            DEFAULT: 1,
+            HOVER: 10000,
+        },
+        ZOOM: {
+            DEFAULT: 14,
+            SHIFTED_DETAIL: 22,
+        },
+    },
+};
+
 export class GoogleMapRendererSaleOrder extends GoogleMapRenderer {
     static components = {
         ...GoogleMapRenderer.components,
@@ -23,13 +51,14 @@ export class GoogleMapRendererSaleOrder extends GoogleMapRenderer {
     async _renderGroupedMarkers(datas) {
         const groupPromises = datas.map(async ({ group }) => {
             try {
-                const records = await group.groupRecords();
-                this.createMarker(group, records[0], true);
+                const records = group.records;
+                if (records && records.length > 0) {
+                    this.createMarker(group, records[0]);
+                }
             } catch (error) {
                 console.error('Failed to load group records:', error);
             }
         });
-
         await Promise.all(groupPromises);
     }
 
@@ -37,10 +66,9 @@ export class GoogleMapRendererSaleOrder extends GoogleMapRenderer {
      * @override
      * @param {*} group
      * @param {*} record
-     * @param {*} skipFitBounds
      * @returns
      */
-    async createMarker(group, record, skipFitBounds = false) {
+    async createMarker(group, record) {
         const { aggregates } = group;
         if (!this.isMapLoaded() || !aggregates || !record) return null;
 
@@ -49,7 +77,7 @@ export class GoogleMapRendererSaleOrder extends GoogleMapRenderer {
 
         try {
             const geolocation = dataView.geolocation;
-            const marker = await this._createNewMarker(group, geolocation, skipFitBounds);
+            const marker = await this._createNewMarker(group, geolocation);
             return marker;
         } catch (error) {
             console.error('Error creating marker for group:', error);
@@ -57,153 +85,620 @@ export class GoogleMapRendererSaleOrder extends GoogleMapRenderer {
         }
     }
 
-    _createMarkerElement(displayName, amountTotal) {
-        const content = document.createElement('div');
-        const formattedAmount = formatNumber(amountTotal, 2, user.context.lang);
-        content.className = 'sale_order marker-drop-animation';
-
-        const pEl = document.createElement('p');
-        pEl.className = 'mb-0 fs-6';
-        pEl.textContent = displayName;
-
-        const smallEl = document.createElement('small');
-        smallEl.className = 'font-monospace';
-        smallEl.textContent = '$ ' + formattedAmount;
-
-        content.appendChild(pEl);
-        content.appendChild(smallEl);
-
-        return content;
-    }
-
-    async _createNewMarker(group, geolocation, skipFitBounds = false) {
-        const { AdvancedMarkerElement } = await this.apiLoader.importLibrary('marker');
+    /**
+     * @override
+     * Create marker element for sale order with enhanced structure
+     * @param {Object} group The group containing aggregates and display data
+     * @returns {HTMLElement} Marker content element
+     */
+    _createMarkerElement(group) {
+        if (!this._isValidGroupForMarkerElement(group)) {
+            return this._createFallbackMarkerElement();
+        }
 
         const { aggregates } = group;
         const amountTotal = aggregates.amount_total || 0;
-        const displayName = group.displayName || 'Customer';
-        const content = this._createMarkerElement(displayName, amountTotal);
-        const options = {
-            position: geolocation,
-            map: this.googleMap,
-            collisionBehavior: google.maps.CollisionBehavior.REQUIRED_AND_HIDES_OPTIONAL,
-            zIndex: 1,
-        };
-        options.content = content;
+        const displayName = group.displayName || _t('Customer');
+        const formattedAmount = formatNumber(amountTotal, 2, user.context.lang);
 
-        // Create marker
-        const marker = new AdvancedMarkerElement(options);
+        const container = this._createMarkerContainer();
+        const layout = this._createMarkerLayout(displayName, formattedAmount, group);
 
-        // Store metadata with marker
-        marker._odooRecord = group;
-        marker._markerOptionValues = options;
-        marker._isShifted = false;
+        container.appendChild(layout);
+        return container;
+    }
 
-        // Store the original position before any shifts
-        marker._originalPosition = {
-            lat: geolocation.lat,
-            lng: geolocation.lng,
-        };
-
-        // Store marker with record
-        group._marker = marker;
-
-        // Create and store event listeners for proper cleanup
-        const handleMouseEnter = () => {
-            marker.zIndex = 10000;
-            content.classList.add('marker-hover-animation');
-        };
-
-        const handleMouseLeave = () => {
-            marker.zIndex = 1;
-            content.classList.remove('marker-hover-animation');
-        };
-
-        content.addEventListener('mouseenter', handleMouseEnter);
-        content.addEventListener('mouseleave', handleMouseLeave);
-        content.addEventListener('touchstart', handleMouseEnter);
-        content.addEventListener('touchend', handleMouseLeave);
-
-        // Store event listener references for cleanup
-        marker._customContentEvListeners = {
-            content,
-            mouseenter: handleMouseEnter,
-            mouseleave: handleMouseLeave,
-            touchstart: handleMouseEnter,
-            touchend: handleMouseLeave,
-        };
-
-        // Store marker in cache
-        this.cache.set(group.id, marker);
-
-        // Handle overlapping markers
-        this._handleMarkersOverlapAt(marker);
-
-        if (marker._isShifted) {
-            const iconI = document.createElement('i');
-            iconI.className = 'fa fa-info-circle ms-1 text-info float-end';
-            iconI.style.cursor = 'help';
-            iconI.dataset.tooltip = _t("This marker has been adjusted slightly so it doesn't overlap with others. The line points to its original location.");
-            iconI.onclick = () => {
-                if (this.googleMap) {
-                    this.googleMap.panTo(marker._originalPosition);
-                    this.googleMap.setZoom(22);
-                }
-            };
-            content.prepend(iconI);
+    /**
+     * Validate if group is ready for marker element creation
+     * @private
+     * @param {Object} group The group to validate
+     * @returns {boolean} True if group is valid
+     */
+    _isValidGroupForMarkerElement(group) {
+        if (!group || !group.aggregates) {
+            console.warn('Invalid group data for marker creation:', group);
+            return false;
         }
+        return true;
+    }
 
-        // Update map bounds
-        this._updateMapBounds(marker, skipFitBounds);
+    /**
+     * Create fallback marker element for invalid groups
+     * @private
+     * @returns {HTMLElement} Fallback marker element
+     */
+    _createFallbackMarkerElement() {
+        const content = document.createElement('div');
+        content.className = SALE_MARKER_CONFIG.VISUAL.CLASSES.CONTAINER;
+        content.textContent = _t('Invalid Data');
+        return content;
+    }
+
+    /**
+     * Create the main container for the marker
+     * @private
+     * @returns {HTMLElement} Container element
+     */
+    _createMarkerContainer() {
+        const container = document.createElement('div');
+        container.className = SALE_MARKER_CONFIG.VISUAL.CLASSES.CONTAINER;
+        return container;
+    }
+
+    /**
+     * Create the layout structure for marker content
+     * @private
+     * @param {string} displayName Customer display name
+     * @param {string} formattedAmount Formatted amount string
+     * @param {Object} group The group data
+     * @returns {HTMLElement} Layout element
+     */
+    _createMarkerLayout(displayName, formattedAmount, group) {
+        const layout = document.createElement('div');
+        layout.className = SALE_MARKER_CONFIG.VISUAL.CLASSES.LAYOUT;
+
+        const infoSection = this._createInfoSection(displayName, formattedAmount);
+        const actionButton = this._createActionButton(group);
+        const logoEl = this._createCustomerLogo(group.value);
+        if (logoEl) {
+            layout.appendChild(logoEl);
+        }
+        layout.appendChild(infoSection);
+        layout.appendChild(actionButton);
+
+        // Store action button reference for cleanup
+        layout._actionClickHandler = {
+            element: actionButton,
+            handler: actionButton._clickHandler,
+        };
+
+        return layout;
+    }
+
+    /**
+     * Create the info section with customer name and amount
+     * @private
+     * @param {string} displayName Customer display name
+     * @param {string} formattedAmount Formatted amount string
+     * @returns {HTMLElement} Info section element
+     */
+    _createInfoSection(displayName, formattedAmount) {
+        const infoDiv = document.createElement('div');
+        infoDiv.className = SALE_MARKER_CONFIG.VISUAL.CLASSES.INFO_SECTION;
+
+        const nameEl = this._createNameElement(displayName);
+        const amountEl = this._createAmountElement(formattedAmount);
+
+        infoDiv.appendChild(nameEl);
+        infoDiv.appendChild(amountEl);
+
+        return infoDiv;
+    }
+
+    _createCustomerLogo(partnerId) {
+        if (!partnerId) return;
+
+        const divEl = document.createElement('div');
+        divEl.className = SALE_MARKER_CONFIG.VISUAL.CLASSES.IMG_LOGO_CONTAINER;
+
+        const logoEl = document.createElement('img');
+        logoEl.className = SALE_MARKER_CONFIG.VISUAL.CLASSES.IMG_LOGO;
+        logoEl.loading = 'lazy';
+        logoEl.src = `/web/image/res.partner/${partnerId}/image_128`;
+        logoEl.alt = _t('Logo');
+        logoEl.height = 32;
+        logoEl.width = 32;
+
+        divEl.appendChild(logoEl);
+        return divEl;
+    }
+
+    /**
+     * Create customer name element
+     * @private
+     * @param {string} displayName Customer display name
+     * @returns {HTMLElement} Name element
+     */
+    _createNameElement(displayName) {
+        const nameEl = document.createElement('p');
+        nameEl.className = SALE_MARKER_CONFIG.VISUAL.CLASSES.NAME;
+        nameEl.textContent = displayName;
+        return nameEl;
+    }
+
+    /**
+     * Create amount element
+     * @private
+     * @param {string} formattedAmount Formatted amount string
+     * @returns {HTMLElement} Amount element
+     */
+    _createAmountElement(formattedAmount) {
+        const amountEl = document.createElement('small');
+        amountEl.className = SALE_MARKER_CONFIG.VISUAL.CLASSES.AMOUNT;
+        amountEl.textContent = `$ ${formattedAmount}`;
+        return amountEl;
+    }
+
+    /**
+     * Create action button for opening records
+     * @private
+     * @param {Object} group The group data
+     * @returns {HTMLElement} Action button element
+     */
+    _createActionButton(group) {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = SALE_MARKER_CONFIG.VISUAL.CLASSES.BUTTON;
+        button.dataset.tooltip = _t('Open');
+
+        const icon = this._createActionButtonIcon();
+        button.appendChild(icon);
+
+        const clickHandler = this._createActionClickHandler(group);
+        button.addEventListener('click', clickHandler);
+
+        // Store handler reference for cleanup
+        button._clickHandler = clickHandler;
+
+        return button;
+    }
+
+    /**
+     * Create icon for action button
+     * @private
+     * @returns {HTMLElement} Icon element
+     */
+    _createActionButtonIcon() {
+        const icon = document.createElement('i');
+        icon.className = SALE_MARKER_CONFIG.VISUAL.CLASSES.ICON;
+        icon.setAttribute('aria-hidden', 'true');
+        return icon;
+    }
+
+    /**
+     * Create click handler for action button
+     * @private
+     * @param {Object} group The group data
+     * @returns {Function} Click handler function
+     */
+    _createActionClickHandler(group) {
+        return (ev) => {
+            try {
+                ev.preventDefault();
+                ev.stopPropagation();
+
+                const domain = group.groupDomain;
+                if (!domain) {
+                    console.warn('No domain found for this group.', group);
+                    return;
+                }
+
+                const displayName = group.displayName || _t('Customer');
+                this.props.showRecordsByDomain(displayName, domain);
+            } catch (error) {
+                console.error('Error handling marker action button click:', error);
+            }
+        };
+    }
+
+    /**
+     * @override
+     * Create a new marker for sale order groups with enhanced setup
+     * @param {Object} group The group data
+     * @param {Object} geolocation Position data
+     * @returns {Object} New marker
+     */
+    async _createNewMarker(group, geolocation) {
+        const marker = await this._buildSaleOrderMarker(group, geolocation);
+        this._setupSaleOrderMarkerMetadata(marker, group, geolocation);
+        this._attachSaleOrderEventListeners(marker, group);
+        this._handleSaleOrderMarkerPositioning(marker);
+        this._updateMapBounds(marker);
 
         return marker;
     }
 
     /**
+     * Build the actual AdvancedMarkerElement for sale orders
+     * @private
+     * @param {Object} group The group data
+     * @param {Object} geolocation Position data
+     * @returns {Object} AdvancedMarkerElement
+     */
+    async _buildSaleOrderMarker(group, geolocation) {
+        const { AdvancedMarkerElement } = await this.apiLoader.importLibrary('marker');
+        const content = this._createMarkerElement(group);
+        const options = this._createSaleOrderMarkerOptions(geolocation);
+        options.content = content;
+
+        return new AdvancedMarkerElement(options);
+    }
+
+    /**
+     * Create marker options for sale orders
+     * @private
+     * @param {Object} geolocation Position data
+     * @returns {Object} Marker options
+     */
+    _createSaleOrderMarkerOptions(geolocation) {
+        return {
+            position: geolocation,
+            map: this.googleMap,
+            collisionBehavior: google.maps.CollisionBehavior.REQUIRED_AND_HIDES_OPTIONAL,
+            zIndex: SALE_MARKER_CONFIG.VISUAL.Z_INDEX.DEFAULT,
+        };
+    }
+
+    /**
+     * Setup marker metadata and relationships for sale orders
+     * @private
+     * @param {Object} marker The marker to setup
+     * @param {Object} group The group data
+     * @param {Object} geolocation Position data
+     */
+    _setupSaleOrderMarkerMetadata(marker, group, geolocation) {
+        marker._odooRecord = group;
+        marker._markerOptionValues = marker.options;
+        marker._isShifted = false;
+        marker._originalPosition = {
+            lat: geolocation.lat,
+            lng: geolocation.lng,
+        };
+
+        // Establish bidirectional relationship
+        group._marker = marker;
+
+        // Store in cache
+        this.cache.set(group.id, marker);
+    }
+
+    /**
+     * Attach event listeners to sale order marker
+     * @private
+     * @param {Object} marker The marker to attach listeners to
+     * @param {Object} group The group data
+     */
+    _attachSaleOrderEventListeners(marker, group) {
+        const content = marker.content;
+        const eventListeners = this._createSaleOrderEventListeners(marker, content);
+
+        // Attach all event listeners
+        Object.entries(eventListeners.events).forEach(([event, handler]) => {
+            content.addEventListener(event, handler);
+        });
+
+        // Get action button reference from the layout
+        const actionButton = content.querySelector('.btn');
+        const actionClickHandler = actionButton?._clickHandler;
+
+        // Store event listener references for cleanup
+        marker._customContentEvListeners = {
+            content,
+            ...eventListeners.events,
+            actionClick: actionClickHandler
+                ? {
+                      element: actionButton,
+                      handler: actionClickHandler,
+                  }
+                : null,
+        };
+    }
+
+    /**
+     * Create event listeners for sale order markers
+     * @private
+     * @param {Object} marker The marker object
+     * @param {HTMLElement} content The marker content element
+     * @returns {Object} Event listeners object
+     */
+    _createSaleOrderEventListeners(marker, content) {
+        const handleMouseEnter = () => {
+            marker.zIndex = SALE_MARKER_CONFIG.VISUAL.Z_INDEX.HOVER;
+            content.classList.add('marker-hover-animation');
+        };
+
+        const handleMouseLeave = () => {
+            marker.zIndex = SALE_MARKER_CONFIG.VISUAL.Z_INDEX.DEFAULT;
+            content.classList.remove('marker-hover-animation');
+        };
+
+        return {
+            events: {
+                mouseenter: handleMouseEnter,
+                mouseleave: handleMouseLeave,
+                touchstart: handleMouseEnter,
+                touchend: handleMouseLeave,
+            },
+        };
+    }
+
+    /**
+     * Handle marker positioning including overlap management for sale orders
+     * @private
+     * @param {Object} marker The marker to position
+     */
+    _handleSaleOrderMarkerPositioning(marker) {
+        this._handleMarkersOverlapAt(marker);
+
+        if (marker._isShifted) {
+            this._addShiftedMarkerIndicator(marker);
+        }
+    }
+
+    /**
+     * Add visual indicator for shifted markers
+     * @private
+     * @param {Object} marker The shifted marker
+     */
+    _addShiftedMarkerIndicator(marker) {
+        const content = marker.content;
+        const indicator = this._createShiftedMarkerIndicator();
+        content.prepend(indicator);
+    }
+
+    /**
+     * Create indicator element for shifted markers
+     * @private
+     * @returns {HTMLElement} Indicator element
+     */
+    _createShiftedMarkerIndicator() {
+        const indicator = document.createElement('i');
+        indicator.setAttribute('aria-hidden', 'true');
+        indicator.className = SALE_MARKER_CONFIG.VISUAL.CLASSES.INFO_ICON;
+        indicator.style.cursor = 'help';
+        indicator.dataset.tooltip = _t(
+            "This marker has been adjusted slightly so it doesn't overlap with others. The line points to its original location."
+        );
+        return indicator;
+    }
+
+    /**
      * @override
-     * @param {*} groupId
-     * @returns
+     * Enhanced point in map functionality for sale order markers
+     * @param {string|number} groupId ID of the group to focus on
      */
     pointInMap(groupId) {
         const marker = this.cache.get(groupId);
-        if (!marker) return;
+        if (!this._isValidMarkerForPointInMap(marker)) {
+            return;
+        }
 
+        this._focusOnMarker(marker);
+        this._scheduleMarkerInteraction(marker);
+    }
+
+    /**
+     * Validate if marker is ready for point-in-map operation
+     * @private
+     * @param {Object} marker The marker to validate
+     * @returns {boolean} True if marker is valid
+     */
+    _isValidMarkerForPointInMap(marker) {
+        if (!marker || !marker.position) {
+            console.warn('Invalid marker for pointInMap operation');
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Focus the map on the specified marker
+     * @private
+     * @param {Object} marker The marker to focus on
+     */
+    _focusOnMarker(marker) {
         const position = marker.position;
         this.googleMap.panTo(position);
+    }
 
+    /**
+     * Schedule marker interaction after map idle
+     * @private
+     * @param {Object} marker The marker to interact with
+     */
+    _scheduleMarkerInteraction(marker) {
         google.maps.event.addListenerOnce(this.googleMap, 'idle', () => {
-            const currentZoom = this.googleMap.getZoom();
-            const mouseEnterEvent = new MouseEvent('mouseenter', {
-                view: window, // The window in which the event occurred
-                bubbles: true, // Whether the event bubbles up through the DOM tree
-                cancelable: true, // Whether the event can be cancelled
-            });
-            marker._customContentEvListeners?.content.dispatchEvent(mouseEnterEvent);
-            if (marker._isShifted && currentZoom < 22) {
-                this.googleMap.setZoom(22);
-            } else if (currentZoom < 14 && !marker._isShifted) {
-                this.googleMap.setZoom(14);
+            this._handleMarkerInteraction(marker);
+        });
+    }
+
+    /**
+     * Handle marker interaction including hover effect and zoom adjustment
+     * @private
+     * @param {Object} marker The marker to interact with
+     */
+    _handleMarkerInteraction(marker) {
+        const currentZoom = this.googleMap.getZoom();
+
+        this._triggerMarkerHoverEffect(marker);
+        this._adjustZoomForMarker(marker, currentZoom);
+    }
+
+    /**
+     * Trigger hover effect on marker
+     * @private
+     * @param {Object} marker The marker to apply hover effect to
+     */
+    _triggerMarkerHoverEffect(marker) {
+        const content = marker._customContentEvListeners?.content;
+        if (!content) {
+            return;
+        }
+
+        // Clear any existing timeout to prevent conflicts
+        if (marker._hoverTimeout) {
+            clearTimeout(marker._hoverTimeout);
+        }
+
+        const mouseEnterEvent = new MouseEvent('mouseenter', {
+            view: window,
+            bubbles: true,
+            cancelable: true,
+        });
+
+        const mouseLeaveEvent = new MouseEvent('mouseleave', {
+            view: window,
+            bubbles: true,
+            cancelable: true,
+        });
+
+        // Trigger hover effect
+        content.dispatchEvent(mouseEnterEvent);
+
+        // Schedule automatic hover removal
+        marker._hoverTimeout = setTimeout(() => {
+            // Check if marker still exists and is valid
+            if (content.isConnected) {
+                // ← This checks if the DOM element is still in the document
+                content.dispatchEvent(mouseLeaveEvent);
+            }
+            delete marker._hoverTimeout;
+        }, 1000);
+    }
+
+    /**
+     * Adjust zoom level based on marker state
+     * @private
+     * @param {Object} marker The marker to adjust zoom for
+     * @param {number} currentZoom Current zoom level
+     */
+    _adjustZoomForMarker(marker, currentZoom) {
+        const { DEFAULT, SHIFTED_DETAIL } = SALE_MARKER_CONFIG.VISUAL.ZOOM;
+
+        if (marker._isShifted && currentZoom < SHIFTED_DETAIL) {
+            this.googleMap.setZoom(SHIFTED_DETAIL);
+        } else if (currentZoom < DEFAULT && !marker._isShifted) {
+            this.googleMap.setZoom(DEFAULT);
+        }
+    }
+
+    /**
+     * @override
+     * Enhanced cleanup with structured event listener management
+     */
+    _cleanUp() {
+        this._cleanupSaleOrderMarkers();
+        super._cleanUp();
+    }
+
+    /**
+     * Clean up sale order specific marker event listeners
+     * @private
+     */
+    _cleanupSaleOrderMarkers() {
+        if (!this.cache) {
+            return;
+        }
+
+        for (const [, marker] of this.cache) {
+            this._cleanupSingleMarker(marker);
+        }
+    }
+
+    /**
+     * Clean up event listeners for a single marker
+     * @private
+     * @param {Object} marker The marker to clean up
+     */
+    _cleanupSingleMarker(marker) {
+        if (!marker._customContentEvListeners) {
+            return;
+        }
+
+        const listeners = marker._customContentEvListeners;
+        this._removeContentEventListeners(listeners);
+        this._removeActionClickHandler(listeners);
+        this._cleanupMarkerReferences(marker, listeners);
+    }
+
+    /**
+     * Remove content event listeners (hover, touch events)
+     * @private
+     * @param {Object} listeners Event listeners object
+     */
+    _removeContentEventListeners(listeners) {
+        const { content, mouseenter, mouseleave, touchstart, touchend } = listeners;
+
+        if (!content) {
+            return;
+        }
+
+        const eventMap = [
+            ['mouseenter', mouseenter],
+            ['mouseleave', mouseleave],
+            ['touchstart', touchstart],
+            ['touchend', touchend],
+        ];
+
+        eventMap.forEach(([event, handler]) => {
+            if (handler) {
+                content.removeEventListener(event, handler);
             }
         });
     }
 
-    _cleanUp() {
-        // Clean up event listeners from markers
-        if (this.cache) {
-            for (const [, marker] of this.cache) {
-                if (marker._customContentEvListeners) {
-                    const { content, mouseenter, mouseleave, touchstart, touchend } = marker._customContentEvListeners;
-                    if (content) {
-                        content.removeEventListener('mouseenter', mouseenter);
-                        content.removeEventListener('mouseleave', mouseleave);
-                        content.removeEventListener('touchstart', touchstart);
-                        content.removeEventListener('touchend', touchend);
-                    }
-                    delete marker._customContentEvListeners;
-                }
+    /**
+     * Remove action button click handler
+     * @private
+     * @param {Object} listeners Event listeners object
+     */
+    _removeActionClickHandler(listeners) {
+        const { actionClick } = listeners;
+
+        if (actionClick?.element && actionClick?.handler) {
+            actionClick.element.removeEventListener('click', actionClick.handler);
+        }
+    }
+
+    /**
+     * Clean up marker references
+     * @private
+     * @param {Object} marker The marker object
+     * @param {Object} listeners Event listeners object
+     */
+    _cleanupMarkerReferences(marker, listeners) {
+        const { content } = listeners;
+
+        // Clear any pending hover timeout
+        if (marker._hoverTimeout) {
+            clearTimeout(marker._hoverTimeout);
+            delete marker._hoverTimeout;
+        }
+
+        if (content) {
+            // Clean up stored handler references
+            const actionButton = content.querySelector('.btn');
+            if (actionButton && actionButton._clickHandler) {
+                delete actionButton._clickHandler;
+            }
+
+            // Clean up layout references
+            const layout = content.querySelector('.d-flex');
+            if (layout && layout._actionClickHandler) {
+                delete layout._actionClickHandler;
             }
         }
 
-        super._cleanUp();
+        delete marker._customContentEvListeners;
     }
 }

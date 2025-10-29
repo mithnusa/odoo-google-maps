@@ -83,7 +83,6 @@ export class GoogleMapController extends Component {
 
         useSubEnv({ model: this.model });
 
-
         useViewButtons(this.rootRef, {
             beforeExecuteAction: this.beforeExecuteActionButton.bind(this),
             afterExecuteAction: this.afterExecuteActionButton.bind(this),
@@ -122,54 +121,11 @@ export class GoogleMapController extends Component {
 
         useEffect(
             () => {
-                if (this.props.onSelectionChanged) {
-                    const resIds = this.model.root.selection.map((record) => record.resId);
-                    this.props.onSelectionChanged(resIds);
-                }
+                this.onSelectionChanged();
             },
-            () => [this.model.root.selection.length]
+            () => [this.model.root.selection.length, this.model.root.isDomainSelected]
         );
         this.searchBarToggler = useSearchBarToggler();
-    }
-
-    get modelParams() {
-        const { activeFields, fields } = extractFieldsFromArchInfo(
-            this.archInfo,
-            this.props.fields
-        );
-
-        const groupByInfo = {};
-        for (const fieldName in this.archInfo.groupBy.fields) {
-            const fieldNodes = this.archInfo.groupBy.fields[fieldName].fieldNodes;
-            const fields = this.archInfo.groupBy.fields[fieldName].fields;
-            groupByInfo[fieldName] = extractFieldsFromArchInfo({ fieldNodes }, fields);
-        }
-
-        const modelConfig = this.props.state?.modelState?.config || {
-            resModel: this.props.resModel,
-            fields,
-            activeFields,
-            openGroupsByDefault: false,
-        };
-
-        const viewConfig = this.viewMapConfig;
-        return {
-            config: modelConfig,
-            state: this.props.state?.modelState,
-            groupByInfo,
-            limit: this.archInfo.limit || this.props.limit,
-            countLimit: this.archInfo.countLimit,
-            defaultOrderBy: this.archInfo.defaultOrder,
-            defaultGroupBy: this.archInfo.defaultGroupBy,
-            groupsLimit: this.archInfo.groupsLimit || Number.MAX_SAFE_INTEGER,
-            multiEdit: this.archInfo.multiEdit,
-            activeIdsLimit: session.active_ids_limit,
-            hooks: {
-                onRecordSaved: this.onRecordSaved.bind(this),
-                onWillSaveRecord: this.onWillSaveRecord.bind(this),
-            },
-            viewConfig,
-        };
     }
 
     /**
@@ -179,6 +135,13 @@ export class GoogleMapController extends Component {
      * @param {Record} record
      */
     async onRecordSaved(record) {}
+
+    async onSelectionChanged() {
+        if (this.props.onSelectionChanged) {
+            const resIds = await this.model.root.getResIds(true);
+            this.props.onSelectionChanged(resIds);
+        }
+    }
 
     /**
      * onWillSaveRecord is a callBack that will be executed before the
@@ -261,35 +224,6 @@ export class GoogleMapController extends Component {
         };
     }
 
-    get archiveDialogProps() {
-        return {
-            body: _t('Are you sure that you want to archive all the selected records?'),
-            confirmLabel: _t('Archive'),
-            confirm: () => {
-                this.toggleArchiveState(true);
-            },
-            cancel: () => {},
-        };
-    }
-
-    get actionMenuItems() {
-        const { actionMenus } = this.props.info;
-        const staticActionItems = Object.entries(this.getStaticActionMenuItems())
-            .filter(([key, item]) => item.isAvailable === undefined || item.isAvailable())
-            .sort(([k1, item1], [k2, item2]) => (item1.sequence || 0) - (item2.sequence || 0))
-            .map(([key, item]) =>
-                Object.assign(
-                    { key, groupNumber: STATIC_ACTIONS_GROUP_NUMBER },
-                    omit(item, 'isAvailable')
-                )
-            );
-
-        return {
-            action: [...staticActionItems, ...(actionMenus.action || [])],
-            print: actionMenus.print,
-        };
-    }
-
     getActionMenuItems() {
         const isM2MGrouped = this.model.root.isM2MGrouped;
         const otherActionItems = [];
@@ -330,14 +264,6 @@ export class GoogleMapController extends Component {
             });
         }
         return Object.assign({}, this.props.info.actionMenus, { other: otherActionItems });
-    }
-
-    async onSelectDomain() {
-        await this.model.root.selectDomain(true);
-        if (this.props.onSelectionChanged) {
-            const resIds = await this.model.root.getResIds(true);
-            this.props.onSelectionChanged(resIds);
-        }
     }
 
     onUnselectAll() {
@@ -413,34 +339,10 @@ export class GoogleMapController extends Component {
         return this.model.root.unarchive(true);
     }
 
-    get deleteConfirmationDialogProps() {
-        const root = this.model.root;
-        let body = deleteConfirmationMessage;
-        if (root.isDomainSelected || root.selection.length > 1) {
-            body = _t('Are you sure you want to delete these records?');
-        }
-        return {
-            title: _t('Bye-bye, record!'),
-            body,
-            confirmLabel: _t('Delete'),
-            confirm: () => this.model.root.deleteRecords(),
-            cancel: () => {},
-            cancelLabel: _t('No, keep it'),
-        };
-    }
-
     async onDirectExportData() {
         await this.downloadExport(this.defaultExportList, false, 'xlsx');
     }
-    get defaultExportList() {
-        return unique(
-            this.props.archInfo.columns
-                .filter((col) => col.type === 'field')
-                .filter((col) => !col.optional || this.optionalActiveFields[col.name])
-                .map((col) => this.props.fields[col.name])
-                .filter((field) => field.exportable !== false)
-        );
-    }
+
     async onExportData() {
         const dialogProps = {
             context: this.props.context,
@@ -582,14 +484,15 @@ export class GoogleMapController extends Component {
         target = target || 'current';
         let action = null;
         if (this.actionService.currentController) {
-            const views = this.actionService.currentController.action.views.filter((view) => ['google_map', 'list', 'form'].includes(view[1]));
+            const views = this.actionService.currentController.action.views.filter((view) => view[1] !== 'google_map');
+            const view_mode = views.map((view) => view[1]).join(',');
             if (views) {
                 action = {
+                    views,
+                    view_mode,
                     name: title,
                     type: 'ir.actions.act_window',
                     res_model: this.model.root.resModel,
-                    views: views,
-                    view_mode: 'google_map,list',
                     domain: domain,
                     target: target,
                 };
@@ -601,11 +504,10 @@ export class GoogleMapController extends Component {
                 type: 'ir.actions.act_window',
                 res_model: this.model.root.resModel,
                 views: [
-                    [false, 'google_map'],
                     [false, 'list'],
                     [false, 'form'],
                 ],
-                view_mode: 'google_map,list',
+                view_mode: 'list,form',
                 domain: domain,
                 target: target,
             };
@@ -635,16 +537,128 @@ export class GoogleMapController extends Component {
         }
     }
 
+    async onUpdatedPager() {}
+
+    async createRecord() {
+        await this.props.createRecord();
+    }
+
+    onPageChangeScroll() {
+        if (this.rootRef && this.rootRef.el) {
+            if (this.env.isSmall) {
+                this.rootRef.el.scrollTop = 0;
+            } else {
+                this.rootRef.el.querySelector(".o_content").scrollTop = 0;
+            }
+        }
+    }
+
+    get modelParams() {
+        const { activeFields, fields } = extractFieldsFromArchInfo(
+            this.archInfo,
+            this.props.fields
+        );
+
+        const groupByInfo = {};
+        for (const fieldName in this.archInfo.groupBy.fields) {
+            const fieldNodes = this.archInfo.groupBy.fields[fieldName].fieldNodes;
+            const fields = this.archInfo.groupBy.fields[fieldName].fields;
+            groupByInfo[fieldName] = extractFieldsFromArchInfo({ fieldNodes }, fields);
+        }
+
+        const modelConfig = this.props.state?.modelState?.config || {
+            resModel: this.props.resModel,
+            fields,
+            activeFields,
+            openGroupsByDefault: false,
+        };
+
+        const viewConfig = this.viewMapConfig;
+        return {
+            config: modelConfig,
+            state: this.props.state?.modelState,
+            groupByInfo,
+            limit: this.archInfo.limit || this.props.limit,
+            countLimit: this.archInfo.countLimit,
+            defaultOrderBy: this.archInfo.defaultOrder,
+            defaultGroupBy: this.archInfo.defaultGroupBy,
+            groupsLimit: this.archInfo.groupsLimit || Number.MAX_SAFE_INTEGER,
+            multiEdit: this.archInfo.multiEdit,
+            activeIdsLimit: session.active_ids_limit,
+            hooks: {
+                onRecordSaved: this.onRecordSaved.bind(this),
+                onWillSaveRecord: this.onWillSaveRecord.bind(this),
+            },
+            viewConfig,
+        };
+    }
+
+    get archiveDialogProps() {
+        return {
+            body: _t('Are you sure that you want to archive all the selected records?'),
+            confirmLabel: _t('Archive'),
+            confirm: () => {
+                this.toggleArchiveState(true);
+            },
+            cancel: () => {},
+        };
+    }
+
+    get actionMenuItems() {
+        const { actionMenus } = this.props.info;
+        const staticActionItems = Object.entries(this.getStaticActionMenuItems())
+            .filter(([key, item]) => item.isAvailable === undefined || item.isAvailable())
+            .sort(([k1, item1], [k2, item2]) => (item1.sequence || 0) - (item2.sequence || 0))
+            .map(([key, item]) =>
+                Object.assign(
+                    { key, groupNumber: STATIC_ACTIONS_GROUP_NUMBER },
+                    omit(item, 'isAvailable')
+                )
+            );
+
+        return {
+            action: [...staticActionItems, ...(actionMenus.action || [])],
+            print: actionMenus.print,
+        };
+    }
+
+    get deleteConfirmationDialogProps() {
+        const root = this.model.root;
+        let body = deleteConfirmationMessage;
+        if (root.isDomainSelected || root.selection.length > 1) {
+            body = _t('Are you sure you want to delete these records?');
+        }
+        return {
+            title: _t('Bye-bye, record!'),
+            body,
+            confirmLabel: _t('Delete'),
+            confirm: () => this.model.root.deleteRecords(),
+            cancel: () => {},
+            cancelLabel: _t('No, keep it'),
+        };
+    }
+
+    get defaultExportList() {
+        return unique(
+            this.props.archInfo.columns
+                .filter((col) => col.type === 'field')
+                .filter((col) => !col.optional || this.optionalActiveFields[col.name])
+                .map((col) => this.props.fields[col.name])
+                .filter((field) => field.exportable !== false)
+        );
+    }
+
     get className() {
         return this.props.className;
     }
 
     get modelOptions() {
-        return {};
-    }
-
-    async createRecord() {
-        await this.props.createRecord();
+        return {
+            lazy:
+                !this.env.config.isReloadingController &&
+                !this.env.inDialog &&
+                !!this.props.display.controlPanel,
+        };
     }
 
     get display() {
@@ -656,7 +670,7 @@ export class GoogleMapController extends Component {
             ...this.props.display,
             controlPanel: {
                 ...controlPanel,
-                layoutActions: !this.nbSelected,
+                layoutActions: !this.hasSelectedRecords,
             },
         };
     }
@@ -666,39 +680,34 @@ export class GoogleMapController extends Component {
         return create;
     }
 
-    get nbSelected() {
-        return this.model.root.selection.length;
+    get hasSelectedRecords() {
+        return this.model.root.selection.length || this.isDomainSelected;
     }
 
-    get isPageSelected() {
-        const root = this.model.root;
-        return root.selection.length === root.records.length;
+    get actionMenuProps() {
+        return {
+            getActiveIds: () => this.model.root.selection.map((r) => r.resId),
+            context: this.model.root.context,
+            domain: this.props.domain,
+            items: this.actionMenuItems,
+            isDomainSelected: this.model.root.isDomainSelected,
+            resModel: this.model.root.resModel,
+            onActionExecuted: ({ noReload } = {}) => {
+                if (!noReload) {
+                    return this.model.load();
+                }
+            },
+        };
     }
 
     get isDomainSelected() {
         return this.model.root.isDomainSelected;
     }
 
-    get nbTotal() {
-        const list = this.model.root;
-        return list.isGrouped ? list.recordCount : list.count;
-    }
-
     get hasSelectors() {
         return this.props.allowSelectors && !this.env.isSmall;
     }
 
-    async onUpdatedPager() {}
-
-    onPageChangeScroll() {
-        if (this.rootRef && this.rootRef.el) {
-            if (this.env.isSmall) {
-                this.rootRef.el.scrollTop = 0;
-            } else {
-                this.rootRef.el.querySelector(".o_content").scrollTop = 0;
-            }
-        }
-    }
 
     get rendererProps() {
         return {

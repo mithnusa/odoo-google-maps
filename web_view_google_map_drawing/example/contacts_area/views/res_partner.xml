@@ -7,7 +7,7 @@
         <field name="priority">1000</field>
         <field name="arch" type="xml">
             <xpath expr="//notebook" position="inside">
-                <page string="Lands">
+                <page string="Land">
                     <field name="shape_line_ids" widget="google_map_drawing_one2many" mode="google_map">
                         <google_map js_class="google_map_drawing" color="gshape_color" map_type="hybrid" gesture_handling="cooperative" geojson="gshape_geojson" sidebar_title="gshape_name" sidebar_subtitle="gshape_description">
                             <field name="partner_id"/>

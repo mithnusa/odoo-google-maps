@@ -1,8 +1,10 @@
 .o_google_map_renderer, .o_dialog {
     .o_google_map_view {
         .sale_order {
-            min-width: 180px;
-            max-width: 250px;
+            // min-width: 200px;
+            // max-width: 320px;
+            width: 250px;
+            min-height: 30px;
             border-radius: 8px;
             font-size: 14px;
             text-align: center;
@@ -12,7 +14,7 @@
             box-shadow: 10px 8px 5px rgba(0, 0, 0, 0.2);
             color: light-dark(black, #fafafa);
             background-color: light-dark(#fafafa, black);
-            transition: transform 0.3s ease, font-size 0.3s ease;
+            transition: transform 0.3s ease, font-size 0.3s ease, box-shadow 0.3s ease, border 0.3s ease;
             border: 1px solid light-dark(rgba(0, 0, 0, 0.2), rgba(94, 94, 94, 0.2));
 
             &:after {
@@ -45,8 +47,8 @@
         }
 
         .marker-hover-animation {
-            box-shadow: 0 0 14px 10px light-dark(rgba(0, 0, 0, 0.3), rgba(47, 47, 47, 0.5));
-            border: 1px solid light-dark(rgba(0, 0, 0, 0.2), rgba(69, 68, 68, 0.2));
+            box-shadow: 0 0 12px 10px light-dark(rgba(0, 0, 0, 0.3), rgba(47, 47, 47, 0.5));
+            border: 1.25px solid light-dark(rgba(0, 0, 0, 0.2), rgba(69, 68, 68, 0.2));
             font-size: large;
         }
  

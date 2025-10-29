@@ -21,13 +21,15 @@
                     <t t-component="searchBarToggler.component" t-props="searchBarToggler.props"/>
                 </t>
                 <t t-set-slot="control-panel-additional-actions">
-                    <CogMenu t-if="!nbSelected"/>
+                    <CogMenu t-if="!hasSelectedRecords"/>
                 </t>
                 <t t-set-slot="control-panel-selection-actions">
-                    <div t-if="nbSelected" class="d-flex gap-1">
+                    <div t-if="hasSelectedRecords" class="d-flex gap-1">
                         <SelectionBox root="this.model.root"/>
-                        <t t-if="props.info.actionMenus">
-                            <ActionMenus getActiveIds="() => model.root.selection.map((r) => r.resId)" context="props.context" domain="props.domain" items="actionMenuItems" isDomainSelected="model.root.isDomainSelected" resModel="model.root.resModel" onActionExecuted="() => model.load()"/>
+                        <t t-if="!env.isSmall">
+                            <t t-if="props.info.actionMenus">
+                                <ActionMenus t-props="actionMenuProps"/>
+                            </t>
                         </t>
                     </div>
                 </t>
