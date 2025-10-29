@@ -1,20 +1,3 @@
-/**
- * Terra Draw Tools UI Styles
- * 
- * Provides styling for the Terra Draw integration component including:
- * - Drawing toolbar with mode buttons
- * - In-map overlay positioning for measurement panel
- * - Professional button styling with active states
- * - Responsive measurement display overlay
- * 
- * Key Features:
- * - Overlay positioning inside map container for better UX
- * - Professional button styling with hover and active states
- * - Measurement panel with backdrop blur and professional appearance
- * - Responsive design that adapts to different screen sizes
- */
-
-// Ensure the parent container has relative positioning for proper overlay positioning
 .o_google_map_renderer {
     position: relative;
 }

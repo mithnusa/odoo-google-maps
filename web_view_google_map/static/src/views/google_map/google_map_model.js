@@ -21,14 +21,6 @@ export class GoogleMapGroup extends Group {
         return this.groupByField ? this.groupByField.string : '';
     }
 
-    async groupRecords() {
-        if (this.list.records.length) {
-            return this.list.records;
-        }
-        await this.list.load();
-        return this.list.records;
-    }
-
     get dataView() {
         let other = {};
         let geolocation = {};

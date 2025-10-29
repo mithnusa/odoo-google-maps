@@ -1,10 +1,11 @@
 # Web View — Google Maps
 
-Turn any Odoo model with latitude/longitude fields into an interactive Google Map. This view type adds a powerful map visualization with clustering, grouping, a searchable sidebar, and quick actions—without leaving Odoo.
+Turn any Odoo model with latitude/longitude fields into an interactive Google Maps. This view type adds a powerful map visualization with clustering, grouping, a searchable sidebar, and quick actions.
 
 Requirements
 - Module dependency: `base_google_map` (provides API key setup and loader)
 - A valid Google Maps API key configured in Settings > General Settings > Google Maps
+- Maps JavaScript API enabled in your Google Cloud Console
 - Map ID
 
 Quick start
@@ -22,7 +23,6 @@ Quick start
             <field name="marker_color"/>
         </google_map>
     </field>
-  
 </record>
 
 <!-- Action -->
@@ -33,7 +33,7 @@ Quick start
 </record>
 ```
 
-Attributes reference
+### Attributes reference
 - Required
     - `lat`: name of the latitude field
     - `lng`: name of the longitude field
@@ -84,15 +84,25 @@ You can also embed a map in a form view (commonly used with drawing or shapes mo
 </field>
 ```
 
-What you get out of the box
+## Features
 - Marker clustering and auto-fit to bounds (with a sensible max auto-zoom)
 - Sidebar listing with selection, grouping support, and quick actions
 - Click-to-open record in dialog or form view; optional custom action routing
 - Built-in geolocate button and in-map place search (configurable via settings)
 - Export support via the standard action menu (when allowed)
-- Shift + drag to select multiple records directly from the map
+- Press Command or Alt + drag to select multiple records directly from the map
+- Customizable marker colors via color picker fields or fixed colors
 
-Setup and configuration
+
+## Handling multiple markers at the same location
+When multiple records share the exact same latitude and longitude, markers are slightly shifted apart to ensure visibility and interactivity. Clicking on a shifted marker will zoom in further to help users see the connection line to the actual location.
+<div style="display: flex; gap: 4px; justify-content: center;">
+  <img src="static/img/spread_out_markers.png" alt="Spread out markers" style="width: 40%; max-width: 300px; height: auto;">
+  <img src="static/img/spread_out_marker_info.png" alt="Spread out marker info" style="width: 40%; max-width: 300px; height: auto;">
+</div>
+
+
+## Setup and configuration
 1) Google Maps API Key. Visit https://developers.google.com/maps/documentation/javascript/get-api-key to get an API key
 2) Enable the following APIs in your Google Cloud Console:
    - Maps JavaScript API

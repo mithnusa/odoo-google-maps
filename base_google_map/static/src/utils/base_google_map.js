@@ -183,10 +183,8 @@ export class BaseGoogleMapComponent extends Component {
             });
 
             // Create and initialize map
-            const googleMap = new Map(mapEl, mapOptions);
-            this.googleMap = googleMap;
+            const googleMap = await this.initializeGoogleMap(mapEl, mapOptions);
 
-            
             // Setup resize observer for responsive behavior
             this._setupResizeObserver(mapEl);
             // Setup accessibility features
@@ -199,6 +197,21 @@ export class BaseGoogleMapComponent extends Component {
         } catch (error) {
             this.onGoogleMapsApiError(error);
         }
+    }
+
+    /**
+     * Initialize Google Map instance
+     * Can be overridden by child classes for custom initialization
+     * @protected
+     * @param {*} mapEl
+     * @param {*} options 
+     * @returns Google Maps instance
+     */
+    async initializeGoogleMap(mapEl, options) {
+        const { Map } = await this.apiLoader.importLibrary('maps');
+        const googleMap = new Map(mapEl, options);
+        this.googleMap = googleMap;
+        return googleMap;
     }
 
     /**

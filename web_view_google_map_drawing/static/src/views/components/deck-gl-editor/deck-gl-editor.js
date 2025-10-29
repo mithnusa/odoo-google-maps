@@ -1,7 +1,6 @@
 import { _t } from '@web/core/l10n/translation';
 import { debounce } from '@web/core/utils/timing';
 import { useService } from '@web/core/utils/hooks';
-import { loadJS } from '@web/core/assets';
 import {
     Component,
     useEffect,
@@ -12,6 +11,7 @@ import {
     onWillUpdateProps,
 } from '@odoo/owl';
 import { hexToRgba, generateColor } from '@web_view_google_map/views/google_map/utils';
+import { loadDeckGlAssets } from '../../../utils/utils';
 
 
 /**
@@ -172,21 +172,7 @@ export class DeckGlEditor extends Component {
      * @private
      */
     async _loadDeckGLAssets() {
-        if (window.deck) {
-            return;
-        }
-
-        try {
-            // Load Deck.gl core and Google Maps integration
-            await loadJS('https://unpkg.com/deck.gl@9.2.2/dist.min.js');
-
-            if (!window.deck) {
-                throw new Error('Deck.gl failed to load correctly.');
-            }
-        } catch (error) {
-            console.error('Error loading Deck.gl and Nebula GL assets:', error);
-            throw new Error('Failed to load Deck.gl and Nebula GL assets: ' + error.message);
-        }
+        loadDeckGlAssets();
     }
 
     /**

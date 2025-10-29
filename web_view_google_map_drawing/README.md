@@ -3,8 +3,12 @@
 This module allows you to manage GeoJSON data using Google Maps integrated with [Terra Draw library](https://terradraw.io/), [Deck.gl](https://deck.gl/), and [Turf.js](https://turfjs.org/).
 The Google Maps Drawing has been deprecated ([source](https://developers.google.com/maps/deprecations#drawing_library_deprecated_as_of_aug_8_2025)). As an alternative (suggested by Google) this module uses Terra Draw to provide drawing capabilities on Google Maps.
 
+<div style="display: flex; gap: 4px; justify-content: center;">
+  <img src="static/img/screenshot/geojson_views.png" alt="Spread out markers" style="width: 100%; max-width: 600px; height: auto;">
+</div>
+
 ### 1. `google_map_drawing` a sub-view of `google_map` view
-A new view to display geolocation data using Google Maps Drawing
+A new view to display geolocation data using Google Maps with drawing capabilities.
 
 How to create the view?
 
@@ -14,7 +18,7 @@ How to create the view?
     <field name="name">view.res.partner.area.map</field>
     <field name="model">res.partner.area</field>
     <field name="arch" type="xml">
-        <google_map js_class="google_map_drawing" geojson="gshape_geojson" string="Lands" color="gshape_color" sidebar_title="gshape_name" sidebar_subtitle="partner_id">
+        <google_map js_class="google_map_drawing" geojson="gshape_geojson" string="Land" color="gshape_color" sidebar_title="gshape_name" sidebar_subtitle="partner_id">
             <field name="partner_id"/>
             <field name="gshape_name"/>
             <field name="gshape_area"/>
@@ -55,7 +59,7 @@ and for field `Many2many` uses widget `google_map_drawing_many2many`
 Example:
 ```xml
 <field name="shape_line_ids" widget="google_map_drawing_one2many" mode="google_map">
-    <google_map js_class="google_map_drawing" string="Lands" sidebar_title="gshape_name" sidebar_subtitle="partner_id" color="gshape_color" geojson="gshape_geojson" map_type="hybrid" gesture_handling="cooperative">
+    <google_map js_class="google_map_drawing" string="Land" sidebar_title="gshape_name" sidebar_subtitle="partner_id" color="gshape_color" geojson="gshape_geojson" map_type="hybrid" gesture_handling="cooperative">
         <field name="partner_id" invisible="1"/>
         <field name="gshape_name"/>
         <field name="gshape_area"/>
@@ -68,6 +72,10 @@ Example:
 
 ### 2. New widget `google_map_terra_draw`
 In order to activate the drawing mode, it's a must to apply widget `google_map_terra_draw` to field `gshape_geojson` (or any fields on your own) in view `form`
+
+<div style="display: flex; gap: 4px; justify-content: center;">
+  <img src="static/img/screenshot/widget_drawing_tools.png" alt="Spread out markers" style="width: 100%; max-width: 400px; height: auto;">
+</div>
 
 Example:
 ```xml

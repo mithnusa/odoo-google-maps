@@ -20,28 +20,43 @@ import {
 } from './utils';
 
 /**
- * Maximum zoom level to apply when fitting bounds
- * @type {number}
+ * Configuration constants for marker behavior and styling
  */
-export const MAX_AUTO_ZOOM = 17;
-
-/**
- * Number of records to process in each batch for better UI responsiveness
- * @type {number}
- */
-export const MARKER_BATCH_SIZE = 100;
-
-/**
- * Number of other markers at the same position to show before displaying "Show more" button
- * @type {number}
- */
-export const MAX_INLINE_MARKERS = 2;
-
-/**
- * Shift key code for keyboard events
- * @type {number}
- */
-export const SHIFT_KEY_CODE = 16;
+const MARKER_CONFIG = {
+    OVERLAP: {
+        OFFSET_RADIUS: 0.00009, // ~10 meters at equator
+        POSITION_TOLERANCE: 0.000001, // Tolerance for position comparison
+    },
+    VISUAL: {
+        CONNECTION_LINE: {
+            STROKE_COLOR: '#999999',
+            STROKE_OPACITY: 0,
+            STROKE_WEIGHT: 1,
+            SYMBOL: {
+                path: 'M 0,-1 0,1',
+                strokeOpacity: 0.6,
+                strokeWeight: 1,
+                scale: 2,
+            },
+            ICON_OFFSET: '0',
+            ICON_REPEAT: '10px',
+        },
+        MARKER: {
+            SELECTED_CLASS: 'marker-circle selected',
+            DEFAULT_CLASS: 'marker-circle',
+            BORDER: '2px solid #fafafa',
+        }
+    },
+    BOUNDS: {
+        DEFAULT_PADDING: 200,
+        MAX_AUTO_ZOOM: 17,
+    },
+    BATCH: {
+        SELECTION_SIZE: 20,
+        MARKER_SIZE: 100,
+        IDLE_TIMEOUT: 10,
+    }
+};
 
 export class GoogleMapRenderer extends BaseGoogleMapComponent {
     static template = 'web_view_google_map.GoogleMapRenderer';
@@ -91,6 +106,7 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
         this.cachedGroupsOrRecords = null;
 
         this._markerEventListeners = new Map();
+        this._elementEventListeners = new Map();
         this._markerPositionIndex = new Map();
 
         this.debounceToggleRecordSelection = debounce(this.toggleRecordSelection.bind(this), 500);
@@ -123,7 +139,6 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
             mapState: this.state,
             apiLoader: this.apiLoader,
             cache: this.cache,
-            googleMap: this.getGoogleMap.bind(this),
             isMapLoaded: this.isMapLoaded.bind(this),
         });
 
@@ -241,15 +256,8 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
         }
 
         // Fit map to bounds once all markers are rendered
+        // This now happens after the async batch processing completes
         this._fitBoundsWhenReady();
-    }
-
-    /**
-     * Get the Google Map instance
-     * @returns {Object|null} Google Map instance
-     */
-    getGoogleMap() {
-        return this.googleMap;
     }
 
     /**
@@ -297,10 +305,9 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
      * Create or update a marker for a record
      * @param {Object} record The record to create a marker for
      * @param {string} [markerColor] Optional color override for the marker
-     * @param {boolean} [skipFitBounds=false] Whether to skip fitting bounds after creation
      * @returns {Promise<Object>} The marker object
      */
-    async createMarker(record, markerColor, skipFitBounds = false) {
+    async createMarker(record, markerColor) {
         const dataView = this.getRecordDataView(record);
         if (!dataView?.geolocation) return null;
 
@@ -313,7 +320,7 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
 
             // Update existing marker if it exists
             if (this.cache.has(record.id)) {
-                return this._updateExistingMarker(record, geolocation, skipFitBounds);
+                return this._updateExistingMarker(record, geolocation);
             }
 
             // Create new marker
@@ -321,8 +328,7 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
                 record,
                 geolocation,
                 other,
-                elementValues,
-                skipFitBounds
+                elementValues
             );
             this.mapBoxSelector?.addMarker(marker);
             return marker;
@@ -347,14 +353,18 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
         }
 
         // Remove all markers from the map and clear event listeners
-        this.cache.forEach((marker, id) => {
+        for (const [id, marker] of this.cache) {
+            // Remove connection line if exists
+            if (marker._connectionLine) {
+                marker._connectionLine.setMap(null);
+                delete marker._connectionLine;
+            }
             marker.map = null;
             this._removeMarkerEventListeners(id);
-        });
+        }
 
         this.cacheRecordDataView.clear();
         this._markerEventListeners.clear();
-        this._markerPositionIndex.clear();
         this.cache.clear();
         this._invalidateMarkerPositionIndex();
 
@@ -462,12 +472,26 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
         const shouldSelect = list.selection.length !== recordsToUpdate.length;
 
         // Deselect domain if we're deselecting
-        if (!shouldSelect) {
-            list.selectDomain(false);
-        }
+        // if (!shouldSelect) {
+        //     list.selectDomain(false);
+        // }
 
         // Process records in batches for better UI responsiveness
         return this._processSelectionInBatches(recordsToUpdate, shouldSelect);
+    }
+
+    /**
+     * @param {RelationalRecord} record
+     */
+    toggleRangeSelection(record) {
+        const { records } = this.props.list;
+        const recordIndex = records.indexOf(record);
+        const lastCheckedRecordIndex = records.indexOf(this.lastCheckedRecord);
+        const start = Math.min(recordIndex, lastCheckedRecordIndex);
+        const end = Math.max(recordIndex, lastCheckedRecordIndex);
+        for (let i = start; i <= end; i++) {
+            records[i].toggleSelection(!record.selected);
+        }
     }
 
     /**
@@ -476,19 +500,16 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
      * @param {boolean} [pointInMap=false] Whether to center the map on the record
      */
     toggleRecordSelection(record, pointInMap = false) {
-        if (!record) return;
-
         this.markerInfoWindow.close();
+        if (!record || !this.canSelectRecord) return;
 
         record.toggleSelection().then(() => {
             this._updateMarkerSelectionState(record);
+            if (pointInMap && record._marker) {
+                this.googleMap.panTo(record._marker.position);
+            }
         });
 
-        this.props.list.selectDomain(false);
-
-        if (pointInMap && record._marker) {
-            this.googleMap.panTo(record._marker.position);
-        }
     }
 
     //--------------------------------------------------------------------------
@@ -583,6 +604,8 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
     async _selectMarker(marker) {
         if (!marker || !this.isMapLoaded()) return;
 
+        marker.content.className = MARKER_CONFIG.VISUAL.MARKER.SELECTED_CLASS;
+
         try {
             // Center map on marker
             this.googleMap.panTo(marker.position);
@@ -603,6 +626,8 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
     async _deselectMarker(marker) {
         if (!marker || !this.isMapLoaded()) return;
 
+        marker.content.className = MARKER_CONFIG.VISUAL.MARKER.DEFAULT_CLASS;
+
         try {
             // Center map on marker
             this.googleMap.panTo(marker.position);
@@ -616,45 +641,67 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
     }
 
     /**
-     * Process record selection in batches
+     * Enhanced batch processing with configuration
      * @private
      * @param {Array} records Records to process
      * @param {boolean} shouldSelect Whether to select or deselect
      * @returns {Promise} Promise resolving when complete
      */
     _processSelectionInBatches(records, shouldSelect) {
-        // Process in batches to avoid UI freezing
-        const batchSize = 20;
+        const { SELECTION_SIZE } = MARKER_CONFIG.BATCH;
         const totalRecords = records.length;
         let processedCount = 0;
 
-        return new Promise((resolve) => {
+        return new Promise((resolve, reject) => {
             const processBatch = async () => {
-                const batch = records.slice(
-                    processedCount,
-                    Math.min(processedCount + batchSize, totalRecords)
-                );
+                try {
+                    const batch = this._getBatchSlice(records, processedCount, SELECTION_SIZE);
+                    await this._processBatchRecords(batch, shouldSelect);
+                    
+                    processedCount += batch.length;
 
-                const batchPromises = batch.map((record) =>
-                    record.toggleSelection(shouldSelect).then(() => {
-                        this._updateMarkerSelectionState(record);
-                    })
-                );
-
-                await Promise.all(batchPromises);
-
-                processedCount += batch.length;
-
-                if (processedCount < totalRecords) {
-                    // Continue with next batch after a small delay
-                    setTimeout(processBatch, 0);
-                } else {
-                    resolve();
+                    if (processedCount < totalRecords) {
+                        setTimeout(processBatch, 0);
+                    } else {
+                        resolve();
+                    }
+                } catch (error) {
+                    console.error('Error in batch selection processing:', error);
+                    reject(error);
                 }
             };
 
             processBatch();
         });
+    }
+
+    /**
+     * Get a slice of records for batch processing
+     * @private
+     * @param {Array} records All records
+     * @param {number} startIndex Starting index
+     * @param {number} batchSize Size of the batch
+     * @returns {Array} Batch slice
+     */
+    _getBatchSlice(records, startIndex, batchSize) {
+        return records.slice(startIndex, Math.min(startIndex + batchSize, records.length));
+    }
+
+    /**
+     * Process a batch of records for selection
+     * @private
+     * @param {Array} batch Batch of records to process
+     * @param {boolean} shouldSelect Whether to select or deselect
+     * @returns {Promise} Promise resolving when batch is processed
+     */
+    async _processBatchRecords(batch, shouldSelect) {
+        const batchPromises = batch.map((record) =>
+            record.toggleSelection(shouldSelect).then(() => {
+                this._updateMarkerSelectionState(record);
+            })
+        );
+
+        await Promise.all(batchPromises);
     }
 
     /**
@@ -698,50 +745,75 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
     _fitBoundsWhenReady() {
         if (this.googleMapBoundsSelected && !this.googleMapBoundsSelected.isEmpty()) {
             this._fitMapBoundsWithLimit(this.googleMapBoundsSelected);
-            return;
-        }
-        if (this.googleMapBounds && !this.googleMapBounds.isEmpty()) {
+        } else if (this.googleMapBounds && !this.googleMapBounds.isEmpty()) {
             this._fitMapBoundsWithLimit(this.googleMapBounds);
         }
     }
 
     /**
-     * Render markers for ungrouped records with batching for performance
+     * Enhanced ungrouped markers rendering with better error handling
      * @private
      * @param {Array} datas Record data array
      * @returns {Promise} Promise that resolves when all markers are rendered
      */
     _renderUngroupedMarkers(datas) {
-        if (!datas.length) return Promise.resolve();
+        if (!datas.length) {
+            return Promise.resolve();
+        }
 
-        return new Promise((resolve) => {
-            const processBatch = (startIndex) => {
-                const endIndex = Math.min(startIndex + MARKER_BATCH_SIZE, datas.length);
+        return this._processBatchedMarkerCreation(datas);
+    }
 
-                for (let i = startIndex; i < endIndex; i++) {
-                    // Skip fitting bounds during batch creation for performance
-                    this.createMarker(datas[i].record, undefined, true);
-                }
+    /**
+     * Process marker creation in batches for better performance
+     * @private
+     * @param {Array} datas Record data array
+     * @returns {Promise} Promise that resolves when all markers are created
+     */
+    _processBatchedMarkerCreation(datas) {
+        const { MARKER_SIZE, IDLE_TIMEOUT } = MARKER_CONFIG.BATCH;
 
-                if (endIndex < datas.length) {
-                    // Use requestIdleCallback if available, otherwise setTimeout
-                    if (window.requestIdleCallback) {
-                        window.requestIdleCallback(() => processBatch(endIndex));
-                    } else {
-                        setTimeout(() => processBatch(endIndex), 10);
+        return new Promise((resolve, reject) => {
+            const processBatch = async (startIndex) => {
+                try {
+                    const endIndex = Math.min(startIndex + MARKER_SIZE, datas.length);
+
+                    // Create markers in current batch and wait for all to complete
+                    const batchPromises = [];
+                    for (let i = startIndex; i < endIndex; i++) {
+                        // Markers are created without fitting bounds for performance
+                        // Bounds will be fitted once all markers are created
+                        batchPromises.push(this.createMarker(datas[i].record, undefined));
                     }
-                } else {
-                    // All markers have been created, resolve the promise
-                    resolve();
+                    await Promise.all(batchPromises);
+
+                    if (endIndex < datas.length) {
+                        this._scheduleNextBatch(() => processBatch(endIndex), IDLE_TIMEOUT);
+                    } else {
+                        resolve();
+                    }
+                } catch (error) {
+                    console.error('Error in batch marker creation:', error);
+                    reject(error);
                 }
             };
 
-            if (window.requestIdleCallback) {
-                window.requestIdleCallback(() => processBatch(0));
-            } else {
-                setTimeout(() => processBatch(0), 10);
-            }
+            this._scheduleNextBatch(() => processBatch(0), 0);
         });
+    }
+
+    /**
+     * Schedule next batch using optimal timing method
+     * @private
+     * @param {Function} callback Callback to execute
+     * @param {number} timeout Fallback timeout
+     */
+    _scheduleNextBatch(callback, timeout) {
+        if (window.requestIdleCallback) {
+            window.requestIdleCallback(callback);
+        } else {
+            setTimeout(callback, timeout);
+        }
     }
 
     /**
@@ -753,11 +825,13 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
     async _renderGroupedMarkers(datas) {
         const groupPromises = datas.map(async ({ group }) => {
             try {
-                const records = await group.groupRecords();
-                records.forEach((record) => {
-                    // Skip fitting bounds during batch creation for performance
-                    this.createMarker(record, group.groupColor, true);
+                // Create all markers for this group and wait for them to complete
+                const markerPromises = group.records.map((record) => {
+                    // Markers are created without fitting bounds for performance
+                    // Bounds will be fitted once all markers are created
+                    return this.createMarker(record, group.groupColor);
                 });
+                await Promise.all(markerPromises);
             } catch (error) {
                 console.error('Failed to load group records:', error);
             }
@@ -769,50 +843,54 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
 
     /**
      * Update map bounds with a new marker position
+     * Note: This method only extends bounds, it doesn't fit them.
+     * The caller should handle fitting bounds after all markers are created.
      * @private
      * @param {Object} marker Marker to include in bounds
-     * @param {boolean} [skipFitBounds=false] Whether to skip fitting bounds
      */
-    _updateMapBounds(marker, skipFitBounds = false) {
+    _updateMapBounds(marker) {
         if (!this.isMapLoaded() || !marker) return;
-
         // Update marker clustering
         this._updateMarkerClusterer(marker);
 
-        // Extend map bounds
-        this.googleMapBounds.extend(marker.position);
-
+        // Only extend bounds, don't fit during batch operations
         if (marker._odooRecord?.selected) {
             this.googleMapBoundsSelected.extend(marker.position);
+        } else {
+            this.googleMapBounds.extend(marker.position);
         }
 
-        // Fit bounds if requested
-        if (!skipFitBounds) {
-            if (!this.googleMapBoundsSelected.isEmpty()) {
-                this._fitMapBoundsWithLimit(this.googleMapBoundsSelected);
-            } else {
-                this._fitMapBoundsWithLimit(this.googleMapBounds);
-            }
-        }
+        // Never fit bounds here - let the caller handle it after all markers are created
+        // This prevents constant re-centering during batch marker creation
     }
 
     /**
-     * Fit map to bounds with max zoom limit
+     * Enhanced bounds fitting with configuration
      * @private
      * @param {Object} bounds Bounds to fit
+     * @param {number} [padding] Padding in pixels
      */
-    _fitMapBoundsWithLimit(bounds) {
+    _fitMapBoundsWithLimit(bounds, padding = MARKER_CONFIG.BOUNDS.DEFAULT_PADDING) {
         if (!this.isMapLoaded() || bounds.isEmpty()) return;
 
         // Add padding to prevent markers from being pushed to the edge
         // Padding is in pixels and creates space between markers and viewport edges
-        this.googleMap.fitBounds(bounds, 50);
+        this.googleMap.fitBounds(bounds, padding);
 
-        // Limit zoom level after bounds fit
+        // Apply zoom limit after bounds fit
+        this._applyZoomLimitAfterBoundsFit();
+    }
+
+    /**
+     * Apply zoom limit after bounds are fitted
+     * @private
+     */
+    _applyZoomLimitAfterBoundsFit() {
         if (google.maps?.event) {
             google.maps.event.addListenerOnce(this.googleMap, 'idle', () => {
-                if (this.googleMap && this.googleMap.getZoom() > MAX_AUTO_ZOOM) {
-                    this.googleMap.setZoom(MAX_AUTO_ZOOM);
+                const currentZoom = this.googleMap?.getZoom();
+                if (currentZoom && currentZoom > MARKER_CONFIG.BOUNDS.MAX_AUTO_ZOOM) {
+                    this.googleMap.setZoom(MARKER_CONFIG.BOUNDS.MAX_AUTO_ZOOM);
                 }
             });
         }
@@ -860,15 +938,8 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
         } catch (error) {
             console.error(error);
             this.notificationService.add(
-                _t(
-                    "Something went wrong. Marker Clusterer couldn't be created. See Javascript console for technical details."
-                ),
-                {
-                    title: _t('Google Maps MarkerClusterer'),
-                    type: 'danger',
-                    sticky: false,
-                    autocloseDelay: 2000,
-                }
+                _t("Something went wrong. Marker Clusterer couldn't be created. See Javascript console for technical details."),
+                { type: 'danger' }
             );
         }
     }
@@ -878,11 +949,11 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
      * @private
      * @param {Object} record Record data
      * @param {Object} geolocation Position data
-     * @param {boolean} [skipFitBounds=false] Whether to skip fitting bounds
      * @returns {Object} Updated marker
      */
-    _updateExistingMarker(record, geolocation, skipFitBounds = false) {
+    _updateExistingMarker(record, geolocation) {
         const marker = this.cache.get(record.id);
+
 
         // Add to map if not already present
         if (!marker.map) {
@@ -893,160 +964,269 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
         marker.position = geolocation;
 
         // Update bounds
-        this._updateMapBounds(marker, skipFitBounds);
+        this._updateMapBounds(marker);
 
         return marker;
     }
 
     /**
-     * Create a new marker
+     * Create a new marker with proper setup and positioning
      * @private
      * @param {Object} record Record data
      * @param {Object} geolocation Position data
      * @param {Object} data Additional marker data
      * @param {Object} elementValues Values for marker styling
-     * @param {boolean} [skipFitBounds=false] Whether to skip fitting bounds
      * @returns {Object} New marker
      */
-    async _createNewMarker(record, geolocation, data, elementValues, skipFitBounds = false) {
-        const { AdvancedMarkerElement } = await this.apiLoader.importLibrary('marker');
-        const content = this._createMarkerElement(record, elementValues);
-        const options = this._createMarkerOptions(geolocation, data);
-        options.content = content;
-
-        // Create marker
-        const marker = new AdvancedMarkerElement(options);
-
-        // Store metadata with marker
-        marker._odooRecord = record;
-        marker._markerOptionValues = options;
-        marker._elementValues = elementValues;
-
-        // Store the original position before any shifts
-        marker._originalPosition = {
-            lat: geolocation.lat,
-            lng: geolocation.lng,
-        };
-
-        // Store marker with record
-        record._marker = marker;
-        marker._isShifted = false;
-
-        // Add click listener and store it for cleanup
-        const clickListener = marker.addListener(
-            'click',
-            this._handleMarkerClick.bind(this, marker)
-        );
-
-        this._storeMarkerEventListener(record.id, 'click', clickListener);
-
-        // Store marker in cache
-        this.cache.set(record.id, marker);
-
-        // Handle overlapping markers
-        this._handleMarkersOverlapAt(marker);
-
-        // Update map bounds
-        this._updateMapBounds(marker, skipFitBounds);
+    async _createNewMarker(record, geolocation, data, elementValues) {
+        const marker = await this._buildAdvancedMarker(record, geolocation, data, elementValues);
+        this._setupMarkerMetadata(marker, record, geolocation, elementValues);
+        this._attachMarkerEventListeners(marker, record);
+        this._handleMarkerPositioning(marker);
+        this._updateMapBounds(marker);
 
         return marker;
     }
 
     /**
-     * Slightly shift markers that overlap at the same position
-     * Arranges overlapping markers in a circular pattern
-     * @param {*} marker
+     * Build the actual AdvancedMarkerElement
+     * @private
+     * @param {Object} record Record data
+     * @param {Object} geolocation Position data
+     * @param {Object} data Additional marker data
+     * @param {Object} elementValues Values for marker styling
+     * @returns {Object} AdvancedMarkerElement
+     */
+    async _buildAdvancedMarker(record, geolocation, data, elementValues) {
+        const { AdvancedMarkerElement } = await this.apiLoader.importLibrary('marker');
+        const content = this._createMarkerElement(record, elementValues);
+        const options = this._createMarkerOptions(geolocation, data);
+        options.content = content;
+        
+        return new AdvancedMarkerElement(options);
+    }
+
+    /**
+     * Setup marker metadata and relationships
+     * @private
+     * @param {Object} marker The marker to setup
+     * @param {Object} record Record data
+     * @param {Object} geolocation Position data
+     * @param {Object} elementValues Values for marker styling
+     */
+    _setupMarkerMetadata(marker, record, geolocation, elementValues) {
+        marker._odooRecord = record;
+        marker._markerOptionValues = marker.options;
+        marker._elementValues = elementValues;
+        marker._originalPosition = {
+            lat: geolocation.lat,
+            lng: geolocation.lng,
+        };
+        marker._isShifted = false;
+        
+        // Establish bidirectional relationship
+        record._marker = marker;
+        
+        // Store in cache
+        this.cache.set(record.id, marker);
+    }
+
+    /**
+     * Attach event listeners to marker
+     * @private
+     * @param {Object} marker The marker to attach listeners to
+     * @param {Object} record Record data
+     */
+    _attachMarkerEventListeners(marker, record) {
+        const clickListener = marker.addListener(
+            'click',
+            this._handleMarkerClick.bind(this, marker)
+        );
+        this._storeMarkerEventListener(record.id, 'click', clickListener);
+    }
+
+    /**
+     * Handle marker positioning including overlap management
+     * @private
+     * @param {Object} marker The marker to position
+     */
+    _handleMarkerPositioning(marker) {
+        this._handleMarkersOverlapAt(marker);
+    }
+
+    /**
+     * Handle overlapping markers by shifting their positions
+     * @private
+     * @param {Object} marker The marker to check for overlaps
      */
     _handleMarkersOverlapAt(marker) {
-        const OVERLAP_OFFSET_RADIUS = 0.00009; // ~10 meters at equator
-
-        // Get the original position of the new marker
-        const originalLat = marker._originalPosition.lat;
-        const originalLng = marker._originalPosition.lng;
-
-        // Count how many markers already exist at this original position
-        let overlapIndex = 0;
-
-        for (const [, m] of this.cache) {
-            if (m !== marker && m._originalPosition) {
-                // Compare against the original positions (before any shifts)
-                if (
-                    Math.abs(m._originalPosition.lat - originalLat) < 0.000001 &&
-                    Math.abs(m._originalPosition.lng - originalLng) < 0.000001
-                ) {
-                    overlapIndex++;
-                }
-            }
+        if (!this._isValidMarkerForOverlapHandling(marker)) {
+            return;
         }
 
-        // If there's overlap, arrange markers in a circle
+        const overlapIndex = this._calculateOverlapIndex(marker);
+        
         if (overlapIndex > 0) {
-            // Calculate angle for this marker's position in the circle
-            // Distribute markers evenly around 360 degrees
-            const angle = (overlapIndex * 2 * Math.PI) / (overlapIndex + 1);
-
-            // Calculate offset using polar coordinates
-            const offsetLat = Math.sin(angle) * OVERLAP_OFFSET_RADIUS;
-            const offsetLng = Math.cos(angle) * OVERLAP_OFFSET_RADIUS;
-
-            // Apply the offset to the original position
-            marker.position = {
-                lat: originalLat + offsetLat,
-                lng: originalLng + offsetLng,
-            };
-
-            marker._isShifted = true;
-
-            // Draw a line from shifted marker to original position
+            this._applyOverlapOffset(marker, overlapIndex);
             this._drawConnectionLine(marker);
         }
     }
 
     /**
-     * Draw a line connecting a shifted marker to its original position
-     * @param {*} marker The shifted marker
+     * Validate if marker is ready for overlap handling
+     * @private
+     * @param {Object} marker The marker to validate
+     * @returns {boolean} True if marker is valid
      */
-    _drawConnectionLine(marker) {
-        if (!marker._isShifted || !marker._originalPosition) return;
+    _isValidMarkerForOverlapHandling(marker) {
+        if (!marker || !marker._originalPosition) {
+            console.warn('Marker missing original position data');
+            return false;
+        }
+        return true;
+    }
 
-        const lineSymbol = {
-            path: 'M 0,-1 0,1',
-            strokeOpacity: 0.6,
-            strokeWeight: 1,
-            scale: 2,
+    /**
+     * Calculate how many markers already exist at the same original position
+     * @private
+     * @param {Object} marker The marker to check
+     * @returns {number} Number of overlapping markers
+     */
+    _calculateOverlapIndex(marker) {
+        const { lat: originalLat, lng: originalLng } = marker._originalPosition;
+        let overlapIndex = 0;
+
+        for (const [, existingMarker] of this.cache) {
+            if (this._areMarkersAtSameOriginalPosition(existingMarker, marker, originalLat, originalLng)) {
+                overlapIndex++;
+            }
+        }
+
+        return overlapIndex;
+    }
+
+    /**
+     * Check if two markers are at the same original position
+     * @private
+     * @param {Object} existingMarker Existing marker to compare
+     * @param {Object} currentMarker Current marker being positioned
+     * @param {number} targetLat Target latitude
+     * @param {number} targetLng Target longitude
+     * @returns {boolean} True if markers are at same position
+     */
+    _areMarkersAtSameOriginalPosition(existingMarker, currentMarker, targetLat, targetLng) {
+        if (existingMarker === currentMarker || !existingMarker._originalPosition) {
+            return false;
+        }
+
+        const { POSITION_TOLERANCE } = MARKER_CONFIG.OVERLAP;
+        const latDiff = Math.abs(existingMarker._originalPosition.lat - targetLat);
+        const lngDiff = Math.abs(existingMarker._originalPosition.lng - targetLng);
+
+        return latDiff < POSITION_TOLERANCE && lngDiff < POSITION_TOLERANCE;
+    }
+
+    /**
+     * Apply circular offset to overlapping marker
+     * @private
+     * @param {Object} marker The marker to offset
+     * @param {number} overlapIndex Index in the overlap sequence
+     */
+    _applyOverlapOffset(marker, overlapIndex) {
+        const { lat: originalLat, lng: originalLng } = marker._originalPosition;
+        const { OFFSET_RADIUS } = MARKER_CONFIG.OVERLAP;
+
+        // Calculate angle for circular distribution
+        const angle = (overlapIndex * 2 * Math.PI) / (overlapIndex + 1);
+        
+        // Calculate offset using polar coordinates
+        const offsetLat = Math.sin(angle) * OFFSET_RADIUS;
+        const offsetLng = Math.cos(angle) * OFFSET_RADIUS;
+
+        // Apply the offset
+        marker.position = {
+            lat: originalLat + offsetLat,
+            lng: originalLng + offsetLng,
         };
 
-        const line = new google.maps.Polyline({
+        marker._isShifted = true;
+    }
+
+    /**
+     * Draw connection line from shifted marker to original position
+     * @private
+     * @param {Object} marker The shifted marker
+     */
+    _drawConnectionLine(marker) {
+        if (!this._shouldDrawConnectionLine(marker)) {
+            return;
+        }
+
+        const line = this._createConnectionLinePolyline(marker);
+        this._attachConnectionLineToMarker(marker, line);
+    }
+
+    /**
+     * Check if connection line should be drawn
+     * @private
+     * @param {Object} marker The marker to check
+     * @returns {boolean} True if line should be drawn
+     */
+    _shouldDrawConnectionLine(marker) {
+        return marker.map && marker._isShifted && marker._originalPosition;
+    }
+
+    /**
+     * Create the polyline for connection line
+     * @private
+     * @param {Object} marker The marker to create line for
+     * @returns {Object} Google Maps Polyline
+     */
+    _createConnectionLinePolyline(marker) {
+        const { CONNECTION_LINE } = MARKER_CONFIG.VISUAL;
+
+        return new google.maps.Polyline({
             path: [
                 marker._originalPosition,
                 { lat: marker.position.lat, lng: marker.position.lng },
             ],
-            strokeColor: '#999999',
-            strokeOpacity: 0,
-            strokeWeight: 1,
-            icons: [
-                {
-                    icon: lineSymbol,
-                    offset: '0',
-                    repeat: '10px',
-                },
-            ],
+            strokeColor: CONNECTION_LINE.STROKE_COLOR,
+            strokeOpacity: CONNECTION_LINE.STROKE_OPACITY,
+            strokeWeight: CONNECTION_LINE.STROKE_WEIGHT,
+            icons: [{
+                icon: CONNECTION_LINE.SYMBOL,
+                offset: CONNECTION_LINE.ICON_OFFSET,
+                repeat: CONNECTION_LINE.ICON_REPEAT,
+            }],
             map: this.googleMap,
         });
+    }
 
-        // Store the line reference on the marker for cleanup
+    /**
+     * Attach connection line to marker for cleanup
+     * @private
+     * @param {Object} marker The marker to attach line to
+     * @param {Object} line The polyline to attach
+     */
+    _attachConnectionLineToMarker(marker, line) {
         marker._connectionLine = line;
     }
 
+    /**
+     * Enhanced marker element creation with configuration
+     * @private
+     * @param {Object} record Record data
+     * @param {Object} elementValues Values for marker styling
+     * @returns {HTMLElement} Marker content element
+     */
     _createMarkerElement(record, elementValues) {
         const content = document.createElement('div');
-        if (record.selected) {
-            content.className = 'marker-circle selected';
-        } else {
-            content.className = 'marker-circle';
-        }
+        const { MARKER } = MARKER_CONFIG.VISUAL;
+        
+        content.className = record.selected ? MARKER.SELECTED_CLASS : MARKER.DEFAULT_CLASS;
         content.style.background = elementValues.background;
-        content.style.border = '2px solid #fafafa';
+        content.style.border = MARKER.BORDER;
+        
         return content;
     }
 
@@ -1059,15 +1239,8 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
         console.error('Marker creation error:', error);
 
         this.notificationService.add(
-            _t(
-                "Something went wrong. Marker couldn't be created. See Javascript console for technical details."
-            ),
-            {
-                title: _t('Google Maps Marker'),
-                type: 'danger',
-                sticky: false,
-                autocloseDelay: 2000,
-            }
+            _t("Something went wrong. Marker couldn't be created. See Javascript console for technical details."),
+            { type: 'danger' }
         );
     }
 
@@ -1104,21 +1277,33 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
     }
 
     /**
-     * Rebuild marker position index if it's invalid
-     * @private
+     * Store element event listener for later cleanup
+     * @param {*} element 
+     * @param {*} eventType 
+     * @param {*} listener 
      */
-    _rebuildMarkerPositionIndexIfNeeded() {
-        this.cache.forEach((m) => {
-            if (m.position) {
-                const posKey = `${m.position.lat},${m.position.lng}`;
+    _storeElementEventListener(element, eventType, listener) {
+        if (!this._elementEventListeners.has(element)) {
+            this._elementEventListeners.set(element, new Map());
+        }
 
-                if (!this._markerPositionIndex.has(posKey)) {
-                    this._markerPositionIndex.set(posKey, []);
-                }
+        this._elementEventListeners.get(element).set(eventType, listener);
+    }
 
-                this._markerPositionIndex.get(posKey).push(m);
-            }
-        });
+    /**
+     * Remove all event listeners for an element
+     * @param {*} element 
+     */
+    _removeElementEventListeners(element) {
+        const listeners = this._elementEventListeners.get(element);
+
+        if (listeners) {
+            listeners.forEach((listener, eventType) => {
+                element.removeEventListener(eventType, listener);
+            });
+
+            this._elementEventListeners.delete(element);
+        }
     }
 
     /**
@@ -1178,7 +1363,9 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
 
             const openButton = divContent.querySelector('#btn-open_form');
             if (openButton) {
-                openButton.addEventListener('click', () => this.props.showRecord(record), false);
+                const eventHandler = this.props.showRecord.bind(this, record);
+                openButton.addEventListener('click', eventHandler);
+                this._storeElementEventListener(openButton, 'click', eventHandler);
             }
 
             return divContent;
@@ -1224,10 +1411,22 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
             marker.map = null;
             this._removeMarkerEventListeners(id);
         }
+
+        // Clean up marker clusterer
+        if (this.markerClusterer) {
+            this.markerClusterer.clearMarkers();
+            this.markerClusterer.setMap(null);
+            this.markerClusterer = null;
+        }
+
+        for (const [element, ] of this._elementEventListeners) {
+            this._removeElementEventListeners(element);
+        }
+
         this.cacheRecordDataView.clear();
         this.cache.clear();
 
-        this._markerPositionIndex.clear();
+        this._invalidateMarkerPositionIndex();
         this._markerEventListeners.clear();
 
         if (this.mapBoxSelector) {

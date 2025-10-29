@@ -98,7 +98,7 @@ export async function loadTerraDrawAssets() {
         return;
     }
     try {
-        await loadJS('https://unpkg.com/terra-draw@1.18.0/dist/terra-draw.umd.js');
+        await loadJS('https://unpkg.com/terra-draw@1.18.1/dist/terra-draw.umd.js');
         await loadJS('https://unpkg.com/terra-draw-google-maps-adapter@1.1.0/dist/terra-draw-google-maps-adapter.umd.js');
         if (!window.terraDraw || !window.terraDrawGoogleMapsAdapter) {
             throw new Error('Terra Draw or its Google Maps adapter failed to load correctly.');
@@ -106,6 +106,21 @@ export async function loadTerraDrawAssets() {
     } catch (error) {
         console.error('Error loading Terra Draw assets:', error);
         throw new Error('Failed to load Terra Draw assets: ' + error.message);
+    }
+}
+
+export async function loadDeckGlAssets() {
+    if (window.deck) {
+        return;
+    }
+    try {
+        await loadJS('https://unpkg.com/deck.gl@9.2.2/dist.min.js');
+        if (!window.deck) {
+            throw new Error('Deck.gl failed to load correctly.');
+        }
+    } catch (error) {
+        console.error('Error loading Deck.gl assets:', error);
+        throw new Error('Failed to load Deck.gl assets: ' + error.message);
     }
 }
 

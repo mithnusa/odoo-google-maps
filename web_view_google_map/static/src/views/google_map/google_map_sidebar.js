@@ -37,31 +37,14 @@ export class GoogleMapSidebar extends Component {
      * @param {*} groupKey
      */
     async handleGroupCollapse(ev, groupKey) {
-        const group = this.datas.find((data) => data.key === groupKey);
+        const { group } = this.datas.find((data) => data.key === groupKey);
         if (!group) return;
 
-        const currentGroupRecords = group.group.records.length;
-        let records = [];
+        await group.toggle();
+        const records = group.list.records;
 
-        if (!currentGroupRecords) {
-            records = await group.group.groupRecords();
-        } else {
-            records = group.group.records;
-        }
-        
-        const { AdvancedMarkerElement } = await this.env.apiLoader.importLibrary('marker');
-        if (currentGroupRecords === 0) {
-            records.forEach((record) => {
-                this.props.createMarker(AdvancedMarkerElement, record, group.group.markerColor);
-            });
+        if (!ev.currentTarget?.classList.contains('collapsed')) {
             this.props.centerMapByGroup(records);
-        } else {
-            if (!ev.currentTarget.classList.contains('collapsed')) {
-                records.forEach((record) => {
-                    this.props.createMarker(AdvancedMarkerElement, record, group.group.markerColor);
-                });
-                this.props.centerMapByGroup(records);
-            }
         }
     }
 

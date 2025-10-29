@@ -20,7 +20,7 @@
                     <span class="me-2" t-if="_showMarker">
                         <i class="fa fa-map-marker" t-attf-style="color: #{data?.other?.__geoColor || 'red'};" />
                     </span>
-                    <button type="button" class="btn btn-sm btn-light" id="open-record" data-tooltip="Open" t-on-click.prevent="() => fnOpenRecord(record)">
+                    <button type="button" class="btn btn-sm btn-link" id="open-record" data-tooltip="Open" t-on-click.prevent="() => fnOpenRecord(record)">
                         <i class="fa fa-lg fa-angle-right" />
                     </button>
                 </div>
@@ -54,7 +54,7 @@
                         <span class="me-1">
                             <i class="fa fa-map-marker" t-attf-style="color: #{group.group.groupColor || 'red'};" />
                         </span>
-                        <button type="button" class="btn btn-sm btn-light" t-on-click="() => this.actionShowGroupRecords(group)">
+                        <button type="button" class="btn btn-sm btn-link" data-tooltip="Open" t-on-click="() => this.actionShowGroupRecords(group)">
                             <i class="fa fa-lg fa-angle-double-right" />
                         </button>
                     </div>
@@ -67,6 +67,7 @@
                     <tbody>
                         <t t-foreach="group.group.records" t-as="record" t-key="record.id">
                             <t t-call="{{ constructor.recordItemTemplate }}">
+                                <t t-set="record" t-value="record" />
                                 <t t-set="data" t-value="record.dataView" />
                                 <t t-set="showMarker" t-value="false" />
                             </t>
@@ -119,7 +120,7 @@
         <div class="o_map_sidebar" t-ref="root">
             <div class="mt-2 mx-1">
                 <div class="d-flex">
-                    <t t-if="!props.isGrouped and props.allowSelectors">
+                    <t t-if="props.allowSelectors">
                         <CheckBox value="props.handleSelectAll" onChange.bind="props.handleToggleSelection"/>
                     </t>
                     <h3 t-if="props.header" t-esc="props.header" />

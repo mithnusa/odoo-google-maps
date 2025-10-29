@@ -18,7 +18,7 @@ import {
     normalizeCoordinates,
     TERRA_DRAW_CONFIG,
     getRandomColor,
-} from '../../../utils/terra_draw_utils';
+} from '../../../utils/utils';
 import { analyzeFeaturePerformance, createEditableFeature } from '../../../utils/geometry_performance_utils';
 
 

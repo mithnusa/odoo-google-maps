@@ -114,6 +114,9 @@ export class GoogleMapArchParser {
         const countLimitAttr = node.getAttribute('count_limit');
         attrs.countLimit = countLimitAttr && parseInt(countLimitAttr, 10);
 
+        const groupsLimitAttr = node.getAttribute("groups_limit");
+        attrs.groupsLimit = groupsLimitAttr && parseInt(groupsLimitAttr, 10);
+
         attrs.defaultOrder = stringToOrderBy(
             xmlDoc.getAttribute('default_order') || null
         );
