@@ -53,7 +53,7 @@ export class GoogleMapRendererSaleOrder extends GoogleMapRenderer {
             try {
                 const records = group.records;
                 if (records && records.length > 0) {
-                    this.createMarker(group, records[0]);
+                    await this.createMarker(group, records[0]);
                 }
             } catch (error) {
                 console.error('Failed to load group records:', error);
