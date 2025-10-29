@@ -6,12 +6,17 @@ export class GoogleMapSidebarSaleOrder extends GoogleMapSidebar {
 
     setup() {
         super.setup();
-        onMounted(() => {
+        onMounted(async() => {
             const datas = this.props.getGroupsOrRecords();
             if (this.props.isGrouped && datas.length > 0) {
-                datas.forEach(async ({ group }) => {
-                    await group.toggle();
+                const groupPromises = datas.map(async ({ group }) => {
+                    try {
+                        await group.toggle();
+                    } catch (error) {
+                        console.error('Error toggling group:', error);
+                    }
                 });
+                await Promise.all(groupPromises);
             }
         });
     }
