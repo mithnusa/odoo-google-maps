@@ -1,4 +1,5 @@
 import { onMounted } from '@odoo/owl';
+import { useService } from '@web/core/utils/hooks';
 import { GoogleMapSidebar } from '@web_view_google_map/views/google_map/google_map_sidebar';
 
 export class GoogleMapSidebarSaleOrder extends GoogleMapSidebar {
@@ -6,19 +7,28 @@ export class GoogleMapSidebarSaleOrder extends GoogleMapSidebar {
 
     setup() {
         super.setup();
-        onMounted(async() => {
-            const datas = this.props.getGroupsOrRecords();
-            if (this.props.isGrouped && datas.length > 0) {
-                const groupPromises = datas.map(async ({ group }) => {
-                    try {
-                        await group.toggle();
-                    } catch (error) {
-                        console.error('Error toggling group:', error);
-                    }
-                });
+        this.uiService = useService('ui');
+        onMounted(this._loadGroupRecord);
+    }
+
+    async _loadGroupRecord() {
+        const datas = this.props.getGroupsOrRecords();
+        if (this.props.isGrouped && datas.length > 0) {
+            const groupPromises = datas.map(async ({ group }) => {
+                try {
+                    await group.toggle();
+                } catch (error) {
+                    console.error('Error toggling group:', error);
+                }
+            });
+
+            try {
+                this.uiService.block();
                 await Promise.all(groupPromises);
+            } finally {
+                this.uiService.unblock();
             }
-        });
+        }
     }
 
     getAvatarUrl(group) {

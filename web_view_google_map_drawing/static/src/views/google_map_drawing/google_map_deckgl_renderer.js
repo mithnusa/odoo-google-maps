@@ -381,21 +381,26 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
      * @private
      */
     async _renderShapesOptimized() {
-        const datas = this.getGroupsOrRecords();
-        if (this.isListGrouped) {
-            await this._renderGroupedShapesOptimized(datas);
-        } else {
-            await this._renderUngroupedShapesOptimized(datas);
+        try {
+            this.uiService.block();
+            const datas = this.getGroupsOrRecords();
+            if (this.isListGrouped) {
+                await this._renderGroupedShapesOptimized(datas);
+            } else {
+                await this._renderUngroupedShapesOptimized(datas);
+            }
+
+            // Update Deck.gl layers
+            this._updateDeckGLLayers();
+
+            // Trigger garbage collection if needed
+            this.debounceGarbageCollection();
+
+            // Fit bounds once all features are processed
+            this._fitBoundsWhenReady();
+        } finally {
+            this.uiService.unblock();
         }
-
-        // Update Deck.gl layers
-        this._updateDeckGLLayers();
-
-        // Trigger garbage collection if needed
-        this.debounceGarbageCollection();
-
-        // Fit bounds once all features are processed
-        this._fitBoundsWhenReady();
     }
 
     /**
