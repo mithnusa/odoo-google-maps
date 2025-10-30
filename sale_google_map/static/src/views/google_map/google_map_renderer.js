@@ -531,7 +531,7 @@ export class GoogleMapRendererSaleOrder extends GoogleMapRenderer {
         const currentZoom = this.googleMap.getZoom();
 
         this._triggerMarkerHoverEffect(marker);
-        this._adjustZoomForMarker(marker, currentZoom);
+        this._adjustZoomForMarker(currentZoom);
     }
 
     /**
@@ -579,15 +579,12 @@ export class GoogleMapRendererSaleOrder extends GoogleMapRenderer {
     /**
      * Adjust zoom level based on marker state
      * @private
-     * @param {Object} marker The marker to adjust zoom for
      * @param {number} currentZoom Current zoom level
      */
-    _adjustZoomForMarker(marker, currentZoom) {
-        const { DEFAULT, SHIFTED_DETAIL } = SALE_MARKER_CONFIG.VISUAL.ZOOM;
+    _adjustZoomForMarker(currentZoom) {
+        const { DEFAULT } = SALE_MARKER_CONFIG.VISUAL.ZOOM;
 
-        if (marker._isShifted && currentZoom < SHIFTED_DETAIL) {
-            this.googleMap.setZoom(SHIFTED_DETAIL);
-        } else if (currentZoom < DEFAULT && !marker._isShifted) {
+        if (currentZoom < DEFAULT) {
             this.googleMap.setZoom(DEFAULT);
         }
     }
