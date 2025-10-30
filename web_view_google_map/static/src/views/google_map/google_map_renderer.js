@@ -29,7 +29,7 @@ const MARKER_CONFIG = {
     },
     VISUAL: {
         CONNECTION_LINE: {
-            STROKE_COLOR: '#999999',
+            STROKE_COLOR: '#ee6060ff',
             STROKE_OPACITY: 0,
             STROKE_WEIGHT: 1,
             SYMBOL: {
@@ -139,6 +139,7 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
             mapState: this.state,
             apiLoader: this.apiLoader,
             cache: this.cache,
+            googleMap: () => this.googleMap,
             isMapLoaded: this.isMapLoaded.bind(this),
         });
 
@@ -444,11 +445,8 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
         this.googleMap.panTo(position);
 
         google.maps.event.addListenerOnce(this.googleMap, 'idle', () => {
-            const currentZoom = this.googleMap.getZoom();
             google.maps.event.trigger(marker, 'click');
-            if (marker._isShifted && currentZoom < 21) {
-                this.googleMap.setZoom(21);
-            } else if (currentZoom < 14) {
+            if (this.googleMap.getZoom() < 14) {
                 this.googleMap.setZoom(14);
             }
             this.markerInfoWindow.setPosition(position);
