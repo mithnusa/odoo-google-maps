@@ -251,7 +251,7 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
 
         onWillStart(async () => {
             try {
-                await this._loadDeckGLAssets();
+                await loadDeckGlAssets();
             } catch (error) {
                 console.error(error);
                 this.notificationService.add(
@@ -304,14 +304,6 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
             useBus(this.uiService.bus, 'google-map-center-map', this.centerMap);
         }
 
-    }
-
-    /**
-     * Load Deck.gl assets and dependencies
-     * @private
-     */
-    async _loadDeckGLAssets() {
-        loadDeckGlAssets();
     }
 
     /**

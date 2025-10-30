@@ -11,10 +11,10 @@ import {
     onWillDestroy,
     onWillUpdateProps,
 } from '@odoo/owl';
+import { generateUUID } from '@web_view_google_map/views/google_map/utils';
 import {
     loadTerraDrawAssets,
-    loadTurfJS,
-    generateUUID, 
+    loadTurfJSAssets,
     normalizeCoordinates,
     TERRA_DRAW_CONFIG,
     getRandomColor,
@@ -99,7 +99,7 @@ export class TerraDrawToolsUI extends Component {
         onWillStart(async () => {
             try {
                 await loadTerraDrawAssets();
-                await loadTurfJS();
+                await loadTurfJSAssets();
             } catch (error) {
                 console.error('Failed to load Terra Draw assets:', error);
                 this.notificationService.add(

@@ -24,7 +24,7 @@
  */
 
 import { loadJS } from '@web/core/assets';
-import { formatNumber } from '@web_view_google_map/views/google_map/utils';
+import { formatNumber, generateUUID } from '@web_view_google_map/views/google_map/utils';
 
 /**
  * Terra Draw mode mapping
@@ -124,7 +124,7 @@ export async function loadDeckGlAssets() {
     }
 }
 
-export async function loadTurfJS() {
+export async function loadTurfJSAssets() {
     if (window.turf) {
         return;
     }
@@ -175,18 +175,6 @@ export function validateTerraDrawFeature(feature) {
     }
 
     return true;
-}
-
-/**
- * Generate a UUID similar to Terra Draw's format
- * @returns {string} UUID in format like "3072758a-d7b2-4ad9-9f68-93028d811a59"
- */
-export function generateUUID() {
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-        const r = (Math.random() * 16) | 0;
-        const v = c === 'x' ? r : (r & 0x3) | 0x8;
-        return v.toString(16);
-    });
 }
 
 /**
