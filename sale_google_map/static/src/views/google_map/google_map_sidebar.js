@@ -1,4 +1,4 @@
-import { onMounted } from '@odoo/owl';
+import { onMounted, onWillUnmount } from '@odoo/owl';
 import { useService } from '@web/core/utils/hooks';
 import { GoogleMapSidebar } from '@web_view_google_map/views/google_map/google_map_sidebar';
 
@@ -9,7 +9,28 @@ export class GoogleMapSidebarSaleOrder extends GoogleMapSidebar {
     setup() {
         super.setup();
         this.uiService = useService('ui');
-        onMounted(this.loadGroupRecord);
+        this.loadGroupTimeout = null;
+
+        onMounted(() => {
+            const googleMap = this.env.googleMap();
+            if (!googleMap) return;
+
+            google.maps.event.addListenerOnce(googleMap, 'tilesloaded', () => {
+                if (this.loadGroupTimeout) {
+                    clearTimeout(this.loadGroupTimeout);
+                }
+                this.loadGroupTimeout = setTimeout(() => {
+                    this.loadGroupRecord();
+                }, 300);
+            });
+        });
+
+        onWillUnmount(() => {
+            if (this.loadGroupTimeout) {
+                clearTimeout(this.loadGroupTimeout);
+                this.loadGroupTimeout = null;
+            }
+        });
     }
 
     async loadGroupRecord() {
