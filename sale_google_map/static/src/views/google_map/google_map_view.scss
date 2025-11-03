@@ -16,6 +16,7 @@
             background-color: light-dark(#fafafa, black);
             transition: transform 0.3s ease, font-size 0.3s ease, box-shadow 0.3s ease, border 0.3s ease;
             border: 1px solid light-dark(rgba(0, 0, 0, 0.2), rgba(94, 94, 94, 0.2));
+            opacity: 0.9;
 
             &:after {
                 content: "";
