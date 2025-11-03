@@ -1165,7 +1165,8 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
                                 padding: '8px',
                                 fontSize: '12px',
                                 borderRadius: '4px',
-                                boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                                boxShadow: '0 4px 6px rgba(0,0,0,0.2)',
+                                opacity: '0.9',
                             }
                         };
                     }
