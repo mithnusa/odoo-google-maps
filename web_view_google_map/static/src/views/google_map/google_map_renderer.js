@@ -466,28 +466,10 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
         const recordsToUpdate = [...list.records];
         const shouldSelect = list.selection.length !== recordsToUpdate.length;
 
-        // Deselect domain if we're deselecting
-        // if (!shouldSelect) {
-        //     list.selectDomain(false);
-        // }
-
         // Process records in batches for better UI responsiveness
         return this._processSelectionInBatches(recordsToUpdate, shouldSelect);
     }
 
-    /**
-     * @param {RelationalRecord} record
-     */
-    toggleRangeSelection(record) {
-        const { records } = this.props.list;
-        const recordIndex = records.indexOf(record);
-        const lastCheckedRecordIndex = records.indexOf(this.lastCheckedRecord);
-        const start = Math.min(recordIndex, lastCheckedRecordIndex);
-        const end = Math.max(recordIndex, lastCheckedRecordIndex);
-        for (let i = start; i <= end; i++) {
-            records[i].toggleSelection(!record.selected);
-        }
-    }
 
     /**
      * Toggle selection of a record
