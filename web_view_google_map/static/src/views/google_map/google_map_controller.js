@@ -30,6 +30,7 @@ import {
     Component,
     useRef,
     onWillStart,
+    onWillPatch,
     useState,
     useSubEnv,
     useEffect,
@@ -125,6 +126,12 @@ export class GoogleMapController extends Component {
             },
             () => [this.model.root.selection.length, this.model.root.isDomainSelected]
         );
+
+        this.firstLoad = true;
+        onWillPatch(() => {
+            this.firstLoad = false;
+        });
+
         this.searchBarToggler = useSearchBarToggler();
     }
 
