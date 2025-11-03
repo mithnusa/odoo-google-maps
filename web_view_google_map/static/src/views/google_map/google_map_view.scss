@@ -12,9 +12,12 @@
 
     .o_google_map_view {
         width: 100%;
-        // Use GPU-accelerated transform to prevent layout shifts affecting Deck.gl
-        transform: translateZ(0);
         will-change: transform;
+
+        .gm-style-iw {
+            box-shadow: 10px 8px 5px rgba(0, 0, 0, 0.2);
+            opacity: 0.9;
+        }
 
         .gm-style-iw:has(.infoWindow) {
             min-width: 300px;

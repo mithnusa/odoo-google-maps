@@ -28,7 +28,7 @@
     </t>
     <t t-name="web_view_google_map_drawing.FeatureProperties">
         <div>
-            <p class="mb-0 pb-0 fs-4" t-out="title"/>
+            <p class="mb-0 pb-0 fs-4 text-800" t-out="title"/>
             <div class="mt-1" t-if="displayNames">
                 <ul class="list-group list-group-flush">
                     <t t-foreach="displayNames" t-as="displayName" t-key="displayNameIndex">

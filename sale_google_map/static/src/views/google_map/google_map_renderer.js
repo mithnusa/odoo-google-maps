@@ -465,7 +465,6 @@ export class GoogleMapRendererSaleOrder extends GoogleMapRenderer {
         const indicator = document.createElement('i');
         indicator.setAttribute('aria-hidden', 'true');
         indicator.className = SALE_MARKER_CONFIG.VISUAL.CLASSES.INFO_ICON;
-        indicator.style.cursor = 'help';
         indicator.dataset.tooltip = _t(
             "This marker has been adjusted slightly so it doesn't overlap with others. The line points to its original location."
         );

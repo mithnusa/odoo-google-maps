@@ -23,7 +23,7 @@
                         <a href="#" role="button" class="text-decoration-none" id="btn-open_form" tabindex="-1">
                             <h4>
                                 <span t-esc="title"/>
-                                <i t-if="isShifted" class="fa fa-info-circle ms-1 text-info" style="cursor: help;" data-tooltip="This marker has been adjusted slightly so it doesn't overlap with others. The line points to its original location."></i>
+                                <i t-if="isShifted" class="fa fa-info-circle ms-1 text-info" data-tooltip="This marker has been adjusted slightly so it doesn't overlap with others. The line points to its original location."></i>
                             </h4>
                         </a>
                     </div>
