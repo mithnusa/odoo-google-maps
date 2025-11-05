@@ -15,14 +15,28 @@
         will-change: transform;
 
         .gm-style-iw {
-            box-shadow: 10px 8px 5px rgba(0, 0, 0, 0.2);
-            opacity: 0.9;
+            opacity: 0.95;
+            z-index: 99999 !important;
         }
 
+        // Browser-compatible alternative to :has() selector
+        .gm-style-iw.infoWindow-parent,
         .gm-style-iw:has(.infoWindow) {
             min-width: 300px;
             background-color: $o-view-background-color;
-            scrollbar-color: $o-view-background-color;
+            // Cross-browser scrollbar styling
+            scrollbar-color: $o-view-background-color transparent; // Firefox
+            scrollbar-width: thin; // Firefox
+            &::-webkit-scrollbar { // Chrome, Safari, Edge
+                width: 8px;
+            }
+            &::-webkit-scrollbar-track {
+                background: transparent;
+            }
+            &::-webkit-scrollbar-thumb {
+                background-color: $o-view-background-color;
+                border-radius: 4px;
+            }
             overflow-y: auto !important;
             overflow-x: hidden !important;
 
@@ -39,6 +53,7 @@
                 padding-top: 8px !important;
             }
         }
+        .gm-style-iw.infoWindow-parent > div,
         .gm-style-iw:has(.infoWindow) > div {
             overflow: hidden !important;
 
@@ -55,24 +70,41 @@
             }
         }
 
-        .gm-style-iw-tc::after {
-            background: $o-view-background-color;
+        .gm-style-iw-tc {
+            opacity: 0.95;
+            z-index: 99999 !important;
+
+            &::after {
+                background: $o-view-background-color;
+            }
         }
+
         .marker-circle {
             width: 20px;
             height: 20px;
             border-radius: 50%;
             border: 3px solid #ffffff;
+            -webkit-box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+            -moz-box-shadow: 0 2px 6px rgba(0,0,0,0.3);
             box-shadow: 0 2px 6px rgba(0,0,0,0.3);
             cursor: pointer;
+            -webkit-transition: all 0.2s ease;
+            -moz-transition: all 0.2s ease;
+            -o-transition: all 0.2s ease;
             transition: all 0.2s ease;
         }
-            
+
         .marker-circle.selected {
             width: 28px;
             height: 28px;
             border: 4px solid #ffffff;
+            -webkit-box-shadow: 0 0 0 3px #4285F4, 0 4px 12px rgba(0,0,0,0.4);
+            -moz-box-shadow: 0 0 0 3px #4285F4, 0 4px 12px rgba(0,0,0,0.4);
             box-shadow: 0 0 0 3px #4285F4, 0 4px 12px rgba(0,0,0,0.4);
+            -webkit-transform: scale(1.0);
+            -moz-transform: scale(1.0);
+            -ms-transform: scale(1.0);
+            -o-transform: scale(1.0);
             transform: scale(1.0);
         }
     }
@@ -337,6 +369,7 @@
             overflow-y: scroll;
 
             .o_kanban_header {
+                position: -webkit-sticky; // Safari
                 position: sticky; // keep it visible
                 z-index: 1;
                 background-color: inherit;

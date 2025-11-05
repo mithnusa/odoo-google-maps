@@ -10,6 +10,9 @@
             max-width: 400px;
             min-width: 300px;
             will-change: width;
+            -webkit-transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            -moz-transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            -o-transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
             .content {
@@ -23,6 +26,9 @@
                 overflow-x: hidden;
                 opacity: 1;
                 will-change: opacity;
+                -webkit-transition: opacity 0.25s ease-in-out;
+                -moz-transition: opacity 0.25s ease-in-out;
+                -o-transition: opacity 0.25s ease-in-out;
                 transition: opacity 0.25s ease-in-out;
 
                 button[data-bs-toggle="collapse"] {
@@ -63,6 +69,14 @@
                         max-width: 140px;
                     }
                 }
+
+                .o_field_widget {
+                    display: block; // Required for ellipsis to work
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    max-width: 100px; // Default for large screens
+                }
             }
             .toggle_right_sidenav {
                 display: block;
@@ -70,6 +84,9 @@
                 right: 100%;  // Position relative to the sidebar width
                 top: 25%;
                 z-index: 999;
+                -webkit-transition: right 0.1s ease-in-out;
+                -moz-transition: right 0.1s ease-in-out;
+                -o-transition: right 0.1s ease-in-out;
                 transition: right 0.1s ease-in-out;
 
                 button {
@@ -103,7 +120,10 @@
 
                 .content {
                     opacity: 0;
-                    transition: opacity 0.15s ease-out; // Faster fade out
+                    -webkit-transition: opacity 0.15s ease-out; // Faster fade out
+                    -moz-transition: opacity 0.15s ease-out;
+                    -o-transition: opacity 0.15s ease-out;
+                    transition: opacity 0.15s ease-out;
                     pointer-events: none;
                 }
 
@@ -119,8 +139,13 @@
             &.open {
                 width: 25%;
                 max-width: 400px;
+                -webkit-box-shadow: -0.9px 0 1px 0.1px $o-view-background-color;
+                -moz-box-shadow: -0.9px 0 1px 0.1px $o-view-background-color;
                 box-shadow: -0.9px 0 1px 0.1px $o-view-background-color;
-                transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s ease-in 0.1s; // Shadow appears with delay
+                -webkit-transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s ease-in 0.1s; // Shadow appears with delay
+                -moz-transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s ease-in 0.1s;
+                -o-transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s ease-in 0.1s;
+                transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s ease-in 0.1s;
 
                 .content {
                     opacity: 1;

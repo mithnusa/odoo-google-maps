@@ -300,7 +300,16 @@ export function invertColorDarken(color) {
     return darkHexColor;
 }
 
-export function invertColorLighten(color) {
+/**
+ * Lightens a color by a specified amount with optional opacity
+ * @param {string} color - The color to lighten (hex, rgb, or named color)
+ * @param {number} amount - The lightening amount. Can be:
+ *   - A value between 0-1: treated as a factor (0 = no change, 1 = white, 0.5 = 50% lighter)
+ *   - A value > 1: treated as absolute RGB value to add (default 50)
+ * @param {number} opacity - Optional opacity value between 0-1. If provided, returns rgba() format, otherwise returns hex
+ * @returns {string} The lightened color in hex format (if opacity not specified) or rgba() format
+ */
+export function invertColorLighten(color, amount = 50, opacity = null) {
     // Normalize the color to hex format
     let hexColor = normalizeColor(color);
 
@@ -312,10 +321,36 @@ export function invertColorLighten(color) {
     let g = parseInt(hexColor.substring(2, 4), 16);
     let b = parseInt(hexColor.substring(4, 6), 16);
 
+    // Determine the lightening value based on the amount parameter
+    let lightenValue;
+    if (amount >= 0 && amount <= 1) {
+        // Factor-based: calculate how much to add to reach white
+        // amount = 0 means no change, amount = 1 means fully white
+        lightenValue = {
+            r: (255 - r) * amount,
+            g: (255 - g) * amount,
+            b: (255 - b) * amount,
+        };
+    } else {
+        // Absolute value: add the same amount to all components
+        lightenValue = {
+            r: amount,
+            g: amount,
+            b: amount,
+        };
+    }
+
     // Lighten the r, g, b values
-    r = Math.min(255, r + 50);
-    g = Math.min(255, g + 50);
-    b = Math.min(255, b + 50);
+    r = Math.min(255, Math.round(r + lightenValue.r));
+    g = Math.min(255, Math.round(g + lightenValue.g));
+    b = Math.min(255, Math.round(b + lightenValue.b));
+
+    // If opacity is specified, return rgba format
+    if (opacity !== null && opacity !== undefined) {
+        // Validate and clamp opacity to 0-1 range
+        const alpha = Math.max(0, Math.min(1, opacity));
+        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    }
 
     // Convert the lightened r, g, b values back to a hex string
     let lightHexColor =

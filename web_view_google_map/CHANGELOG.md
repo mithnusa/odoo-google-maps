@@ -1,5 +1,9 @@
 # Change Log
 
+## 19.0.1.0.1
+- Visual improvements when showing individual marker in the map.    
+When a marker is part of a cluster, clicking its record in the sidebar will automatically zoom in to reveal the marker within the cluster.
+
 ## 19.0.1.0.0
 Migration to version 19.0.   
 
