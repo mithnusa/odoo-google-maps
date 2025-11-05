@@ -1,8 +1,6 @@
 .o_google_map_renderer, .o_dialog {
     .o_google_map_view {
         .sale_order {
-            // min-width: 200px;
-            // max-width: 320px;
             width: 250px;
             min-height: 30px;
             border-radius: 8px;
@@ -10,10 +8,19 @@
             text-align: center;
             padding: 10px 15px;
             position: relative;
+            -webkit-transform: translateY(-8px);
+            -moz-transform: translateY(-8px);
+            -ms-transform: translateY(-8px);
+            -o-transform: translateY(-8px);
             transform: translateY(-8px);
+            -webkit-box-shadow: 10px 8px 5px rgba(0, 0, 0, 0.2);
+            -moz-box-shadow: 10px 8px 5px rgba(0, 0, 0, 0.2);
             box-shadow: 10px 8px 5px rgba(0, 0, 0, 0.2);
             color: light-dark(black, #fafafa);
             background-color: light-dark(#fafafa, black);
+            -webkit-transition: transform 0.3s ease, font-size 0.3s ease, box-shadow 0.3s ease, border 0.3s ease;
+            -moz-transition: transform 0.3s ease, font-size 0.3s ease, box-shadow 0.3s ease, border 0.3s ease;
+            -o-transition: transform 0.3s ease, font-size 0.3s ease, box-shadow 0.3s ease, border 0.3s ease;
             transition: transform 0.3s ease, font-size 0.3s ease, box-shadow 0.3s ease, border 0.3s ease;
             border: 1px solid light-dark(rgba(0, 0, 0, 0.2), rgba(94, 94, 94, 0.2));
             opacity: 0.9;
@@ -23,6 +30,10 @@
                 position: absolute;
                 left: 50%;
                 top: 100%;
+                -webkit-transform: translate(-50%, 0);
+                -moz-transform: translate(-50%, 0);
+                -ms-transform: translate(-50%, 0);
+                -o-transform: translate(-50%, 0);
                 transform: translate(-50%, 0);
                 width: 0;
                 height: 0;
@@ -30,28 +41,70 @@
                 border-right: 12px solid transparent;
                 border-top: 12px solid light-dark(#fafafa, black);
             }
-        }
-        @keyframes markerDrop {
-            0% {
-                transform: translateY(-100px);
-                opacity: 0;
+
+            @-webkit-keyframes markerDrop {
+                0% {
+                    -webkit-transform: translateY(-100px);
+                    transform: translateY(-100px);
+                    opacity: 0;
+                }
+                100% {
+                    -webkit-transform: translateY(0);
+                    transform: translateY(0);
+                    opacity: 1;
+                }
             }
-            100% {
-                transform: translateY(0);
+            @-moz-keyframes markerDrop {
+                0% {
+                    -moz-transform: translateY(-100px);
+                    transform: translateY(-100px);
+                    opacity: 0;
+                }
+                100% {
+                    -moz-transform: translateY(0);
+                    transform: translateY(0);
+                    opacity: 1;
+                }
+            }
+            @keyframes markerDrop {
+                0% {
+                    -webkit-transform: translateY(-100px);
+                    -moz-transform: translateY(-100px);
+                    -ms-transform: translateY(-100px);
+                    -o-transform: translateY(-100px);
+                    transform: translateY(-100px);
+                    opacity: 0;
+                }
+                100% {
+                    -webkit-transform: translateY(0);
+                    -moz-transform: translateY(0);
+                    -ms-transform: translateY(0);
+                    -o-transform: translateY(0);
+                    transform: translateY(0);
+                    opacity: 1;
+                }
+            }
+
+            &.marker-drop-animation {
+                -webkit-animation: markerDrop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+                -moz-animation: markerDrop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+                animation: markerDrop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+                -webkit-transform-origin: bottom center;
+                -moz-transform-origin: bottom center;
+                -ms-transform-origin: bottom center;
+                -o-transform-origin: bottom center;
+                transform-origin: bottom center;
+            }
+
+            &.marker-hover-animation {
+                -webkit-box-shadow: 0px 2px 20px 6px rgba(0, 0, 0, 0.3);
+                -moz-box-shadow: 0px 2px 20px 6px rgba(0, 0, 0, 0.3);
+                box-shadow: 0px 2px 20px 6px light-dark(rgba(0, 0, 0, 0.3), rgba(47, 47, 47, 0.5));
+                border: 1.25px solid light-dark(rgba(0, 0, 0, 0.2), rgba(69, 68, 68, 0.2));
+                font-size: large;
                 opacity: 1;
             }
+    
         }
-
-        .marker-drop-animation {
-            animation: markerDrop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-            transform-origin: bottom center;
-        }
-
-        .marker-hover-animation {
-            box-shadow: 0 0 12px 10px light-dark(rgba(0, 0, 0, 0.3), rgba(47, 47, 47, 0.5));
-            border: 1.25px solid light-dark(rgba(0, 0, 0, 0.2), rgba(69, 68, 68, 0.2));
-            font-size: large;
-        }
- 
     }
 }
