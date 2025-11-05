@@ -26,8 +26,9 @@
         border: 1px solid #ccc;
         background-color: white;
         padding: 4px;
+        -webkit-box-sizing: border-box; /* Safari/Chrome */
+        -moz-box-sizing: border-box; /* Firefox */
         box-sizing: border-box;
-        -webkit-box-sizing: border-box; /* For Safari */
 
         img, span {
             width: 100%;
@@ -59,6 +60,8 @@
     #export-button img,
     #upload-button img,
     #resize-button img {
+        -webkit-filter: brightness(0) invert(1);
+        -moz-filter: brightness(0) invert(1);
         filter: brightness(0) invert(1);
     }
 
