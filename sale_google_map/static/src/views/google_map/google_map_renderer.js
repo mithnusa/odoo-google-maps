@@ -25,10 +25,6 @@ const SALE_MARKER_CONFIG = {
             DEFAULT: 1,
             HOVER: 10000,
         },
-        ZOOM: {
-            DEFAULT: 14,
-            SHIFTED_DETAIL: 22,
-        },
     },
 };
 
@@ -256,9 +252,7 @@ export class GoogleMapRendererSaleOrder extends GoogleMapRenderer {
 
         const clickHandler = this._createActionClickHandler(group);
         button.addEventListener('click', clickHandler);
-
-        // Store handler reference for cleanup
-        button._clickHandler = clickHandler;
+        this._storeElementEventListener(button, 'click', clickHandler);
 
         return button;
     }
@@ -385,23 +379,9 @@ export class GoogleMapRendererSaleOrder extends GoogleMapRenderer {
         // Attach all event listeners
         Object.entries(eventListeners.events).forEach(([event, handler]) => {
             content.addEventListener(event, handler);
+            this._storeElementEventListener(content, event, handler);
         });
 
-        // Get action button reference from the layout
-        const actionButton = content.querySelector('.btn');
-        const actionClickHandler = actionButton?._clickHandler;
-
-        // Store event listener references for cleanup
-        marker._customContentEvListeners = {
-            content,
-            ...eventListeners.events,
-            actionClick: actionClickHandler
-                ? {
-                      element: actionButton,
-                      handler: actionClickHandler,
-                  }
-                : null,
-        };
     }
 
     /**
@@ -473,64 +453,10 @@ export class GoogleMapRendererSaleOrder extends GoogleMapRenderer {
 
     /**
      * @override
-     * Enhanced point in map functionality for sale order markers
-     * @param {string|number} groupId ID of the group to focus on
      */
-    pointInMap(groupId) {
-        const marker = this.cache.get(groupId);
-        if (!this._isValidMarkerForPointInMap(marker)) {
-            return;
-        }
-
-        this._focusOnMarker(marker);
-        this._scheduleMarkerInteraction(marker);
-    }
-
-    /**
-     * Validate if marker is ready for point-in-map operation
-     * @private
-     * @param {Object} marker The marker to validate
-     * @returns {boolean} True if marker is valid
-     */
-    _isValidMarkerForPointInMap(marker) {
-        if (!marker || !marker.position) {
-            console.warn('Invalid marker for pointInMap operation');
-            return false;
-        }
-        return true;
-    }
-
-    /**
-     * Focus the map on the specified marker
-     * @private
-     * @param {Object} marker The marker to focus on
-     */
-    _focusOnMarker(marker) {
-        const position = marker.position;
-        this.googleMap.panTo(position);
-    }
-
-    /**
-     * Schedule marker interaction after map idle
-     * @private
-     * @param {Object} marker The marker to interact with
-     */
-    _scheduleMarkerInteraction(marker) {
-        google.maps.event.addListenerOnce(this.googleMap, 'idle', () => {
-            this._handleMarkerInteraction(marker);
-        });
-    }
-
-    /**
-     * Handle marker interaction including hover effect and zoom adjustment
-     * @private
-     * @param {Object} marker The marker to interact with
-     */
-    _handleMarkerInteraction(marker) {
-        const currentZoom = this.googleMap.getZoom();
-
+    _handleAfterZoomAtMarker(marker) {
+        super._handleAfterZoomAtMarker(marker);
         this._triggerMarkerHoverEffect(marker);
-        this._adjustZoomForMarker(currentZoom);
     }
 
     /**
@@ -539,7 +465,7 @@ export class GoogleMapRendererSaleOrder extends GoogleMapRenderer {
      * @param {Object} marker The marker to apply hover effect to
      */
     _triggerMarkerHoverEffect(marker) {
-        const content = marker._customContentEvListeners?.content;
+        const content = marker?.content;
         if (!content) {
             return;
         }
@@ -574,127 +500,15 @@ export class GoogleMapRendererSaleOrder extends GoogleMapRenderer {
             delete marker._hoverTimeout;
         }, 1000);
     }
-
-    /**
-     * Adjust zoom level based on marker state
-     * @private
-     * @param {number} currentZoom Current zoom level
-     */
-    _adjustZoomForMarker(currentZoom) {
-        const { DEFAULT } = SALE_MARKER_CONFIG.VISUAL.ZOOM;
-
-        if (currentZoom < DEFAULT) {
-            this.googleMap.setZoom(DEFAULT);
-        }
-    }
-
     /**
      * @override
-     * Enhanced cleanup with structured event listener management
      */
-    _cleanUp() {
-        this._cleanupSaleOrderMarkers();
-        super._cleanUp();
-    }
-
-    /**
-     * Clean up sale order specific marker event listeners
-     * @private
-     */
-    _cleanupSaleOrderMarkers() {
-        if (!this.cache) {
-            return;
-        }
-
-        for (const [, marker] of this.cache) {
-            this._cleanupSingleMarker(marker);
-        }
-    }
-
-    /**
-     * Clean up event listeners for a single marker
-     * @private
-     * @param {Object} marker The marker to clean up
-     */
-    _cleanupSingleMarker(marker) {
-        if (!marker._customContentEvListeners) {
-            return;
-        }
-
-        const listeners = marker._customContentEvListeners;
-        this._removeContentEventListeners(listeners);
-        this._removeActionClickHandler(listeners);
-        this._cleanupMarkerReferences(marker, listeners);
-    }
-
-    /**
-     * Remove content event listeners (hover, touch events)
-     * @private
-     * @param {Object} listeners Event listeners object
-     */
-    _removeContentEventListeners(listeners) {
-        const { content, mouseenter, mouseleave, touchstart, touchend } = listeners;
-
-        if (!content) {
-            return;
-        }
-
-        const eventMap = [
-            ['mouseenter', mouseenter],
-            ['mouseleave', mouseleave],
-            ['touchstart', touchstart],
-            ['touchend', touchend],
-        ];
-
-        eventMap.forEach(([event, handler]) => {
-            if (handler) {
-                content.removeEventListener(event, handler);
-            }
-        });
-    }
-
-    /**
-     * Remove action button click handler
-     * @private
-     * @param {Object} listeners Event listeners object
-     */
-    _removeActionClickHandler(listeners) {
-        const { actionClick } = listeners;
-
-        if (actionClick?.element && actionClick?.handler) {
-            actionClick.element.removeEventListener('click', actionClick.handler);
-        }
-    }
-
-    /**
-     * Clean up marker references
-     * @private
-     * @param {Object} marker The marker object
-     * @param {Object} listeners Event listeners object
-     */
-    _cleanupMarkerReferences(marker, listeners) {
-        const { content } = listeners;
-
-        // Clear any pending hover timeout
+    _cleanUpMarker(id, marker) {
+        super._cleanUpMarker(id, marker);
         if (marker._hoverTimeout) {
             clearTimeout(marker._hoverTimeout);
             delete marker._hoverTimeout;
         }
-
-        if (content) {
-            // Clean up stored handler references
-            const actionButton = content.querySelector('.btn');
-            if (actionButton && actionButton._clickHandler) {
-                delete actionButton._clickHandler;
-            }
-
-            // Clean up layout references
-            const layout = content.querySelector('.d-flex');
-            if (layout && layout._actionClickHandler) {
-                delete layout._actionClickHandler;
-            }
-        }
-
-        delete marker._customContentEvListeners;
     }
+
 }
