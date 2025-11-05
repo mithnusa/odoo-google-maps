@@ -8,6 +8,7 @@ export class GoogleMapControllerCRM extends GoogleMapController {
             dateDeadline: 'date_deadline',
             partnerId: 'partner_id',
             userId: 'user_id',
+            stageId: 'stage_id',
         });
     }
 }
