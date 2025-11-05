@@ -636,7 +636,7 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
                 } else {
                     this._zoomAnimationFrame = null;
                 }
-            }
+            };
 
             this._zoomAnimationFrame = requestAnimationFrame(animate);
         } catch (error) {
