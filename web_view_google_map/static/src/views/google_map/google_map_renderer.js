@@ -45,7 +45,12 @@ const MARKER_CONFIG = {
             SELECTED_CLASS: 'marker-circle selected',
             DEFAULT_CLASS: 'marker-circle',
             BORDER: '2px solid #fafafa',
-        }
+        },
+        ZOOM: {
+            DEFAULT: 17,
+            SHIFTED_DETAIL: 22,
+        },
+        TILT: 65,
     },
     BOUNDS: {
         DEFAULT_PADDING: 200,
@@ -341,6 +346,8 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
      * @returns {Promise} Promise that resolves when markers are cleared
      */
     async clearMarkers() {
+        this._terminateAnyZoomOperations();
+
         // Clean up marker clusterer
         if (this.markerClusterer) {
             this.markerClusterer.clearMarkers();
@@ -382,14 +389,18 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
         if (!this.isMapLoaded()) return;
 
         try {
-            const { LatLngBounds } = await this.apiLoader.importLibrary('core');
-            const mapBounds = new LatLngBounds();
-            this.cache.forEach((marker) => {
-                if (marker.map) {
-                    mapBounds.extend(marker.position);
-                }
-            });
-            this._fitMapBoundsWithLimit(mapBounds);
+            if (!this.googleMapBounds.isEmpty()) {
+                this._fitMapBoundsWithLimit(this.googleMapBounds);
+            } else {
+                const { LatLngBounds } = await this.apiLoader.importLibrary('core');
+                const mapBounds = new LatLngBounds();
+                this.cache.forEach((marker) => {
+                    if (marker.map) {
+                        mapBounds.extend(marker.position);
+                    }
+                });
+                this._fitMapBoundsWithLimit(mapBounds);
+            }
         } catch (error) {
             console.error('Error centering map:', error);
             this.notificationService.add(_t('Failed to center map. Please try again.'), {
@@ -432,25 +443,206 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
         });
         this._fitMapBoundsWithLimit(bounds);
     }
+
     /**
-     * Focus the map on a specific record
-     * @param {string|number} recordId ID of the record to focus
+     * Focus the map on a specific record by navigating to its marker.
+     * If the marker is within a cluster, automatically breaks apart the cluster
+     * through progressive zooming to reveal the individual marker.
+     *
+     * @param {string|number} recordId - ID of the record to focus on
      */
     pointInMap(recordId) {
         const marker = this.cache.get(recordId);
         if (!marker) return;
+        this._openMarkerClusterForMarker(marker);
+    }
+
+    /**
+     * Terminates all ongoing zoom operations including animations and event listeners.
+     * This is called when starting a new zoom operation or when user manually interacts with the map.
+     *
+     * @private
+     */
+    _terminateAnyZoomOperations() {
+        if (this._zoomAnimationFrame) {
+            cancelAnimationFrame(this._zoomAnimationFrame);
+            this._zoomAnimationFrame = null;
+        }
+        if (this._currentZoomOperation) {
+            google.maps.event.removeListener(this._currentZoomOperation);
+            this._currentZoomOperation = null;
+        }
+        // Clean up user interaction listeners
+        if (this._userInteractionListeners) {
+            this._userInteractionListeners.forEach(listener => {
+                google.maps.event.removeListener(listener);
+            });
+            this._userInteractionListeners = null;
+        }
+    }
+
+    /**
+     * Sets up listeners to detect user interaction with the map.
+     * If user interacts (drag, zoom, click), the provided callback is triggered.
+     * Uses addListenerOnce for each event, so listeners auto-remove after first trigger.
+     *
+     * @private
+     * @param {Function} callback - Function to call when user interacts
+     * @returns {Array} Array of listener references for cleanup
+     */
+    _setupUserInteractionListeners(callback) {
+        const listeners = [];
+        const events = ['drag', 'click', 'dblclick', 'rightclick'];
+
+        events.forEach(eventName => {
+            const listener = google.maps.event.addListenerOnce(this.googleMap, eventName, callback);
+            listeners.push(listener);
+        });
+
+        return listeners;
+    }
+
+    /**
+     * Opens a marker cluster by progressively zooming in until the cluster breaks apart.
+     * If the marker is not clustered, immediately focuses on the marker.
+     * Cancels any ongoing zoom operations before starting a new one.
+     *
+     * This method uses a recursive approach:
+     * - Checks if the marker is in a cluster with multiple markers
+     * - Zooms in by 3 levels with smooth animation
+     * - Waits for the map to settle (idle event)
+     * - Repeats until cluster breaks apart or max attempts reached
+     * - Terminates if user interacts with the map (drag, zoom, click)
+     *
+     * @private
+     * @param {google.maps.Marker} marker - The Google Maps marker to reveal
+     * @param {number} [maxAttempts=8] - Maximum number of zoom attempts to break the cluster
+     */
+    _openMarkerClusterForMarker(marker, maxAttempts = 8) {
+        this._terminateAnyZoomOperations();
+
+        let attempts = 0;
+        let isTerminated = false;
+
+        if (!this.markerClusterer) {
+            this._handleZoomAtMarker(marker);
+            return;
+        }
 
         const position = marker.position;
-        this.markerInfoWindow?.close();
-        this.googleMap.panTo(position);
 
-        google.maps.event.addListenerOnce(this.googleMap, 'idle', () => {
-            google.maps.event.trigger(marker, 'click');
-            if (this.googleMap.getZoom() < 14) {
-                this.googleMap.setZoom(14);
+        // Handler for user interaction - terminates the zoom operation
+        const handleUserInteraction = () => {
+            isTerminated = true;
+            this._terminateAnyZoomOperations();
+        };
+
+        // Set up user interaction listeners ONCE (not in the loop)
+        this._userInteractionListeners = this._setupUserInteractionListeners(handleUserInteraction);
+
+        const checkAndZoom = () => {
+            // Check if operation was terminated by user interaction
+            if (isTerminated) {
+                return;
             }
-            this.markerInfoWindow.setPosition(position);
+
+            const cluster = this.markerClusterer.clusters.find(c => c.markers.includes(marker));
+            if (!cluster || cluster.markers.length === 1 || attempts >= maxAttempts) {
+                // Clean up listeners when operation completes
+                this._terminateAnyZoomOperations();
+                this._handleZoomAtMarker(marker);
+                return;
+            }
+
+            const currentZoom = this.googleMap.getZoom();
+            this.googleMap.setCenter(position);
+            const counter = attempts === 0 ? 4 : 3;
+            this._handleSmoothZoomToMarker(currentZoom + counter, currentZoom, 200);
+            attempts += 1;
+
+            this._currentZoomOperation = google.maps.event.addListenerOnce(this.googleMap, 'idle', checkAndZoom);
+        };
+
+        const cluster = this.markerClusterer.clusters.find(c => c.markers.includes(marker));
+        if (cluster && cluster.markers.length > 1) {
+            checkAndZoom();
+        } else {
+            this._terminateAnyZoomOperations();
+            this._handleZoomAtMarker(marker);
+        }
+    }
+
+    /**
+     * Final positioning and interaction handler for a marker.
+     * Smoothly pans to the marker, triggers its click event to show info window,
+     * and ensures a minimum zoom level for visibility.
+     *
+     * @private
+     * @param {google.maps.Marker} marker - The Google Maps marker to focus on
+     */
+    _handleZoomAtMarker(marker) {
+        const position = marker.position;
+        this.googleMap.panTo(position);
+        google.maps.event.addListenerOnce(this.googleMap, 'idle', () => {
+            this._handleAfterZoomAtMarker(marker);
         });
+    }
+
+    _handleAfterZoomAtMarker(marker) {
+        google.maps.event.trigger(marker, 'click');
+        const { ZOOM, TILT } = MARKER_CONFIG.VISUAL;
+        this.googleMap.setTilt(TILT);
+        if (this.googleMap.getZoom() < ZOOM.DEFAULT) {
+            this.googleMap.setZoom(ZOOM.DEFAULT);
+        }
+    }
+
+    /**
+     * Performs a smooth zoom animation using requestAnimationFrame with ease-in-out easing.
+     * Cancels any existing zoom animation before starting a new one.
+     * Falls back to instant zoom if an error occurs during animation.
+     *
+     * The animation uses a quadratic ease-in-out easing function for smooth acceleration
+     * and deceleration, providing a professional user experience.
+     *
+     * @private
+     * @param {number} targetZoom - The desired zoom level to animate to
+     * @param {number} currentZoom - The current zoom level to animate from
+     * @param {number} [duration=1000] - Animation duration in milliseconds
+     */
+    _handleSmoothZoomToMarker(targetZoom, currentZoom, duration = 1000) {
+        if (this._zoomAnimationFrame) {
+            cancelAnimationFrame(this._zoomAnimationFrame);
+        }
+        try {
+            const startZoom = currentZoom;
+            const zoomDiff = targetZoom - startZoom;
+            const startTime = performance.now();
+
+            const animate = (currentTime) => {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+
+                // Easing function (ease-in-out)
+                const eased = progress < 0.5
+                    ? 2 * progress * progress
+                    : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+
+                const newZoom = startZoom + (zoomDiff * eased);
+                this.googleMap.setZoom(newZoom);
+
+                if (progress < 1) {
+                    this._zoomAnimationFrame = requestAnimationFrame(animate);
+                } else {
+                    this._zoomAnimationFrame = null;
+                }
+            };
+
+            this._zoomAnimationFrame = requestAnimationFrame(animate);
+        } catch (error) {
+            console.error('Error during smooth zoom:', error);
+            this.googleMap.setZoom(targetZoom);
+        }
     }
 
     /**
@@ -538,6 +730,20 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
     }
 
     /**
+     * Get CSS class for selected marker
+     */
+    get markerSelectedClass() {
+        return MARKER_CONFIG.VISUAL.MARKER.SELECTED_CLASS;
+    }
+
+    /**
+     * Get CSS class for default marker
+     */
+    get markerDefaultClass() {
+        return MARKER_CONFIG.VISUAL.MARKER.DEFAULT_CLASS;
+    }
+
+    /**
      * Get data view for a record, with caching
      * @param {*} record
      * @returns Object Data view for the record
@@ -573,6 +779,7 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
     // Private Methods
     //--------------------------------------------------------------------------
 
+
     /**
      * Apply visual changes to a selected marker
      * @private
@@ -581,7 +788,7 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
     async _selectMarker(marker) {
         if (!marker || !this.isMapLoaded()) return;
 
-        marker.content.className = MARKER_CONFIG.VISUAL.MARKER.SELECTED_CLASS;
+        marker.content.className = this.markerSelectedClass;
 
         try {
             // Center map on marker
@@ -603,7 +810,7 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
     async _deselectMarker(marker) {
         if (!marker || !this.isMapLoaded()) return;
 
-        marker.content.className = MARKER_CONFIG.VISUAL.MARKER.DEFAULT_CLASS;
+        marker.content.className = this.markerDefaultClass;
 
         try {
             // Center map on marker
@@ -1378,15 +1585,10 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
 
     _cleanUp() {
         super._cleanUp();
+        this._terminateAnyZoomOperations();
         // Remove all markers from the map and clear event listeners
         for (const [id, marker] of this.cache) {
-            // Remove connection line if exists
-            if (marker._connectionLine) {
-                marker._connectionLine.setMap(null);
-                delete marker._connectionLine;
-            }
-            marker.map = null;
-            this._removeMarkerEventListeners(id);
+            this._cleanUpMarker(id, marker);
         }
 
         // Clean up marker clusterer
@@ -1409,6 +1611,18 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
         if (this.mapBoxSelector) {
             this.mapBoxSelector.destroy();
             this.mapBoxSelector = null;
+        }
+    }
+
+    _cleanUpMarker(id, marker) {
+        if (marker) {
+            // Remove connection line if exists
+            if (marker._connectionLine) {
+                marker._connectionLine.setMap(null);
+                delete marker._connectionLine;
+            }
+            marker.map = null;
+            this._removeMarkerEventListeners(id);
         }
     }
 }
