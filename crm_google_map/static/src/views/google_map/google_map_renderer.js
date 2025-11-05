@@ -50,7 +50,7 @@ export class GoogleMapRendererCRM extends GoogleMapRenderer {
             ? formatNumber(expectedRevenue, 2, user.context.lang)
             : false;
         values.probability = probability || 0;
-        values.dateDeadline = dateDeadline ? dateDeadline.toLocaleString(lang || 'en-US') : false;
+        values.dateDeadline = dateDeadline ? dateDeadline.toLocaleString(lang) : false;
         values.partnerName = partnerId || false;
         values.salespersonName = userId || false;
         values.title = title || _t('Lead');
