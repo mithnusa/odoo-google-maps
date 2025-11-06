@@ -2,27 +2,24 @@
 {
     'name': 'Web widget Google Maps',
     'summary': '''
-        Two new widget of Google autocomplete
+        A new widget for Google Maps integration
     ''',
     'description': '''
-        Implementation of Google Autocomplete Address form and
-        Google Places autocomplete through widget
+        A widget that allows you to display Google Maps in form view and be able to edit the geolocation (lat & lng)
     ''',
     'license': 'LGPL-3',
     'author': 'Yopi Angi',
     'website': 'https://github.com/mithnusa',
     'support': 'yopiangi@gmail.com',
     'category': 'Extra Tools',
-    'version': '1.0.0',
+    'version': '1.0.1',
     'depends': ['base_google_map'],
     'assets': {
         'web.assets_backend': [
             'web_widget_google_map/static/src/widgets/**/*',
         ],
     },
-    'data': [
-        'data/gmap_libraries.xml',
-    ],
+    'data': [],
     'demo': [],
     'installable': True,
     'application': False,

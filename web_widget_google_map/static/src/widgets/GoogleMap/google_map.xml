@@ -8,4 +8,18 @@
             <button type="button" class="btn btn-light" t-on-click="handleOnEdit" t-att-disabled="props.readonly">Edit</button>
         </div>
     </t>
+     <t t-name="web_widget_google_map.GeolocationEditDialog">
+        <Dialog size="'xl'" title="props.title" modalRef="modalRef">
+        <div class="alert alert-info text-center">Drag the marker to update the location</div>
+        <div class="o_google_map_form" >
+            <div class="o_google_map_renderer">
+                <div class="o_google_map_view" t-ref="map"></div>
+            </div>
+        </div>
+        <t t-set-slot="footer">
+            <button class="btn" t-att-class="props.confirmClass" t-on-click="_confirm" t-esc="props.confirmLabel" data-hotkey="q"/>
+            <button t-if="props.cancel" class="btn btn-secondary" t-on-click="_cancel" t-esc="props.cancelLabel" data-hotkey="x"/>
+        </t>
+        </Dialog>
+    </t>
 </templates>
