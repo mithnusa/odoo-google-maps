@@ -1,5 +1,8 @@
 # Change Log
 
+## 19.0.1.0.2
+Fixed bug where updating (clicking the "edit" button below Google Maps view in form view) a record's geolocation in form view opened in a pop-up window caused an error.
+
 ## 19.0.1.0.1
 Migration to version 19.0
 
