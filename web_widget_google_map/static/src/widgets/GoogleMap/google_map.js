@@ -70,7 +70,7 @@ class GeolocationEditDialog extends ConfirmationDialog {
             () => [this.state.isGoogleLoaded, this.mapRef]
         );
 
-        onWillUnmount(this._cleanupListeners);
+        onWillUnmount(this._cleanupListeners.bind(this));
     }
 
     /**
@@ -79,7 +79,9 @@ class GeolocationEditDialog extends ConfirmationDialog {
      */
     _cleanupListeners() {
         if (this.marker) {
-            google.maps.event.clearListeners(this.marker, 'dragend');
+            if (!this.props.readonly) {
+                google.maps.event.clearListeners(this.marker, 'dragend');
+            }
             this.marker.map = null;
             this.marker = null;
         }
@@ -158,7 +160,7 @@ class GeolocationEditDialog extends ConfirmationDialog {
         const markerOptions = {
             position: { lat, lng },
             map: this.googleMap,
-            gmpDraggable: this.props.readonly ? false : true,
+            gmpDraggable: !this.props.readonly,
         };
 
         try {
@@ -167,12 +169,18 @@ class GeolocationEditDialog extends ConfirmationDialog {
             if (isZoomIn) {
                 this.googleMap.panTo({ lat, lng });
             }
-            this.marker.addListener('dragend', this._handleMarkerDragend.bind(this));
+            if (!this.props.readonly) {
+                this.marker.addListener('dragend', this._handleMarkerDragend.bind(this));
+            }
             google.maps.event.addListenerOnce(this.googleMap, 'idle', () => {
                 if (this.googleMap.getZoom() < 16) this.googleMap.setZoom(16);
             });
         } catch (error) {
             console.error('Error loading Google Maps API:', error);
+            this.notificationService.add(
+                sprintf(_t('Failed to load Google Maps API.\n%s'), error.message || error),
+                { type: 'danger' }
+            );
             return;
         }
     }

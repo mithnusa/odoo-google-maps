@@ -8,7 +8,7 @@
             <button type="button" class="btn btn-light" t-on-click="handleOnEdit" t-att-disabled="props.readonly">Edit</button>
         </div>
     </t>
-     <t t-name="web_widget_google_map.GeolocationEditDialog">
+    <t t-name="web_widget_google_map.GeolocationEditDialog">
         <Dialog size="'xl'" title="props.title" modalRef="modalRef">
         <div class="alert alert-info text-center">Drag the marker to update the location</div>
         <div class="o_google_map_form" >
