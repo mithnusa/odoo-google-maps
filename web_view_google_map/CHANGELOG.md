@@ -1,5 +1,8 @@
 # Change Log
 
+## 19.0.1.0.2
+Fix bug where updating (clicking the "edit" button below Google Maps view in form view) a record's geolocation in form view opened in a pop-up window caused an error.
+
 ## 19.0.1.0.1
 - Visual improvements when showing individual marker in the map.    
 When a marker is part of a cluster, clicking its record in the sidebar will automatically zoom in to reveal the marker within the cluster.

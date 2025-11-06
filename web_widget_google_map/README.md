@@ -19,7 +19,7 @@ Available options that you can configure:
  Default value: 200
 
 
-How to use?
+How to use?    
 Example:
 ```xml
     <widget name="google_map" lat="partner_latitude" lng="partner_longitude" width="100%" height="400"/>
