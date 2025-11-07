@@ -1,5 +1,8 @@
 # Change Log
 
+## 19.0.1.0.2
+Improve the visibility of data displayed on the map when grouping the data.
+
 ## 19.0.1.0.1
 Small improvements on the SCSS.
 

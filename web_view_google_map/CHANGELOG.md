@@ -1,5 +1,8 @@
 # Change Log
 
+## 19.0.1.0.3
+Improve the visibility of data displayed on the map when grouping the data.
+
 ## 19.0.1.0.2
 Fix bug where updating (clicking the "edit" button below Google Maps view in form view) a record's geolocation in form view opened in a pop-up window caused an error.
 
