@@ -109,7 +109,7 @@ Please check this document [Google Places Autocomplete documentation](https://de
 {'includedPrimaryTypes': ['route', 'street_address']}
 ```
 
-2. Fields Property (mandatory).   
+2. Fields Property (mandatory)   
 It's recommended to define the `fields` property in your mapping configuration to specify which Google Places fields to retrieve. This optimizes performance by limiting data retrieval to only necessary fields.     
 Use the fields property wisely as it affects the cost of API usage.    
 Please check this document [Place Fields documentation](https://developers.google.com/maps/documentation/javascript/place-class-data-fields) for more details.    
