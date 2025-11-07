@@ -211,8 +211,6 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
             ...this.state,
             // Sidebar state
             sidebarIsFolded: false,
-            // Data management
-            groupDatalistId: null,
         });
 
         this.controlPanelHeight = null;
@@ -261,38 +259,20 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
             }
         });
 
-        // Performance-optimized effects
-        useEffect(
-            () => {
-                if (this.state.groupDatalistId && !this._isSidebarAction && this.deckglOverlay && this.isMapLoaded()) {
-                    this.debounceRenderGeolocationData();
-                }
-                this._isSidebarAction = false;
-            },
-            () => [this.state.groupDatalistId]
-        );
-
         useEffect(() => {
-            if (!this.state.groupDatalistId && !this._isSidebarAction && this.deckglOverlay && this.isMapLoaded()) {
-                if (this.isListGrouped) {
-                    this.state.groupDatalistId = generateUUID();
-                } else {
-                    this.debounceRenderGeolocationData();
-                }
+            if (this.isMapLoaded() && !this._isSidebarAction && this.deckglOverlay) {
+                this.debounceRenderGeolocationData();
                 this._isSidebarAction = false;
             }
-        });
+        }, () => [this.state.isMapReady]);
 
-        onWillUpdateProps(() => {
-            this.state.groupDatalistId = generateUUID();
+        onWillUpdateProps((nextProps) => {
+            this.onWillUpdatePropsRenderMarkers(nextProps);
         });
 
         onPatched(() => {
             if (this._isSidebarAction) {
                 this._isSidebarAction = false;
-            }
-            if (this.state.groupDatalistId && !this.isListGrouped) {
-                this.state.groupDatalistId = null;
             }
         });
 
@@ -304,6 +284,36 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
             useBus(this.uiService.bus, 'google-map-center-map', this.centerMap);
         }
 
+    }
+
+    /**
+     * Handles feature rendering logic before props are updated.
+     * Manages feature lifecycle based on grouping state changes.
+     * When switching to grouped view, clears all rendering data. Otherwise, triggers a debounced render.
+     *
+     * @param {Object} nextProps - The incoming props object containing the updated state
+     * @param {Object} nextProps.list - The list data object
+     * @param {boolean} nextProps.list.isGrouped - Whether the next state is grouped
+     */
+    onWillUpdatePropsRenderMarkers(nextProps) {
+        if (!this.isMapLoaded()) {
+            return;
+        }
+
+        const nextIsGrouped = !!nextProps.list.isGrouped;
+        const currentIsGrouped = !!this.props.list.isGrouped;
+        const isGroupingChanged = nextIsGrouped !== currentIsGrouped;
+
+        // Clear all data when switching to grouped view
+        if (isGroupingChanged && nextIsGrouped) {
+            this._clearRenderingData();
+            return;
+        }
+
+        // Re-render when not in grouped view (staying ungrouped or switching from grouped)
+        if (!nextIsGrouped) {
+            this.debounceRenderGeolocationData();
+        }
     }
 
     /**
@@ -420,11 +430,11 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
      * Process a batch of features asynchronously
      * @private
      */
-    _processBatchAsync(batch) {
+    _processBatchAsync(batch, color) {
         return new Promise((resolve) => {
             const processBatch = () => {
                 batch.forEach(({ record }) => {
-                    this._processRecordGeoJSON(record);
+                    this._processRecordGeoJSON(record, color);
                 });
                 resolve();
             };
@@ -444,9 +454,8 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
     async _renderGroupedShapesOptimized(datas) {
         const promises = datas.map(async ({ group }) => {
             try {
-                const records = await group.groupRecords();
-                const batch = records.map(record => ({ record }));
-                await this._processBatchAsync(batch);
+                const batch = group.records.map(record => ({ record }));
+                await this._processBatchAsync(batch, group.groupColor);
             } catch (error) {
                 console.error('Failed to load group records:', error);
             }
@@ -456,10 +465,23 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
     }
 
     /**
+     * Render grouped records and fit bounds
+     * @param {Array} datas 
+     */
+    async _renderGroupedRecordsFitBounds(datas) {
+        // Render grouped shapes
+        await this._renderGroupedShapesOptimized(datas);
+        // Update Deck.gl layers
+        this._updateDeckGLLayers();
+        // Fit bounds when ready
+        this._fitBoundsWhenReady();
+    }
+
+    /**
      * Process individual record GeoJSON with optimizations
      * @private
      */
-    _processRecordGeoJSON(record) {
+    _processRecordGeoJSON(record, color) {
         try {
             const geoJson = record.data[this.props.viewAttrs.geoJsonField];
             if (!geoJson?.features?.length) return;
@@ -476,7 +498,8 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
                     feature,
                     recordValues,
                     dataView,
-                    featureId
+                    featureId,
+                    color
                 );
                 this.geoJsonData.set(processedFeature.id, processedFeature);
                 this._indexFeature(processedFeature);
@@ -495,11 +518,11 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
      * Create optimized feature object
      * @private
      */
-    _createOptimizedFeature(feature, recordData, dataView, featureId) {
+    _createOptimizedFeature(feature, recordData, dataView, featureId, featureColor) {
         // Get object from pool or create new one
         const optimizedFeature = this._createEmptyFeatureObject();
 
-        const color = dataView?.other?.__geoColor || generateColor();
+        const color = featureColor || dataView?.other?.__geoColor || generateColor();
 
         optimizedFeature.id = featureId;
         optimizedFeature.type = feature.type;
@@ -1091,6 +1114,18 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
     }
 
     /**
+     * Toggles the expansion/collapse state of a group in the sidebar.
+     * Sets a flag to indicate this is a sidebar-initiated action.
+     *
+     * @param {Object} group - The group object to toggle
+     * @returns {Promise<void>}
+     */
+    async toggleGroup(group) {
+        this._isSidebarAction = true;
+        await group.toggle();
+    }
+
+    /**
      * @override
      * Initialize map with Deck.gl overlay
      */
@@ -1272,11 +1307,12 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
             title: this.props.archInfo.sidebarTitleField,
             subTitle: this.props.archInfo.sidebarSubtitleField,
             getGroupsOrRecords: this.getGroupsOrRecords.bind(this),
+            toggleGroup: this.toggleGroup.bind(this),
+            renderGroupedRecordsFitBounds: this._renderGroupedRecordsFitBounds.bind(this),
             openRecord: this.props.openRecord.bind(this),
-            createShape: this._processRecordGeoJSON.bind(this),
             showRecordsByDomain: this.props.showRecordsByDomain.bind(this),
             pointInMap: this.pointInMap.bind(this),
-            centerMapByGroup: this.centerMapByGroup.bind(this),
+            deleteGroupRecords: this.deleteGroupRecords.bind(this),
             handleToggleRecordSelection: this.toggleRecordSelection.bind(this),
             handleToggleSelection: this.toggleSelectionAll.bind(this),
             handleCanSelectRecord: this.canSelectRecord,
@@ -1384,7 +1420,7 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
     }
 
     get isListGrouped() {
-        return this.props.list?.isGrouped || this.props.groups?.length > 0;
+        return !!this.props.list.isGrouped;
     }
 
     /**
@@ -1519,6 +1555,50 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
             this.googleMap.fitBounds(this.latLngBounds);
         }
     }
+
+
+    /**
+     * Deletes all map features associated with the given group records.
+     * Removes features from all data structures and updates the map visualization.
+     *
+     * @param {Array<Object>} groupRecords - Array of record objects to delete from the map
+     * @returns {Promise<void>}
+     */
+    async deleteGroupRecords(groupRecords) {
+        if (!this.isMapLoaded() || !Array.isArray(groupRecords)) return;
+        this.markerInfoWindow?.close();
+
+        const deletedFeatureIds = new Set();
+
+        groupRecords.forEach((record) => {
+            const _id = record.id.toString() + '-';
+            this.geoJsonData.forEach((feature) => {
+                if (feature.id.startsWith(_id)) {
+                    deletedFeatureIds.add(feature.id);
+                }
+            });
+        });
+
+        // Delete features from all data structures
+        deletedFeatureIds.forEach(featureId => {
+            this.geoJsonData.delete(featureId);
+            this.selectedFeatureIds.delete(featureId);
+            this.visibleFeatures.delete(featureId);
+        });
+
+        // Clean up feature index
+        this.featureIndex.forEach((featureSet) => {
+            deletedFeatureIds.forEach(featureId => {
+                featureSet.delete(featureId);
+            });
+        });
+
+        // Update the visual layers to reflect the deletion
+        this._updateDeckGLLayers();
+
+        this._fitBoundsWhenReady();
+    }
+
 
     /**
      * Cleanup resources

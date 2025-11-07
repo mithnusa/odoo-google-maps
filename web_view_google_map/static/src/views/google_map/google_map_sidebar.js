@@ -14,11 +14,12 @@ export class GoogleMapSidebar extends Component {
         title: { type: String, optional: true },
         subTitle: String,
         getGroupsOrRecords: Function,
-        createMarker: Function,
+        toggleGroup: Function,
+        renderGroupedRecordsFitBounds: Function,
         openRecord: Function,
         showRecordsByDomain: Function,
         pointInMap: Function,
-        centerMapByGroup: Function,
+        deleteGroupRecords: Function,
         handleToggleSelection: Function,
         handleCanSelectRecord: Boolean,
         handleSelectAll: Boolean,
@@ -40,11 +41,14 @@ export class GoogleMapSidebar extends Component {
         const { group } = this.datas.find((data) => data.key === groupKey);
         if (!group) return;
 
-        await group.toggle();
-        const records = group.list.records;
-
         if (!ev.currentTarget?.classList.contains('collapsed')) {
-            this.props.centerMapByGroup(records);
+            await this.props.toggleGroup(group);
+            const datas = this.props.getGroupsOrRecords();
+            const groupDatas = datas.filter((data) => data.key === groupKey);
+            this.props.renderGroupedRecordsFitBounds(groupDatas);
+        } else {
+            const records = group.list.records;
+            this.props.deleteGroupRecords(records);
         }
     }
 

@@ -16,7 +16,6 @@ import {
     invertColorDarken,
     AdvancedMarkerBoxSelector,
     getRecordDataView,
-    generateUUID,
 } from './utils';
 
 /**
@@ -100,9 +99,8 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
             sidebarIsFolded: false,
             // flag to Google Maps API loader status
             loaderStatus: LOADER_STATUS.NOT_LOADED,
-            // flag to control when to update markers
-            groupDatalistId: null,
         });
+
         this.markerInfoWindow = null;
         this.cache = new Map();
         this.cacheRecordDataView = new Map();
@@ -118,27 +116,12 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
         this.debounceRenderGeolocationData = debounce(this.renderGeolocationData.bind(this), 500);
         this.debounceSelectedMarkers = debounce(this.onSelectedMarkers.bind(this), 500);
 
-        useEffect(
-            () => {
-                if (this.state.groupDatalistId && this.isMapLoaded() && !this._isSidebarAction) {
-                    this.debounceRenderGeolocationData();
-                }
-                this._isSidebarAction = false;
-            },
-            () => [this.state.groupDatalistId]
-        );
-
         useEffect(() => {
-            if (this.isMapLoaded() && !this.state.groupDatalistId && !this._isSidebarAction) {
-                const isGrouped = this.props.list.isGrouped;
-                if (isGrouped) {
-                    this.state.groupDatalistId = generateUUID();
-                } else {
-                    this.debounceRenderGeolocationData();
-                }
+            if (this.isMapLoaded() && !this._isSidebarAction) {
+                this.debounceRenderGeolocationData();
                 this._isSidebarAction = false;
             }
-        });
+        }, () => [this.state.isMapReady]);
 
         useSubEnv({
             mapState: this.state,
@@ -149,21 +132,49 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
         });
 
         onWillUpdateProps((nextProps) => {
-            this._invalidateMarkerPositionIndex();
-            this.state.groupDatalistId = generateUUID();
+            this.onWillUpdatePropsRenderMarkers(nextProps);
         });
 
         onPatched(() => {
             if (this._isSidebarAction) {
                 this._isSidebarAction = false;
             }
-            if (this.state.groupDatalistId && !this.props.list.isGrouped) {
-                this.state.groupDatalistId = null;
-            }
         });
 
         if (this.props.allowSelectors) {
             useBus(this.uiService.bus, 'google-map-center-map', this.centerMap);
+        }
+    }
+
+    /**
+     * Handles marker rendering logic before props are updated.
+     * Invalidates the marker position index and manages marker lifecycle based on grouping state changes.
+     * When switching to grouped view, clears all markers. Otherwise, triggers a debounced render.
+     *
+     * @param {Object} nextProps - The incoming props object containing the updated state
+     * @param {Object} nextProps.list - The list data object
+     * @param {boolean} nextProps.list.isGrouped - Whether the next state is grouped
+    */
+   onWillUpdatePropsRenderMarkers(nextProps) {
+        if (!this.isMapLoaded()) {
+           return;
+        }
+
+        this._invalidateMarkerPositionIndex();
+
+        const nextIsGrouped = !!nextProps.list.isGrouped;
+        const currentIsGrouped = !!this.props.list.isGrouped;
+        const isGroupingChanged = nextIsGrouped !== currentIsGrouped;
+
+        // Clear all markers when switching to grouped view
+        if (isGroupingChanged && nextIsGrouped) {
+            this.clearMarkers();
+            return;
+        }
+
+        // Re-render when not in grouped view (staying ungrouped or switching from grouped)
+        if (!nextIsGrouped) {
+            this.debounceRenderGeolocationData();
         }
     }
 
@@ -305,6 +316,18 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
     }
 
     /**
+     * Toggles the expansion/collapse state of a group in the sidebar.
+     * Sets a flag to indicate this is a sidebar-initiated action.
+     *
+     * @param {Object} group - The group object to toggle
+     * @returns {Promise<void>}
+     */
+    async toggleGroup(group) {
+        this._isSidebarAction = true;
+        await group.toggle();
+    }
+
+    /**
      * Create or update a marker for a record
      * @param {Object} record The record to create a marker for
      * @param {string} [markerColor] Optional color override for the marker
@@ -359,13 +382,7 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
 
         // Remove all markers from the map and clear event listeners
         for (const [id, marker] of this.cache) {
-            // Remove connection line if exists
-            if (marker._connectionLine) {
-                marker._connectionLine.setMap(null);
-                delete marker._connectionLine;
-            }
-            marker.map = null;
-            this._removeMarkerEventListeners(id);
+            this._cleanUpMarker(id, marker);
         }
 
         this.cacheRecordDataView.clear();
@@ -432,16 +449,43 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
      */
     async centerMapByGroup(groupRecords) {
         if (!this.isMapLoaded() || !Array.isArray(groupRecords)) return;
+
         this.markerInfoWindow?.close();
         const { LatLngBounds } = await this.apiLoader.importLibrary('core');
         const bounds = new LatLngBounds();
         groupRecords.forEach((record) => {
             const marker = this.cache.get(record.id);
-            if (marker && marker.map) {
+            if (marker) {
+                if (marker.map === null) {
+                    marker.map = this.googleMap;
+                    if (this.markerClusterer) {
+                        this.markerClusterer.addMarker(marker);
+                    }
+                }
                 bounds.extend(marker.position);
             }
         });
         this._fitMapBoundsWithLimit(bounds);
+    }
+
+    /**
+     * Deletes all markers associated with the given group records.
+     * Cleans up markers from the cache and map, then adjusts the map bounds.
+     *
+     * @param {Array<Object>} groupRecords - Array of record objects to delete from the map
+     * @returns {Promise<void>}
+     */
+    async deleteGroupRecords(groupRecords) {
+        if (!this.isMapLoaded() || !Array.isArray(groupRecords)) return;
+        this.markerInfoWindow?.close();
+        groupRecords.forEach((record) => {
+            const marker = this.cache.get(record.id);
+            if (marker) {
+                this._cleanUpMarker(record.id, marker);
+                this.cache.delete(record.id);
+            }
+        });
+        this._fitBoundsWhenReady();
     }
 
     /**
@@ -685,6 +729,10 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
     // Getters
     //--------------------------------------------------------------------------
 
+    get isGrouped() {
+        return !!this.props.list.isGrouped;
+    }
+
     /**
      * Get sidebar props for the sidebar component
      */
@@ -695,11 +743,12 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
             title: this.props.archInfo.sidebarTitleField,
             subTitle: this.props.archInfo.sidebarSubtitleField,
             getGroupsOrRecords: this.getGroupsOrRecords.bind(this),
-            createMarker: this.createMarker.bind(this),
+            toggleGroup: this.toggleGroup.bind(this),
+            renderGroupedRecordsFitBounds: this._renderGroupedRecordsFitBounds.bind(this),
             openRecord: this.props.openRecord.bind(this),
             showRecordsByDomain: this.props.showRecordsByDomain.bind(this),
             pointInMap: this.pointInMap.bind(this),
-            centerMapByGroup: this.centerMapByGroup.bind(this),
+            deleteGroupRecords: this.deleteGroupRecords.bind(this),
             handleToggleRecordSelection: this.toggleRecordSelection.bind(this),
             handleToggleSelection: this.toggleSelectionAll.bind(this),
             handleCanSelectRecord: this.canSelectRecord,
@@ -1023,6 +1072,11 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
 
         // Wait for all groups to finish creating their markers
         await Promise.all(groupPromises);
+    }
+
+    async _renderGroupedRecordsFitBounds(datas) {
+        await this._renderGroupedMarkers(datas);
+        this._fitBoundsWhenReady();
     }
 
     /**
@@ -1480,7 +1534,6 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
      */
     _removeElementEventListeners(element) {
         const listeners = this._elementEventListeners.get(element);
-
         if (listeners) {
             listeners.forEach((listener, eventType) => {
                 element.removeEventListener(eventType, listener);
@@ -1616,6 +1669,9 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
 
     _cleanUpMarker(id, marker) {
         if (marker) {
+            if (this.markerClusterer) {
+                this.markerClusterer.removeMarker(marker);
+            }
             // Remove connection line if exists
             if (marker._connectionLine) {
                 marker._connectionLine.setMap(null);
