@@ -5,15 +5,14 @@
         New widget of Google Place Autcomplete using the NEW Place API
     ''',
     'description': '''
-        Implementation of Google Autocomplete Address form and
-        Google Places autocomplete through widget
+        Implementation of Google Places Autocomplete Element through widget
     ''',
     'license': 'LGPL-3',
     'author': 'Yopi Angi',
     'website': 'https://github.com/mithnusa',
     'support': 'yopiangi@gmail.com',
     'category': 'Extra Tools',
-    'version': '1.0.0',
+    'version': '1.0.1',
     'depends': ['base_google_map'],
     'assets': {
         'web.assets_backend': [

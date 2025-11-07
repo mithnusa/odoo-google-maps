@@ -21,7 +21,7 @@
                         <p class="mb-0 fst-italic text-600" style="font-size:12px;">
                             <small>Please make sure to test before using the mapping</small>
                             <br/>
-                            <small>When testing the mapping, please reload the page whenever a value is changed.</small>
+                            <small>When testing the mapping, please reload the page whenever the mapping is changed.</small>
                         </p>
                     </div>
                     <div class="oe_title mb-2">
@@ -49,7 +49,7 @@
                                 <field name="gplace_options" widget="code" options="{'mode': 'python'}"/>
                                 <small class="text-muted">
                                     <span>Before configure the value please check this document first </span>
-                                    <a class="text-decoration-underline" href="https://developers.google.com/maps/documentation/javascript/reference/places-widget#PlaceAutocompleteElementOptions" target="_blank">PlaceAutocompleteElementOptions interface</a>
+                                    <a class="text-decoration-underline" href="https://developers.google.com/maps/documentation/places/web-service/place-autocomplete#supported-parameters" target="_blank">PlaceAutocompleteElementOptions interface</a>
                                 </small>
                             </div>
                         </group>
