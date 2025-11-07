@@ -1,5 +1,8 @@
 # Change Log
 
+## 19.0.1.0.2
+Small UI improvements on the map sidebar.
+
 ## 19.0.1.0.1
 - Clean up code, no functional changes.
 - Visual improvements when showing individual marker in the map.
