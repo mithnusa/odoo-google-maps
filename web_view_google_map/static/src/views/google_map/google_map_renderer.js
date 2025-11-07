@@ -16,7 +16,6 @@ import {
     invertColorDarken,
     AdvancedMarkerBoxSelector,
     getRecordDataView,
-    generateUUID,
 } from './utils';
 
 /**
@@ -100,9 +99,8 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
             sidebarIsFolded: false,
             // flag to Google Maps API loader status
             loaderStatus: LOADER_STATUS.NOT_LOADED,
-            // flag to control when to update markers
-            groupDatalistId: null,
         });
+
         this.markerInfoWindow = null;
         this.cache = new Map();
         this.cacheRecordDataView = new Map();
@@ -118,27 +116,12 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
         this.debounceRenderGeolocationData = debounce(this.renderGeolocationData.bind(this), 500);
         this.debounceSelectedMarkers = debounce(this.onSelectedMarkers.bind(this), 500);
 
-        useEffect(
-            () => {
-                if (this.state.groupDatalistId && this.isMapLoaded() && !this._isSidebarAction) {
-                    this.debounceRenderGeolocationData();
-                }
-                this._isSidebarAction = false;
-            },
-            () => [this.state.groupDatalistId]
-        );
-
         useEffect(() => {
-            if (this.isMapLoaded() && !this.state.groupDatalistId && !this._isSidebarAction) {
-                const isGrouped = this.props.list.isGrouped;
-                if (isGrouped) {
-                    this.state.groupDatalistId = generateUUID();
-                } else {
-                    this.debounceRenderGeolocationData();
-                }
+            if (this.isMapLoaded() && !this._isSidebarAction) {
+                this.debounceRenderGeolocationData();
                 this._isSidebarAction = false;
             }
-        });
+        }, () => [this.state.isMapReady]);
 
         useSubEnv({
             mapState: this.state,
@@ -149,21 +132,30 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
         });
 
         onWillUpdateProps((nextProps) => {
-            this._invalidateMarkerPositionIndex();
-            this.state.groupDatalistId = generateUUID();
+            this.onWillUpdatePropsRenderMarkers(nextProps);
         });
 
         onPatched(() => {
             if (this._isSidebarAction) {
                 this._isSidebarAction = false;
             }
-            if (this.state.groupDatalistId && !this.props.list.isGrouped) {
-                this.state.groupDatalistId = null;
-            }
         });
 
         if (this.props.allowSelectors) {
             useBus(this.uiService.bus, 'google-map-center-map', this.centerMap);
+        }
+    }
+
+    onWillUpdatePropsRenderMarkers(nextProps) {
+        this._invalidateMarkerPositionIndex();
+
+        const nextIsGrouped = !!nextProps.list.isGrouped;
+        const currentIsGrouped = !!this.props.list.isGrouped;
+
+        if (nextIsGrouped !== currentIsGrouped && this.isMapLoaded() && nextIsGrouped) {
+            this.clearMarkers();
+        } else if (((currentIsGrouped && !nextIsGrouped) || (!currentIsGrouped && !nextIsGrouped)) && this.isMapLoaded()) {
+            this.debounceRenderGeolocationData();
         }
     }
 
@@ -304,6 +296,11 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
         return result;
     }
 
+    async toggleGroup(group) {
+        this._isSidebarAction = true;
+        await group.toggle();
+    }
+
     /**
      * Create or update a marker for a record
      * @param {Object} record The record to create a marker for
@@ -359,13 +356,7 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
 
         // Remove all markers from the map and clear event listeners
         for (const [id, marker] of this.cache) {
-            // Remove connection line if exists
-            if (marker._connectionLine) {
-                marker._connectionLine.setMap(null);
-                delete marker._connectionLine;
-            }
-            marker.map = null;
-            this._removeMarkerEventListeners(id);
+            this._cleanUpMarker(id, marker);
         }
 
         this.cacheRecordDataView.clear();
@@ -432,16 +423,36 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
      */
     async centerMapByGroup(groupRecords) {
         if (!this.isMapLoaded() || !Array.isArray(groupRecords)) return;
+
         this.markerInfoWindow?.close();
         const { LatLngBounds } = await this.apiLoader.importLibrary('core');
         const bounds = new LatLngBounds();
         groupRecords.forEach((record) => {
             const marker = this.cache.get(record.id);
-            if (marker && marker.map) {
+            if (marker) {
+                if (marker.map === null) {
+                    marker.map = this.googleMap;
+                    if (this.markerClusterer) {
+                        this.markerClusterer.addMarker(marker);
+                    }
+                }
                 bounds.extend(marker.position);
             }
         });
         this._fitMapBoundsWithLimit(bounds);
+    }
+
+    async deleteGroupRecords(groupRecords) {
+        if (!this.isMapLoaded() || !Array.isArray(groupRecords)) return;
+        this.markerInfoWindow?.close();
+        groupRecords.forEach((record) => {
+            const marker = this.cache.get(record.id);
+            if (marker) {
+                this._cleanUpMarker(record.id, marker);
+                this.cache.delete(record.id);
+            }
+        });
+        this._fitBoundsWhenReady();
     }
 
     /**
@@ -685,6 +696,10 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
     // Getters
     //--------------------------------------------------------------------------
 
+    get isGrouped() {
+        return !!this.props.list.isGrouped;
+    }
+
     /**
      * Get sidebar props for the sidebar component
      */
@@ -695,11 +710,12 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
             title: this.props.archInfo.sidebarTitleField,
             subTitle: this.props.archInfo.sidebarSubtitleField,
             getGroupsOrRecords: this.getGroupsOrRecords.bind(this),
-            createMarker: this.createMarker.bind(this),
+            toggleGroup: this.toggleGroup.bind(this),
+            renderGroupedRecordsFitBounds: this._renderGroupedRecordsFitBounds.bind(this),
             openRecord: this.props.openRecord.bind(this),
             showRecordsByDomain: this.props.showRecordsByDomain.bind(this),
             pointInMap: this.pointInMap.bind(this),
-            centerMapByGroup: this.centerMapByGroup.bind(this),
+            deleteGroupRecords: this.deleteGroupRecords.bind(this),
             handleToggleRecordSelection: this.toggleRecordSelection.bind(this),
             handleToggleSelection: this.toggleSelectionAll.bind(this),
             handleCanSelectRecord: this.canSelectRecord,
@@ -1007,6 +1023,7 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
      * @returns {Promise} Promise that resolves when all markers are rendered
      */
     async _renderGroupedMarkers(datas) {
+        console.log(' *** Render grouped markers *** ');
         const groupPromises = datas.map(async ({ group }) => {
             try {
                 // Create all markers for this group and wait for them to complete
@@ -1023,6 +1040,11 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
 
         // Wait for all groups to finish creating their markers
         await Promise.all(groupPromises);
+    }
+
+    async _renderGroupedRecordsFitBounds(datas) {
+        await this._renderGroupedMarkers(datas);
+        this._fitBoundsWhenReady();
     }
 
     /**
@@ -1480,6 +1502,8 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
      */
     _removeElementEventListeners(element) {
         const listeners = this._elementEventListeners.get(element);
+        console.log('Removing event listeners for element:', { element, listeners });
+
 
         if (listeners) {
             listeners.forEach((listener, eventType) => {
@@ -1616,6 +1640,9 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
 
     _cleanUpMarker(id, marker) {
         if (marker) {
+            if (this.markerClusterer) {
+                this.markerClusterer.removeMarker(marker);
+            }
             // Remove connection line if exists
             if (marker._connectionLine) {
                 marker._connectionLine.setMap(null);
