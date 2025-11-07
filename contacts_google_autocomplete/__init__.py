@@ -130,6 +130,7 @@ def _post_install_hook_configure_contact_google_place_mapping(env):
             'code': secrets.token_urlsafe(6),
             'model_id': model_contact_id,
             'mode': 'address',
+            'gplace_options': "{'includedPrimaryTypes': ['route', 'street_address']}",
             'gplace_address_fetch_fields': "['addressComponents', 'location']",
             'latitude': field_latitude_id,
             'longitude': field_longitude_id,

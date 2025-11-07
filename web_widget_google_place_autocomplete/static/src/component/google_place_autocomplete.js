@@ -320,6 +320,7 @@ export class GooglePlaceAutocompleteElement extends Component {
                 ),
                 { type: 'warning' }
             );
+            this.displayGooglePlaceError();
         }
     }
 
@@ -403,6 +404,15 @@ export class GooglePlaceAutocompleteElement extends Component {
             errorMessage = sprintf(_t('Something went wrong with the Google Autocomplete widget.\n%s'), error);
         }
         this.notificationService.add(errorMessage, { type: 'warning' });
+    }
+
+    /**
+     * Displays a generic error message in the Google Autocomplete widget area.
+     */
+    displayGooglePlaceError() {
+        const errorMessage = _t('Failed to initialize Google Autocomplete');
+        this.gAutocompleteRef.el.innerHTML = '<p class="text-center mb-0">⚠️ ' + errorMessage + '</p>';
+        this.gAutocompleteRef.el.classList.add('smaller', 'text-muted');
     }
 
     /**
