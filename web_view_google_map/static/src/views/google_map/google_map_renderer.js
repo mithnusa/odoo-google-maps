@@ -1056,7 +1056,6 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
      * @returns {Promise} Promise that resolves when all markers are rendered
      */
     async _renderGroupedMarkers(datas) {
-        console.log(' *** Render grouped markers *** ');
         const groupPromises = datas.map(async ({ group }) => {
             try {
                 // Create all markers for this group and wait for them to complete
