@@ -16,5 +16,8 @@
     </t>
     <t t-name="sale_google_map.GoogleMapSidebar" t-inherit="web_view_google_map.GoogleMapSidebar" t-inherit-mode="primary">
         <xpath expr="//t[@t-if='props.allowSelectors']" position="replace"/>
+        <xpath expr="//div[@t-ref='root']" position="attributes">
+            <attribute name="class" add="sale_google_map" separator=" "/>
+        </xpath>
     </t>
 </templates>

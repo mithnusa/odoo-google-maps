@@ -2,15 +2,17 @@
     .o_google_map_renderer, .o_dialog {
         .o_map_right_sidebar {
             .content {
-                table tr td .o_map_sidebar_group {
-                    display: block;
-                    white-space: nowrap;
-                    overflow: hidden;
-                    text-overflow: ellipsis;
-                    max-width: 300px;
+                .sale_google_map {
+                    table tr td .o_map_sidebar_group {
+                        display: block;
+                        white-space: nowrap;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                        max-width: 300px;
 
-                    @media (max-width: 1920px) {
-                        max-width: 250px;
+                        @media (max-width: 1920px) {
+                            max-width: 250px;
+                        }
                     }
                 }
             }
