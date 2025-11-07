@@ -67,6 +67,7 @@ export class GooglePlaceMappingTestField extends Component {
     setup() {
         this.notificationService = useService('notification');
         this.dialogService = useService('dialog');
+        this.actionService = useService('action');
         this.widgetId = this.getWidgetId();
         this.config = this.getConfig();
     }
@@ -122,6 +123,10 @@ export class GooglePlaceMappingTestField extends Component {
 
         config.resModel = record.resModel || '';
         return config;
+    }
+
+    reloadTestPlaceAutocomplete() {
+        return this.actionService.doAction({type: 'ir.actions.client', tag: 'reload'});
     }
 }
 
