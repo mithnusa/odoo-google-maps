@@ -1502,9 +1502,6 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
      */
     _removeElementEventListeners(element) {
         const listeners = this._elementEventListeners.get(element);
-        console.log('Removing event listeners for element:', { element, listeners });
-
-
         if (listeners) {
             listeners.forEach((listener, eventType) => {
                 element.removeEventListener(eventType, listener);
