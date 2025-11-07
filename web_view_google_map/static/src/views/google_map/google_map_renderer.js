@@ -146,15 +146,34 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
         }
     }
 
-    onWillUpdatePropsRenderMarkers(nextProps) {
+    /**
+     * Handles marker rendering logic before props are updated.
+     * Invalidates the marker position index and manages marker lifecycle based on grouping state changes.
+     * When switching to grouped view, clears all markers. Otherwise, triggers a debounced render.
+     *
+     * @param {Object} nextProps - The incoming props object containing the updated state
+     * @param {Object} nextProps.list - The list data object
+     * @param {boolean} nextProps.list.isGrouped - Whether the next state is grouped
+    */
+   onWillUpdatePropsRenderMarkers(nextProps) {
+        if (!this.isMapLoaded()) {
+           return;
+        }
+
         this._invalidateMarkerPositionIndex();
 
         const nextIsGrouped = !!nextProps.list.isGrouped;
         const currentIsGrouped = !!this.props.list.isGrouped;
+        const isGroupingChanged = nextIsGrouped !== currentIsGrouped;
 
-        if (nextIsGrouped !== currentIsGrouped && this.isMapLoaded() && nextIsGrouped) {
+        // Clear all markers when switching to grouped view
+        if (isGroupingChanged && nextIsGrouped) {
             this.clearMarkers();
-        } else if (((currentIsGrouped && !nextIsGrouped) || (!currentIsGrouped && !nextIsGrouped)) && this.isMapLoaded()) {
+            return;
+        }
+
+        // Re-render when not in grouped view (staying ungrouped or switching from grouped)
+        if (!nextIsGrouped) {
             this.debounceRenderGeolocationData();
         }
     }
@@ -296,6 +315,13 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
         return result;
     }
 
+    /**
+     * Toggles the expansion/collapse state of a group in the sidebar.
+     * Sets a flag to indicate this is a sidebar-initiated action.
+     *
+     * @param {Object} group - The group object to toggle
+     * @returns {Promise<void>}
+     */
     async toggleGroup(group) {
         this._isSidebarAction = true;
         await group.toggle();
@@ -442,6 +468,13 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
         this._fitMapBoundsWithLimit(bounds);
     }
 
+    /**
+     * Deletes all markers associated with the given group records.
+     * Cleans up markers from the cache and map, then adjusts the map bounds.
+     *
+     * @param {Array<Object>} groupRecords - Array of record objects to delete from the map
+     * @returns {Promise<void>}
+     */
     async deleteGroupRecords(groupRecords) {
         if (!this.isMapLoaded() || !Array.isArray(groupRecords)) return;
         this.markerInfoWindow?.close();

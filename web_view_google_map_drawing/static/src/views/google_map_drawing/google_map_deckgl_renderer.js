@@ -286,13 +286,32 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
 
     }
 
+    /**
+     * Handles feature rendering logic before props are updated.
+     * Manages feature lifecycle based on grouping state changes.
+     * When switching to grouped view, clears all rendering data. Otherwise, triggers a debounced render.
+     *
+     * @param {Object} nextProps - The incoming props object containing the updated state
+     * @param {Object} nextProps.list - The list data object
+     * @param {boolean} nextProps.list.isGrouped - Whether the next state is grouped
+     */
     onWillUpdatePropsRenderMarkers(nextProps) {
+        if (!this.isMapLoaded()) {
+            return;
+        }
+
         const nextIsGrouped = !!nextProps.list.isGrouped;
         const currentIsGrouped = !!this.props.list.isGrouped;
+        const isGroupingChanged = nextIsGrouped !== currentIsGrouped;
 
-        if (nextIsGrouped !== currentIsGrouped && this.isMapLoaded() && nextIsGrouped) {
+        // Clear all data when switching to grouped view
+        if (isGroupingChanged && nextIsGrouped) {
             this._clearRenderingData();
-        } else if (((currentIsGrouped && !nextIsGrouped) || (!currentIsGrouped && !nextIsGrouped)) && this.isMapLoaded()) {
+            return;
+        }
+
+        // Re-render when not in grouped view (staying ungrouped or switching from grouped)
+        if (!nextIsGrouped) {
             this.debounceRenderGeolocationData();
         }
     }
@@ -1094,6 +1113,13 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
         return result;
     }
 
+    /**
+     * Toggles the expansion/collapse state of a group in the sidebar.
+     * Sets a flag to indicate this is a sidebar-initiated action.
+     *
+     * @param {Object} group - The group object to toggle
+     * @returns {Promise<void>}
+     */
     async toggleGroup(group) {
         this._isSidebarAction = true;
         await group.toggle();
@@ -1531,6 +1557,13 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
     }
 
 
+    /**
+     * Deletes all map features associated with the given group records.
+     * Removes features from all data structures and updates the map visualization.
+     *
+     * @param {Array<Object>} groupRecords - Array of record objects to delete from the map
+     * @returns {Promise<void>}
+     */
     async deleteGroupRecords(groupRecords) {
         if (!this.isMapLoaded() || !Array.isArray(groupRecords)) return;
         this.markerInfoWindow?.close();
