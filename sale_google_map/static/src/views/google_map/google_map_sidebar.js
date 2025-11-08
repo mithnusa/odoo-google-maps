@@ -69,8 +69,8 @@ export class GoogleMapSidebarSaleOrder extends GoogleMapSidebar {
             try {
                 this.uiService.block();
                 await Promise.all(groupPromises);
-                const datas = this.props.getGroupsOrRecords();
-                await this.props.renderGroupedRecordsFitBounds(datas);
+                const updatedDatas = this.props.getGroupsOrRecords();
+                await this.props.renderGroupedRecordsFitBounds(updatedDatas);
             } finally {
                 this.uiService.unblock();
             }
