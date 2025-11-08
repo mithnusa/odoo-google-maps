@@ -12,7 +12,6 @@
                 <span class="ms-1 ps-1 pe-1" t-out="title" t-att-data-tooltip="title"/>
             </div>
         </xpath>
-        <xpath expr="//i[hasclass('fa-map-marker')]" position="replace"/>
     </t>
     <t t-name="sale_google_map.GoogleMapSidebar" t-inherit="web_view_google_map.GoogleMapSidebar" t-inherit-mode="primary">
         <xpath expr="//t[@t-if='props.allowSelectors']" position="replace"/>
