@@ -97,7 +97,7 @@ export class GoogleMapRendererSaleOrder extends GoogleMapRenderer {
         const displayName = group.displayName || _t('Customer');
         const formattedAmount = formatNumber(amountTotal, 2, user.context.lang);
 
-        const container = this._createMarkerContainer();
+        const container = this._createMarkerContainer(group.groupColor);
         const layout = this._createMarkerLayout(displayName, formattedAmount, group);
 
         container.appendChild(layout);
@@ -133,10 +133,12 @@ export class GoogleMapRendererSaleOrder extends GoogleMapRenderer {
     /**
      * Create the main container for the marker
      * @private
+     * @param {string} [color] - The color for the left border of the marker container
      * @returns {HTMLElement} Container element
      */
-    _createMarkerContainer() {
+    _createMarkerContainer(color) {
         const container = document.createElement('div');
+        container.style.borderLeft = `4px solid ${color || 'red'}`;
         container.className = SALE_MARKER_CONFIG.VISUAL.CLASSES.CONTAINER;
         return container;
     }
@@ -200,7 +202,7 @@ export class GoogleMapRendererSaleOrder extends GoogleMapRenderer {
         const logoEl = document.createElement('img');
         logoEl.className = SALE_MARKER_CONFIG.VISUAL.CLASSES.IMG_LOGO;
         logoEl.loading = 'lazy';
-        logoEl.src = `/web/image/res.partner/${partnerId}/image_128`;
+        logoEl.src = `/web/image/res.partner/${partnerId}/avatar_128`;
         logoEl.alt = _t('Logo');
         logoEl.height = 32;
         logoEl.width = 32;
