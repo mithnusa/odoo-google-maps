@@ -133,6 +133,7 @@ export class GoogleMapRendererSaleOrder extends GoogleMapRenderer {
     /**
      * Create the main container for the marker
      * @private
+     * @param {string} [color] - The color for the left border of the marker container
      * @returns {HTMLElement} Container element
      */
     _createMarkerContainer(color) {
