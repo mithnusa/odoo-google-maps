@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from uuid import uuid4
 import json
 import logging
 import base64
@@ -21,7 +20,7 @@ class GeoJsonUploadWizard(models.TransientModel):
     # Import options
     overwrite_existing = fields.Boolean(
         string='Overwrite Existing Records',
-        default=False,
+        default=True,
         help='If enabled, existing records with same names will be updated'
     )
     default_description = fields.Text(
@@ -142,7 +141,7 @@ class GeoJsonUploadWizard(models.TransientModel):
         feature_name = None
 
         if not self.feature_name in properties.keys():
-            raise UserError(_('The specified feature name source "%s" does not exist in feature properties.') % self.feature_name)
+            raise UserError(_('The specified feature name source "%s" does not exist in feature properties. Please close the pop-up window and try again') % self.feature_name)
 
         if properties.get(self.feature_name):
             feature_name = str(properties.get(self.feature_name))
@@ -196,7 +195,7 @@ class GeoJsonUploadWizard(models.TransientModel):
                     existing_record = target_model_obj.search([
                         ('gshape_name', '=', feature_data['gshape_name'])
                     ], limit=1)
-                
+
                 if existing_record:
                     # Update existing record
                     existing_record.write(feature_data)
