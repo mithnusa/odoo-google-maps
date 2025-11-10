@@ -279,10 +279,11 @@ export function generateColor() {
 /**
  * Darkens a color by a specified amount with optional opacity
  * @param {string} color - The color to darken (hex, rgb, or named color)
- * @param {number} amount - The darkening amount. Can be:
- *   - A value between 0-1: treated as a factor (0 = no change, 1 = black, 0.5 = 50% darker)
- *   - A value > 1: treated as absolute RGB value to subtract (default 50)
- * @param {number} opacity - Optional opacity value between 0-1. If provided, returns rgba() format, otherwise returns hex
+ * @param {number} [amount=50] - The darkening amount. Can be:
+ *   - Value > 1: absolute RGB value to subtract from each component (default: 50)
+ *   - Value between 0-1: darkening factor where result = color * (1 - amount)
+ *     (0 = no change, 1 = fully black, 0.5 = 50% of original brightness)
+ * @param {number} [opacity] - Optional opacity value between 0-1. If provided, returns rgba() format, otherwise returns hex
  * @returns {string} The darkened color in hex format (if opacity not specified) or rgba() format
  */
 export function invertColorDarken(color, amount = 50, opacity = null) {
@@ -338,10 +339,11 @@ export function invertColorDarken(color, amount = 50, opacity = null) {
 /**
  * Lightens a color by a specified amount with optional opacity
  * @param {string} color - The color to lighten (hex, rgb, or named color)
- * @param {number} amount - The lightening amount. Can be:
- *   - A value between 0-1: treated as a factor (0 = no change, 1 = white, 0.5 = 50% lighter)
- *   - A value > 1: treated as absolute RGB value to add (default 50)
- * @param {number} opacity - Optional opacity value between 0-1. If provided, returns rgba() format, otherwise returns hex
+ * @param {number} [amount=50] - The lightening amount. Can be:
+ *   - Value > 1: absolute RGB value to add to each component (default: 50)
+ *   - Value between 0-1: lightening factor where result = color + (255 - color) * amount
+ *     (0 = no change, 1 = fully white, 0.5 = halfway to white)
+ * @param {number} [opacity] - Optional opacity value between 0-1. If provided, returns rgba() format, otherwise returns hex
  * @returns {string} The lightened color in hex format (if opacity not specified) or rgba() format
  */
 export function invertColorLighten(color, amount = 50, opacity = null) {
