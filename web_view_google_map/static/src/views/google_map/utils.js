@@ -276,7 +276,17 @@ export function generateColor() {
     return colors[Math.floor(Math.random() * colors.length)];
 }
 
-export function invertColorDarken(color) {
+/**
+ * Darkens a color by a specified amount with optional opacity
+ * @param {string} color - The color to darken (hex, rgb, or named color)
+ * @param {number} [amount=50] - The darkening amount. Can be:
+ *   - Value > 1: absolute RGB value to subtract from each component (default: 50)
+ *   - Value between 0-1: darkening factor where result = color * (1 - amount)
+ *     (0 = no change, 1 = fully black, 0.5 = 50% of original brightness)
+ * @param {number} [opacity] - Optional opacity value between 0-1. If provided, returns rgba() format, otherwise returns hex
+ * @returns {string} The darkened color in hex format (if opacity not specified) or rgba() format
+ */
+export function invertColorDarken(color, amount = 50, opacity = null) {
     // Normalize the color to hex format
     let hexColor = normalizeColor(color);
 
@@ -288,10 +298,36 @@ export function invertColorDarken(color) {
     let g = parseInt(hexColor.substring(2, 4), 16);
     let b = parseInt(hexColor.substring(4, 6), 16);
 
+    // Determine the darkening value based on the amount parameter
+    let darkenValue;
+    if (amount >= 0 && amount <= 1) {
+        // Factor-based: calculate how much to subtract to reach black
+        // amount = 0 means no change, amount = 1 means fully black
+        darkenValue = {
+            r: r * amount,
+            g: g * amount,
+            b: b * amount,
+        };
+    } else {
+        // Absolute value: subtract the same amount from all components
+        darkenValue = {
+            r: amount,
+            g: amount,
+            b: amount,
+        };
+    }
+
     // Darken the r, g, b values
-    r = Math.max(0, r - 50);
-    g = Math.max(0, g - 50);
-    b = Math.max(0, b - 50);
+    r = Math.max(0, Math.round(r - darkenValue.r));
+    g = Math.max(0, Math.round(g - darkenValue.g));
+    b = Math.max(0, Math.round(b - darkenValue.b));
+
+    // If opacity is specified, return rgba format
+    if (opacity !== null && opacity !== undefined) {
+        // Validate and clamp opacity to 0-1 range
+        const alpha = Math.max(0, Math.min(1, opacity));
+        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    }
 
     // Convert the darkened r, g, b values back to a hex string
     let darkHexColor =
@@ -303,10 +339,11 @@ export function invertColorDarken(color) {
 /**
  * Lightens a color by a specified amount with optional opacity
  * @param {string} color - The color to lighten (hex, rgb, or named color)
- * @param {number} amount - The lightening amount. Can be:
- *   - A value between 0-1: treated as a factor (0 = no change, 1 = white, 0.5 = 50% lighter)
- *   - A value > 1: treated as absolute RGB value to add (default 50)
- * @param {number} opacity - Optional opacity value between 0-1. If provided, returns rgba() format, otherwise returns hex
+ * @param {number} [amount=50] - The lightening amount. Can be:
+ *   - Value > 1: absolute RGB value to add to each component (default: 50)
+ *   - Value between 0-1: lightening factor where result = color + (255 - color) * amount
+ *     (0 = no change, 1 = fully white, 0.5 = halfway to white)
+ * @param {number} [opacity] - Optional opacity value between 0-1. If provided, returns rgba() format, otherwise returns hex
  * @returns {string} The lightened color in hex format (if opacity not specified) or rgba() format
  */
 export function invertColorLighten(color, amount = 50, opacity = null) {
