@@ -23,6 +23,7 @@ import {
     calculatePolygonArea,
     calculateLineStringLength,
     calculateCircleRadius,
+    calculateCircleMeasurements,
     formatMeasurement,
     formatPointCount,
     MEASUREMENT_CONFIG,
@@ -912,26 +913,22 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
                     if (feature.properties?.mode === 'circle') {
                         if (feature.properties?.radiusKilometers) {
                             const radius = feature.properties.radiusKilometers;
-                            const area = Math.PI * Math.pow(radius, 2);
+                            const { area, diameter } = calculateCircleMeasurements(radius);
                             measurements.area = formatMeasurement(area, 'area', unit, user.context.lang);
                             measurements.display_name = `Circle (${measurements.area})`;
                             measurements.radius = formatMeasurement(radius, 'distance', unit, user.context.lang);
                             measurements.display_name += ` | Radius: ${measurements.radius}`;
-                            const diameter = radius * 2;
                             measurements.diameter = formatMeasurement(diameter, 'distance', unit, user.context.lang);
                             measurements.display_name += ` | Diameter: ${measurements.diameter}`;
-                            break;
                         } else {
                             const radius = calculateCircleRadius(coordinates, unit);
-                            const area = Math.PI * Math.pow(radius, 2);
+                            const { area, diameter } = calculateCircleMeasurements(radius);
                             measurements.area = formatMeasurement(area, 'area', unit, user.context.lang);
                             measurements.display_name = `Circle (${measurements.area})`;
                             measurements.radius = formatMeasurement(radius, 'distance', unit, user.context.lang);
                             measurements.display_name += ` | Radius: ${measurements.radius}`;
-                            const diameter = radius * 2;
                             measurements.diameter = formatMeasurement(diameter, 'distance', unit, user.context.lang);
                             measurements.display_name += ` | Diameter: ${measurements.diameter}`;
-                            break;
                         }
                     }
                     break;

@@ -560,6 +560,17 @@ export function calculateCircleRadius(polygonCoords, unit = MEASUREMENT_CONFIG.U
 }
 
 /**
+ * Calculate circle measurements: area and diameter
+ * @param {Number} radius
+ * @returns {Object} area and diameter
+ */
+export function calculateCircleMeasurements(radius) {
+    const area = Math.PI * Math.pow(radius, 2);
+    const diameter = radius * 2;
+    return { area, diameter };
+}
+
+/**
  * Format point count with appropriate singular/plural form
  * @param {number} count - The number of points
  * @returns {string} Formatted point count string
