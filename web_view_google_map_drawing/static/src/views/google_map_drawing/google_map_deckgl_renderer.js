@@ -556,7 +556,7 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
 
         const features = Array.from(this.geoJsonData.values());
 
-        let visibleFeatures = []
+        let visibleFeatures = [];
         try {
             visibleFeatures = this._performViewportCulling(features);
         } catch (error) {
@@ -912,7 +912,7 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
                     if (feature.properties?.mode === 'circle') {
                         if (feature.properties?.radiusKilometers) {
                             const radius = feature.properties.radiusKilometers;
-                            const area = Math.PI * Math.pow(radius, 2);
+                            const area = Math.PI * radius * 2;
                             measurements.area = formatMeasurement(area, 'area', unit, user.context.lang);
                             measurements.display_name = `Circle (${measurements.area})`;
                             measurements.radius = formatMeasurement(radius, 'distance', unit, user.context.lang);
@@ -923,12 +923,12 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
                             break;
                         } else {
                             const radius = calculateCircleRadius(coordinates, unit);
-                            const area = Math.PI * Math.pow(radius, 2);
+                            const area = Math.PI * radius * 2;
                             measurements.area = formatMeasurement(area, 'area', unit, user.context.lang);
                             measurements.display_name = `Circle (${measurements.area})`;
                             measurements.radius = formatMeasurement(radius, 'distance', unit, user.context.lang);
                             measurements.display_name += ` | Radius: ${measurements.radius}`;
-                            const diameter = Math.pow(radius, 2);
+                            const diameter = radius * 2;
                             measurements.diameter = formatMeasurement(diameter, 'distance', unit, user.context.lang);
                             measurements.display_name += ` | Diameter: ${measurements.diameter}`;
                             break;
@@ -1127,7 +1127,7 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
                             borderRadius: '4px',
                             boxShadow: '0 4px 6px rgba(0,0,0,0.2)',
                             opacity: '0.9',
-                        }
+                        };
                         if (properties.color) {
                             style.borderLeft = `4px solid ${properties.color}`;
                         }
@@ -1194,9 +1194,9 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
 
     /**
      * Store element event listener for later cleanup
-     * @param {*} element 
-     * @param {*} eventType 
-     * @param {*} listener 
+     * @param {HTMLElement} element 
+     * @param {string} eventType 
+     * @param {Function} listener 
      */
     _storeElementEventListener(element, eventType, listener) {
         if (!this._elementEventListeners.has(element)) {
@@ -1208,7 +1208,7 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
 
     /**
      * Remove all event listeners for an element
-     * @param {*} element 
+     * @param {HTMLElement} element 
      */
     _removeElementEventListeners(element) {
         const listeners = this._elementEventListeners.get(element);

@@ -1203,8 +1203,7 @@ export class TerraDrawToolsUI extends Component {
 
             const snapshot = this.terraDrawInstance.getSnapshot();
             const snapshotFeature = this.terraDrawInstance.getSnapshotFeature();
-            console.log(' Saving snapshot features ');
-            console.log({ snapshot, snapshotFeature });
+
             const geoJson = {
                 type: 'FeatureCollection',
                 features: snapshot,
