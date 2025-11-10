@@ -912,7 +912,7 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
                     if (feature.properties?.mode === 'circle') {
                         if (feature.properties?.radiusKilometers) {
                             const radius = feature.properties.radiusKilometers;
-                            const area = Math.PI * radius * 2;
+                            const area = Math.PI * Math.pow(radius, 2);
                             measurements.area = formatMeasurement(area, 'area', unit, user.context.lang);
                             measurements.display_name = `Circle (${measurements.area})`;
                             measurements.radius = formatMeasurement(radius, 'distance', unit, user.context.lang);
@@ -923,7 +923,7 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
                             break;
                         } else {
                             const radius = calculateCircleRadius(coordinates, unit);
-                            const area = Math.PI * radius * 2;
+                            const area = Math.PI * Math.pow(radius, 2);
                             measurements.area = formatMeasurement(area, 'area', unit, user.context.lang);
                             measurements.display_name = `Circle (${measurements.area})`;
                             measurements.radius = formatMeasurement(radius, 'distance', unit, user.context.lang);

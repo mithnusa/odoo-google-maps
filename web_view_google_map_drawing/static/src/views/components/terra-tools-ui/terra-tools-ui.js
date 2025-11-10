@@ -1202,7 +1202,6 @@ export class TerraDrawToolsUI extends Component {
             this.setActiveMode('select-mode'); // Switch to select mode before saving
 
             const snapshot = this.terraDrawInstance.getSnapshot();
-            const snapshotFeature = this.terraDrawInstance.getSnapshotFeature();
 
             const geoJson = {
                 type: 'FeatureCollection',
