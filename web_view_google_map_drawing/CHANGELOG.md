@@ -1,5 +1,18 @@
 # Change Log
 
+## 19.0.1.0.3
+- Updated Terra Draw library from 1.18.1 to 1.19.0
+- Removed IconLayer implementation, simplified to ScatterplotLayer for points
+- Added circle radius and diameter measurements
+- Improved color calculations using invertColorDarken utility
+- Added event listener tracking and proper cleanup
+- Preserved feature properties when converting MultiPolygon geometries
+- Enhanced tooltip styling with color-based borders
+- Fixed calculateCircleArea to use Math.pow for precision
+- Improved measurement formatting (sq m → m²)
+- Changed GeoJSON upload wizard default to overwrite existing records
+- Removed unused methods and improved code organization
+
 ## 19.0.1.0.2
 Improve the visibility of data displayed on the map when grouping the data.
 
