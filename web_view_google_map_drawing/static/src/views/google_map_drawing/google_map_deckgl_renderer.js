@@ -971,6 +971,13 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
         const record = this._findRecordByFeature(feature);
         if (!record) return;
 
+        const currentContent = this.markerInfoWindow.getContent();
+
+        if (currentContent instanceof HTMLElement) {
+            // Remove all event listeners from previous content
+            this._removeContentEventListeners(currentContent);
+        }
+
         const content = this._createInfoWindowContent(record);
         if (content) {
             this.markerInfoWindow.setContent(content);
@@ -1215,6 +1222,21 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
             });
 
             this._elementEventListeners.delete(element);
+        }
+    }
+
+    /**
+     * Remove all event listeners from elements within a container
+     * @private
+     * @param {HTMLElement} content - Container element to clean up
+     */
+    _removeContentEventListeners(content) {
+        if (!content) return;
+
+        for (const element of this._elementEventListeners.keys()) {
+            if (content.contains(element)) {
+                this._removeElementEventListeners(element);
+            }
         }
     }
 
@@ -1534,7 +1556,7 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
         }
 
         // Remove all element event listeners
-        for (const [element, ] of this._elementEventListeners) {
+        for (const element of this._elementEventListeners.keys()) {
             this._removeElementEventListeners(element);
         }
 

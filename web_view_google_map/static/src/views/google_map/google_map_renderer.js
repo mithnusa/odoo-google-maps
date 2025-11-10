@@ -373,7 +373,7 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
         this.markerInfoWindow?.close();
 
         // Remove all element event listeners
-        for (const [element, ] of this._elementEventListeners) {
+        for (const element of this._elementEventListeners.keys()) {
             this._removeElementEventListeners(element);
         }
 
@@ -1503,6 +1503,20 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
     }
 
     /**
+     * Remove all event listeners from elements within a container
+     * @private
+     * @param {HTMLElement} content - Container element to clean up
+     */
+    _removeContentEventListeners(content) {
+        if (!content) return;
+        for (const element of this._elementEventListeners.keys()) {
+            if (content.contains(element)) {
+                this._removeElementEventListeners(element);
+            }
+        }
+    }
+
+    /**
      * Invalidate the marker position index
      * @private
      */
@@ -1524,6 +1538,12 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
         bodyContent.className = 'o_kanban_group';
 
         try {
+            const currentContent = this.markerInfoWindow.getContent();
+            if (currentContent instanceof HTMLElement) {
+                // Remove all event listeners from previous content
+                this._removeContentEventListeners(currentContent);
+            }
+
             // Add main marker info
             const markerContent = this._createInfoWindowContent(marker._odooRecord, marker._isShifted);
             if (markerContent) {
