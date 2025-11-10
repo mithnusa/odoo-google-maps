@@ -370,6 +370,12 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
      */
     async clearMarkers() {
         this._terminateAnyZoomOperations();
+        this.markerInfoWindow?.close();
+
+        // Remove all element event listeners
+        for (const [element, ] of this._elementEventListeners) {
+            this._removeElementEventListeners(element);
+        }
 
         // Clean up marker clusterer
         if (this.markerClusterer) {
@@ -424,48 +430,6 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
                 type: 'warning',
             });
         }
-    }
-
-    /**
-     * Hide markers for specific group records
-     * @param {Array} groupRecords Records to hide
-     */
-    hideGroupRecordsMarker(groupRecords) {
-        if (!Array.isArray(groupRecords)) return;
-
-        groupRecords.forEach((record) => {
-            const marker = this.cache.get(record.id);
-            if (marker) {
-                marker.map = null;
-            }
-        });
-
-        this.centerMap();
-    }
-
-    /**
-     * Center map on a specific group of records
-     * @param {Array} groupRecords Records to center on
-     */
-    async centerMapByGroup(groupRecords) {
-        if (!this.isMapLoaded() || !Array.isArray(groupRecords)) return;
-
-        this.markerInfoWindow?.close();
-        const { LatLngBounds } = await this.apiLoader.importLibrary('core');
-        const bounds = new LatLngBounds();
-        groupRecords.forEach((record) => {
-            const marker = this.cache.get(record.id);
-            if (marker) {
-                if (marker.map === null) {
-                    marker.map = this.googleMap;
-                    if (this.markerClusterer) {
-                        this.markerClusterer.addMarker(marker);
-                    }
-                }
-                bounds.extend(marker.position);
-            }
-        });
-        this._fitMapBoundsWithLimit(bounds);
     }
 
     /**
@@ -843,9 +807,6 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
             // Center map on marker
             this.googleMap.panTo(marker.position);
             this.googleMap.setZoom(14);
-
-            // Trigger click to show info
-            google.maps.event.trigger(marker, 'click');
         } catch (error) {
             console.error('Error selecting marker:', error);
         }
@@ -866,8 +827,6 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
             this.googleMap.panTo(marker.position);
             this.googleMap.setZoom(14);
 
-            // Close info window
-            this.markerInfoWindow.close();
         } catch (error) {
             console.error('Error deselecting marker:', error);
         }
@@ -1620,6 +1579,7 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
      */
     _generateInfoWindowHtml(record, isShifted = false) {
         const values = this.prepareInfoWindowValues(record);
+        values.recordId = record.id;
         return renderToString(this.constructor.templateInfoWindow, { ...values, isShifted });
     }
 
@@ -1639,6 +1599,12 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
     _cleanUp() {
         super._cleanUp();
         this._terminateAnyZoomOperations();
+
+        // Remove all element event listeners
+        for (const [element, ] of this._elementEventListeners) {
+            this._removeElementEventListeners(element);
+        }
+
         // Remove all markers from the map and clear event listeners
         for (const [id, marker] of this.cache) {
             this._cleanUpMarker(id, marker);
@@ -1651,9 +1617,6 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
             this.markerClusterer = null;
         }
 
-        for (const [element, ] of this._elementEventListeners) {
-            this._removeElementEventListeners(element);
-        }
 
         this.cacheRecordDataView.clear();
         this.cache.clear();

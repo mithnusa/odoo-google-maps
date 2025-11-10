@@ -1,5 +1,12 @@
 # Change Log
 
+## 19.0.1.0.4
+- Removed unused methods (hideGroupRecordsMarker, centerMapByGroup)
+- Improved event listener cleanup in clearMarkers and _cleanUp
+- Added data-id attribute to info window action buttons
+- Enhanced invertColorDarken utility with opacity support and better documentation
+- Removed redundant info window operations in marker selection
+
 ## 19.0.1.0.3
 Improve the visibility of data displayed on the map when grouping the data.
 
