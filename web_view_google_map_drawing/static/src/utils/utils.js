@@ -524,10 +524,9 @@ export function calculateLineStringLength(coordinates, unit = MEASUREMENT_CONFIG
 /**
  * Calculate the area of a circle given its radius
  * @param {number} radius - Radius in kilometers or miles
- * @param {string} unit - Unit of measurement ('metric' or 'imperial')
  * @returns {number} Area in square kilometers or square miles
  */
-export function calculateCircleArea(radius, unit = MEASUREMENT_CONFIG.UNITS.METRIC) {
+export function calculateCircleArea(radius) {
     return Math.PI * Math.pow(radius, 2);
 }
 
