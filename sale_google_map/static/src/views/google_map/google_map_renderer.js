@@ -164,12 +164,6 @@ export class GoogleMapRendererSaleOrder extends GoogleMapRenderer {
         layout.appendChild(infoSection);
         layout.appendChild(actionButton);
 
-        // Store action button reference for cleanup
-        layout._actionClickHandler = {
-            element: actionButton,
-            handler: actionButton._clickHandler,
-        };
-
         return layout;
     }
 
@@ -248,6 +242,7 @@ export class GoogleMapRendererSaleOrder extends GoogleMapRenderer {
         button.type = 'button';
         button.className = SALE_MARKER_CONFIG.VISUAL.CLASSES.BUTTON;
         button.dataset.tooltip = _t('Open');
+        button.dataset.id = group.id;
 
         const icon = this._createActionButtonIcon();
         button.appendChild(icon);

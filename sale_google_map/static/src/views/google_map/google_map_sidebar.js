@@ -57,8 +57,8 @@ export class GoogleMapSidebarSaleOrder extends GoogleMapSidebar {
      */
     async loadGroupRecord() {
         if (this.props.isGrouped) {
-            const datas = this.props.getGroupsOrRecords();
-            const groupPromises = datas.map(async ({ group }) => {
+            const data = this.props.getGroupsOrRecords();
+            const groupPromises = data.map(async ({ group }) => {
                 try {
                     await this.props.toggleGroup(group);
                 } catch (error) {
@@ -86,8 +86,8 @@ export class GoogleMapSidebarSaleOrder extends GoogleMapSidebar {
      * @param {number} group.group.value - The partner ID
      * @returns {string|null} The avatar URL if partner ID exists, null otherwise
      */
-    getAvatarUrl(group) {
-        const partnerId = group?.group?.value;
+    getAvatarUrl({ group }) {
+        const partnerId = group?.value;
         if (partnerId) {
             return `/web/image/res.partner/${partnerId}/avatar_128`;
         }
