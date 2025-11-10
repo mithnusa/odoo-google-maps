@@ -237,7 +237,10 @@ export class TerraDrawToolsUI extends Component {
                             type: 'Feature',
                             id: generateUUID(),
                             geometry: { type: 'Polygon', coordinates: polygonCoords },
-                            properties: { mode: 'polygon' }
+                            properties: {
+                                mode: 'polygon',
+                                ...plainFeature.properties,
+                            }
                         });
                     });
                     return multiPolygonFeatures;
@@ -251,7 +254,10 @@ export class TerraDrawToolsUI extends Component {
                         TERRA_DRAW_CONFIG.COORDINATE_PRECISION
                     );
 
-                    plainFeature.properties = { mode: geometryToMode[plainFeature.geometry.type] };
+                    plainFeature.properties = {
+                        mode: geometryToMode[plainFeature.geometry.type],
+                        ...plainFeature.properties,
+                    };
                     return plainFeature;
                 }
             }).filter(Boolean); // Remove null values
@@ -903,7 +909,7 @@ export class TerraDrawToolsUI extends Component {
             this.terraDrawInstance = new window.terraDraw.TerraDraw({
                 adapter: new window.terraDrawGoogleMapsAdapter.TerraDrawGoogleMapsAdapter({
                     map: this.props.googleMap,
-                    lib: google.maps,
+                    lib: window.google.maps,
                     coordinatePrecision: TERRA_DRAW_CONFIG.COORDINATE_PRECISION,
                 }),
                 modes: this._createTerraDrawModes(),
@@ -1196,6 +1202,9 @@ export class TerraDrawToolsUI extends Component {
             this.setActiveMode('select-mode'); // Switch to select mode before saving
 
             const snapshot = this.terraDrawInstance.getSnapshot();
+            const snapshotFeature = this.terraDrawInstance.getSnapshotFeature();
+            console.log(' Saving snapshot features ');
+            console.log({ snapshot, snapshotFeature });
             const geoJson = {
                 type: 'FeatureCollection',
                 features: snapshot,

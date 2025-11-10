@@ -98,7 +98,7 @@ export async function loadTerraDrawAssets() {
         return;
     }
     try {
-        await loadJS('https://unpkg.com/terra-draw@1.18.1/dist/terra-draw.umd.js');
+        await loadJS('https://unpkg.com/terra-draw@1.19.0/dist/terra-draw.umd.js');
         await loadJS('https://unpkg.com/terra-draw-google-maps-adapter@1.1.0/dist/terra-draw-google-maps-adapter.umd.js');
         if (!window.terraDraw || !window.terraDrawGoogleMapsAdapter) {
             throw new Error('Terra Draw or its Google Maps adapter failed to load correctly.');
@@ -528,7 +528,35 @@ export function calculateLineStringLength(coordinates, unit = MEASUREMENT_CONFIG
  * @returns {number} Area in square kilometers or square miles
  */
 export function calculateCircleArea(radius, unit = MEASUREMENT_CONFIG.UNITS.METRIC) {
-    return Math.PI * radius * radius;
+    return Math.PI * Math.pow(radius, 2);
+}
+
+/**
+ * Calculate the radius of a circle from polygon coordinates
+ * @param {Array} polygonCoords 
+ * @param {string} unit 
+ * @returns {number} radius in kilometers or miles
+ */
+export function calculateCircleRadius(polygonCoords, unit = MEASUREMENT_CONFIG.UNITS.METRIC) {
+    // Assuming polygonCoords is an array of linear rings, take the first ring
+    const firstRing = polygonCoords[0];
+    if (firstRing.length < 2) return 0;
+
+    // Calculate the centroid of the polygon
+    let sumLat = 0;
+    let sumLng = 0;
+    firstRing.forEach(([lng, lat]) => {
+        sumLat += lat;
+        sumLng += lng;
+    });
+    const centroidLat = sumLat / firstRing.length;
+    const centroidLng = sumLng / firstRing.length;
+
+    // Calculate the distance from the centroid to the first point as radius
+    const [firstLng, firstLat] = firstRing[0];
+    const radius = calculateDistance(centroidLat, centroidLng, firstLat, firstLng, unit);
+
+    return radius;
 }
 
 /**
@@ -594,7 +622,7 @@ export function formatMeasurement(value, type, unit = MEASUREMENT_CONFIG.UNITS.M
             if (value < 0.01) {
                 // Small areas in square meters
                 const sqMeters = value * 1000000;
-                return `${formatNumber(sqMeters, sqMeters < 100 ? 1 : 0, locale)} sq m`;
+                return `${formatNumber(sqMeters, sqMeters < 100 ? 1 : 0, locale)} m²`;
             } else if (value < 1) {
                 // Medium areas in hectares
                 const hectares = value * 100;
