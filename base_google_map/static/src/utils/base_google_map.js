@@ -343,7 +343,7 @@ export class BaseGoogleMapComponent extends Component {
                 resolve();
             });
         });
-
+        this.state.isMapReady = true;
         // Trigger resize to ensure proper rendering
         google.maps.event.trigger(map, 'resize');
     }
@@ -407,7 +407,7 @@ export class BaseGoogleMapComponent extends Component {
      * @returns {boolean} True if the map is loaded and ready
      */
     isMapLoaded() {
-        return this.googleMap !== null && this.state.loaderStatus === LOADER_STATUS.LOADED;
+        return this.googleMap !== null && this.state.isMapReady && this.state.loaderStatus === LOADER_STATUS.LOADED;
     }
 
     /**
