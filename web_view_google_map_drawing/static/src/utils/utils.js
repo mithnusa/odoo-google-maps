@@ -129,7 +129,7 @@ export async function loadTurfJSAssets() {
         return;
     }
     try {
-        await loadJS('https://unpkg.com/@turf/turf@7.2.0/turf.min.js');
+        await loadJS('https://unpkg.com/@turf/turf@7.3.0/turf.min.js');
         if (!window.turf) {
             throw new Error('Turf.js failed to load correctly.');
         }
