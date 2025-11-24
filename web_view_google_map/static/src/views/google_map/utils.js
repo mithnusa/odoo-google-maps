@@ -248,30 +248,26 @@ export function normalizeColor(color) {
 
 export function generateColor() {
     const colors = [
-        '#E74C3C', // Red
-        '#F39C12', // Orange
-        '#F1C40F', // Yellow
-        '#8BC34A', // Light Green
-        '#009688', // Teal
-        '#00BCD4', // Cyan
-        '#3498DB', // Blue
-        '#3F51B5', // Indigo
-        '#673AB7', // Deep Purple
-        '#795548', // Brown
-        '#607D8B', // Blue Grey
-        '#FF1744', // Bright Red
-        '#E91E63', // Hot Pink
-        '#FF00FF', // Magenta
-        '#00FF00', // Lime Green
-        '#00FFFF', // Aqua
-        '#FFD700', // Gold
-        '#FF69B4', // Hot Pink
-        '#32CD32', // Lime
-        '#FF4500', // Orange Red
-        '#8A2BE2', // Blue Violet
-        '#00CED1', // Dark Turquoise
-        '#DC143C', // Crimson
-        '#00FF7F', // Spring Green
+        '#FF0000', // – Red
+        '#00FF00', // – Lime
+        '#0000FF', // – Blue
+        '#FFFF00', // – Yellow
+        '#FF00FF', // – Magenta
+        '#00FFFF', // – Cyan
+        '#FFA500', // – Orange
+        '#800080', // – Purple
+        '#008000', // – Dark Green
+        '#000080', // – Navy
+        '#FFC0CB', // – Pink
+        '#A52A2A', // – Brown
+        '#808000', // – Olive
+        '#008080', // – Teal
+        '#FF1493', // – Deep Pink
+        '#7FFF00', // – Chartreuse
+        '#DC143C', // – Crimson
+        '#40E0D0', // – Turquoise
+        '#2F4F4F', // – Dark Slate Gray
+        '#FFD700', // – Gold
     ];
     return colors[Math.floor(Math.random() * colors.length)];
 }

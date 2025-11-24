@@ -32,7 +32,7 @@
             <td colspan="99">
                 <div class="d-flex justify-content-between align-items-center">
                     <button 
-                        class="btn btn-link collapsed"
+                        t-attf-class="btn btn-link #{ group.group.records.length ? '' : 'collapsed'}"
                         t-attf-id="btn-group-collapse-#{group.key}"
                         t-att-data-group_id="group.key"
                         type="button"
@@ -47,7 +47,7 @@
                                 <i class="fa fa-caret-right" />
                                 <i class="fa fa-caret-down" />
                             </span>
-                            <span class="ps-1 pe-1" t-out="title" t-attf-data-tooltip="title"/>
+                            <span class="ps-1 pe-1" t-out="title" t-att-data-tooltip="title"/>
                         </div>
                     </button>
                     <div t-if="group.group.count">
@@ -61,7 +61,7 @@
                 </div>
             </td>
         </tr>
-        <div class="collapse" t-attf-id="collapseGroup_#{ group.key }">
+        <div t-attf-class="collapse #{ group.group.records.length ? 'show' : '' }" t-attf-id="collapseGroup_#{ group.key }">
             <t t-if="group.group.records.length">
                 <table class="table table-sm table-hover mb-0">
                     <tbody>

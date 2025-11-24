@@ -168,8 +168,18 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
 
         // Clear all markers when switching to grouped view
         if (isGroupingChanged && nextIsGrouped) {
+            this.debounceRenderGeolocationData.cancel();
             this.clearMarkers();
             return;
+        }
+
+        if (currentIsGrouped && nextIsGrouped) {
+            // re-evaluate selected markers
+            this.debounceSelectedMarkers.cancel();
+
+            for (const marker of this.cache.values()) {
+                this._updateMarkerSelectionState(marker._odooRecord);
+            }
         }
 
         // Re-render when not in grouped view (staying ungrouped or switching from grouped)
@@ -442,13 +452,16 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
     async deleteGroupRecords(groupRecords) {
         if (!this.isMapLoaded() || !Array.isArray(groupRecords)) return;
         this.markerInfoWindow?.close();
-        groupRecords.forEach((record) => {
-            const marker = this.cache.get(record.id);
-            if (marker) {
-                this._cleanUpMarker(record.id, marker);
-                this.cache.delete(record.id);
+
+        for (const { group } of groupRecords) {
+            for (const record of group.list.records) {
+                const marker = this.cache.get(record.id);
+                if (marker) {
+                    this._cleanUpMarker(record.id, marker);
+                    this.cache.delete(record.id);
+                }
             }
-        });
+        }
         this._fitBoundsWhenReady();
     }
 
