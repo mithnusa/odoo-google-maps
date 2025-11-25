@@ -619,7 +619,7 @@ class TestEdgeCases(TransactionCase):
         """Test handling of special characters in JSON strings."""
         special_chars = {
             "name": "Test's \"special\" chars: <>&",
-            "unicode": "=� Map emoji"
+            "unicode": "=🗺️ Map emoji"
         }
 
         json_val = JsonValue(special_chars)
