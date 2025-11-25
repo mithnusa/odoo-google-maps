@@ -645,3 +645,143 @@ export function formatMeasurement(value, type, unit = MEASUREMENT_CONFIG.UNITS.M
     }
     return formatNumber(value, 2, locale);
 }
+
+
+/**
+ * Format area measurement with appropriate unit based on size and unit system
+ * Supports both metric (m², ha, km²) and imperial (sq ft, ac, sq mi) units
+ * @param {number} areaInSquareMeter - Area value in square meters
+ * @param {number} decimals - Number of decimal places (default: 2)
+ * @param {string} locale - Locale for number formatting (default: 'en-US')
+ * @param {string} unitSystem - Unit system to use: 'metric' or 'imperial' (default: 'metric')
+ * @returns {string} Formatted area string with appropriate unit
+ */
+export function formatAreaMeasurement(
+    areaInSquareMeter,
+    locale = 'en-US',
+    decimals = 2,
+    unitSystem = MEASUREMENT_CONFIG.UNITS.METRIC
+) {
+    if (isNaN(parseFloat(areaInSquareMeter)) || !isFinite(areaInSquareMeter)) {
+        console.warn(
+            'Invalid area provided for formatting:',
+            areaInSquareMeter
+        );
+        return areaInSquareMeter;
+    }
+
+    let area = areaInSquareMeter;
+    let unit = 'm²';
+
+    if (unitSystem === MEASUREMENT_CONFIG.UNITS.IMPERIAL) {
+        // Imperial unit conversions
+        // 1 acre = 4046.86 m², 1 sq mi = 2589988.11 m², 1 sq ft = 0.092903 m²
+        const SQ_METER_TO_SQ_FEET = 10.7639;
+        const SQ_METER_TO_ACRES = 0.000247105;
+        const SQ_METER_TO_SQ_MILES = 0.000000386102;
+        const ACRES_PER_SQ_MILE = 640;
+
+        if (areaInSquareMeter >= ACRES_PER_SQ_MILE / SQ_METER_TO_ACRES) {
+            // Use square miles for large areas (>= 640 acres)
+            area = areaInSquareMeter * SQ_METER_TO_SQ_MILES;
+            unit = 'mi²';
+        } else if (areaInSquareMeter >= 1 / SQ_METER_TO_ACRES) {
+            // Use acres for medium areas (>= 1 acre)
+            area = areaInSquareMeter * SQ_METER_TO_ACRES;
+            unit = 'ac';
+        } else {
+            // Use square feet for small areas
+            area = areaInSquareMeter * SQ_METER_TO_SQ_FEET;
+            unit = 'ft²';
+        }
+    } else {
+        // Metric unit conversions
+        if (areaInSquareMeter >= 1000000) {
+            area = areaInSquareMeter / 1000000;
+            unit = 'km²';
+        } else if (areaInSquareMeter >= 10000) {
+            area = areaInSquareMeter / 10000;
+            unit = 'ha';
+        }
+    }
+
+    const value = formatNumber(area, decimals, locale);
+
+    return `${value} ${unit}`;
+}
+
+/**
+ * Format length measurement with appropriate unit based on distance and unit system
+ * Supports both metric (cm, m, km) and imperial (in, ft, yd, mi) units
+ * @param {number} lengthInKilometers - Length value in kilometers
+ * @param {string} locale - Locale for number formatting (default: 'en-US')
+ * @param {number} decimals - Number of decimal places (default: 2)
+ * @param {string} unitSystem - Unit system to use: 'metric' or 'imperial' (default: 'metric')
+ * @returns {string} Formatted length string with appropriate unit
+ */
+export function formatLengthMeasurement(
+    lengthInKilometers,
+    locale = 'en-US',
+    decimals = 2,
+    unitSystem = MEASUREMENT_CONFIG.UNITS.METRIC
+) {
+    if (
+        isNaN(parseFloat(lengthInKilometers)) ||
+        !isFinite(lengthInKilometers)
+    ) {
+        console.warn(
+            'Invalid length provided for formatting:',
+            lengthInKilometers
+        );
+        return lengthInKilometers;
+    }
+
+    let length = lengthInKilometers;
+    let unit = 'km';
+
+    if (unitSystem === MEASUREMENT_CONFIG.UNITS.IMPERIAL) {
+        // Imperial unit conversions from kilometers
+        // 1 km = 0.621371 mi, 1 km = 1093.61 yd, 1 km = 3280.84 ft, 1 km = 39370.1 in
+        const KM_TO_INCHES = 39370.1;
+        const KM_TO_FEET = 3280.84;
+        const KM_TO_YARDS = 1093.61;
+        const KM_TO_MILES = 0.621371;
+
+        if (lengthInKilometers >= 1.60934) {
+            // Use miles for long distances (>= 1 mile, which is ~1.609 km)
+            length = lengthInKilometers * KM_TO_MILES;
+            unit = 'mi';
+        } else if (lengthInKilometers >= 0.0009144) {
+            // Use yards for medium distances (>= 1 yard, which is ~0.0009144 km)
+            length = lengthInKilometers * KM_TO_YARDS;
+            unit = 'yd';
+        } else if (lengthInKilometers >= 0.0003048) {
+            // Use feet for shorter distances (>= 1 foot, which is ~0.0003048 km)
+            length = lengthInKilometers * KM_TO_FEET;
+            unit = 'ft';
+        } else {
+            // Use inches for very short distances
+            length = lengthInKilometers * KM_TO_INCHES;
+            unit = 'in';
+        }
+    } else {
+        // Metric unit conversions
+        if (lengthInKilometers >= 1) {
+            // Use kilometers for long distances
+            length = lengthInKilometers;
+            unit = 'km';
+        } else if (lengthInKilometers >= 0.001) {
+            // Use meters for medium distances (>= 1 meter, which is 0.001 km)
+            length = lengthInKilometers * 1000;
+            unit = 'm';
+        } else {
+            // Use centimeters for short distances (< 1 meter)
+            length = lengthInKilometers * 100000;
+            unit = 'cm';
+        }
+    }
+
+    const value = formatNumber(length, decimals, locale);
+
+    return `${value} ${unit}`;
+}

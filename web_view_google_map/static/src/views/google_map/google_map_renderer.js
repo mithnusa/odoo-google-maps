@@ -13,7 +13,7 @@ import { GoogleMapSidebar } from './google_map_sidebar';
 import { GoogleMapGeolocate } from './components/geolocate/geolocate';
 import { GoogleMapSearchPlaces } from './components/search_places/search_places';
 import {
-    invertColorDarken,
+    darkenColor,
     AdvancedMarkerBoxSelector,
     getRecordDataView,
 } from './utils';
@@ -919,7 +919,7 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
      */
     _createMarkerElementValues(data, markerColor) {
         const color = markerColor || data.__geoColor || this.props.archInfo.__geoColor || 'red';
-        const borderColor = invertColorDarken(color);
+        const borderColor = darkenColor(color);
 
         return {
             color,

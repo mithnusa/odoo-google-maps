@@ -27,13 +27,15 @@
         </div>
     </t>
     <t t-name="web_view_google_map_drawing.FeatureProperties">
-        <div>
-            <p class="mb-0 pb-0 fs-4 text-800" t-out="title"/>
+        <div class="text-800">
+            <p class="mb-0 pb-0 fs-4 " t-out="title"/>
             <div class="mt-1" t-if="displayNames">
-                <ul class="list-group list-group-flush">
+                <ul class="list-unstyled mb-1 pb-1">
                     <t t-foreach="displayNames" t-as="displayName" t-key="displayNameIndex">
-                        <li class="list-group-item p-1">
-                            <small class="font-monospace text-muted" t-out="displayName"/>
+                        <li class="font-monospace"  style="font-size:11.5px;">
+                            <span t-out="displayName.title"/>
+                            <span>:</span>
+                            <span class="ms-1" t-out="displayName.value"/>
                         </li>
                     </t>
                 </ul>

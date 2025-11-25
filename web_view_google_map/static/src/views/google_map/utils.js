@@ -273,6 +273,97 @@ export function generateColor() {
 }
 
 /**
+ * Parse color to RGB components
+ * @param {string} color - Color in hex, rgb, or named format
+ * @returns {{r: number, g: number, b: number}} RGB components (0-255)
+ * @private
+ */
+function parseColorToRgb(color) {
+    const hexColor = normalizeColor(color).replace(/^#/, '');
+    return {
+        r: parseInt(hexColor.substring(0, 2), 16),
+        g: parseInt(hexColor.substring(2, 4), 16),
+        b: parseInt(hexColor.substring(4, 6), 16),
+    };
+}
+
+/**
+ * Calculate adjustment value for a color component
+ * @param {number} currentValue - Current RGB value (0-255)
+ * @param {number} amount - Adjustment amount
+ * @param {string} direction - 'darken' or 'lighten'
+ * @returns {number} Adjusted value to apply
+ * @private
+ */
+function calculateAdjustmentValue(currentValue, amount, direction) {
+    if (amount >= 0 && amount <= 1) {
+        // Factor-based adjustment
+        if (direction === 'darken') {
+            // amount = 0 means no change, amount = 1 means fully black
+            return currentValue * amount;
+        } else {
+            // amount = 0 means no change, amount = 1 means fully white
+            return (255 - currentValue) * amount;
+        }
+    } else {
+        // Absolute value adjustment
+        return amount;
+    }
+}
+
+/**
+ * Format RGB values to color string
+ * @param {number} r - Red component (0-255)
+ * @param {number} g - Green component (0-255)
+ * @param {number} b - Blue component (0-255)
+ * @param {number|null} opacity - Optional opacity (0-1)
+ * @returns {string} Formatted color string (hex or rgba)
+ * @private
+ */
+function formatColorOutput(r, g, b, opacity) {
+    if (opacity !== null && opacity !== undefined) {
+        const alpha = Math.max(0, Math.min(1, opacity));
+        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    }
+
+    return '#' + ((1 << 24) + (r << 16) + (g << 8) + b)
+        .toString(16)
+        .slice(1)
+        .toUpperCase();
+}
+
+/**
+ * Adjust color brightness
+ * @param {string} color - Color to adjust (hex, rgb, or named)
+ * @param {number} amount - Adjustment amount
+ * @param {number|null} opacity - Optional opacity (0-1)
+ * @param {string} direction - 'darken' or 'lighten'
+ * @returns {string} Adjusted color string
+ * @private
+ */
+function adjustColorBrightness(color, amount, opacity, direction) {
+    const { r, g, b } = parseColorToRgb(color);
+
+    const adjustR = calculateAdjustmentValue(r, amount, direction);
+    const adjustG = calculateAdjustmentValue(g, amount, direction);
+    const adjustB = calculateAdjustmentValue(b, amount, direction);
+
+    const newR = direction === 'darken'
+        ? Math.max(0, Math.round(r - adjustR))
+        : Math.min(255, Math.round(r + adjustR));
+
+    const newG = direction === 'darken'
+        ? Math.max(0, Math.round(g - adjustG))
+        : Math.min(255, Math.round(g + adjustG));
+
+    const newB = direction === 'darken'
+        ? Math.max(0, Math.round(b - adjustB))
+        : Math.min(255, Math.round(b + adjustB));
+
+    return formatColorOutput(newR, newG, newB, opacity);
+}
+
+/**
  * Darkens a color by a specified amount with optional opacity
  * @param {string} color - The color to darken (hex, rgb, or named color)
  * @param {number} [amount=50] - The darkening amount. Can be:
@@ -282,54 +373,8 @@ export function generateColor() {
  * @param {number} [opacity] - Optional opacity value between 0-1. If provided, returns rgba() format, otherwise returns hex
  * @returns {string} The darkened color in hex format (if opacity not specified) or rgba() format
  */
-export function invertColorDarken(color, amount = 50, opacity = null) {
-    // Normalize the color to hex format
-    let hexColor = normalizeColor(color);
-
-    // Remove the hash at the start if it's there
-    hexColor = hexColor.replace(/^#/, '');
-
-    // Parse the r, g, b values
-    let r = parseInt(hexColor.substring(0, 2), 16);
-    let g = parseInt(hexColor.substring(2, 4), 16);
-    let b = parseInt(hexColor.substring(4, 6), 16);
-
-    // Determine the darkening value based on the amount parameter
-    let darkenValue;
-    if (amount >= 0 && amount <= 1) {
-        // Factor-based: calculate how much to subtract to reach black
-        // amount = 0 means no change, amount = 1 means fully black
-        darkenValue = {
-            r: r * amount,
-            g: g * amount,
-            b: b * amount,
-        };
-    } else {
-        // Absolute value: subtract the same amount from all components
-        darkenValue = {
-            r: amount,
-            g: amount,
-            b: amount,
-        };
-    }
-
-    // Darken the r, g, b values
-    r = Math.max(0, Math.round(r - darkenValue.r));
-    g = Math.max(0, Math.round(g - darkenValue.g));
-    b = Math.max(0, Math.round(b - darkenValue.b));
-
-    // If opacity is specified, return rgba format
-    if (opacity !== null && opacity !== undefined) {
-        // Validate and clamp opacity to 0-1 range
-        const alpha = Math.max(0, Math.min(1, opacity));
-        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-    }
-
-    // Convert the darkened r, g, b values back to a hex string
-    let darkHexColor =
-        '#' + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1).toUpperCase();
-
-    return darkHexColor;
+export function darkenColor(color, amount = 50, opacity = null) {
+    return adjustColorBrightness(color, amount, opacity, 'darken');
 }
 
 /**
@@ -342,55 +387,10 @@ export function invertColorDarken(color, amount = 50, opacity = null) {
  * @param {number} [opacity] - Optional opacity value between 0-1. If provided, returns rgba() format, otherwise returns hex
  * @returns {string} The lightened color in hex format (if opacity not specified) or rgba() format
  */
-export function invertColorLighten(color, amount = 50, opacity = null) {
-    // Normalize the color to hex format
-    let hexColor = normalizeColor(color);
-
-    // Remove the hash at the start if it's there
-    hexColor = hexColor.replace(/^#/, '');
-
-    // Parse the r, g, b values
-    let r = parseInt(hexColor.substring(0, 2), 16);
-    let g = parseInt(hexColor.substring(2, 4), 16);
-    let b = parseInt(hexColor.substring(4, 6), 16);
-
-    // Determine the lightening value based on the amount parameter
-    let lightenValue;
-    if (amount >= 0 && amount <= 1) {
-        // Factor-based: calculate how much to add to reach white
-        // amount = 0 means no change, amount = 1 means fully white
-        lightenValue = {
-            r: (255 - r) * amount,
-            g: (255 - g) * amount,
-            b: (255 - b) * amount,
-        };
-    } else {
-        // Absolute value: add the same amount to all components
-        lightenValue = {
-            r: amount,
-            g: amount,
-            b: amount,
-        };
-    }
-
-    // Lighten the r, g, b values
-    r = Math.min(255, Math.round(r + lightenValue.r));
-    g = Math.min(255, Math.round(g + lightenValue.g));
-    b = Math.min(255, Math.round(b + lightenValue.b));
-
-    // If opacity is specified, return rgba format
-    if (opacity !== null && opacity !== undefined) {
-        // Validate and clamp opacity to 0-1 range
-        const alpha = Math.max(0, Math.min(1, opacity));
-        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-    }
-
-    // Convert the lightened r, g, b values back to a hex string
-    let lightHexColor =
-        '#' + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1).toUpperCase();
-
-    return lightHexColor;
+export function lightenColor(color, amount = 50, opacity = null) {
+    return adjustColorBrightness(color, amount, opacity, 'lighten');
 }
+
 
 export function generateUUID() {
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {

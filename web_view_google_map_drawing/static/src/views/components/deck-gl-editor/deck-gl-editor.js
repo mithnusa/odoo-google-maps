@@ -645,21 +645,25 @@ export class DeckGlEditor extends Component {
     }
 
     _cleanUp() {
-        // Clear selection state
-        this.state.selectedFeatures.clear();
-        this.state.hoveredFeatureId = null;
-        
         // Clear drag state
         this.isDragging = false;
         this.dragStartPosition = null;
         this.dragFeatureIds.clear();
-        
+
         // Reset cursor
         document.body.style.cursor = '';
-        
+
         if (this.deckglOverlay) {
-            this.deckglOverlay.setMap(null);
-            this.deckglOverlay = null;
+            try {
+                // Detach overlay from map
+                this.deckglOverlay.setMap(null);
+                // Finalize to clean up WebGL resources
+                this.deckglOverlay.finalize();
+            } catch (error) {
+                console.error('Error during Deck.gl overlay cleanup:', error);
+            } finally {
+                this.deckglOverlay = null;
+            }
         }
     }
 

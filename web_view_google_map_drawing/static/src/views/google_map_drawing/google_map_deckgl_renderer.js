@@ -16,18 +16,16 @@ import {
 import { isNull } from '@web/views/utils';
 import { BaseGoogleMapComponent } from '@base_google_map/utils/base_google_map';
 import { GoogleMapGeolocate } from '@web_view_google_map/views/google_map/components/geolocate/geolocate';
-import { getRecordDataView, hexToRgba, generateColor, invertColorDarken } from '@web_view_google_map/views/google_map/utils';
+import { getRecordDataView, hexToRgba, generateColor, darkenColor } from '@web_view_google_map/views/google_map/utils';
 import { GoogleMapSearchPlaces } from '@web_view_google_map/views/google_map/components/search_places/search_places';
 import { GoogleMapsDrawingSidebar } from './google_map_drawing_sidebar';
 import {
-    calculatePolygonArea,
-    calculateLineStringLength,
-    calculateCircleRadius,
-    calculateCircleMeasurements,
-    formatMeasurement,
+    formatAreaMeasurement,
+    formatLengthMeasurement,
     formatPointCount,
     MEASUREMENT_CONFIG,
     loadDeckGlAssets,
+    loadTurfJSAssets,
 } from '../../utils/utils';
 
 /**
@@ -50,6 +48,7 @@ const DECKGL_CONFIG = {
         SELECTED_FILL: [0, 123, 255, 120], // Bright blue with transparency
         SELECTED_STROKE: [0, 86, 179, 255], // Deep blue
         HOVERED_FILL: [255, 165, 0, 120], // Gold with transparency
+        HOVERED_STROKE: [255, 140, 0, 255], // Dark orange
     },
 
     // Interactive features
@@ -174,6 +173,7 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
         this.visibleFeatures = new Set(); // Currently visible features
         this.cacheRecordDataView = new Map(); // Cache for record data views
         this._elementEventListeners = new Map(); // Track element event listeners
+        this.hoveredRecordId = null;
 
         // Debounced operations for performance
         this.debounceRenderGeolocationData = debounce(this.renderGeolocationData.bind(this), 200);
@@ -190,6 +190,7 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
         onWillStart(async () => {
             try {
                 await loadDeckGlAssets();
+                await loadTurfJSAssets();
                 this.state.isAssetsLoaded = true;
             } catch (error) {
                 console.error(error);
@@ -312,6 +313,9 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
 
         // Render shapes with batching
         this._renderShapesOptimized();
+
+        // Fit bounds to show all features
+        this._fitBoundsWhenReady();
     }
 
     /**
@@ -447,10 +451,6 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
                     featureId,
                     color
                 );
-                if (record.selected) {
-                    processedFeature.selected = true;
-                    this.selectedFeatureIds.add(processedFeature.id);
-                }
                 this.geoJsonData.set(processedFeature.id, processedFeature);
             });
 
@@ -470,7 +470,10 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
         const color = featureColor || dataView?.other?.__geoColor || generateColor();
 
         const fillColor = hexToRgba(color, 0.3, DECKGL_CONFIG.DEFAULT_COLORS.FILL);
-        const strokeColor = hexToRgba(invertColorDarken(color), 1.0, DECKGL_CONFIG.DEFAULT_COLORS.FILL);
+
+        // Random factor between 5% to 50% for stroke darkening
+        const randomDarkenFactor = Math.random() * (0.5 - 0.05) + 0.05;
+        const strokeColor = hexToRgba(darkenColor(color, randomDarkenFactor), 1.0, DECKGL_CONFIG.DEFAULT_COLORS.FILL);
 
         optimizedFeature.id = featureId;
         optimizedFeature.type = feature.type;
@@ -481,6 +484,8 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
             color,
             fillColor,
             strokeColor,
+            odooId: recordData.id,
+            odooResId: recordData.resId,
         };
         optimizedFeature.bounds = this._calculateFeatureBounds(feature.geometry);
         optimizedFeature.visible = true;
@@ -550,30 +555,31 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
         if (!this.isMapLoaded()) return;
 
         const features = Array.from(this.geoJsonData.values());
-
-        const isSelected = new Set();
+        const recordsSelected = new Set();
 
         const datas = this.getGroupsOrRecords();
         if (this.props.list.isGrouped) {
             datas.forEach(({ group }) => {
                 group.records.forEach(record => {
                     if (record.selected) {
-                        isSelected.add(record.id);
+                        recordsSelected.add(record.id);
                     }
                 });
             });
         } else {
             datas.forEach(({ record }) => {
                 if (record.selected) {
-                    isSelected.add(record.id);
+                    recordsSelected.add(record.id);
                 }
             });
         }
 
-        const featuresSelected = features.filter(f => {
-            const [recordId, _index] = f.id.split('-');
-            return isSelected.has(recordId);
-        }).map(f => f.id);
+        const featuresSelected = new Set();
+        for (const feature of features) {
+            if (recordsSelected.has(feature.properties.odooId)) {
+                featuresSelected.add(feature.id);
+            }
+        }
 
         let visibleFeatures = [];
         try {
@@ -612,28 +618,36 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
                 stroked: true,
                 wrapLongitude: true, // Handle coordinate wrapping on viewport changes
                 getFillColor: d => {
-                    if (featuresSelected.includes(d.id)) {
+                    if (featuresSelected.has(d.id)) {
                         return DECKGL_CONFIG.DEFAULT_COLORS.SELECTED_FILL;
+                    }
+                    if (this.hoveredRecordId === d.properties.odooId) {
+                        return DECKGL_CONFIG.DEFAULT_COLORS.HOVERED_FILL;
                     }
                     return d.properties.fillColor;
                 },
                 getLineColor: d => {
-                    if (featuresSelected.includes(d.id)) {
+                    if (featuresSelected.has(d.id)) {
                         return DECKGL_CONFIG.DEFAULT_COLORS.SELECTED_STROKE;
+                    }
+                    if (this.hoveredRecordId === d.properties.odooId) {
+                        return DECKGL_CONFIG.DEFAULT_COLORS.HOVERED_FILL;
                     }
                     return d.properties.strokeColor;
                 },
                 getLineWidth: d => {
-                    if (featuresSelected.includes(d.id)) {
+                    if (featuresSelected.has(d.id)) {
                         return STROKE_CONFIG.DEFAULT_WIDTH + 1; // 3px for selected
+                    }
+                    if (this.hoveredRecordId === d.properties.odooId) {
+                        return STROKE_CONFIG.HOVER_WIDTH; // 4px on hover
                     }
                     return STROKE_CONFIG.DEFAULT_WIDTH; // 2px default
                 },
                 lineWidthMinPixels: STROKE_CONFIG.DEFAULT_WIDTH,
                 lineWidthMaxPixels: STROKE_CONFIG.HOVER_WIDTH,
                 pickable: true,
-                autoHighlight: true, // Use Deck.gl's built-in hover highlighting
-                highlightColor: DECKGL_CONFIG.DEFAULT_COLORS.HOVERED_FILL, // Orange hover color
+                autoHighlight: false, // Use Deck.gl's built-in hover highlighting
             }),
 
             // Line layer for LineString geometries
@@ -643,12 +657,28 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
                 filled: false,
                 stroked: true,
                 wrapLongitude: true, // Handle coordinate wrapping on viewport changes
-                getLineColor: d => d.properties.strokeColor,
-                getLineWidth: 3,
-                lineWidthMinPixels: 2,
+                getLineColor: d => {
+                    if (featuresSelected.has(d.id)) {
+                        return DECKGL_CONFIG.DEFAULT_COLORS.SELECTED_STROKE;
+                    }
+                    if (this.hoveredRecordId === d.properties.odooId) {
+                        return DECKGL_CONFIG.DEFAULT_COLORS.HOVERED_STROKE;
+                    }
+                    return d.properties.strokeColor;
+                },
+                getLineWidth: d => {
+                    if (featuresSelected.has(d.id)) {
+                        return STROKE_CONFIG.DEFAULT_WIDTH + 1; // 3px for selected
+                    }
+                    if (this.hoveredRecordId === d.properties.odooId) {
+                        return STROKE_CONFIG.HOVER_WIDTH; // 4px on hover
+                    }
+                    return STROKE_CONFIG.DEFAULT_WIDTH; // 2px default
+                },
+                lineWidthMinPixels: STROKE_CONFIG.DEFAULT_WIDTH,
+                lineWidthMaxPixels: STROKE_CONFIG.HOVER_WIDTH,
                 pickable: true,
-                autoHighlight: true,
-                highlightColor: DECKGL_CONFIG.DEFAULT_COLORS.HOVERED_FILL,
+                autoHighlight: false,
             }),
 
             // Point layer for Point geometries
@@ -661,28 +691,31 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
                 stroked: true,
                 filled: true,
                 getFillColor: d => {
-                    if (featuresSelected.includes(d.id)) {
+                    if (featuresSelected.has(d.id)) {
                         return DECKGL_CONFIG.DEFAULT_COLORS.SELECTED_FILL;
+                    }
+                    if (this.hoveredRecordId === d.properties.odooId) {
+                        return DECKGL_CONFIG.DEFAULT_COLORS.HOVERED_FILL;
                     }
                     return d.properties.fillColor;
                 },
                 getLineColor: d => {
-                    if (featuresSelected.includes(d.id)) {
+                    if (featuresSelected.has(d.id)) {
                         return DECKGL_CONFIG.DEFAULT_COLORS.SELECTED_STROKE;
+                    }
+                    if (this.hoveredRecordId === d.properties.odooId) {
+                        return DECKGL_CONFIG.DEFAULT_COLORS.HOVERED_FILL;
                     }
                     return d.properties.strokeColor;
                 },
                 lineWidthMinPixels: 2,
                 lineWidthMaxPixels: 3,
                 pickable: true,
-                autoHighlight: true,
-                highlightColor: DECKGL_CONFIG.DEFAULT_COLORS.HOVERED_FILL,
+                autoHighlight: false,
             }),
         ];
 
         this.deckglOverlay.setProps({ layers });
-
-        this._fitBoundsWhenReady();
     }
 
     /**
@@ -779,7 +812,7 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
     }
 
     /**
-     * Fit the map to current bounds with animation
+     * Schedule map centering with a delay to ensure rendering stability
      * @private
      */
     _fitBoundsWhenReady() {
@@ -823,12 +856,29 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
     _onFeatureClick(info) {
         if (!info.object) return;
 
-
         const featureId = info.object.id;
         const feature = this.geoJsonData.get(featureId);
 
         if (feature) {
             this._showFeatureInfoWindow(feature, info.coordinate);
+        }
+    }
+
+    /**
+     * Handle feature hover events
+     * 
+     * Updates hovered feature state and triggers visual updates.
+     * @param {Object} info - Pick info from Deck.gl containing object
+     */
+    _onFeatureHover(info) {
+        const previousHoveredId = this.hoveredRecordId;
+        let newHoveredId = null;
+        if (info.object) {
+            newHoveredId = info.object.properties.odooId;
+        }
+        this.hoveredRecordId = newHoveredId;
+        if ((newHoveredId && newHoveredId !== previousHoveredId) || (!newHoveredId && previousHoveredId)) {
+            this._updateDeckGLLayers();
         }
     }
 
@@ -848,12 +898,43 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
      * @returns {Object} Measurement results with formatted strings and display_name
      * @private
      */
-    _calculateFeatureMeasurement(feature) {
+    _calculateFeatureMeasurement(feature, relatedFeatures = []) {
         if (!feature || !feature.geometry) return null;
 
         const { type, coordinates } = feature.geometry;
+
         const unit = MEASUREMENT_CONFIG.UNITS.METRIC; // Default to metric
         const measurements = {};
+        let area = 0;
+        let totalArea = 0;
+        let displayArea = '';
+        let displayTotalArea = '';
+
+        try {
+            area = window.turf.area(feature);
+            displayArea = formatAreaMeasurement(area, user.context.lang, 2, unit);
+        } catch (error) {
+            console.error('Error calculating area with Turf.js:', error);
+        }
+
+        try {
+            if ((type === 'MultiPolygon' || type === 'Polygon') && relatedFeatures.length) {
+                relatedFeatures.forEach((relFeature) => {
+                    try {
+                        const relArea = window.turf.area(relFeature);
+                        totalArea += relArea;
+                    } catch (error) {
+                        console.error('Error calculating related feature area:', error);
+                    }
+                });
+            }
+        } catch (error) {
+            console.error('Error calculating total area for MultiPolygon:', error);
+        }
+
+        if (totalArea > 0) {
+            displayTotalArea = formatAreaMeasurement(totalArea, user.context.lang, 2, unit);
+        }
 
         try {
             switch (type) {
@@ -863,76 +944,71 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
                     const lng = coordinates[0];
                     const latDir = lat >= 0 ? 'N' : 'S';
                     const lngDir = lng >= 0 ? 'E' : 'W';
-                    measurements.coordinates = `${Math.abs(lat).toFixed(MEASUREMENT_CONFIG.COORDINATE_PRECISION)}°${latDir}, ${Math.abs(lng).toFixed(MEASUREMENT_CONFIG.COORDINATE_PRECISION)}°${lngDir}`;
-                    measurements.display_name = `Point (${measurements.coordinates})`;
+                    measurements.coordinates = `${Math.abs(lat).toFixed(
+                        MEASUREMENT_CONFIG.COORDINATE_PRECISION
+                    )}°${latDir}, ${Math.abs(lng).toFixed(
+                        MEASUREMENT_CONFIG.COORDINATE_PRECISION
+                    )}°${lngDir}`;
+                    measurements.display_name = [{ title: _t('Point'), value: measurements.coordinates }];
                     break;
-
                 case 'LineString':
-                    const length = calculateLineStringLength(coordinates, unit);
+                case 'MultiLineString':
+                    const length = window.turf.length(feature, { units: 'kilometers' });
                     measurements.type = 'Line';
-                    measurements.length = formatMeasurement(length, 'distance', unit, user.context.lang);
+                    measurements.length = formatLengthMeasurement(length, user.context.lang, 2, unit);
                     measurements.points = formatPointCount(coordinates.length);
-                    measurements.display_name = `Line (${measurements.length}) | Points: ${measurements.points}`;
+                    measurements.display_name = [
+                        { title: _t('Length'), value: measurements.length },
+                        { title: _t('Points'), value: measurements.points },
+                    ];
                     break;
-
                 case 'Polygon':
                     const polygonCoords = coordinates[0]; // Outer ring
-                    const area = calculatePolygonArea(polygonCoords, unit);
-                    const perimeter = calculateLineStringLength(polygonCoords, unit);
+                    const lines = window.turf.lineString(polygonCoords);
+                    let perimeter = window.turf.length(lines, { units: 'kilometers' });
                     measurements.type = 'Polygon';
-                    measurements.area = formatMeasurement(area, 'area', unit, user.context.lang);
-                    measurements.perimeter = formatMeasurement(perimeter, 'distance', unit, user.context.lang);
+                    measurements.area = displayArea;
+                    measurements.perimeter = formatLengthMeasurement(perimeter, user.context.lang, 2, unit);
                     measurements.points = formatPointCount(polygonCoords.length - 1); // Subtract 1 for closed polygon
-                    measurements.display_name = `Polygon (${measurements.area}) | Perimeter: ${measurements.perimeter} | Points: ${measurements.points}`;
-
-                    if (feature.properties?.mode === 'circle') {
-                        if (feature.properties?.radiusKilometers) {
-                            const radius = feature.properties.radiusKilometers;
-                            const { area, diameter } = calculateCircleMeasurements(radius);
-                            measurements.area = formatMeasurement(area, 'area', unit, user.context.lang);
-                            measurements.display_name = `Circle (${measurements.area})`;
-                            measurements.radius = formatMeasurement(radius, 'distance', unit, user.context.lang);
-                            measurements.display_name += ` | Radius: ${measurements.radius}`;
-                            measurements.diameter = formatMeasurement(diameter, 'distance', unit, user.context.lang);
-                            measurements.display_name += ` | Diameter: ${measurements.diameter}`;
-                        } else {
-                            const radius = calculateCircleRadius(coordinates, unit);
-                            const { area, diameter } = calculateCircleMeasurements(radius);
-                            measurements.area = formatMeasurement(area, 'area', unit, user.context.lang);
-                            measurements.display_name = `Circle (${measurements.area})`;
-                            measurements.radius = formatMeasurement(radius, 'distance', unit, user.context.lang);
-                            measurements.display_name += ` | Radius: ${measurements.radius}`;
-                            measurements.diameter = formatMeasurement(diameter, 'distance', unit, user.context.lang);
-                            measurements.display_name += ` | Diameter: ${measurements.diameter}`;
-                        }
+                    measurements.display_name = [
+                        { title: _t('Area'), value: measurements.area },
+                        { title: _t('Perimeter'), value: measurements.perimeter },
+                        { title: _t('Points'), value: measurements.points }
+                    ];
+                    if (displayTotalArea) {
+                        measurements.display_name.splice(1, 0, { title: _t('Total Area'), value: displayTotalArea });
                     }
                     break;
                 case 'MultiPolygon':
-                    let totalArea = 0;
                     let totalPerimeter = 0;
                     let totalPoints = 0;
-                    coordinates.forEach(polygon => {
+                    coordinates.forEach((polygon) => {
                         const polyCoords = polygon[0]; // Outer ring
-                        totalArea += calculatePolygonArea(polyCoords, unit);
-                        totalPerimeter += calculateLineStringLength(polyCoords, unit);
+                        const lines = window.turf.lineString(polyCoords);
+                        totalPerimeter += window.turf.length(lines, { units: 'kilometers' });
                         totalPoints += polyCoords.length - 1; // Subtract 1 for closed polygon
                     });
                     measurements.type = 'MultiPolygon';
-                    measurements.area = formatMeasurement(totalArea, 'area', unit, user.context.lang);
-                    measurements.perimeter = formatMeasurement(totalPerimeter, 'distance', unit, user.context.lang);
+                    measurements.area = displayArea;
+                    measurements.perimeter = formatLengthMeasurement(totalPerimeter, user.context.lang, 2, unit);
                     measurements.points = formatPointCount(totalPoints);
-                    measurements.display_name = `MultiPolygon (${measurements.area}) | Perimeter: ${measurements.perimeter} | Points: ${measurements.points}`;
+                    measurements.display_name = [
+                        ({ title: _t('Area'), value: measurements.area }),
+                        ({ title: _t('Perimeter'), value: measurements.perimeter }),
+                        ({ title: _t('Points'), value: measurements.points })
+                    ];
+                    if (displayTotalArea) {
+                        measurements.display_name.splice(1, 0, { title: _t('Total Area'), value: displayTotalArea });
+                    }
                     break;
-
                 default:
                     measurements.type = type;
-                    measurements.display_name = 'Measurements not available for this geometry type';
+                    measurements.display_name = _t('Measurements not available for this geometry type');
             }
         } catch (error) {
             console.error('Error calculating measurement:', error);
-            measurements.error = 'Error calculating measurements';
+            measurements.error = _t('Error calculating measurements');
         }
-
         return measurements;
     }
 
@@ -966,7 +1042,7 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
      * @private
      */
     _findRecordByFeature(feature) {
-        const odooId = feature.properties?.odoo?.id;
+        const odooId = feature.properties.odooId;
         return this.props.list.records.find(r => r.id === odooId);
     }
 
@@ -1062,8 +1138,19 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
      */
     _renderTooltipContent(feature) {
         if (!feature || !feature.properties) return null;
-        const measurements = this._calculateFeatureMeasurement(feature);
-        const displayNames = (measurements?.display_name || '').split('|');
+
+        const relatedFeatures = [];
+        for (const otherFeature of this.geoJsonData.values()) {
+            if (
+                otherFeature.id !== feature.id &&
+                otherFeature.properties.odooId === feature.properties.odooId
+            ) {
+                relatedFeatures.push(otherFeature);
+            }
+        }
+
+        const measurements = this._calculateFeatureMeasurement(feature, relatedFeatures);
+        const displayNames = measurements?.display_name || [];
         const contentHtml = renderToString('web_view_google_map_drawing.FeatureProperties', {
             title: feature.properties.odoo?.title || _t('Feature'),
             displayNames,
@@ -1105,7 +1192,7 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
                             fontSize: '12px',
                             borderRadius: '4px',
                             boxShadow: '0 4px 6px rgba(0,0,0,0.2)',
-                            opacity: '0.9',
+                            opacity: '0.95',
                         };
                         if (properties.color) {
                             style.borderLeft = `4px solid ${properties.color}`;
@@ -1118,6 +1205,7 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
                     return null;
                 },
                 onClick: (info) => this._onFeatureClick(info),
+                onHover: (info) => this._onFeatureHover(info),
             });
 
             this.deckglOverlay.setMap(this.googleMap);
@@ -1294,11 +1382,11 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
      * @returns {Promise<void>} Promise that resolves when operation completes
      */
     async pointInMap(recordId, showInfoWindow = true) {
-        if (!this.isMapLoaded()) return;
+        if (!this.isMapLoaded() || !recordId) return;
         try {
             const features = [];
             this.geoJsonData.forEach((feature) => {
-                if (feature.properties?.odoo?.id === recordId) {
+                if (feature.properties.odooId === recordId) {
                     features.push(feature);
                 }
             });
@@ -1307,21 +1395,12 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
                 const { LatLngBounds } = await this.apiLoader.importLibrary('core');
                 this.latLngBounds = new LatLngBounds();
 
-
-                const boundsPromise = new Promise((resolve, reject) => {
-                    try {
-                        features.forEach(feature => {
-                            const featureBounds = feature.bounds;
-                            this.latLngBounds.extend({ lat: featureBounds.minY, lng: featureBounds.minX });
-                            this.latLngBounds.extend({ lat: featureBounds.maxY, lng: featureBounds.maxX });
-                        });
-                        resolve();
-                    } catch (error) {
-                        reject(error);
-                    }
+                // Extend bounds for all features
+                features.forEach(feature => {
+                    const featureBounds = feature.bounds;
+                    this.latLngBounds.extend({ lat: featureBounds.minY, lng: featureBounds.minX });
+                    this.latLngBounds.extend({ lat: featureBounds.maxY, lng: featureBounds.maxX });
                 });
-
-                await boundsPromise;
 
                 if (!this.latLngBounds.isEmpty()) {
                     this.googleMap.fitBounds(this.latLngBounds);
@@ -1329,7 +1408,7 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
                 // Simulate click on the first feature to show info window
                 if (showInfoWindow) {
                     this.handleFeatureClickManually(features[0]);
-                }                
+                }
             }
         } catch (error) {
             console.error('Error centering map on record:', error);
@@ -1546,6 +1625,9 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
      * @private
      */
     _cleanUp() {
+        // Reset hovered record ID
+        this.hoveredRecordId = null;
+
         // Cancel all pending debounced operations to prevent stale updates
         if (this.debounceRenderGeolocationData?.cancel) {
             this.debounceRenderGeolocationData.cancel();
@@ -1603,9 +1685,6 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
         this.featureIndex.clear();
         this.selectedFeatureIds.clear();
         this.layers.clear();
-
-        // Clean up hover state
-        this.hoveredFeatureId = null;
 
         // Clean up bounds
         this.dataBounds = null;
