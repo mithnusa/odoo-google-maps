@@ -1,0 +1,16 @@
+.o_google_map_view {
+    .o_google_map_renderer, .o_dialog {
+        .o_map_right_sidebar {
+            .content {
+                table tr td .o_map_sidebar_record.with_avatar {
+                    @media (max-width: 1600px) {
+                        max-width: 160px;
+                    }
+                    @media (max-width: 1200px) {
+                        max-width: 140px;
+                    }
+                }
+            }
+        }
+    }
+}

@@ -16,7 +16,7 @@ import {
 import { isNull } from '@web/views/utils';
 import { BaseGoogleMapComponent } from '@base_google_map/utils/base_google_map';
 import { GoogleMapGeolocate } from '@web_view_google_map/views/google_map/components/geolocate/geolocate';
-import { getRecordDataView, hexToRgba, generateColor, darkenColor } from '@web_view_google_map/views/google_map/utils';
+import { getRecordDataView, hexToRgba, generateColor, darkenColor, lightenColor } from '@web_view_google_map/views/google_map/utils';
 import { GoogleMapSearchPlaces } from '@web_view_google_map/views/google_map/components/search_places/search_places';
 import { GoogleMapsDrawingSidebar } from './google_map_drawing_sidebar';
 import {
@@ -466,14 +466,9 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
     _createOptimizedFeature(feature, recordData, dataView, featureId, featureColor) {
         // Get object from pool or create new one
         const optimizedFeature = this._createEmptyFeatureObject();
-
         const color = featureColor || dataView?.other?.__geoColor || generateColor();
-
         const fillColor = hexToRgba(color, 0.3, DECKGL_CONFIG.DEFAULT_COLORS.FILL);
-
-        // Random factor between 5% to 50% for stroke darkening
-        const randomDarkenFactor = Math.random() * (0.5 - 0.05) + 0.05;
-        const strokeColor = hexToRgba(darkenColor(color, randomDarkenFactor), 1.0, DECKGL_CONFIG.DEFAULT_COLORS.FILL);
+        const strokeColor = hexToRgba(lightenColor(color, 0.9), 1, DECKGL_CONFIG.DEFAULT_COLORS.FILL);
 
         optimizedFeature.id = featureId;
         optimizedFeature.type = feature.type;
