@@ -1,9 +1,9 @@
 """
-Custom JSON field with advanced search capabilities for Mapbox GL Draw module.
+Custom JSON field with advanced search capabilities for Google Map Drawing module.
 
 This module extends Odoo's standard JSON field to support GeoJSON-specific
 search operations using PostgreSQL's JSONB operators. It provides custom
-domain operators for efficient JSON field querying in the web_view_mapbox_gl_draw module.
+domain operators for efficient JSON field querying in the web_view_google_map_drawing module.
 """
 import json
 
