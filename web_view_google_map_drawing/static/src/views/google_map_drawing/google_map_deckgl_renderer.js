@@ -993,9 +993,9 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
                     measurements.perimeter = formatLengthMeasurement(totalPerimeter, user.context.lang, 2, unit);
                     measurements.points = formatPointCount(totalPoints);
                     measurements.display_name = [
-                        ({ title: _t('Area'), value: measurements.area }),
-                        ({ title: _t('Perimeter'), value: measurements.perimeter }),
-                        ({ title: _t('Points'), value: measurements.points })
+                        { title: _t('Area'), value: measurements.area },
+                        { title: _t('Perimeter'), value: measurements.perimeter },
+                        { title: _t('Points'), value: measurements.points }
                     ];
                     if (displayTotalArea) {
                         measurements.display_name.splice(1, 0, { title: _t('Total Area'), value: displayTotalArea });
