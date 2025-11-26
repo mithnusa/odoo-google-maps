@@ -15,8 +15,8 @@ const CRM_MARKER_CONFIG = {
             INFO_ICON: 'fa fa-info-circle ms-1 text-info float-end',
         },
         Z_INDEX: {
-            DEFAULT: 1,
-            HOVER: 10000,
+            DEFAULT: null,
+            HOVER: 1,
         },
     },
 };
@@ -91,12 +91,15 @@ export class GoogleMapRendererCRM extends GoogleMapRenderer {
             .parseFromString(content, 'text/html')
             .querySelector('div');
 
-        const titleElement = divContent.querySelector('.lead-title');
-        if (titleElement) {
-            const eventHandler = this.props.showRecord.bind(this, record);
-            titleElement.style.cursor = 'pointer';
-            titleElement.addEventListener('click', eventHandler);
-            this._storeElementEventListener(titleElement, 'click', eventHandler);
+        const openButtonElement = divContent.querySelector('.lead-title button');
+        if (openButtonElement) {
+            const eventHandler = (ev) => {
+                ev.stopPropagation();
+                this.props.showRecord(record);
+            }
+            openButtonElement.style.cursor = 'pointer';
+            openButtonElement.addEventListener('click', eventHandler);
+            this._storeElementEventListener(openButtonElement, 'click', eventHandler);
         }
         return divContent;
     }
@@ -154,7 +157,6 @@ export class GoogleMapRendererCRM extends GoogleMapRenderer {
     async _createNewMarker(record, geolocation, data, elementValues) {
         const marker = await this._buildCRMMarker(record, geolocation, data, elementValues);
         this._setupCRMMarkerMetadata(marker, record, geolocation, elementValues);
-        this._attachCRMMarkerEventListeners(marker);
         this._handleCRMMarkerPositioning(marker);
         this._updateMapBounds(marker);
 
@@ -172,11 +174,24 @@ export class GoogleMapRendererCRM extends GoogleMapRenderer {
      */
     async _buildCRMMarker(record, geolocation, data, elementValues) {
         const { AdvancedMarkerElement } = await this.apiLoader.importLibrary('marker');
-        const content = this._createMarkerElement(record, elementValues);
         const options = this._createCRMMarkerOptions(geolocation, data);
-        options.content = content;
+        options.content = this._createMarkerElement(record, elementValues);;
 
-        return new AdvancedMarkerElement(options);
+        const advMarkerElement = new AdvancedMarkerElement(options);
+        advMarkerElement.addListener('click', () => {
+            this.toggleMarkerHighlight(advMarkerElement);
+        });
+        return advMarkerElement;
+    }
+
+    toggleMarkerHighlight(markerView) {
+        if (markerView.content.classList.contains('highlight')) {
+            markerView.content.classList.remove('highlight');
+            markerView.zIndex = CRM_MARKER_CONFIG.VISUAL.Z_INDEX.DEFAULT;
+        } else {
+            markerView.content.classList.add('highlight');
+            markerView.zIndex = CRM_MARKER_CONFIG.VISUAL.Z_INDEX.HOVER;
+        }
     }
 
     /**
@@ -191,7 +206,6 @@ export class GoogleMapRendererCRM extends GoogleMapRenderer {
             position: geolocation,
             map: this.googleMap,
             collisionBehavior: google.maps.CollisionBehavior.REQUIRED_AND_HIDES_OPTIONAL,
-            zIndex: CRM_MARKER_CONFIG.VISUAL.Z_INDEX.DEFAULT,
             title: data.title || '',
         };
     }
@@ -222,50 +236,6 @@ export class GoogleMapRendererCRM extends GoogleMapRenderer {
     }
 
     /**
-     * Attach event listeners to CRM marker
-     * @private
-     * @param {Object} marker The marker to attach listeners to
-     */
-    _attachCRMMarkerEventListeners(marker) {
-        const content = marker.content;
-        const eventListeners = this._createCRMEventListeners(marker, content);
-
-        // Attach all event listeners
-        Object.entries(eventListeners.events).forEach(([event, handler]) => {
-            content.addEventListener(event, handler);
-            this._storeElementEventListener(content, event, handler);
-        });
-    }
-
-    /**
-     * Create event listeners for CRM markers
-     * @private
-     * @param {Object} marker The marker object
-     * @param {HTMLElement} content The marker content element
-     * @returns {Object} Event listeners object
-     */
-    _createCRMEventListeners(marker, content) {
-        const handleMouseEnter = () => {
-            marker.zIndex = CRM_MARKER_CONFIG.VISUAL.Z_INDEX.HOVER;
-            content.classList.add('marker-hover-animation');
-        };
-
-        const handleMouseLeave = () => {
-            marker.zIndex = CRM_MARKER_CONFIG.VISUAL.Z_INDEX.DEFAULT;
-            content.classList.remove('marker-hover-animation');
-        };
-
-        return {
-            events: {
-                mouseenter: handleMouseEnter,
-                mouseleave: handleMouseLeave,
-                touchstart: handleMouseEnter,
-                touchend: handleMouseLeave,
-            },
-        };
-    }
-
-    /**
      * Handle marker positioning including overlap management for CRM leads
      * @private
      * @param {Object} marker The marker to position
@@ -291,7 +261,7 @@ export class GoogleMapRendererCRM extends GoogleMapRenderer {
                 "This marker has been adjusted slightly so it doesn't overlap with others. The line points to its original location."
             )
         );
-        content.prepend(indicator);
+        content.querySelector('h5').append(indicator);
     }
 
     /**
@@ -347,10 +317,10 @@ export class GoogleMapRendererCRM extends GoogleMapRenderer {
      * @override
      */
     _cleanUpMarker(id, marker) {
-        super._cleanUpMarker(id, marker);
         if (marker._hoverTimeout) {
             clearTimeout(marker._hoverTimeout);
             delete marker._hoverTimeout;
         }
+        super._cleanUpMarker(id, marker);
     }
 }

@@ -1,38 +1,48 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates xml:space="preserve">
     <t t-name="crm_google_map.MarkerInfoWindow">
-        <div t-attf-class="crm_lead marker-drop-animation #{ isSelected ? 'selected-marker' : '' }" t-attf-style="border-left: 6px solid {{ markerColor || 'red' }};">
-            <div class="mt-2 text-center lead-title">
-                <h5 class="mb-1" t-out="title"/>
-                <t t-if="stage">
-                    <span class="badge bg-info-light rounded-pill" t-out="stage"/>
-                </t>
-                <t t-if="subTitle">
-                    <small class="text-muted d-block mt-1" t-out="subTitle"/>
-                </t>
+        <div t-attf-class="crm_lead marker-drop-animation #{ isSelected ? 'selected-marker' : '' }">
+            <div class="marker-icon">
+                <i class="fa fa-handshake-o fa-2x p-1" t-attf-style="color: {{ markerColor || 'red' }};"/>
             </div>
-            <div class="d-flex gap-4 justify-content-center align-items-center flex-wrap mt-2 text-700 mb-2">
-                <span t-if="partnerName" class="mt-1 mb-0 col-5" data-tooltip="Contact">
-                    <i class="fa fa-address-card-o text-600 d-block"></i>
-                    <span t-out="partnerName"/>
-                </span>
-                <span t-if="salespersonName" class="mt-1 mb-0 col-5" data-tooltip="Salesperson">
-                    <i class="fa fa-user-o text-600 d-block"></i>
-                    <span t-out="salespersonName"/>
-                </span>
-            </div>
-            <div class="d-flex justify-content-around align-items-center flex-wrap px-2 pb-2">
-                <div class="col-4 text-center" t-if="expectedRevenue" data-tooltip="Expected Revenue">
-                    <i class="fa fa-dollar d-block text-600"></i>
-                    <span class="font-monospace" t-out="expectedRevenue"/>
+            <div class="marker-content">
+                <div class="mb-1 lead-title">
+                    <div>
+                        <h5 class="mb-0" t-out="title"/>
+                        <button type="button" class="btn btn-sm btn-link" data-tooltip="Open">
+                            <i class="fa fa-angle-right fa-lg"/>
+                        </button>
+                    </div>
+                    <t t-if="stage">
+                        <span class="badge bg-info-light rounded-pill" t-out="stage"/>
+                    </t>
+                    <t t-if="subTitle">
+                        <small class="text-muted mt-1" t-out="subTitle"/>
+                    </t>
                 </div>
-                <div class="col-3 text-center" t-if="probability" data-tooltip="Probability">
-                    <i class="fa fa-percent d-block text-600"></i>
-                    <span class="font-sans-serif" t-out="probability"/>%
+                <div class="contact-salesperson">
+                    <span t-if="partnerName" class="mt-1 mb-0 col-5" data-tooltip="Contact">
+                        <i class="fa fa-address-card-o text-600 d-block"></i>
+                        <span t-out="partnerName"/>
+                    </span>
+                    <span t-if="salespersonName" class="mt-1 mb-0 col-5" data-tooltip="Salesperson">
+                        <i class="fa fa-user-o text-600 d-block"></i>
+                        <span t-out="salespersonName"/>
+                    </span>
                 </div>
-                <div class="col-3 text-center" t-if="dateDeadline" data-tooltip="Expected Closing">
-                    <i class="fa fa-calendar d-block text-600"></i>
-                    <span class="font-sans-serif" t-out="dateDeadline"/>
+                <div class="additional-info">
+                    <div class="col-4 text-center" t-if="expectedRevenue" data-tooltip="Expected Revenue">
+                        <i class="fa fa-dollar d-block text-600"></i>
+                        <span class="font-monospace" t-out="expectedRevenue"/>
+                    </div>
+                    <div class="col-3 text-center" t-if="probability" data-tooltip="Probability">
+                        <i class="fa fa-percent d-block text-600"></i>
+                        <span class="font-sans-serif" t-out="probability"/>%
+                    </div>
+                    <div class="col-3 text-center" t-if="dateDeadline" data-tooltip="Expected Closing">
+                        <i class="fa fa-calendar d-block text-600"></i>
+                        <span class="font-sans-serif" t-out="dateDeadline"/>
+                    </div>
                 </div>
             </div>
         </div>
