@@ -96,7 +96,7 @@ export class GoogleMapRendererCRM extends GoogleMapRenderer {
             const eventHandler = (ev) => {
                 ev.stopPropagation();
                 this.props.showRecord(record);
-            }
+            };
             openButtonElement.style.cursor = 'pointer';
             openButtonElement.addEventListener('click', eventHandler);
             this._storeElementEventListener(openButtonElement, 'click', eventHandler);
