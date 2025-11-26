@@ -1,5 +1,24 @@
 # Change Log
 
+## 19.0.1.0.5
+### Fixed
+- **Group Expansion Logic**: Fixed `handleGroupCollapse` to properly check if group records exist before toggling, preventing unnecessary API calls
+- **Group Deletion**: Fixed `deleteGroupRecords` to properly iterate through grouped data structure when collapsing groups
+- **Selection State in Grouped View**: Fixed marker selection state synchronization when staying in grouped view, ensuring selected markers remain highlighted
+
+### Improved
+- **Grouped View Performance**: Added debounce cancellation before clearing markers when switching to grouped view, preventing conflicting operations
+- **Group UI State**: Groups that already have records loaded now display in expanded state by default, improving user experience
+- **Color Palette**: Updated `generateColor` with cleaner, more vibrant colors for better marker visibility (20 colors with improved readability)
+- **Responsive Design**: Removed excessive media query breakpoints (1600px and 1200px) for cleaner responsive behavior
+- **Template Attributes**: Fixed `t-attf-data-tooltip` to use proper `t-att-data-tooltip` syntax in sidebar template
+
+### Technical Details
+- Cancelled `debounceRenderGeolocationData` before marker clearing to prevent race conditions
+- Cancelled `debounceSelectedMarkers` and re-evaluated all marker selection states when in grouped view
+- Updated group collapse class to conditionally show expanded state based on records length
+- Simplified color array with hex colors and descriptive comments
+
 ## 19.0.1.0.4
 - Removed unused methods (hideGroupRecordsMarker, centerMapByGroup)
 - Improved event listener cleanup in clearMarkers and _cleanUp

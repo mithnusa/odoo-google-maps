@@ -1,5 +1,26 @@
 # Change Log
 
+## 19.0.1.0.4
+### Fixed
+- **Critical Bug in Viewport Culling**: Fixed `_updateViewportCulling()` method that was missing function call parentheses, preventing viewport updates from executing
+- **Feature Disappearance in Grouped Records**: Fixed `_renderGroupedRecordsFitBounds()` to use immediate layer updates instead of debouncing, preventing features from disappearing when expanding grouped records
+- **Race Conditions in Selection Handling**: Completely redesigned `toggleRecordSelection()` to eliminate race conditions between selection state updates and layer rendering
+- **Premature Data Clearing**: Fixed issue where selection changes triggered full data clearing and re-rendering, causing features to disappear temporarily
+- **Viewport Culling Timing Issues**: Improved synchronization between viewport changes and layer updates to prevent features from being culled during transitions
+
+### Improved
+- **Record Selection Performance**: Added 100ms debouncing to `toggleRecordSelection()` to prevent rapid clicks from causing conflicts
+- **Selection State Management**: Implemented immediate feature selection state updates without waiting for props changes, improving responsiveness
+- **Conditional Map Centering**: Added optional `centerMap` parameter to `toggleRecordSelection()` for more controlled map navigation behavior
+- **Cleanup Process**: Enhanced `_cleanUp()` method to cancel all pending debounced operations before resetting features, preventing stale updates from causing issues
+- **Layer Update Synchronization**: Improved coordination between debounced operations by canceling conflicting updates before critical operations
+
+### Technical Details
+- Cancelled debounced updates in `_renderGroupedRecordsFitBounds()` before immediate layer rendering
+- Direct feature state updates in `_toggleRecordSelectionImpl()` instead of triggering full re-renders
+- Added proper error handling for selection toggle operations
+- Improved viewport culling execution flow with proper function invocation
+
 ## 19.0.1.0.3
 - Updated Terra Draw library from 1.18.1 to 1.19.0
 - Removed IconLayer implementation, simplified to ScatterplotLayer for points
