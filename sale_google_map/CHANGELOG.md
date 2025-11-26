@@ -1,5 +1,20 @@
 # Change Log
 
+## 19.0.1.0.5
+### Performance Improvements
+- Added marker caching to prevent duplicate marker creation for existing groups
+- Optimized loadGroupRecord method to skip groups that already have loaded records
+- Reduced unnecessary group toggle operations for better performance
+
+### UI/UX Enhancements
+- Enabled marker clustering for better map organization (removed disable_cluster_marker attribute)
+- Standardized marker width to fixed 250px for consistent display
+- Removed collision behavior setting for cleaner marker management
+
+### Code Quality
+- Improved group filtering logic in sidebar to avoid redundant processing
+- Enhanced cache utilization in marker creation workflow
+
 ## 19.0.1.0.4
 - Removed unused action button reference storage
 - Added data-id attribute to action buttons for better traceability
