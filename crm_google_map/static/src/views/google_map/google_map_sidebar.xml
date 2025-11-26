@@ -2,7 +2,13 @@
 <templates xml:space="preserve">
     <t t-name="crm_google_map.RecordItem" t-inherit="web_view_google_map.RecordItem" t-inherit-mode="primary">
         <xpath expr="//div[hasclass('o_map_sidebar_record')]/.." position="after">
-            <Field id="'stage_id'" name="'stage_id'" record="record" readonly="true" class="'disabled'"/>
+            <div class="d-flex align-items-center justify-content-between mt-1">
+                <div class="d-flex align-items-center text-muted">
+                    <i class="fa fa-dollar me-1"/>
+                    <Field id="'expected_revenue'" name="'expected_revenue'" record="record" readonly="true" class="'small'"/>
+                </div>
+                <Field id="'stage_id'" name="'stage_id'" record="record" readonly="true" class="'disabled'"/>
+            </div>
         </xpath>
     </t>
 </templates>

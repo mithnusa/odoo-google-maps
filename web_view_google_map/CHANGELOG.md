@@ -1,5 +1,15 @@
 # Change Log
 
+## 19.0.1.0.6
+### Improved
+- **Marker Selection Mode Activation**: Simplified keyboard shortcut to use only Alt or Meta (Command) keys, removing Ctrl key support for more consistent cross-platform behavior
+- **Code Quality**: Refactored keyboard event handlers with cleaner conditional logic and improved readability
+
+### Technical Details
+- Updated `handleKeyDown` to check only `altKey` or `metaKey` (removed `ctrlKey` check)
+- Simplified nested conditionals in both `handleKeyDown` and `handleKeyUp` methods
+- Improved code maintainability in AdvancedMarkerBoxSelector class
+
 ## 19.0.1.0.5
 ### Fixed
 - **Group Expansion Logic**: Fixed `handleGroupCollapse` to properly check if group records exist before toggling, preventing unnecessary API calls

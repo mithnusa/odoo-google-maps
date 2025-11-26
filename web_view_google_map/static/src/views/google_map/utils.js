@@ -506,10 +506,8 @@ export class AdvancedMarkerBoxSelector {
 
         // Create bound event handlers for proper cleanup
         this.handleKeyDown = (e) => {
-            if (e.ctrlKey || e.altKey || e.metaKey) {
-                if (!this.selectionEnabled) {
-                    this.enableSelectionMode();
-                }
+            if ((e.altKey || e.metaKey) && !this.selectionEnabled) {
+                this.enableSelectionMode();
             }
 
             // Cancel selection with Escape
@@ -519,10 +517,8 @@ export class AdvancedMarkerBoxSelector {
         };
 
         this.handleKeyUp = (e) => {
-            if (!e.ctrlKey && !e.altKey && !e.metaKey) {
-                if (this.selectionEnabled && !this.isDrawing) {
-                    this.disableSelectionMode();
-                }
+            if (!e.altKey && !e.metaKey && this.selectionEnabled && !this.isDrawing) {
+                this.disableSelectionMode();
             }
         };
 
