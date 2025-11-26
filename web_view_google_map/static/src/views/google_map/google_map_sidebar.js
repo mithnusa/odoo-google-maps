@@ -41,14 +41,18 @@ export class GoogleMapSidebar extends Component {
         const { group } = this.datas.find((data) => data.key === groupKey);
         if (!group) return;
 
-        if (!ev.currentTarget?.classList.contains('collapsed')) {
-            await this.props.toggleGroup(group);
+        const isExpanding = !ev.currentTarget?.classList.contains('collapsed');
+        if (isExpanding) {
+            if (group.records.length === 0) {
+                await this.props.toggleGroup(group);
+            }
             const datas = this.props.getGroupsOrRecords();
             const groupDatas = datas.filter((data) => data.key === groupKey);
             this.props.renderGroupedRecordsFitBounds(groupDatas);
         } else {
-            const records = group.list.records;
-            this.props.deleteGroupRecords(records);
+            const datas = this.props.getGroupsOrRecords();
+            const groupDatas = datas.filter((data) => data.key === groupKey);
+            this.props.deleteGroupRecords(groupDatas);
         }
     }
 

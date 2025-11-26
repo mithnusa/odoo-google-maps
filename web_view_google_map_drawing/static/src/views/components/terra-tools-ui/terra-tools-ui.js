@@ -112,13 +112,10 @@ export class TerraDrawToolsUI extends Component {
         onWillDestroy(() => this._cleanUp());
 
         onWillUpdateProps((nextProps) => {
-            if (
-                JSON.stringify(nextProps.dataGeoJson) !== JSON.stringify(this.props.dataGeoJson) &&
-                this.terraDrawInstance !== null
-            ) {
-                if (this.state.isRestoring || this.state.isSaving) {
-                    return;
-                }
+            if (!nextProps.googleMap || !this.terraDrawInstance) return;
+
+            if (JSON.stringify(nextProps.dataGeoJson) !== JSON.stringify(this.props.dataGeoJson)) {
+                if (this.state.isRestoring || this.state.isSaving) return;
                 this.terraDrawInstance.clear();
                 this.latLngBounds = null; // reset latLngBounds to recalculate
                 this.loadRecordData(nextProps.dataGeoJson);
@@ -1480,8 +1477,9 @@ export class TerraDrawToolsUI extends Component {
                 this.terraDrawInstance.stop();
             } catch (error) {
                 console.warn('Error cleaning up TerraDraw instance:', error);
+            } finally {
+                this.terraDrawInstance = null;
             }
-            this.terraDrawInstance = null;
         }
         
         // Clear history arrays
