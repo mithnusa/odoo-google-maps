@@ -300,6 +300,10 @@ export class GoogleMapRendererSaleOrder extends GoogleMapRenderer {
      * @returns {Object} New marker
      */
     async _createNewMarker(group, geolocation) {
+        // return cached marker if exists
+        if (this.cache.has(group.id)) {
+            return this.cache.get(group.id);
+        }
         const marker = await this._buildSaleOrderMarker(group, geolocation);
         this._setupSaleOrderMarkerMetadata(marker, group, geolocation);
         this._attachSaleOrderEventListeners(marker, group);
@@ -335,7 +339,6 @@ export class GoogleMapRendererSaleOrder extends GoogleMapRenderer {
         return {
             position: geolocation,
             map: this.googleMap,
-            collisionBehavior: google.maps.CollisionBehavior.REQUIRED_AND_HIDES_OPTIONAL,
             zIndex: SALE_MARKER_CONFIG.VISUAL.Z_INDEX.DEFAULT,
         };
     }

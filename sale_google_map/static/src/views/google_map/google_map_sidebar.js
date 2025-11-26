@@ -58,7 +58,12 @@ export class GoogleMapSidebarSaleOrder extends GoogleMapSidebar {
     async loadGroupRecord() {
         if (this.props.isGrouped) {
             const data = this.props.getGroupsOrRecords();
-            const groupPromises = data.map(async ({ group }) => {
+            const groups = data.filter(({ group }) => group.records.length === 0);
+            if (groups.length === 0) {
+                return;
+            }
+
+            const groupPromises = groups.map(async ({ group }) => {
                 try {
                     await this.props.toggleGroup(group);
                 } catch (error) {
