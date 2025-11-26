@@ -175,7 +175,7 @@ export class GoogleMapRendererCRM extends GoogleMapRenderer {
     async _buildCRMMarker(record, geolocation, data, elementValues) {
         const { AdvancedMarkerElement } = await this.apiLoader.importLibrary('marker');
         const options = this._createCRMMarkerOptions(geolocation, data);
-        options.content = this._createMarkerElement(record, elementValues);;
+        options.content = this._createMarkerElement(record, elementValues);
 
         const advMarkerElement = new AdvancedMarkerElement(options);
         advMarkerElement.addListener('click', () => {
