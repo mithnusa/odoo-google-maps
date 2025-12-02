@@ -4,15 +4,15 @@ import { useService } from '@web/core/utils/hooks';
 import { LOADER_STATUS, LOADER_ERROR_TYPES, useGoogleMapsAPILoader } from './loader_google_map';
 
 // Constants for validation and configuration
-const MAX_ZOOM_LEVEL = 23;
-const MIN_ZOOM_LEVEL = 1;
-const VALID_LAT_RANGE = [-90, 90];
-const VALID_LNG_RANGE = [-180, 180];
-const RESIZE_DEBOUNCE_DELAY = 250;
-const MAP_LOAD_TIMEOUT = 30000;
+export const MAX_ZOOM_LEVEL = 23;
+export const MIN_ZOOM_LEVEL = 1;
+export const VALID_LAT_RANGE = [-90, 90];
+export const VALID_LNG_RANGE = [-180, 180];
+export const RESIZE_DEBOUNCE_DELAY = 250;
+export const MAP_LOAD_TIMEOUT = 30000;
 
 // Accessibility constants
-const A11Y_LABELS = {
+export const A11Y_LABELS = {
     MAP_CONTAINER: 'Interactive map',
     LOADING: 'Map is loading',
     ERROR: 'Map failed to load',
@@ -33,11 +33,7 @@ export class BaseGoogleMapComponent extends Component {
         this.notificationService = useService('notification');
         this.uiService = useService('ui');
 
-        // API Loader
-        // this.apiLoader = useGoogleMapsAPILoader(
-        //     (...args) => this.onGoogleMapsApiLoad(...args),
-        //     (...args) => this.onGoogleMapsApiError(...args)
-        // );
+        // Google Maps API Loader
         this.apiLoader = useGoogleMapsAPILoader(
             (...args) => this.handleOnApiLoaderSuccess(...args),
             (...args) => this.handleOnApiLoaderError(...args),
@@ -57,7 +53,7 @@ export class BaseGoogleMapComponent extends Component {
         // Map State
         this.state = useState({
             isMapReady: null,
-            loaderStatus: LOADER_STATUS.INITIALIZING,
+            loaderStatus: LOADER_STATUS.NOT_LOADED,
             isLoading: null,
             isOffline: null,
         });
@@ -193,7 +189,7 @@ export class BaseGoogleMapComponent extends Component {
             // Trigger map ready callback
             await this.onMapReady(googleMap);
             // Update loader state
-            this.updateLoaderState();
+            this.updateLoaderState(this.state.loaderStatus);
         } catch (error) {
             this.onGoogleMapsApiError(error);
         }
