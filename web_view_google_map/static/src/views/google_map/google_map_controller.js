@@ -427,14 +427,6 @@ export class GoogleMapController extends Component {
         return executeButtonCallback(this.rootRef.el, () => this.createRecord());
     }
 
-    async _getActionFormView(actionId, resId) {
-        if (!actionId) return;
-        return await this.model.orm.call('google.map.view.mixins', 'handle_find_action_form_view', [
-            actionId,
-            resId,
-        ]);
-    }
-
     /**
      * Open form view in a dialog window
      * @param {Object} values

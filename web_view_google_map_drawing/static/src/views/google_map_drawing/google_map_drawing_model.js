@@ -12,16 +12,16 @@ export class GoogleMapDrawingModel extends GoogleMapModel {
             this.config.fields[this.viewConfig.geoJsonField] &&
             this.config.fields[this.viewConfig.geoJsonField].searchable
         ) {
-            return Domain.or([
-                [[this.viewConfig.geoJsonField, '!=', false]],
+            return Domain.and([
+                [[this.viewConfig.geoJsonField, '!=', null]],
                 [
                     [
                         this.viewConfig.geoJsonField,
-                        'json_eq',
+                        'json_ne',
                         { type: 'FeatureCollection', features: [] },
                     ],
                 ],
-            ]).toList({}); // Ensure the field is not empty or default empty structure
+            ]).toList({}); // Filter out null and empty FeatureCollection
         }
         return [];
     }

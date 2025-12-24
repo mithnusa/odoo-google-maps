@@ -1,5 +1,16 @@
 # Change Log
 
+## 19.0.1.0.4
+### Improved
+- **Marker Responsiveness**: Enhanced marker sizing with flexible dimensions using min/max constraints
+- **Highlight Marker Layout**: Added padding and improved height constraints for better content display
+
+### Technical Details
+- Changed marker width from fixed `55px` to flexible `min-width: 55px` and `max-width: 400px`
+- Changed marker height from fixed `50px` to flexible `min-height: 50px`
+- Added `padding: 12px` to highlighted markers for better spacing
+- Changed highlighted marker height from fixed `175px` to flexible `min-height: 175px`
+
 ## 19.0.1.0.3
 ### Enhanced Marker Interaction & UI/UX
 - Implemented toggle-based marker interaction replacing hover behavior

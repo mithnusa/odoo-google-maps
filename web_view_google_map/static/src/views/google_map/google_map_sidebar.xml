@@ -86,7 +86,7 @@
         </div>
     </t>
     <t t-name="web_view_google_map.ListGroupOrRecord">
-        <table class="table table-sm table-hover">
+        <table class="table table-sm table-hover table-striped">
             <tbody>
                 <t t-if="datas.length">
                     <t t-foreach="datas" t-as="groupOrRecord" t-key="groupOrRecord.key">

@@ -1,5 +1,10 @@
 # Change Log
 
+## 19.0.1.0.1
+### Improved
+- **Performance Optimization**: Changed from `search()` to `search_count()` for existence checks in post-install hook
+- **Code Cleanup**: Removed unused variable assignments after mapping creation
+
 ## 19.0.1.0.0   
 A new module that combines the following modules from previous versions:
 - crm_gautocomplete_address_form

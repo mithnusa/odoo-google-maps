@@ -81,7 +81,7 @@ export class GooglePlaceAutocompleteCharField extends CharField {
             return changes;
         } catch (error) {
             console.error('Error preparing values:', { error, values });
-            return {}
+            return {};
         }
     }
 

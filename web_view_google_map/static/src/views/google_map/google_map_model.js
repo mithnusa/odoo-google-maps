@@ -96,18 +96,19 @@ export class GoogleMapModel extends RelationalModel {
             this.config.fields[this.viewConfig.lat].searchable &&
             this.config.fields[this.viewConfig.lng].searchable
         ) {
-            let latDomain = [[this.viewConfig.lat, '!=', 0.0]];
-            let lngDomain = [[this.viewConfig.lng, '!=', 0.0]];
+            const nullValues = [null, false, 0.0];
+            let latDomain = [[this.viewConfig.lat, 'not in', nullValues]];
+            let lngDomain = [[this.viewConfig.lng, 'not in', nullValues]];
 
             if (this.config.fields[this.viewConfig.lat].related) {
                 const [related_source, _related_field] =
                     this.config.fields[this.viewConfig.lat].related.split('.');
-                latDomain = Domain.and([latDomain, [[related_source, '!=', false]]]).toList({});
+                latDomain = Domain.and([latDomain, [[related_source, 'not in', nullValues]]]).toList({});
             }
             if (this.config.fields[this.viewConfig.lng].related) {
                 const [related_source, _related_field] =
                     this.config.fields[this.viewConfig.lng].related.split('.');
-                latDomain = Domain.and([latDomain, [[related_source, '!=', false]]]).toList({});
+                lngDomain = Domain.and([lngDomain, [[related_source, 'not in', nullValues]]]).toList({});
             }
             return Domain.and([latDomain, lngDomain]).toList({});
         }

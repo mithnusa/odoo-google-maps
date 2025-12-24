@@ -48,7 +48,7 @@ export class BaseGoogleMapComponent extends Component {
                 this.handleApiLoaderUseEffect(mapEl, loaderStatus);
             },
             () => [this.mapDivElement(), this.state.loaderStatus],
-        )
+        );
 
         // Map State
         this.state = useState({

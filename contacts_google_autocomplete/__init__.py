@@ -58,12 +58,12 @@ def _post_install_hook_configure_contact_google_place_mapping(env):
     ], limit=1).id
 
     # Create Google Places Mapping for res.partner if not exists
-    mapping_place = google_place_mapping.search([
+    mapping_place_count = google_place_mapping.search_count([
         ('model_id', '=', model_contact_id),
         ('mode', '=', 'places'),
-    ], limit=1)
-    if not mapping_place:
-        mapping_place = google_place_mapping.create({
+    ])
+    if mapping_place_count == 0:
+        google_place_mapping.create({
             'description': 'Google Place mapping for Contacts',
             'code': secrets.token_urlsafe(6),
             'model_id': model_contact_id,
@@ -119,13 +119,13 @@ def _post_install_hook_configure_contact_google_place_mapping(env):
                 }),
             ],
         })
-    
-    mapping_address = google_place_mapping.search([
+
+    mapping_address_count = google_place_mapping.search_count([
         ('model_id', '=', model_contact_id),
         ('mode', '=', 'address'),
-    ], limit=1)
-    if not mapping_address:
-        mapping_address = google_place_mapping.create({
+    ])
+    if mapping_address_count == 0:
+        google_place_mapping.create({
             'description': 'Google Address mapping for Contacts',
             'code': secrets.token_urlsafe(6),
             'model_id': model_contact_id,

@@ -1,5 +1,32 @@
 # Change Log
 
+## 19.0.1.0.5
+### Improved
+- **Domain Filtering**: Fixed empty GeoJSON filtering to use 'json_ne' with AND logic, properly excluding null and empty FeatureCollections
+- **Drawing Styles**: Enhanced Terra Draw mode styles with better visibility (point outlines, line widths, fill opacity)
+- **Terra Draw Initialization**: Refactored adapter creation for better code readability
+- **Canvas Rendering**: Added z-index styling to ensure Terra Draw canvas renders on top
+- **Template Structure**: Removed unnecessary template inheritance, now uses base GoogleMapRenderer template directly
+- **Sidebar Toggle**: Re-enabled sidebar toggle button (removed previous Deck.gl resize workaround)
+- **Layout Cleanup**: Removed control panel ResizeObserver as it's no longer needed
+
+### Updated Dependencies
+- **Deck.gl**: Updated from 9.2.2 to 9.2.5
+- **Turf.js**: Updated from 7.3.0 to 7.3.1
+
+### Fixed
+- **Timeout Cleanup**: Added proper timeout clearing before creating new timeout in Terra Draw initialization
+- **Template Organization**: Reorganized InMapSearchPlaces component position for better structure
+
+### Technical Details
+- Changed mapDomain from `Domain.or` to `Domain.and` with `json_ne` operator
+- Added comprehensive drawing styles: pointWidth (6px), pointOutlineWidth (2px), lineStringWidth (2px), fillOpacity (0.3), outlineWidth (2px)
+- Extracted adapter options into separate variable before Terra Draw instance creation
+- Added `canvas { z-index: 100 !important }` to ensure proper overlay rendering
+- Removed `_setupControlPanelResizeObserver` method and related ResizeObserver cleanup
+- Removed template inheritance that was hiding sidebar toggle button
+- Changed template reference from `GoogleMapDeckGlRenderer` to base `GoogleMapRenderer`
+
 ## 19.0.1.0.4
 ### Fixed
 - **Critical Bug in Viewport Culling**: Fixed `_updateViewportCulling()` method that was missing function call parentheses, preventing viewport updates from executing
