@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates xml:space="preserve">
     <div t-name="web_view_google_map_drawing.GoogleMapTerraDrawField">
-        <InMapSearchPlaces googleMap="googleMap"/>
         <div class="o_google_map_renderer">
+            <InMapSearchPlaces googleMap="googleMap"/>
             <div class="o_google_map_view" id="o_google_map_view" t-ref="map"></div>
             <Geolocate googleMap="googleMap" t-if="state.isMapReady"/>
-            
             <!-- Readonly Mode Banner for features with holes -->
             <div class="o_complexity_banner" t-if="state.isMapReady and state.renderingMode === 'deckgl'">
                 <div class="alert alert-warning">

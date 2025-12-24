@@ -11,7 +11,6 @@ import {
     onPatched,
     onWillStart,
     onWillUpdateProps,
-    onMounted,
 } from '@odoo/owl';
 import { isNull } from '@web/views/utils';
 import { BaseGoogleMapComponent } from '@base_google_map/utils/base_google_map';
@@ -113,7 +112,7 @@ const STROKE_CONFIG = {
  * @param {boolean} allowSelectors - Whether to allow selection
  */
 export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
-    static template = 'web_view_google_map_drawing.GoogleMapDeckGlRenderer';
+    static template = 'web_view_google_map.GoogleMapRenderer';
     static templateInfoWindow = 'web_view_google_map_drawing.ShapeInfoWindow';
 
     static components = {
@@ -152,8 +151,6 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
             isAssetsLoaded: false,
         });
 
-        this.controlPanelHeight = null;
-        this.controlPanelResizeObserver = null;
         this.fitBoundsTimeout = null;
 
         this.selectedFeatureIds = new Set();
@@ -220,10 +217,6 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
             if (this._isSidebarAction) {
                 this._isSidebarAction = false;
             }
-        });
-
-        onMounted(() => {
-            this._setupControlPanelResizeObserver();
         });
 
         if (this.props.allowSelectors) {
@@ -1695,15 +1688,6 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
             google.maps.event.clearInstanceListeners(this.googleMap);
         }
 
-        // Clean up ResizeObserver for control panel
-        if (this.controlPanelResizeObserver) {
-            this.controlPanelResizeObserver.disconnect();
-            this.controlPanelResizeObserver = null;
-        }
-
-        // Reset control panel height
-        this.controlPanelHeight = null;
-
         super._cleanUp();
     }
 
@@ -1715,54 +1699,6 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
         if (this.props.list.fieldNames.indexOf(this.props.viewAttrs?.geoJsonField) === -1) {
             throw new Error(`GeoJSON field "${this.props.viewAttrs.geoJsonField}" not found in list view fields.`);
         }
-    }
-
-    /**
-     * Setup ResizeObserver for control panel to prevent layout shifts
-     *
-     * Deck.gl is very sensitive to layout shifts causing rendering issues.
-     * The control panel is adaptive and can change height dynamically when
-     * records are selected, which causes a 2px shift that triggers jittery
-     * hover behavior in Deck.gl.
-     *
-     * This method:
-     * 1. Captures the initial height of the control panel
-     * 2. Observes any height changes
-     * 3. Locks the height to prevent unwanted shifts
-     *
-     * @private
-     */
-    _setupControlPanelResizeObserver() {
-        // Prevent creating multiple observers
-        if (this.controlPanelResizeObserver) {
-            console.warn('Control panel ResizeObserver already exists, skipping setup');
-            return;
-        }
-
-        const controlPanelEl = document.querySelector('.o_control_panel');
-
-        if (!controlPanelEl) {
-            console.warn('Control panel element not found for resize observation');
-            return;
-        }
-
-        // Capture initial height
-        this.controlPanelHeight = controlPanelEl.getBoundingClientRect().height;
-
-        // Create observer to lock height when it tries to change
-        this.controlPanelResizeObserver = new ResizeObserver(entries => {
-            for (const entry of entries) {
-                const newHeight = entry.target.getBoundingClientRect().height;
-
-                // If height changed from the initial value, lock it
-                if (this.controlPanelHeight !== null && newHeight !== this.controlPanelHeight) {
-                    entry.target.style.height = `${this.controlPanelHeight}px`;
-                }
-            }
-        });
-
-        // Start observing
-        this.controlPanelResizeObserver.observe(controlPanelEl);
     }
 
     getRecordDataView(record) {

@@ -40,6 +40,13 @@
         .o_google_map_view {
             border: 1px solid $o-view-background-color;
 
+            // Ensure Terra Draw overlay canvas renders on top
+            canvas {
+                position: absolute !important;
+                pointer-events: auto !important;
+                z-index: 100 !important;
+            }
+
             .animate {
                 animation: notification 1.5s infinite;
                 color: white;
