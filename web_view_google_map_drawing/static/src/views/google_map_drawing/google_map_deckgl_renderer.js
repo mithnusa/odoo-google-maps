@@ -460,8 +460,8 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
         // Get object from pool or create new one
         const optimizedFeature = this._createEmptyFeatureObject();
         const color = featureColor || dataView?.other?.__geoColor || generateColor();
-        const fillColor = hexToRgba(color, 0.3, DECKGL_CONFIG.DEFAULT_COLORS.FILL);
-        const strokeColor = hexToRgba(lightenColor(color, 0.9), 1, DECKGL_CONFIG.DEFAULT_COLORS.FILL);
+        const fillColor = hexToRgba(color, 0.5, DECKGL_CONFIG.DEFAULT_COLORS.FILL);
+        const strokeColor = hexToRgba(lightenColor(color, 0.85), 1, DECKGL_CONFIG.DEFAULT_COLORS.FILL);
 
         optimizedFeature.id = featureId;
         optimizedFeature.type = feature.type;
