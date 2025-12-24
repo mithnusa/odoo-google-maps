@@ -903,12 +903,14 @@ export class TerraDrawToolsUI extends Component {
 
         // Function to create and start Terra Draw instance
         const createTerraDrawInstance = () => {
+            const adapterOptions = {
+                map: this.props.googleMap,
+                lib: window.google.maps,
+                coordinatePrecision: TERRA_DRAW_CONFIG.COORDINATE_PRECISION,
+            };
+            const adapter = new window.terraDrawGoogleMapsAdapter.TerraDrawGoogleMapsAdapter(adapterOptions);
             this.terraDrawInstance = new window.terraDraw.TerraDraw({
-                adapter: new window.terraDrawGoogleMapsAdapter.TerraDrawGoogleMapsAdapter({
-                    map: this.props.googleMap,
-                    lib: window.google.maps,
-                    coordinatePrecision: TERRA_DRAW_CONFIG.COORDINATE_PRECISION,
-                }),
+                adapter: adapter,
                 modes: this._createTerraDrawModes(),
             });
 
@@ -944,6 +946,11 @@ export class TerraDrawToolsUI extends Component {
                 }
                 createTerraDrawInstance();
             });
+
+            if (this.initTimeout) {
+                clearTimeout(this.initTimeout);
+                this.initTimeout = null;
+            }
 
             // Fallback: if projection_changed doesn't fire within reasonable time
             this.initTimeout = setTimeout(() => {
@@ -1312,6 +1319,9 @@ export class TerraDrawToolsUI extends Component {
                 editable: true,
                 styles: {
                     pointColor: color,
+                    pointWidth: 6,
+                    pointOutlineColor: '#ffffff',
+                    pointOutlineWidth: 2,
                 },
             },
             options || {}
@@ -1332,6 +1342,11 @@ export class TerraDrawToolsUI extends Component {
                 editable: true,
                 styles: {
                     lineStringColor: color,
+                    lineStringWidth: 2,
+                    closingPointColor: color,
+                    closingPointWidth: 4,
+                    closingPointOutlineColor: '#ffffff',
+                    closingPointOutlineWidth: 2,
                 },
             },
             options || {}
@@ -1352,8 +1367,13 @@ export class TerraDrawToolsUI extends Component {
                 allowSelfIntersections: true, // Allow drawing polygons with overlapping/crossing lines
                 styles: {
                     fillColor: color,
+                    fillOpacity: 0.3,
                     outlineColor: color,
-                    outLineWidth: 0.1,
+                    outlineWidth: 2,
+                    closingPointColor: color,
+                    closingPointWidth: 4,
+                    closingPointOutlineColor: '#ffffff',
+                    closingPointOutlineWidth: 2,
                 },
             },
             options || {}
@@ -1373,7 +1393,9 @@ export class TerraDrawToolsUI extends Component {
             {
                 styles: {
                     fillColor: color,
+                    fillOpacity: 0.3,
                     outlineColor: color,
+                    outlineWidth: 2,
                 },
             },
             options || {}
@@ -1393,7 +1415,9 @@ export class TerraDrawToolsUI extends Component {
             {
                 styles: {
                     fillColor: color,
+                    fillOpacity: 0.3,
                     outlineColor: color,
+                    outlineWidth: 2,
                 },
             },
             options || {}
@@ -1413,7 +1437,9 @@ export class TerraDrawToolsUI extends Component {
             {
                 styles: {
                     fillColor: color,
+                    fillOpacity: 0.3,
                     outlineColor: color,
+                    outlineWidth: 2,
                 },
             },
             options || {}

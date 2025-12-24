@@ -114,7 +114,7 @@ export async function loadDeckGlAssets() {
         return;
     }
     try {
-        await loadJS('https://unpkg.com/deck.gl@9.2.2/dist.min.js');
+        await loadJS('https://unpkg.com/deck.gl@9.2.5/dist.min.js');
         if (!window.deck) {
             throw new Error('Deck.gl failed to load correctly.');
         }
@@ -129,7 +129,7 @@ export async function loadTurfJSAssets() {
         return;
     }
     try {
-        await loadJS('https://unpkg.com/@turf/turf@7.3.0/turf.min.js');
+        await loadJS('https://unpkg.com/@turf/turf@7.3.1/turf.min.js');
         if (!window.turf) {
             throw new Error('Turf.js failed to load correctly.');
         }

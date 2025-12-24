@@ -14,7 +14,7 @@
     'website': 'https://github.com/mithnusa',
     'support': 'yopiangi@gmail.com',
     'category': 'Extra Tools',
-    'version': '1.0.0',
+    'version': '1.0.1',
     'depends': ['contacts', 'web_widget_google_place_autocomplete'],
     'data': ['views/res_partner_views.xml'],
     'demo': [],
