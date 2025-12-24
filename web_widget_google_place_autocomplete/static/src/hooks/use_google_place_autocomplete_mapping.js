@@ -2,10 +2,6 @@ import { _t } from '@web/core/l10n/translation';
 import { useComponent } from '@odoo/owl';
 import { useService } from '@web/core/utils/hooks';
 
-const NOTIFICATION_CONFIG = {
-    autoCloseDelay: 5000,
-};
-
 export function useGooglePlaceAutocompleteMapping(is_test = false) {
     const component = useComponent();
     const notificationService = component.notificationService || useService('notification');
