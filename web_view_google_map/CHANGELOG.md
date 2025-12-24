@@ -1,5 +1,21 @@
 # Change Log
 
+## 19.0.1.0.7
+### Improved
+- **Domain Filtering**: Enhanced geolocation filtering to use 'not in' operator with comprehensive null value checks (null, false, 0.0)
+- **Sidebar UI**: Added striped styling to sidebar table for better visual distinction between rows
+
+### Fixed
+- **Code Cleanup**: Removed unused GoogleMapViewMixins model and _getActionFormView method
+- **Code Quality**: Removed unnecessary blank lines in models/__init__.py
+
+### Technical Details
+- Changed mapDomain to use `'not in'` operator with `nullValues = [null, false, 0.0]` instead of separate `'!='` comparisons
+- Applied consistent null checking for both direct and related lat/lng fields
+- Removed `google_map_view_mixins.py` and its import from models/__init__.py
+- Removed `_getActionFormView` method from GoogleMapController
+- Added `table-striped` class to sidebar table template
+
 ## 19.0.1.0.6
 ### Improved
 - **Marker Selection Mode Activation**: Simplified keyboard shortcut to use only Alt or Meta (Command) keys, removing Ctrl key support for more consistent cross-platform behavior
