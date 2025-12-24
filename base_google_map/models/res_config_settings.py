@@ -1,8 +1,5 @@
 # -*- coding: utf-8 -*-
-import ast
 from odoo import api, fields, models, _
-
-from odoo.exceptions import ValidationError
 
 
 GMAPS_LANG_LOCALIZATION = [

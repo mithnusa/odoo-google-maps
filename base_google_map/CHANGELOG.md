@@ -1,5 +1,12 @@
 # Change Log
 
+## 19.0.1.0.4
+### Fixed
+- **Code Cleanup**: Removed unused imports in configuration settings (`ast`, `ValidationError`)
+
+### Improved
+- **Code Quality**: Added missing semicolon in `useEffect` hook for consistent code formatting
+
 ## 19.0.1.0.3
 ### Improved
 - **Exported Constants**: Made validation and configuration constants available for import in other modules (MAX_ZOOM_LEVEL, MIN_ZOOM_LEVEL, VALID_LAT_RANGE, VALID_LNG_RANGE, RESIZE_DEBOUNCE_DELAY, MAP_LOAD_TIMEOUT)
