@@ -108,7 +108,7 @@ export class GoogleMapModel extends RelationalModel {
             if (this.config.fields[this.viewConfig.lng].related) {
                 const [related_source, _related_field] =
                     this.config.fields[this.viewConfig.lng].related.split('.');
-                latDomain = Domain.and([latDomain, [[related_source, 'not in', nullValues]]]).toList({});
+                lngDomain = Domain.and([lngDomain, [[related_source, 'not in', nullValues]]]).toList({});
             }
             return Domain.and([latDomain, lngDomain]).toList({});
         }
