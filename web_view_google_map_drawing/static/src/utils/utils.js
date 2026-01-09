@@ -98,8 +98,8 @@ export async function loadTerraDrawAssets() {
         return;
     }
     try {
-        await loadJS('https://unpkg.com/terra-draw@1.19.0/dist/terra-draw.umd.js');
-        await loadJS('https://unpkg.com/terra-draw-google-maps-adapter@1.1.0/dist/terra-draw-google-maps-adapter.umd.js');
+        await loadJS('https://unpkg.com/terra-draw@1.21.4/dist/terra-draw.umd.js');
+        await loadJS('https://unpkg.com/terra-draw-google-maps-adapter@1.2.1/dist/terra-draw-google-maps-adapter.umd.js');
         if (!window.terraDraw || !window.terraDrawGoogleMapsAdapter) {
             throw new Error('Terra Draw or its Google Maps adapter failed to load correctly.');
         }
