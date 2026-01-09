@@ -1,5 +1,10 @@
 # Change Log
 
+## 19.0.1.0.6
+### Updated Dependencies
+- **Terra Draw**: Updated from 1.19.0 to 1.21.4
+- **Terra Draw Google Maps Adapter**: Updated from 1.1.0 to 1.2.1
+
 ## 19.0.1.0.5
 ### Improved
 - **Domain Filtering**: Fixed empty GeoJSON filtering to use 'json_ne' with AND logic, properly excluding null and empty FeatureCollections
