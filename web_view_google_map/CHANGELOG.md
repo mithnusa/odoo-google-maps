@@ -1,5 +1,9 @@
 # Change Log
 
+## 19.0.1.0.8
+### Fixed
+- **Geolocate button**: Fixed issue where geolocate button sometimes display twice.
+
 ## 19.0.1.0.7
 ### Improved
 - **Domain Filtering**: Enhanced geolocation filtering to use 'not in' operator with comprehensive null value checks (null, false, 0.0)
