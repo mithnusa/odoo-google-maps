@@ -60,14 +60,14 @@ const STROKE_CONFIG = {
  * - Handles 10k+ features with smooth performance
  * - GPU-accelerated rendering with WebGL
  * - Interactive tooltips with detailed measurements
- * - Hover effects with visual feedback
+ * - Hover effects with GPU-level autoHighlight
  * - Feature selection with info windows
- * - Automatic viewport culling
- * - Memory-efficient data management
+ * - Efficient data indexing for O(1) lookups
+ * - Measurement caching for fast tooltip rendering
  * - Real-time styling and updates
  *
  * Interactive Features:
- * - Hover: Visual highlighting with measurement tooltips
+ * - Hover: GPU-accelerated highlighting with measurement tooltips
  * - Click: Feature selection with detailed info windows
  * - Tooltips: Display geometry type, measurements, and properties
  * - Sidebar integration: Point-to-feature navigation
@@ -78,11 +78,12 @@ const STROKE_CONFIG = {
  * - Polygon geometries: Area, perimeter, and vertex calculations
  * - Multi-geometries: Aggregated measurements across components
  *
- * Performance Benefits over Terra Draw:
- * - 10-100x faster rendering for large datasets
+ * Performance Optimizations:
+ * - GPU-accelerated rendering via Deck.gl (10-100x faster than DOM-based)
  * - Constant 60fps regardless of feature count
- * - Lower memory usage through efficient data structures
- * - Better responsiveness with large datasets
+ * - Synchronous batch processing for fast initial load
+ * - O(1) feature lookup via featuresByRecordId index
+ * - Measurement caching to avoid redundant calculations
  *
  * Props:
  * @param {Object} archInfo - Architecture information
@@ -431,8 +432,8 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
     }
 
     /**
-     * Calculate feature bounds for culling - optimized for large datasets
-     * Uses switch-based iteration instead of recursive closures
+     * Calculate feature bounds for map centering and info window positioning
+     * Uses switch-based iteration instead of recursive closures for performance
      * @private
      */
     _calculateFeatureBounds(geometry) {
@@ -506,7 +507,7 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
      * - ScatterplotLayer for points with fill and stroke styling
      *
      * Each layer handles hover and selection states with dynamic styling.
-     * Only visible features (after viewport culling) are rendered for performance.
+     * Deck.gl handles viewport culling automatically at the GPU level.
      *
      * @private
      */
@@ -645,10 +646,10 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
     /**
      * Centers the map to show all features or selected features
      *
-     * Calculates the bounding box that encompasses rendered features.
-     * If there are selected records, centers only on those selected records' features.
-     * Otherwise, centers on all features.
-     * Uses Google Maps LatLngBounds for accurate geographic calculations.
+     * Calculates the bounding box that encompasses rendered features using
+     * optimized min/max tracking. If there are selected records, centers only
+     * on those selected records' features. Otherwise, centers on all features.
+     * Creates LatLngBounds only once with final values for better performance.
      *
      * @returns {Promise<void>} Promise that resolves when map is centered
      */
@@ -924,8 +925,9 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
      * Get groups or records data with caching optimization
      *
      * Retrieves and caches the current list data (groups or records) to avoid
-     * unnecessary recalculations. Uses JSON comparison to detect changes and
-     * only rebuilds the data structure when the underlying list changes.
+     * unnecessary recalculations. Uses efficient first/last ID comparison to
+     * detect changes (avoiding JSON.stringify overhead) and only rebuilds the
+     * data structure when the underlying list changes.
      *
      * For grouped lists, sorts groups to handle null values appropriately.
      * For ungrouped lists, maps records directly with their IDs as keys.
@@ -1016,7 +1018,11 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
      * Creates HTML content for feature tooltips including:
      * - Feature title from Odoo record
      * - Geometry measurements (area, perimeter, length, coordinates)
+     * - GeoJSON properties (excluding internal Odoo properties)
      * - Formatted display with line breaks for readability
+     *
+     * Uses featuresByRecordId index for O(1) related feature lookup
+     * and measurementCache for cached measurement retrieval.
      *
      * @param {Object} feature - GeoJSON feature to create tooltip for
      * @returns {string|null} HTML string for tooltip or null if invalid feature
@@ -1066,9 +1072,9 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
      *
      * Sets up the Deck.gl GoogleMapsOverlay with:
      * - Tooltip configuration for interactive hover information
-     * - Click and hover event handlers
+     * - Click and hover event handlers (visual highlighting via autoHighlight)
      * - Integration with the Google Maps instance
-     * - Initial data rendering
+     * - Triggers initial data rendering via debounced method
      *
      * The overlay provides GPU-accelerated rendering of GeoJSON features
      * with interactive capabilities like tooltips and selection.
