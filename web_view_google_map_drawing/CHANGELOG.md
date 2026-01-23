@@ -1,5 +1,50 @@
 # Change Log
 
+## 19.0.1.0.7
+### Added
+- **GeoJSON File Import**: New upload dialog for importing GeoJSON files directly into Terra Draw
+  - Added `UploadGeoJsonFileDialog` component with file validation
+  - 5MB file size limit with user-friendly error messages
+  - Support for `.geojson` and `.json` file extensions
+- **GeoJSON Validation**: New `validateGeoJson()` utility function with comprehensive validation
+  - Supports FeatureCollection, Feature, and Geometry objects
+  - Optional strict mode and geometry coordinate validation
+- **3D to 2D Coordinate Conversion**: New `stripAltitude()` function for Terra Draw compatibility
+  - Converts 3D coordinates (with elevation) to 2D coordinates
+
+### Improved
+- **Performance**: Major rendering performance optimizations
+  - Synchronous batch processing (removed async/requestIdleCallback overhead)
+  - Pre-calculate colors once per record instead of per feature
+  - Added `featuresByRecordId` index for O(1) related feature lookup
+  - Added `measurementCache` for O(1) tooltip measurement lookup
+  - Optimized bounds calculation using simple min/max instead of LatLngBounds.extend()
+  - Optimized `getGroupsOrRecords()` cache validation (replaced JSON.stringify)
+  - Use for loops instead of forEach for better iteration performance
+- **Hover Performance**: Removed layer rebuild on hover; using Deck.gl autoHighlight at GPU level
+- **Bundled Dependencies**: All libraries now loaded from local files instead of CDN
+  - Improves reliability and offline capability
+  - Reduces external network dependencies
+
+### Updated Dependencies
+- **Terra Draw**: Updated from 1.21.4 to 1.23.1
+- **Deck.gl**: Updated from 9.2.5 to 9.2.6
+- **Turf.js**: Updated from 7.3.1 to 7.3.2
+
+### Removed
+- Removed viewport culling logic (Deck.gl handles this automatically at GPU level)
+- Removed garbage collection system (unnecessary with proper cleanup)
+- Removed unused data structures: `layers` Map, `featureIndex` Map, `visibleFeatures` Set
+- Removed unused debounced operations: `debounceUpdateViewport`, `debounceGarbageCollection`
+- Removed map event listeners for bounds/zoom changes
+
+### Technical Details
+- Inline feature creation in `_processRecordGeoJSON()` for reduced function call overhead
+- Direct min/max tracking in `_fitMapToBounds()` and `centerMap()` methods
+- Removed `_createEmptyFeatureObject()`, `_updateViewportCulling()`, `_performGarbageCollection()` methods
+- Added tooltip max-width constraint (300px) for better readability
+- Feature properties now properly displayed in tooltip (excluding internal Odoo properties)
+
 ## 19.0.1.0.6
 ### Updated Dependencies
 - **Terra Draw**: Updated from 1.19.0 to 1.21.4

@@ -16,10 +16,13 @@ import {
     loadTerraDrawAssets,
     loadTurfJSAssets,
     normalizeCoordinates,
+    stripAltitude,
     TERRA_DRAW_CONFIG,
     getRandomColor,
+    validateGeoJson,
 } from '../../../utils/utils';
 import { analyzeFeaturePerformance, createEditableFeature } from '../../../utils/geometry_performance_utils';
+import { UploadGeoJsonFileDialog } from '../upload_geojson_dialog/upload_geojson_dialog';
 
 
 export const MODE_BUTTONS = {
@@ -229,7 +232,9 @@ export class TerraDrawToolsUI extends Component {
                     plainFeature.geometry.coordinates.forEach((_polygonCoords) => {
                         if (_polygonCoords.length > 1) return; // Skip parts with holes
 
-                        const polygonCoords = normalizeCoordinates(_polygonCoords, TERRA_DRAW_CONFIG.COORDINATE_PRECISION);
+                        // Strip altitude and normalize coordinates
+                        const strippedCoords = stripAltitude(_polygonCoords, 'Polygon');
+                        const polygonCoords = normalizeCoordinates(strippedCoords, TERRA_DRAW_CONFIG.COORDINATE_PRECISION);
                         multiPolygonFeatures.push({
                             type: 'Feature',
                             id: generateUUID(),
@@ -245,6 +250,12 @@ export class TerraDrawToolsUI extends Component {
                     if (!plainFeature.id || typeof plainFeature.id !== 'string') {
                         plainFeature.id = generateUUID();
                     }
+
+                    // Strip altitude for Terra Draw compatibility (only accepts 2D coordinates)
+                    plainFeature.geometry.coordinates = stripAltitude(
+                        plainFeature.geometry.coordinates,
+                        plainFeature.geometry.type
+                    );
 
                     plainFeature.geometry.coordinates = normalizeCoordinates(
                         plainFeature.geometry.coordinates,
@@ -346,57 +357,72 @@ export class TerraDrawToolsUI extends Component {
      */
     async _fitMapToBounds(features) {
         if (!features.length) return;
-        
+
         try {
-            const { LatLngBounds } = await this.env.apiLoader.importLibrary('core');
-            
-            if (!this.latLngBounds) {
-                this.latLngBounds = new LatLngBounds();
+            // Calculate bounds using simple min/max (much faster than creating LatLng objects)
+            let minLat = Infinity, maxLat = -Infinity;
+            let minLng = Infinity, maxLng = -Infinity;
+
+            for (const feature of features) {
+                this._updateBoundsFromCoordinates(feature.geometry, (lng, lat) => {
+                    if (lat < minLat) minLat = lat;
+                    if (lat > maxLat) maxLat = lat;
+                    if (lng < minLng) minLng = lng;
+                    if (lng > maxLng) maxLng = lng;
+                });
             }
-            
-            features.forEach(feature => {
-                this._extendBoundsFromFeature(feature);
-            });
-            
-            if (!this.latLngBounds.isEmpty()) {
-                this.props.googleMap.fitBounds(this.latLngBounds);
+
+            // Only create LatLngBounds once with the final values
+            if (minLat !== Infinity) {
+                const { LatLngBounds } = await this.env.apiLoader.importLibrary('core');
+                const bounds = new LatLngBounds(
+                    { lat: minLat, lng: minLng },  // SW corner
+                    { lat: maxLat, lng: maxLng }   // NE corner
+                );
+                this.props.googleMap.fitBounds(bounds);
             }
         } catch (error) {
             console.warn('Failed to fit map bounds:', error);
         }
     }
-    
+
     /**
-     * Extend the current map bounds to include coordinates from a GeoJSON feature
-     * @param {Object} feature - GeoJSON feature to extract coordinates from
-     * @param {Object} feature.geometry - Geometry object containing coordinates
-     * @param {string} feature.geometry.type - Geometry type (Point, LineString, Polygon, etc.)
-     * @param {Array} feature.geometry.coordinates - Coordinate array
+     * Iterate through all coordinates in a geometry and call callback
+     * Optimized for large datasets - avoids creating intermediate objects
+     * @param {Object} geometry - GeoJSON geometry object
+     * @param {Function} callback - Function to call with (lng, lat) for each coordinate
      * @private
      */
-    _extendBoundsFromFeature(feature) {
-        const { coordinates } = feature.geometry;
-        const { type } = feature.geometry;
-        
-        const coordHandlers = {
-            Point: (coords) => {
-                const latLng = new google.maps.LatLng(coords[1], coords[0]);
-                this.latLngBounds.extend(latLng);
-            },
-            LineString: (coords) => coords.forEach((coord) => coordHandlers.Point(coord)),
-            MultiPoint: (coords) => coords.forEach((coord) => coordHandlers.Point(coord)),
-            Polygon: (coords) =>
-                coords.forEach((ring) => ring.forEach((coord) => coordHandlers.Point(coord))),
-            MultiLineString: (coords) =>
-                coords.forEach((line) => line.forEach((coord) => coordHandlers.Point(coord))),
-            MultiPolygon: (coords) =>
-                coords.forEach((polygon) =>
-                    polygon.forEach((ring) => ring.forEach((coord) => coordHandlers.Point(coord)))
-                ),
-        };
-        
-        if (coordHandlers[type]) {
-            coordHandlers[type](coordinates);
+    _updateBoundsFromCoordinates(geometry, callback) {
+        const { type, coordinates } = geometry;
+
+        switch (type) {
+            case 'Point':
+                callback(coordinates[0], coordinates[1]);
+                break;
+            case 'LineString':
+            case 'MultiPoint':
+                for (const coord of coordinates) {
+                    callback(coord[0], coord[1]);
+                }
+                break;
+            case 'Polygon':
+            case 'MultiLineString':
+                for (const ring of coordinates) {
+                    for (const coord of ring) {
+                        callback(coord[0], coord[1]);
+                    }
+                }
+                break;
+            case 'MultiPolygon':
+                for (const polygon of coordinates) {
+                    for (const ring of polygon) {
+                        for (const coord of ring) {
+                            callback(coord[0], coord[1]);
+                        }
+                    }
+                }
+                break;
         }
     }
 
@@ -560,7 +586,64 @@ export class TerraDrawToolsUI extends Component {
             this.simplifySelectedFeature();
         } else if (action === 'save-button') {
             this._actionSaveManually();
+        } else if (action === 'upload-button') {
+            this._actionUploadGeoJSON();
         }
+    }
+
+    _actionUploadGeoJSON() {
+        this.dialogService.add(UploadGeoJsonFileDialog, {
+            confirm: (file) => {
+                if (!file) {
+                    this.notificationService.add(
+                        _t('No file was uploaded.'),
+                        { type: 'danger' }
+                    );
+                    return false;
+                }
+                return new Promise((resolve) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        try {
+                            const geojson = JSON.parse(e.target.result);
+                            const isValid = validateGeoJson(geojson, { requireFeatures: true, validateGeometry: true, strict: false });
+                            if (!isValid) {
+                                this.notificationService.add(
+                                    _t('The imported file is not a valid GeoJSON.'),
+                                    { type: 'danger' }
+                                );
+                                resolve(false);
+                                return;
+                            }
+                            this._actionClearMode();
+                            this.loadRecordData(geojson);
+                            this.notificationService.add(
+                                _t('GeoJSON file imported successfully.'),
+                                { type: 'success' }
+                            );
+                            resolve(true);
+                        } catch (error) {
+                            console.error('Error parsing imported GeoJSON file:', error);
+                            this.notificationService.add(
+                                _t('Failed to parse the imported GeoJSON file.'),
+                                { type: 'danger' }
+                            );
+                            resolve(false);
+                        }
+                    };
+                    reader.onerror = (e) => {
+                        console.error('Error reading imported GeoJSON file: ', e);
+                        this.notificationService.add(
+                            _t('Failed to read the imported GeoJSON file.'),
+                            { type: 'danger' }
+                        );
+                        resolve(false);
+                    };
+                    reader.readAsText(file);
+                });
+            },
+            cancel: () => {},
+        });
     }
 
     /**
