@@ -6,6 +6,7 @@
         <field name="arch" type="xml">
             <form string="Land">
                 <sheet>
+                    <field name="gshape_geojson" widget="google_map_terra_draw" options="{'map_type_id': 'hybrid', 'default_zoom': 14, 'default_center': [-6.175664127601439, 106.82703162885998], 'field_area': 'gshape_area'}"/>
                     <group>
                         <group>
                             <field name="gshape_name" required="1" placeholder="Name"/>
@@ -22,7 +23,6 @@
                         </group>
                     </group>
                     <field name="gshape_description" placeholder="Description"/>
-                    <field name="gshape_geojson" widget="google_map_terra_draw" options="{'map_type_id': 'hybrid', 'default_zoom': 14, 'default_center': [-6.175664127601439, 106.82703162885998], 'field_area': 'gshape_area'}"/>
                 </sheet>
             </form>
         </field>

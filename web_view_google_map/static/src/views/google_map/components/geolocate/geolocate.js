@@ -1,5 +1,5 @@
 import { _t } from '@web/core/l10n/translation';
-import { Component, onRendered, onWillUnmount } from '@odoo/owl';
+import { Component, onWillUnmount, onMounted } from '@odoo/owl';
 import { useService } from '@web/core/utils/hooks';
 import { renderToString } from '@web/core/utils/render';
 
@@ -11,7 +11,7 @@ export class GoogleMapGeolocate extends Component {
         this.notificationService = useService('notification');
         // Store bound reference for proper cleanup
         this._boundGeolocation = this.geolocation.bind(this);
-        onRendered(this._onRendered);
+        onMounted(this._onRendered);
         onWillUnmount(this._cleanup);
     }
 
