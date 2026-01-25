@@ -1,0 +1,23 @@
+.o-main-components-container .o_dialog {
+    .btn-group {
+        label.btn {
+            padding: 0.5vh 2vw;
+            font-weight: lighter;
+            background-image: var(--gradient);
+            transition: background-color 0.3s, color 0.3s;
+
+            &:hover {
+                background-color: var(--gray-300, #e2e6ea) !important;
+                color: var(--dark, #000000) !important;
+            }
+        }
+
+        .btn-check:checked + .btn {
+            background-color: var(--success, #28a745) !important;
+            color: var(--dark) !important;
+            border: none !important;
+            font-weight: 400;
+            background-image: none;
+        }
+    }
+}

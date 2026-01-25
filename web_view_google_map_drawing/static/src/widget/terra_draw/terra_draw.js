@@ -75,17 +75,22 @@ export class GoogleMapTerraDrawField extends BaseGoogleMapComponent {
      */
     _prepareMapOptions(options) {
         const values = super._prepareMapOptions(options);
-        if (this.props.mapTypeId && google.maps.MapTypeId[this.props.mapTypeId.toUpperCase()]) {
-            values.mapTypeId = google.maps.MapTypeId[this.props.mapTypeId.toUpperCase()];
+        const mapTypeId = this.props.mapTypeId ? google.maps.MapTypeId[this.props.mapTypeId.toUpperCase()] : null;
+        if (mapTypeId) {
+            values.mapTypeId = mapTypeId;
         }
         if (this.props.defaultCenter && this.props.defaultCenter.length === 2) {
-            values.center = {
-                lat: parseFloat(this.props.defaultCenter[0]),
-                lng: parseFloat(this.props.defaultCenter[1]),
-            };
+            const lat = parseFloat(this.props.defaultCenter[0]);
+            const lng = parseFloat(this.props.defaultCenter[1]);
+            if (isNaN(lat) || isNaN(lng)) {
+                console.warn('Invalid defaultCenter coordinates, must be numbers.');
+            } else {
+                values.center = { lat, lng };
+            }
         }
-        if (this.props.defaultZoom) {
-            values.zoom = this.props.defaultZoom;
+        const defaultZoom = this.props.defaultZoom ? parseInt(this.props.defaultZoom) : null;
+        if (defaultZoom && !isNaN(defaultZoom)) {
+            values.zoom = defaultZoom;
         }
         values.clickableIcons = false;
         return values;

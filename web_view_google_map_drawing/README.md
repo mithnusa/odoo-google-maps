@@ -7,6 +7,31 @@ The Google Maps Drawing has been deprecated ([source](https://developers.google.
   <img src="static/img/screenshot/geojson_views.png" alt="GeoJSON Preview" style="width: 100%; max-width: 600px; height: auto;">
 </div>
 
+## Features
+
+- **Drawing Tools**: Point, LineString, Polygon, Rectangle, Circle, and Freehand drawing modes
+- **GPU-Accelerated Rendering**: Deck.gl provides smooth 60fps rendering for 10k+ features
+- **Real-time Measurements**: Area, perimeter, length calculations using Turf.js
+- **GeoJSON Import**: Upload GeoJSON files directly into the drawing canvas
+- **Undo/Redo**: Full history management for drawing operations
+- **Feature Simplification**: Reduce complex geometry for better editing performance
+- **Keyboard Shortcuts**: Efficient operation with keyboard controls
+
+## Keyboard Shortcuts
+
+| Shortcut | Action |
+|----------|--------|
+| `1` - `7` | Switch drawing modes (Select, Point, Line, Polygon, Rectangle, Circle, Freehand) |
+| `Delete` / `Backspace` | Delete selected feature |
+| `Escape` | Switch to select mode |
+| `Ctrl+Z` / `Cmd+Z` | Undo |
+| `Ctrl+Shift+Z` / `Ctrl+Y` | Redo |
+| `Ctrl+S` / `Cmd+S` | Save changes |
+| `Ctrl+E` / `Cmd+E` | Simplify selected feature |
+| `C` | Clear all features |
+
+## Usage
+
 ### 1. `google_map_drawing` a sub-view of `google_map` view
 A new view to display geolocation data using Google Maps with drawing capabilities.
 
@@ -104,11 +129,22 @@ This module contains a demo module `contacts_area` that you can find in folder e
 
 If you have difficulties implement or use the view and the widget on your custom module, please do not hesitate to open an issue.
 
+## External Libraries
 
-### Known issues and limitations:
-- Terra Draw doesn't support GeoJSON with holes or interior rings. Such GeoJSON will be rendered in read-only mode using deck.gl.
+All libraries are bundled locally for reliability and offline capability:
+
+| Library | Purpose |
+|---------|---------|
+| [Terra Draw](https://terradraw.io/) | Drawing tools and feature editing |
+| [Terra Draw Google Maps Adapter](https://github.com/JamesLMilner/terra-draw) | Google Maps integration for Terra Draw |
+| [Deck.gl](https://deck.gl/) | GPU-accelerated rendering for large datasets |
+| [Turf.js](https://turfjs.org/) | Geospatial measurements and calculations |
+
+## Known issues and limitations
+- Terra Draw doesn't support GeoJSON with holes or interior rings. Such GeoJSON will be rendered in read-only mode using Deck.gl.
 - Editing very large GeoJSON data may lead to performance issues. Use the "Simplify Selected Feature" button in the drawing toolbar to reduce complexity, but be aware that this may result in a loss of detail.
 - Resize the browser window may cause the map to not render properly. To fix this issue, you can refresh the browser page.
+- GeoJSON file import is limited to 5MB file size.
 
 ## Authors
 - [Yopi Angi](https://www.github.com/gityopie)

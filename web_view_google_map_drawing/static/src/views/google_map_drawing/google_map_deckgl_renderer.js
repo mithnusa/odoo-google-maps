@@ -15,7 +15,7 @@ import {
 import { isNull } from '@web/views/utils';
 import { BaseGoogleMapComponent } from '@base_google_map/utils/base_google_map';
 import { GoogleMapGeolocate } from '@web_view_google_map/views/google_map/components/geolocate/geolocate';
-import { getRecordDataView, hexToRgba, generateColor, darkenColor, lightenColor } from '@web_view_google_map/views/google_map/utils';
+import { getRecordDataView, hexToRgba, generateColor, darkenColor } from '@web_view_google_map/views/google_map/utils';
 import { GoogleMapSearchPlaces } from '@web_view_google_map/views/google_map/components/search_places/search_places';
 import { GoogleMapsDrawingSidebar } from './google_map_drawing_sidebar';
 import {
@@ -31,15 +31,6 @@ import {
  * Deck.gl configuration constants
  */
 const DECKGL_CONFIG = {
-    // Rendering performance
-    MAX_FEATURES_PER_BATCH: 50000, // Maximum features to process per batch
-    VIEWPORT_PADDING: 0.1, // Padding around viewport for culling (10%)
-
-    // Memory management
-    FEATURE_POOL_SIZE: 100000, // Pre-allocated feature object pool
-    GC_INTERVAL: 30000, // Garbage collection interval (30s)
-    MEMORY_THRESHOLD: 0.8, // Memory usage threshold for cleanup
-
     // Visual styling
     DEFAULT_COLORS: {
         FILL: [70, 130, 180, 80], // Steel blue with 80% opacity
@@ -49,18 +40,11 @@ const DECKGL_CONFIG = {
         HOVERED_FILL: [255, 165, 0, 120], // Gold with transparency
         HOVERED_STROKE: [255, 140, 0, 255], // Dark orange
     },
-
-    // Interactive features
-    HOVER_RADIUS: 10, // Pixels for hover detection
-    SELECT_RADIUS: 15, // Pixels for selection detection
-    ANIMATION_DURATION: 300, // Milliseconds for smooth transitions
 };
 
 const STROKE_CONFIG = { 
     DEFAULT_WIDTH: 2, // Default stroke width in pixels
     HOVER_WIDTH: 4,   // Stroke width on hover in pixels
-    MIN_WIDTH: 0.5, // Minimum stroke width in pixels
-    MAX_WIDTH: 5, // Maximum stroke width in pixels
 };
 
 /**
@@ -76,14 +60,14 @@ const STROKE_CONFIG = {
  * - Handles 10k+ features with smooth performance
  * - GPU-accelerated rendering with WebGL
  * - Interactive tooltips with detailed measurements
- * - Hover effects with visual feedback
+ * - Hover effects with GPU-level autoHighlight
  * - Feature selection with info windows
- * - Automatic viewport culling
- * - Memory-efficient data management
+ * - Efficient data indexing for O(1) lookups
+ * - Measurement caching for fast tooltip rendering
  * - Real-time styling and updates
  *
  * Interactive Features:
- * - Hover: Visual highlighting with measurement tooltips
+ * - Hover: GPU-accelerated highlighting with measurement tooltips
  * - Click: Feature selection with detailed info windows
  * - Tooltips: Display geometry type, measurements, and properties
  * - Sidebar integration: Point-to-feature navigation
@@ -94,11 +78,12 @@ const STROKE_CONFIG = {
  * - Polygon geometries: Area, perimeter, and vertex calculations
  * - Multi-geometries: Aggregated measurements across components
  *
- * Performance Benefits over Terra Draw:
- * - 10-100x faster rendering for large datasets
+ * Performance Optimizations:
+ * - GPU-accelerated rendering via Deck.gl (10-100x faster than DOM-based)
  * - Constant 60fps regardless of feature count
- * - Lower memory usage through efficient data structures
- * - Better responsiveness with large datasets
+ * - Synchronous batch processing for fast initial load
+ * - O(1) feature lookup via featuresByRecordId index
+ * - Measurement caching to avoid redundant calculations
  *
  * Props:
  * @param {Object} archInfo - Architecture information
@@ -162,20 +147,19 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
 
         // Deck.gl instance and layers
         this.deckglOverlay = null;
-        this.layers = new Map();
-        this.featureIndex = new Map(); // Spatial index for fast lookups
+
 
         // Data management
         this.geoJsonData = new Map(); // Efficient feature storage
-        this.visibleFeatures = new Set(); // Currently visible features
+        this.featuresByRecordId = new Map(); // Index: recordId -> Set of featureIds (for O(1) related feature lookup)
+
         this.cacheRecordDataView = new Map(); // Cache for record data views
+        this.measurementCache = new Map(); // Cache: featureId -> measurements (for O(1) tooltip lookup)
         this._elementEventListeners = new Map(); // Track element event listeners
         this.hoveredRecordId = null;
 
         // Debounced operations for performance
         this.debounceRenderGeolocationData = debounce(this.renderGeolocationData.bind(this), 200);
-        this.debounceUpdateViewport = debounce(this._updateViewportCulling.bind(this), 500);
-        this.debounceGarbageCollection = debounce(this._performGarbageCollection.bind(this), 5000);
         this.debounceUpdateLayers = debounce(this._updateDeckGLLayers.bind(this), 500);
         this.debounceToggleRecordSelection = debounce(this._toggleRecordSelectionImpl.bind(this), 100);
 
@@ -264,23 +248,6 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
     }
 
     /**
-     * Create an empty feature object for the pool
-     * @private
-     */
-    _createEmptyFeatureObject() {
-        return {
-            id: null,
-            type: 'Feature',
-            geometry: null,
-            properties: null,
-            bounds: null,
-            visible: false,
-            selected: false,
-        };
-    }
-
-
-    /**
      * Toggle sidebar expand/collapse state
      */
     toggleSidebar() {
@@ -304,10 +271,10 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
         // Clear previous data
         this._clearRenderingData();
 
-        // Render shapes with batching
+        // Render shapes synchronously
         this._renderShapesOptimized();
 
-        // Fit bounds to show all features
+        // Fit bounds to show all features (after data is ready)
         this._fitBoundsWhenReady();
     }
 
@@ -321,97 +288,75 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
             this.markerInfoWindow.close();
         }
         this.cacheRecordDataView.clear();
-        this.visibleFeatures.clear();
+
         this.selectedFeatureIds.clear();
         this.geoJsonData.clear();
-        this.featureIndex.clear();
+
+        this.featuresByRecordId.clear();
+        this.measurementCache.clear();
     }
 
     /**
-     * Optimized shape rendering with batching and performance considerations
+     * Optimized shape rendering - synchronous for faster initial load
      * @private
      */
-    async _renderShapesOptimized() {
+    _renderShapesOptimized() {
         const datas = this.getGroupsOrRecords();
         if (this.isListGrouped) {
-            await this._renderGroupedShapesOptimized(datas);
+            this._renderGroupedShapesOptimized(datas);
         } else {
-            await this._renderUngroupedShapesOptimized(datas);
+            this._renderUngroupedShapesOptimized(datas);
         }
 
         // Update Deck.gl layers
         this.debounceUpdateLayers();
-
-        // Trigger garbage collection if needed
-        this.debounceGarbageCollection();
     }
 
     /**
      * Render ungrouped shapes with performance optimizations
      * @private
      */
-    async _renderUngroupedShapesOptimized(datas) {
+    _renderUngroupedShapesOptimized(datas) {
         if (!datas.length) return;
-
-        const batchSize = Math.min(DECKGL_CONFIG.MAX_FEATURES_PER_BATCH, datas.length);
-        const batches = [];
-
-        // Create batches for parallel processing
-        for (let i = 0; i < datas.length; i += batchSize) {
-            batches.push(datas.slice(i, i + batchSize));
-        }
-
-        // Process batches with requestIdleCallback for non-blocking rendering
-        for (const batch of batches) {
-            await this._processBatchAsync(batch);
-        }
+        // Process all records synchronously - faster than requestIdleCallback
+        this._processBatch(datas);
     }
 
     /**
-     * Process a batch of features asynchronously
+     * Process a batch of features synchronously
+     * Faster than requestIdleCallback for initial data loading
+     * @param {Array} batch - Array of record objects to process
+     * @param {string} [color] - Optional color for features
      * @private
      */
-    _processBatchAsync(batch, color) {
-        return new Promise((resolve) => {
-            const processBatch = () => {
-                batch.forEach(({ record }) => {
-                    this._processRecordGeoJSON(record, color);
-                });
-                resolve();
-            };
-
-            if (window.requestIdleCallback) {
-                window.requestIdleCallback(processBatch);
-            } else {
-                setTimeout(processBatch, 0);
-            }
-        });
+    _processBatch(batch, color) {
+        for (const { record } of batch) {
+            this._processRecordGeoJSON(record, color);
+        }
     }
 
     /**
      * Render grouped shapes with optimizations
      * @private
      */
-    async _renderGroupedShapesOptimized(datas) {
-        const promises = datas.map(async ({ group }) => {
+    _renderGroupedShapesOptimized(datas) {
+        for (const { group } of datas) {
             try {
                 const batch = group.records.map(record => ({ record }));
-                await this._processBatchAsync(batch, group.groupColor);
+                this._processBatch(batch, group.groupColor);
             } catch (error) {
                 console.error('Failed to load group records:', error);
             }
-        });
-
-        await Promise.all(promises);
+        }
     }
 
     /**
      * Render grouped records and fit bounds
      * @param {Array} datas
      */
-    async _renderGroupedRecordsFitBounds(datas) {
-        // Render grouped shapes
-        await this._renderGroupedShapesOptimized(datas);
+    _renderGroupedRecordsFitBounds(datas) {
+        // Render grouped shapes synchronously
+        this._renderGroupedShapesOptimized(datas);
         // Cancel any pending debounced updates to prevent conflicts
         this.debounceUpdateLayers.cancel();
         // Update Deck.gl layers immediately (no debounce)
@@ -422,6 +367,7 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
 
     /**
      * Process individual record GeoJSON with optimizations
+     * Optimized for large datasets - pre-calculates colors once per record
      * @private
      */
     _processRecordGeoJSON(record, color) {
@@ -434,18 +380,51 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
             recordValues.id = record.id;
             recordValues.resId = record.resId;
 
-            // Process features efficiently
-            geoJson.features.forEach((feature, index) => {
-                const featureId = `${record.id}-${index}`;
-                const processedFeature = this._createOptimizedFeature(
-                    feature,
-                    recordValues,
-                    dataView,
-                    featureId,
-                    color
-                );
-                this.geoJsonData.set(processedFeature.id, processedFeature);
-            });
+            // Pre-calculate colors ONCE per record (not per feature)
+            const featureColor = color || dataView?.other?.__geoColor || generateColor();
+            const fillColor = hexToRgba(featureColor, 0.5, DECKGL_CONFIG.DEFAULT_COLORS.FILL);
+            const strokeColor = hexToRgba(darkenColor(featureColor, 0.3), 1, DECKGL_CONFIG.DEFAULT_COLORS.STROKE);
+
+            // Pre-build shared properties object
+            const sharedProps = {
+                odoo: recordValues,
+                color: featureColor,
+                fillColor,
+                strokeColor,
+                odooId: recordValues.id,
+                odooResId: recordValues.resId,
+            };
+
+            const features = geoJson.features;
+            const recordId = record.id;
+
+            // Initialize the record's feature set if not exists
+            if (!this.featuresByRecordId.has(recordId)) {
+                this.featuresByRecordId.set(recordId, new Set());
+            }
+            const recordFeatureIds = this.featuresByRecordId.get(recordId);
+
+            // Process features with for loop (faster than forEach)
+            for (let i = 0; i < features.length; i++) {
+                const feature = features[i];
+                const featureId = `${recordId}-${i}`;
+
+                // Inline feature creation for performance
+                this.geoJsonData.set(featureId, {
+                    id: featureId,
+                    type: feature.type,
+                    geometry: feature.geometry,
+                    properties: feature.properties
+                        ? { ...feature.properties, ...sharedProps }
+                        : sharedProps,
+                    bounds: this._calculateFeatureBounds(feature.geometry),
+                    visible: true,
+                    selected: false,
+                });
+
+                // Index feature by record ID for O(1) related feature lookup
+                recordFeatureIds.add(featureId);
+            }
 
         } catch (error) {
             console.error('Error processing record GeoJSON:', error);
@@ -453,77 +432,70 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
     }
 
     /**
-     * Create optimized feature object
-     * @private
-     */
-    _createOptimizedFeature(feature, recordData, dataView, featureId, featureColor) {
-        // Get object from pool or create new one
-        const optimizedFeature = this._createEmptyFeatureObject();
-        const color = featureColor || dataView?.other?.__geoColor || generateColor();
-        const fillColor = hexToRgba(color, 0.5, DECKGL_CONFIG.DEFAULT_COLORS.FILL);
-        const strokeColor = hexToRgba(lightenColor(color, 0.85), 1, DECKGL_CONFIG.DEFAULT_COLORS.FILL);
-
-        optimizedFeature.id = featureId;
-        optimizedFeature.type = feature.type;
-        optimizedFeature.geometry = feature.geometry;
-        optimizedFeature.properties = {
-            ...feature.properties,
-            odoo: recordData,
-            color,
-            fillColor,
-            strokeColor,
-            odooId: recordData.id,
-            odooResId: recordData.resId,
-        };
-        optimizedFeature.bounds = this._calculateFeatureBounds(feature.geometry);
-        optimizedFeature.visible = true;
-        optimizedFeature.selected = false;
-
-        return optimizedFeature;
-    }
-
-    /**
-     * Calculate feature bounds for culling
+     * Calculate feature bounds for map centering and info window positioning
+     * Uses switch-based iteration instead of recursive closures for performance
      * @private
      */
     _calculateFeatureBounds(geometry) {
         if (!geometry || !geometry.coordinates) {
-            console.warn('Invalid geometry for bounds calculation');
-            return { minX: 0, maxX: 0, minY: 0, maxY: 0};
-        }
-
-        const bounds = {
-            minX: Infinity, maxX: -Infinity,
-            minY: Infinity, maxY: -Infinity
-        };
-
-        const processCoordinates = (coords) => {
-            if (!Array.isArray(coords) || coords.length === 0) return;
-
-            if (typeof coords[0] === 'number' && typeof coords[1] === 'number') {
-                const [ lng, lat ] = coords;
-
-                if (isFinite(lng) && isFinite(lat) && lng >= -180 && lng <= 180 && lat >= -90 && lat <= 90) {
-                    // Single coordinate pair
-                    bounds.minX = Math.min(bounds.minX, coords[0]);
-                    bounds.maxX = Math.max(bounds.maxX, coords[0]);
-                    bounds.minY = Math.min(bounds.minY, coords[1]);
-                    bounds.maxY = Math.max(bounds.maxY, coords[1]);
-                } else {
-                    console.warn('Invalid coordinate values:', coords);
-                }
-            } else if (Array.isArray(coords[0])) {
-                // Nested coordinates
-                coords.forEach(processCoordinates);
-            }
-        };
-
-        processCoordinates(geometry.coordinates);
-
-        if (!isFinite(bounds.minX)) {
             return { minX: 0, maxX: 0, minY: 0, maxY: 0 };
         }
-        return bounds;
+
+        let minX = Infinity, maxX = -Infinity;
+        let minY = Infinity, maxY = -Infinity;
+
+        const { type, coordinates } = geometry;
+
+        switch (type) {
+            case 'Point': {
+                const lng = coordinates[0], lat = coordinates[1];
+                if (lng >= -180 && lng <= 180 && lat >= -90 && lat <= 90) {
+                    minX = maxX = lng;
+                    minY = maxY = lat;
+                }
+                break;
+            }
+            case 'LineString':
+            case 'MultiPoint':
+                for (const coord of coordinates) {
+                    const lng = coord[0], lat = coord[1];
+                    if (lng < minX) minX = lng;
+                    if (lng > maxX) maxX = lng;
+                    if (lat < minY) minY = lat;
+                    if (lat > maxY) maxY = lat;
+                }
+                break;
+            case 'Polygon':
+            case 'MultiLineString':
+                for (const ring of coordinates) {
+                    for (const coord of ring) {
+                        const lng = coord[0], lat = coord[1];
+                        if (lng < minX) minX = lng;
+                        if (lng > maxX) maxX = lng;
+                        if (lat < minY) minY = lat;
+                        if (lat > maxY) maxY = lat;
+                    }
+                }
+                break;
+            case 'MultiPolygon':
+                for (const polygon of coordinates) {
+                    for (const ring of polygon) {
+                        for (const coord of ring) {
+                            const lng = coord[0], lat = coord[1];
+                            if (lng < minX) minX = lng;
+                            if (lng > maxX) maxX = lng;
+                            if (lat < minY) minY = lat;
+                            if (lat > maxY) maxY = lat;
+                        }
+                    }
+                }
+                break;
+        }
+
+        if (!isFinite(minX)) {
+            return { minX: 0, maxX: 0, minY: 0, maxY: 0 };
+        }
+        return { minX, maxX, minY, maxY };
     }
 
     /**
@@ -535,67 +507,70 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
      * - ScatterplotLayer for points with fill and stroke styling
      *
      * Each layer handles hover and selection states with dynamic styling.
-     * Only visible features (after viewport culling) are rendered for performance.
+     * Deck.gl handles viewport culling automatically at the GPU level.
      *
      * @private
      */
     _updateDeckGLLayers() {
         if (!this.isMapLoaded()) return;
 
-        const features = Array.from(this.geoJsonData.values());
+        // Build selected records set efficiently
         const recordsSelected = new Set();
-
         const datas = this.getGroupsOrRecords();
         if (this.props.list.isGrouped) {
-            datas.forEach(({ group }) => {
-                group.records.forEach(record => {
+            for (const { group } of datas) {
+                for (const record of group.records) {
                     if (record.selected) {
                         recordsSelected.add(record.id);
                     }
-                });
-            });
+                }
+            }
         } else {
-            datas.forEach(({ record }) => {
+            for (const { record } of datas) {
                 if (record.selected) {
                     recordsSelected.add(record.id);
                 }
-            });
-        }
-
-        const featuresSelected = new Set();
-        for (const feature of features) {
-            if (recordsSelected.has(feature.properties.odooId)) {
-                featuresSelected.add(feature.id);
             }
         }
 
-        let visibleFeatures = [];
-        try {
-            visibleFeatures = this._performViewportCulling(features);
-        } catch (error) {
-            console.warn('Viewport culling failed, rendering all features:', error);
-            visibleFeatures = features;
+        // Categorize features by geometry type
+        // Note: Viewport culling removed - Deck.gl handles this at the GPU level
+        const polygonData = [];
+        const lineData = [];
+        const pointData = [];
+        const featuresSelected = new Set();
+
+        for (const feature of this.geoJsonData.values()) {
+            // Check if selected
+            if (recordsSelected.has(feature.properties.odooId)) {
+                featuresSelected.add(feature.id);
+            }
+
+            // Categorize by geometry type
+            const type = feature.geometry.type;
+            switch (type) {
+                case 'Polygon':
+                case 'MultiPolygon':
+                    polygonData.push(feature);
+                    break;
+                case 'LineString':
+                case 'MultiLineString':
+                    lineData.push(feature);
+                    break;
+                case 'Point':
+                    pointData.push({
+                        ...feature,
+                        position: feature.geometry.coordinates
+                    });
+                    break;
+                case 'MultiPoint':
+                    pointData.push({
+                        ...feature,
+                        position: feature.geometry.coordinates[0]
+                    });
+                    break;
+            }
         }
-
-        const polygonData = visibleFeatures.filter(f =>
-            f.geometry.type === 'Polygon' ||
-            f.geometry.type === 'MultiPolygon'
-        );
-
-        const lineData = visibleFeatures.filter(f =>
-            f.geometry.type === 'LineString' ||
-            f.geometry.type === 'MultiLineString'
-        );
-
-        const pointData = visibleFeatures.filter(f =>
-            f.geometry.type === 'Point' ||
-            f.geometry.type === 'MultiPoint'
-        ).map(f => ({
-            ...f,
-            position: f.geometry.type === 'Point'
-                ? f.geometry.coordinates
-                : f.geometry.coordinates[0]
-        }));
 
         const layers = [
             // Polygon layer for filled shapes
@@ -604,38 +579,21 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
                 data: polygonData,
                 filled: true,
                 stroked: true,
-                wrapLongitude: true, // Handle coordinate wrapping on viewport changes
-                getFillColor: d => {
-                    if (featuresSelected.has(d.id)) {
-                        return DECKGL_CONFIG.DEFAULT_COLORS.SELECTED_FILL;
-                    }
-                    if (this.hoveredRecordId === d.properties.odooId) {
-                        return DECKGL_CONFIG.DEFAULT_COLORS.HOVERED_FILL;
-                    }
-                    return d.properties.fillColor;
-                },
-                getLineColor: d => {
-                    if (featuresSelected.has(d.id)) {
-                        return DECKGL_CONFIG.DEFAULT_COLORS.SELECTED_STROKE;
-                    }
-                    if (this.hoveredRecordId === d.properties.odooId) {
-                        return DECKGL_CONFIG.DEFAULT_COLORS.HOVERED_FILL;
-                    }
-                    return d.properties.strokeColor;
-                },
-                getLineWidth: d => {
-                    if (featuresSelected.has(d.id)) {
-                        return STROKE_CONFIG.DEFAULT_WIDTH + 1; // 3px for selected
-                    }
-                    if (this.hoveredRecordId === d.properties.odooId) {
-                        return STROKE_CONFIG.HOVER_WIDTH; // 4px on hover
-                    }
-                    return STROKE_CONFIG.DEFAULT_WIDTH; // 2px default
-                },
+                wrapLongitude: true,
+                getFillColor: d => featuresSelected.has(d.id)
+                    ? DECKGL_CONFIG.DEFAULT_COLORS.SELECTED_FILL
+                    : d.properties.fillColor,
+                getLineColor: d => featuresSelected.has(d.id)
+                    ? DECKGL_CONFIG.DEFAULT_COLORS.SELECTED_STROKE
+                    : d.properties.strokeColor,
+                getLineWidth: d => featuresSelected.has(d.id)
+                    ? STROKE_CONFIG.DEFAULT_WIDTH + 1
+                    : STROKE_CONFIG.DEFAULT_WIDTH,
                 lineWidthMinPixels: STROKE_CONFIG.DEFAULT_WIDTH,
                 lineWidthMaxPixels: STROKE_CONFIG.HOVER_WIDTH,
                 pickable: true,
-                autoHighlight: false, // Use Deck.gl's built-in hover highlighting
+                autoHighlight: true,
+                highlightColor: DECKGL_CONFIG.DEFAULT_COLORS.HOVERED_FILL,
             }),
 
             // Line layer for LineString geometries
@@ -644,29 +602,17 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
                 data: lineData,
                 filled: false,
                 stroked: true,
-                wrapLongitude: true, // Handle coordinate wrapping on viewport changes
-                getLineColor: d => {
-                    if (featuresSelected.has(d.id)) {
-                        return DECKGL_CONFIG.DEFAULT_COLORS.SELECTED_STROKE;
-                    }
-                    if (this.hoveredRecordId === d.properties.odooId) {
-                        return DECKGL_CONFIG.DEFAULT_COLORS.HOVERED_STROKE;
-                    }
-                    return d.properties.strokeColor;
-                },
-                getLineWidth: d => {
-                    if (featuresSelected.has(d.id)) {
-                        return STROKE_CONFIG.DEFAULT_WIDTH + 1; // 3px for selected
-                    }
-                    if (this.hoveredRecordId === d.properties.odooId) {
-                        return STROKE_CONFIG.HOVER_WIDTH; // 4px on hover
-                    }
-                    return STROKE_CONFIG.DEFAULT_WIDTH; // 2px default
-                },
-                lineWidthMinPixels: STROKE_CONFIG.DEFAULT_WIDTH,
-                lineWidthMaxPixels: STROKE_CONFIG.HOVER_WIDTH,
+                wrapLongitude: true,
+                getLineColor: d => featuresSelected.has(d.id)
+                    ? DECKGL_CONFIG.DEFAULT_COLORS.SELECTED_STROKE
+                    : d.properties.strokeColor,
+                getLineWidth: d => featuresSelected.has(d.id) ? 4 : 3,
+                lineWidthUnits: 'pixels',
+                lineWidthMinPixels: 3,
+                lineWidthMaxPixels: 8,
                 pickable: true,
-                autoHighlight: false,
+                autoHighlight: true,
+                highlightColor: DECKGL_CONFIG.DEFAULT_COLORS.HOVERED_STROKE,
             }),
 
             // Point layer for Point geometries
@@ -674,32 +620,23 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
                 id: 'pointsLayer',
                 data: pointData,
                 getPosition: d => d.position,
-                getRadius: 2,
-                radiusScale: 2,
+                getRadius: 6,
+                radiusUnits: 'pixels',
+                radiusMinPixels: 6,
+                radiusMaxPixels: 20,
                 stroked: true,
                 filled: true,
-                getFillColor: d => {
-                    if (featuresSelected.has(d.id)) {
-                        return DECKGL_CONFIG.DEFAULT_COLORS.SELECTED_FILL;
-                    }
-                    if (this.hoveredRecordId === d.properties.odooId) {
-                        return DECKGL_CONFIG.DEFAULT_COLORS.HOVERED_FILL;
-                    }
-                    return d.properties.fillColor;
-                },
-                getLineColor: d => {
-                    if (featuresSelected.has(d.id)) {
-                        return DECKGL_CONFIG.DEFAULT_COLORS.SELECTED_STROKE;
-                    }
-                    if (this.hoveredRecordId === d.properties.odooId) {
-                        return DECKGL_CONFIG.DEFAULT_COLORS.HOVERED_FILL;
-                    }
-                    return d.properties.strokeColor;
-                },
+                getFillColor: d => featuresSelected.has(d.id)
+                    ? DECKGL_CONFIG.DEFAULT_COLORS.SELECTED_FILL
+                    : d.properties.fillColor,
+                getLineColor: d => featuresSelected.has(d.id)
+                    ? DECKGL_CONFIG.DEFAULT_COLORS.SELECTED_STROKE
+                    : d.properties.strokeColor,
                 lineWidthMinPixels: 2,
-                lineWidthMaxPixels: 3,
+                lineWidthMaxPixels: 4,
                 pickable: true,
-                autoHighlight: false,
+                autoHighlight: true,
+                highlightColor: DECKGL_CONFIG.DEFAULT_COLORS.HOVERED_FILL,
             }),
         ];
 
@@ -707,67 +644,21 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
     }
 
     /**
-     * Perform viewport culling for performance
-     * @private
-     */
-    _performViewportCulling(features) {
-        if (!this.googleMap) return features;
-
-        const bounds = this.googleMap.getBounds();
-        if (!bounds) return features;
-
-        const viewport = {
-            minX: bounds.getSouthWest().lng(),
-            maxX: bounds.getNorthEast().lng(),
-            minY: bounds.getSouthWest().lat(),
-            maxY: bounds.getNorthEast().lat(),
-        };
-
-        // Add padding for smooth scrolling
-        const padding = DECKGL_CONFIG.VIEWPORT_PADDING;
-        const width = viewport.maxX - viewport.minX;
-        const height = viewport.maxY - viewport.minY;
-
-        viewport.minX -= width * padding;
-        viewport.maxX += width * padding;
-        viewport.minY -= height * padding;
-        viewport.maxY += height * padding;
-
-        // Filter features that intersect with viewport
-        return features.filter(feature => {
-            const bounds = feature.bounds;
-            return !(bounds.maxX < viewport.minX ||
-                    bounds.minX > viewport.maxX ||
-                    bounds.maxY < viewport.minY ||
-                    bounds.minY > viewport.maxY);
-        });
-    }
-
-    /**
-     * Update viewport culling when map moves
-     * @private
-     */
-    _updateViewportCulling() {
-        if (!this.isMapLoaded()) return;
-        this._updateDeckGLLayers();
-    }
-
-    /**
      * Centers the map to show all features or selected features
      *
-     * Calculates the bounding box that encompasses rendered features.
-     * If there are selected records, centers only on those selected records' features.
-     * Otherwise, centers on all features.
-     * Uses Google Maps LatLngBounds for accurate geographic calculations.
+     * Calculates the bounding box that encompasses rendered features using
+     * optimized min/max tracking. If there are selected records, centers only
+     * on those selected records' features. Otherwise, centers on all features.
+     * Creates LatLngBounds only once with final values for better performance.
      *
      * @returns {Promise<void>} Promise that resolves when map is centered
      */
     async centerMap() {
         if (!this.isMapLoaded()) return;
 
-        // reset bounds
-        const { LatLngBounds } = await this.apiLoader.importLibrary('core');
-        this.latLngBounds = new LatLngBounds();
+        // Calculate bounds using min/max (much faster than extend() calls)
+        let minLat = Infinity, maxLat = -Infinity;
+        let minLng = Infinity, maxLng = -Infinity;
 
         // Check if there are selected records
         const selectedRecords = this.props.list?.selection || [];
@@ -780,22 +671,32 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
             for (const feature of this.geoJsonData.values()) {
                 const recordId = feature.properties?.odoo?.id;
                 if (recordId && selectedRecordIds.has(recordId)) {
-                    const featureBounds = feature.bounds;
-                    this.latLngBounds.extend({lat: featureBounds.minY, lng: featureBounds.minX});
-                    this.latLngBounds.extend({lat: featureBounds.maxY, lng: featureBounds.maxX});
+                    const b = feature.bounds;
+                    if (b.minY < minLat) minLat = b.minY;
+                    if (b.maxY > maxLat) maxLat = b.maxY;
+                    if (b.minX < minLng) minLng = b.minX;
+                    if (b.maxX > maxLng) maxLng = b.maxX;
                 }
             }
         } else {
             // Center on all features
             for (const feature of this.geoJsonData.values()) {
-                const featureBounds = feature.bounds;
-                this.latLngBounds.extend({lat: featureBounds.minY, lng: featureBounds.minX});
-                this.latLngBounds.extend({lat: featureBounds.maxY, lng: featureBounds.maxX});
+                const b = feature.bounds;
+                if (b.minY < minLat) minLat = b.minY;
+                if (b.maxY > maxLat) maxLat = b.maxY;
+                if (b.minX < minLng) minLng = b.minX;
+                if (b.maxX > maxLng) maxLng = b.maxX;
             }
         }
 
-        if (!this.latLngBounds.isEmpty()) {
-            this.googleMap.fitBounds(this.latLngBounds);
+        // Only create LatLngBounds once with the final values
+        if (minLat !== Infinity) {
+            const { LatLngBounds } = await this.apiLoader.importLibrary('core');
+            const bounds = new LatLngBounds(
+                { lat: minLat, lng: minLng },  // SW corner
+                { lat: maxLat, lng: maxLng }   // NE corner
+            );
+            this.googleMap.fitBounds(bounds);
         }
     }
 
@@ -808,25 +709,6 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
             clearTimeout(this.fitBoundsTimeout);
         }
         this.fitBoundsTimeout = setTimeout(() => this.centerMap(), 500);
-    }
-
-    /**
-     * Perform garbage collection for memory management
-     * @private
-     */
-    _performGarbageCollection() {
-        // Clear unused features
-        const currentTime = Date.now();
-        for (const [id, feature] of this.geoJsonData.entries()) {
-            if (!feature.visible && currentTime - feature.lastAccess > 60000) { // 1 minute
-                this.geoJsonData.delete(id);
-            }
-        }
-
-        // Force garbage collection if available
-        if (window.gc) {
-            window.gc();
-        }
     }
 
     /**
@@ -854,20 +736,15 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
 
     /**
      * Handle feature hover events
-     * 
-     * Updates hovered feature state and triggers visual updates.
+     *
+     * Tracks hovered feature state for tooltip and other features.
+     * Visual highlighting is handled by Deck.gl's autoHighlight at the GPU level.
      * @param {Object} info - Pick info from Deck.gl containing object
      */
     _onFeatureHover(info) {
-        const previousHoveredId = this.hoveredRecordId;
-        let newHoveredId = null;
-        if (info.object) {
-            newHoveredId = info.object.properties.odooId;
-        }
-        this.hoveredRecordId = newHoveredId;
-        if ((newHoveredId && newHoveredId !== previousHoveredId) || (!newHoveredId && previousHoveredId)) {
-            this._updateDeckGLLayers();
-        }
+        // Track hovered record ID (used by tooltip content rendering)
+        this.hoveredRecordId = info.object ? info.object.properties.odooId : null;
+        // Note: Visual highlighting handled by Deck.gl autoHighlight - no layer rebuild needed
     }
 
     /**
@@ -891,6 +768,14 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
 
         const { type, coordinates } = feature.geometry;
 
+        // Check cache for features without related polygon area calculations
+        const hasRelatedPolygons = relatedFeatures.length > 0 &&
+            (type === 'Polygon' || type === 'MultiPolygon');
+
+        if (!hasRelatedPolygons && this.measurementCache.has(feature.id)) {
+            return this.measurementCache.get(feature.id);
+        }
+
         const unit = MEASUREMENT_CONFIG.UNITS.METRIC; // Default to metric
         const measurements = {};
         let area = 0;
@@ -905,19 +790,14 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
             console.error('Error calculating area with Turf.js:', error);
         }
 
-        try {
-            if ((type === 'MultiPolygon' || type === 'Polygon') && relatedFeatures.length) {
-                relatedFeatures.forEach((relFeature) => {
-                    try {
-                        const relArea = window.turf.area(relFeature);
-                        totalArea += relArea;
-                    } catch (error) {
-                        console.error('Error calculating related feature area:', error);
-                    }
-                });
+        if (hasRelatedPolygons) {
+            for (const relFeature of relatedFeatures) {
+                try {
+                    totalArea += window.turf.area(relFeature);
+                } catch (error) {
+                    console.error('Error calculating related feature area:', error);
+                }
             }
-        } catch (error) {
-            console.error('Error calculating total area for MultiPolygon:', error);
         }
 
         if (totalArea > 0) {
@@ -967,15 +847,15 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
                         measurements.display_name.splice(1, 0, { title: _t('Total Area'), value: displayTotalArea });
                     }
                     break;
-                case 'MultiPolygon':
+                case 'MultiPolygon': {
                     let totalPerimeter = 0;
                     let totalPoints = 0;
-                    coordinates.forEach((polygon) => {
+                    for (const polygon of coordinates) {
                         const polyCoords = polygon[0]; // Outer ring
-                        const lines = window.turf.lineString(polyCoords);
-                        totalPerimeter += window.turf.length(lines, { units: 'kilometers' });
+                        const polyLines = window.turf.lineString(polyCoords);
+                        totalPerimeter += window.turf.length(polyLines, { units: 'kilometers' });
                         totalPoints += polyCoords.length - 1; // Subtract 1 for closed polygon
-                    });
+                    }
                     measurements.type = 'MultiPolygon';
                     measurements.area = displayArea;
                     measurements.perimeter = formatLengthMeasurement(totalPerimeter, user.context.lang, 2, unit);
@@ -989,6 +869,7 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
                         measurements.display_name.splice(1, 0, { title: _t('Total Area'), value: displayTotalArea });
                     }
                     break;
+                }
                 default:
                     measurements.type = type;
                     measurements.display_name = _t('Measurements not available for this geometry type');
@@ -997,6 +878,12 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
             console.error('Error calculating measurement:', error);
             measurements.error = _t('Error calculating measurements');
         }
+
+        // Cache the result for features without related polygon calculations
+        if (!hasRelatedPolygons) {
+            this.measurementCache.set(feature.id, measurements);
+        }
+
         return measurements;
     }
 
@@ -1038,8 +925,9 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
      * Get groups or records data with caching optimization
      *
      * Retrieves and caches the current list data (groups or records) to avoid
-     * unnecessary recalculations. Uses JSON comparison to detect changes and
-     * only rebuilds the data structure when the underlying list changes.
+     * unnecessary recalculations. Uses efficient first/last ID comparison to
+     * detect changes (avoiding JSON.stringify overhead) and only rebuilds the
+     * data structure when the underlying list changes.
      *
      * For grouped lists, sorts groups to handle null values appropriately.
      * For ungrouped lists, maps records directly with their IDs as keys.
@@ -1050,23 +938,30 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
         if (!this.isMapLoaded()) return [];
         const { list } = this.props;
 
-        const currentProps = {
-            isGrouped: this.isListGrouped,
-            recordsIds: this.isListGrouped
-                ? list.groups.map(group => group.id)
-                : list.records.map(record => record.id),
-            length: this.isListGrouped ? list.groups.length : list.records.length,
-        };
+        // Check cache validity using efficient comparison (avoid JSON.stringify)
+        const isGrouped = this.isListGrouped;
+        const currentLength = isGrouped ? list.groups.length : list.records.length;
 
         if (
             this.cachedGroupsOrRecords &&
-            JSON.stringify(currentProps) === JSON.stringify(this.lastGroupsOrRecordsProps)
+            this.lastGroupsOrRecordsProps &&
+            this.lastGroupsOrRecordsProps.isGrouped === isGrouped &&
+            this.lastGroupsOrRecordsProps.length === currentLength
         ) {
-            return this.cachedGroupsOrRecords;
+            // Quick check: compare first and last IDs to detect changes
+            const items = isGrouped ? list.groups : list.records;
+            const lastIds = this.lastGroupsOrRecordsProps.firstLastIds;
+            if (
+                currentLength === 0 ||
+                (items[0].id === lastIds[0] && items[currentLength - 1].id === lastIds[1])
+            ) {
+                return this.cachedGroupsOrRecords;
+            }
         }
 
+        // Build result
         let result;
-        if (this.isListGrouped) {
+        if (isGrouped) {
             result = [...list.groups]
                 .sort((a, b) => (a.value && !b.value ? 1 : !a.value && b.value ? -1 : 0))
                 .map((group, i) => ({
@@ -1077,7 +972,13 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
             result = list.records.map(record => ({ record, key: record.id }));
         }
 
-        this.lastGroupsOrRecordsProps = currentProps;
+        // Cache the result with lightweight comparison data
+        const items = isGrouped ? list.groups : list.records;
+        this.lastGroupsOrRecordsProps = {
+            isGrouped,
+            length: currentLength,
+            firstLastIds: currentLength > 0 ? [items[0].id, items[currentLength - 1].id] : [null, null],
+        };
         this.cachedGroupsOrRecords = result;
         return result;
     }
@@ -1107,9 +1008,8 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
 
         await this._initializeDeckGLOverlay();
 
-        // Add map event listeners for performance
-        this.googleMap.addListener('bounds_changed', this.debounceUpdateViewport);
-        this.googleMap.addListener('zoom_changed', this.debounceUpdateViewport);
+        // Note: bounds_changed/zoom_changed listeners removed
+        // Deck.gl handles viewport rendering automatically at the GPU level
     }
 
     /**
@@ -1118,7 +1018,11 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
      * Creates HTML content for feature tooltips including:
      * - Feature title from Odoo record
      * - Geometry measurements (area, perimeter, length, coordinates)
+     * - GeoJSON properties (excluding internal Odoo properties)
      * - Formatted display with line breaks for readability
+     *
+     * Uses featuresByRecordId index for O(1) related feature lookup
+     * and measurementCache for cached measurement retrieval.
      *
      * @param {Object} feature - GeoJSON feature to create tooltip for
      * @returns {string|null} HTML string for tooltip or null if invalid feature
@@ -1127,23 +1031,40 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
     _renderTooltipContent(feature) {
         if (!feature || !feature.properties) return null;
 
+        // Use featuresByRecordId index for O(1) related feature lookup
         const relatedFeatures = [];
-        for (const otherFeature of this.geoJsonData.values()) {
-            if (
-                otherFeature.id !== feature.id &&
-                otherFeature.properties.odooId === feature.properties.odooId
-            ) {
-                relatedFeatures.push(otherFeature);
+        const recordId = feature.properties.odooId;
+        const featureIds = this.featuresByRecordId.get(recordId);
+
+        if (featureIds) {
+            for (const featureId of featureIds) {
+                if (featureId !== feature.id) {
+                    const relatedFeature = this.geoJsonData.get(featureId);
+                    if (relatedFeature) {
+                        relatedFeatures.push(relatedFeature);
+                    }
+                }
             }
         }
 
         const measurements = this._calculateFeatureMeasurement(feature, relatedFeatures);
         const displayNames = measurements?.display_name || [];
-        const contentHtml = renderToString('web_view_google_map_drawing.FeatureProperties', {
+
+        // Build filtered properties object
+        const properties = feature.properties ? { ...feature.properties } : {};
+        const attrsToExclude = [
+            'odoo', 'color', 'fillColor', 'strokeColor',
+            'odooId', 'odooResId'
+        ];
+        for (const attr of attrsToExclude) {
+            delete properties[attr];
+        }
+
+        return renderToString('web_view_google_map_drawing.FeatureProperties', {
             title: feature.properties.odoo?.title || _t('Feature'),
             displayNames,
+            properties,
         });
-        return contentHtml;
     }
 
     /**
@@ -1151,9 +1072,9 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
      *
      * Sets up the Deck.gl GoogleMapsOverlay with:
      * - Tooltip configuration for interactive hover information
-     * - Click and hover event handlers
+     * - Click and hover event handlers (visual highlighting via autoHighlight)
      * - Integration with the Google Maps instance
-     * - Initial data rendering
+     * - Triggers initial data rendering via debounced method
      *
      * The overlay provides GPU-accelerated rendering of GeoJSON features
      * with interactive capabilities like tooltips and selection.
@@ -1181,6 +1102,7 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
                             borderRadius: '4px',
                             boxShadow: '0 4px 6px rgba(0,0,0,0.2)',
                             opacity: '0.95',
+                            maxWidth: '300px',
                         };
                         if (properties.color) {
                             style.borderLeft = `4px solid ${properties.color}`;
@@ -1593,15 +1515,8 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
         // Delete features from all data structures
         for (const featureId of deletedFeatureIds) {
             this.geoJsonData.delete(featureId);
-            this.visibleFeatures.delete(featureId);
+            this.measurementCache.delete(featureId);
         }
-
-        // Clean up feature index
-        this.featureIndex.forEach((featureSet) => {
-            deletedFeatureIds.forEach(featureId => {
-                featureSet.delete(featureId);
-            });
-        });
 
         // Update the visual layers to reflect the deletion
         this.debounceUpdateLayers();
@@ -1620,17 +1535,11 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
         if (this.debounceRenderGeolocationData?.cancel) {
             this.debounceRenderGeolocationData.cancel();
         }
-        if (this.debounceUpdateViewport?.cancel) {
-            this.debounceUpdateViewport.cancel();
-        }
         if (this.debounceUpdateLayers?.cancel) {
             this.debounceUpdateLayers.cancel();
         }
         if (this.debounceToggleRecordSelection?.cancel) {
             this.debounceToggleRecordSelection.cancel();
-        }
-        if (this.debounceGarbageCollection?.cancel) {
-            this.debounceGarbageCollection.cancel();
         }
 
         if (this.fitBoundsTimeout) {
@@ -1669,14 +1578,13 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
         // Clear data structures and reset features
         this.cacheRecordDataView.clear();
         this.geoJsonData.clear();
-        this.visibleFeatures.clear();
-        this.featureIndex.clear();
+
+
         this.selectedFeatureIds.clear();
-        this.layers.clear();
+
+        this.measurementCache.clear();
 
         // Clean up bounds
-        this.dataBounds = null;
-        this.viewportBounds = null;
         this.latLngBounds = null;
 
         // Clean up cached data

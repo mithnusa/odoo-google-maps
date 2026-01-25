@@ -98,8 +98,8 @@ export async function loadTerraDrawAssets() {
         return;
     }
     try {
-        await loadJS('https://unpkg.com/terra-draw@1.21.4/dist/terra-draw.umd.js');
-        await loadJS('https://unpkg.com/terra-draw-google-maps-adapter@1.2.1/dist/terra-draw-google-maps-adapter.umd.js');
+        await loadJS('/web_view_google_map_drawing/static/lib/terra-draw/terra-draw.umd.js');
+        await loadJS('/web_view_google_map_drawing/static/lib/terra-draw/terra-draw-google-maps-adapter.umd.js');
         if (!window.terraDraw || !window.terraDrawGoogleMapsAdapter) {
             throw new Error('Terra Draw or its Google Maps adapter failed to load correctly.');
         }
@@ -114,7 +114,7 @@ export async function loadDeckGlAssets() {
         return;
     }
     try {
-        await loadJS('https://unpkg.com/deck.gl@9.2.5/dist.min.js');
+        await loadJS('/web_view_google_map_drawing/static/lib/deckgl/dist.min.js');
         if (!window.deck) {
             throw new Error('Deck.gl failed to load correctly.');
         }
@@ -129,7 +129,7 @@ export async function loadTurfJSAssets() {
         return;
     }
     try {
-        await loadJS('https://unpkg.com/@turf/turf@7.3.1/turf.min.js');
+        await loadJS('/web_view_google_map_drawing/static/lib/turf/turf.min.js');
         if (!window.turf) {
             throw new Error('Turf.js failed to load correctly.');
         }
@@ -175,6 +175,29 @@ export function validateTerraDrawFeature(feature) {
     }
 
     return true;
+}
+
+/**
+ * Strip altitude (3rd coordinate) from coordinates to convert 3D to 2D
+ * Terra Draw only supports 2D coordinates [longitude, latitude]
+ * @param {Array} coordinates - Coordinate array (may be nested for polygons/lines)
+ * @param {string} geometryType - GeoJSON geometry type
+ * @returns {Array} - 2D coordinates
+ */
+export function stripAltitude(coordinates, geometryType) {
+    if (!Array.isArray(coordinates)) return coordinates;
+
+    if (geometryType === 'Point') {
+        // Point: [lng, lat, alt?] -> [lng, lat]
+        return coordinates.slice(0, 2);
+    } else if (geometryType === 'LineString') {
+        // LineString: [[lng, lat, alt?], ...] -> [[lng, lat], ...]
+        return coordinates.map((coord) => coord.slice(0, 2));
+    } else if (geometryType === 'Polygon') {
+        // Polygon: [[[lng, lat, alt?], ...], ...] -> [[[lng, lat], ...], ...]
+        return coordinates.map((ring) => ring.map((coord) => coord.slice(0, 2)));
+    }
+    return coordinates;
 }
 
 /**
@@ -784,4 +807,195 @@ export function formatLengthMeasurement(
     const value = formatNumber(length, decimals, locale);
 
     return `${value} ${unit}`;
+}
+
+
+/**
+ * Validate geometry coordinates based on geometry type
+ * @param {string} type - Geometry type
+ * @param {Array} coordinates - Coordinate array
+ * @returns {boolean} True if coordinates are valid for the geometry type
+ * @private
+ */
+function validateGeometryCoordinates(type, coordinates) {
+    if (!Array.isArray(coordinates) || coordinates.length === 0) {
+        return false;
+    }
+
+    switch (type) {
+        case 'Point':
+            // Point: [lon, lat] or [lon, lat, elevation]
+            return coordinates.length >= 2 &&
+                   coordinates.length <= 3 &&
+                   coordinates.every(n => typeof n === 'number' && isFinite(n));
+
+        case 'LineString':
+        case 'MultiPoint':
+            // LineString/MultiPoint: array of positions (at least 2 for LineString)
+            const minLength = type === 'LineString' ? 2 : 1;
+            return coordinates.length >= minLength &&
+                   coordinates.every(pos =>
+                       Array.isArray(pos) &&
+                       pos.length >= 2 &&
+                       pos.every(n => typeof n === 'number' && isFinite(n))
+                   );
+
+        case 'Polygon':
+        case 'MultiLineString':
+            // Polygon/MultiLineString: array of LineString coordinates
+            return coordinates.every(ring => {
+                const isValid = Array.isArray(ring) &&
+                    ring.length >= (type === 'Polygon' ? 4 : 2) &&
+                    ring.every(pos =>
+                        Array.isArray(pos) &&
+                        pos.length >= 2 &&
+                        pos.every(n => typeof n === 'number' && isFinite(n))
+                    );
+
+                // For Polygon, verify ring closure (first point === last point)
+                if (type === 'Polygon' && isValid) {
+                    const first = ring[0];
+                    const last = ring[ring.length - 1];
+                    return first[0] === last[0] && first[1] === last[1];
+                }
+
+                return isValid;
+            });
+
+        case 'MultiPolygon':
+            // MultiPolygon: array of Polygon coordinates
+            return coordinates.every(polygon =>
+                Array.isArray(polygon) &&
+                polygon.every(ring =>
+                    Array.isArray(ring) &&
+                    ring.length >= 4 &&
+                    ring.every(pos =>
+                        Array.isArray(pos) &&
+                        pos.length >= 2 &&
+                        pos.every(n => typeof n === 'number' && isFinite(n))
+                    )
+                )
+            );
+
+        default:
+            return false;
+    }
+}
+
+/**
+ * Validate GeoJSON object structure
+ * Supports all GeoJSON types: FeatureCollection, Feature, and Geometry objects
+ * @param {Object} geoJson - The GeoJSON object to validate
+ * @param {Object} options - Validation options
+ * @param {boolean} options.requireFeatures - Whether to require at least one feature (default: false)
+ * @param {boolean} options.validateGeometry - Whether to validate geometry structure (default: false)
+ * @param {boolean} options.strict - Whether to enforce strict GeoJSON spec (default: false)
+ * @returns {boolean} True if valid GeoJSON structure
+ */
+export function validateGeoJson(geoJson, options = {}) {
+    const {
+        requireFeatures = false,
+        validateGeometry = false,
+        strict = false
+    } = options;
+
+    // Null/undefined check
+    if (!geoJson || typeof geoJson !== 'object') {
+        return false;
+    }
+
+    // Valid GeoJSON types
+    const validTypes = [
+        'FeatureCollection',
+        'Feature',
+        'Point',
+        'LineString',
+        'Polygon',
+        'MultiPoint',
+        'MultiLineString',
+        'MultiPolygon',
+        'GeometryCollection'
+    ];
+
+    // Check if type is valid
+    if (!validTypes.includes(geoJson.type)) {
+        return false;
+    }
+
+    // Validate FeatureCollection
+    if (geoJson.type === 'FeatureCollection') {
+        if (!Array.isArray(geoJson.features)) {
+            return false;
+        }
+
+        // Optional: require at least one feature
+        if (requireFeatures && geoJson.features.length === 0) {
+            return false;
+        }
+
+        // Optional: validate each feature
+        if (validateGeometry && geoJson.features.length > 0) {
+            return geoJson.features.every(feature =>
+                validateGeoJson(feature, { validateGeometry: true, strict })
+            );
+        }
+
+        return true;
+    }
+
+    // Validate Feature
+    if (geoJson.type === 'Feature') {
+        // Feature must have geometry (can be null per spec)
+        if (!('geometry' in geoJson)) {
+            return false;
+        }
+
+        // Geometry can be null (valid per GeoJSON spec)
+        if (geoJson.geometry === null) {
+            return !strict; // In strict mode, reject null geometries
+        }
+
+        // Validate geometry if present and validation enabled
+        if (validateGeometry && geoJson.geometry) {
+            return validateGeoJson(geoJson.geometry, { validateGeometry: true, strict });
+        }
+
+        return true;
+    }
+
+    // Validate Geometry objects (Point, LineString, Polygon, etc.)
+    if (validTypes.slice(2).includes(geoJson.type)) {
+        // All geometry objects must have coordinates (except GeometryCollection)
+        if (geoJson.type === 'GeometryCollection') {
+            if (!Array.isArray(geoJson.geometries)) {
+                return false;
+            }
+
+            if (validateGeometry) {
+                return geoJson.geometries.every(geom =>
+                    validateGeoJson(geom, { validateGeometry: true, strict })
+                );
+            }
+
+            return true;
+        }
+
+        // Check coordinates exist
+        if (!('coordinates' in geoJson)) {
+            return false;
+        }
+
+        if (!Array.isArray(geoJson.coordinates)) {
+            return false;
+        }
+
+        // Optional: validate coordinate structure
+        if (validateGeometry) {
+            return validateGeometryCoordinates(geoJson.type, geoJson.coordinates);
+        }
+
+        return true;
+    }
+
+    return false;
 }
