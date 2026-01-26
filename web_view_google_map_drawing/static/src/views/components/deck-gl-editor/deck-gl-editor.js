@@ -11,7 +11,7 @@ import {
     onWillUpdateProps,
 } from '@odoo/owl';
 import { hexToRgba, generateColor } from '@web_view_google_map/views/google_map/utils';
-import { loadDeckGlAssets, validateGeoJson, calculateFeaturesTotalArea } from '../../../utils/utils';
+import { loadDeckGlAssets, validateGeoJson, calculateFeaturesTotalArea, hasGeoJsonChanged } from '../../../utils/utils';
 import { DECKGL_CONFIG, STROKE_CONFIG } from '../../../utils/map_config';
 import { UploadGeoJsonFileDialog } from '../upload_geojson_dialog/upload_geojson_dialog';
 
@@ -65,12 +65,15 @@ export class DeckGlEditor extends Component {
         onWillDestroy(() => this._cleanUp());
 
         onWillUpdateProps((nextProps) => {
-            if (this.props.dataGeoJson && this.deckglOverlay) {
+            if (nextProps.dataGeoJson && this.deckglOverlay) {
                 if (nextProps.renderingMode !== 'deckgl') {
-                    console.warn('Rendering mode changed, skipping Deck.gl data render');
+                    console.debug('Rendering mode changed, skipping Deck.gl data render');
                     return;
                 }
-                this.debounceRenderGeoJsonData();
+                const isGeoJsonChanged = hasGeoJsonChanged(this.props.dataGeoJson, nextProps.dataGeoJson);
+                if (isGeoJsonChanged) {
+                    this.debounceRenderGeoJsonData(nextProps.dataGeoJson);
+                }
             }
         });
     }
@@ -230,7 +233,7 @@ export class DeckGlEditor extends Component {
         try {
             const dataGeoJson = geojson || this.props.dataGeoJson;
             if (!this.deckglOverlay || !dataGeoJson || !dataGeoJson.features) {
-                console.log('Deck.gl overlay or GeoJSON data not available');
+                console.debug('Deck.gl overlay or GeoJSON data not available');
                 this.uiService.unblock();
                 return;
             }
@@ -514,7 +517,6 @@ export class DeckGlEditor extends Component {
     }
 
     _cleanUp() {
-        console.log('Cleaning up Deck.gl overlay resources');
         // Clear drag state
         this.isDragging = false;
         this.dragStartPosition = null;

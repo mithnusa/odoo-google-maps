@@ -166,6 +166,8 @@ Both Terra Draw and Deck.gl editors support importing and exporting GeoJSON file
 - The exported file is named `geojson_export_YYYY-MM-DD.geojson`
 - Internal properties (mode, midPoint, selectionPoint, _metadata) are automatically removed from the export
 
+This functionality allows easy data exchange with other GIS tools and platforms.
+
 ## Rendering Modes
 
 The module automatically selects the appropriate rendering engine based on geometry complexity:

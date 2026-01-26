@@ -67,7 +67,9 @@ export async function loadTerraDrawAssets() {
     }
     try {
         await loadJS('/web_view_google_map_drawing/static/lib/terra-draw/terra-draw.umd.js');
-        await loadJS('/web_view_google_map_drawing/static/lib/terra-draw/terra-draw-google-maps-adapter.umd.js');
+        await loadJS(
+            '/web_view_google_map_drawing/static/lib/terra-draw/terra-draw-google-maps-adapter.umd.js'
+        );
         if (!window.terraDraw || !window.terraDrawGoogleMapsAdapter) {
             throw new Error('Terra Draw or its Google Maps adapter failed to load correctly.');
         }
@@ -156,10 +158,7 @@ export function formatAreaMeasurement(
     unitSystem = MEASUREMENT_CONFIG.UNITS.METRIC
 ) {
     if (isNaN(parseFloat(areaInSquareMeter)) || !isFinite(areaInSquareMeter)) {
-        console.warn(
-            'Invalid area provided for formatting:',
-            areaInSquareMeter
-        );
+        console.warn('Invalid area provided for formatting:', areaInSquareMeter);
         return areaInSquareMeter;
     }
 
@@ -218,14 +217,8 @@ export function formatLengthMeasurement(
     decimals = 2,
     unitSystem = MEASUREMENT_CONFIG.UNITS.METRIC
 ) {
-    if (
-        isNaN(parseFloat(lengthInKilometers)) ||
-        !isFinite(lengthInKilometers)
-    ) {
-        console.warn(
-            'Invalid length provided for formatting:',
-            lengthInKilometers
-        );
+    if (isNaN(parseFloat(lengthInKilometers)) || !isFinite(lengthInKilometers)) {
+        console.warn('Invalid length provided for formatting:', lengthInKilometers);
         return lengthInKilometers;
     }
 
@@ -279,7 +272,6 @@ export function formatLengthMeasurement(
     return `${value} ${unit}`;
 }
 
-
 /**
  * Validate geometry coordinates based on geometry type
  * @param {string} type - Geometry type
@@ -295,31 +287,38 @@ function validateGeometryCoordinates(type, coordinates) {
     switch (type) {
         case 'Point':
             // Point: [lon, lat] or [lon, lat, elevation]
-            return coordinates.length >= 2 &&
-                   coordinates.length <= 3 &&
-                   coordinates.every(n => typeof n === 'number' && isFinite(n));
+            return (
+                coordinates.length >= 2 &&
+                coordinates.length <= 3 &&
+                coordinates.every((n) => typeof n === 'number' && isFinite(n))
+            );
 
         case 'LineString':
         case 'MultiPoint':
             // LineString/MultiPoint: array of positions (at least 2 for LineString)
             const minLength = type === 'LineString' ? 2 : 1;
-            return coordinates.length >= minLength &&
-                   coordinates.every(pos =>
-                       Array.isArray(pos) &&
-                       pos.length >= 2 &&
-                       pos.every(n => typeof n === 'number' && isFinite(n))
-                   );
+            return (
+                coordinates.length >= minLength &&
+                coordinates.every(
+                    (pos) =>
+                        Array.isArray(pos) &&
+                        pos.length >= 2 &&
+                        pos.every((n) => typeof n === 'number' && isFinite(n))
+                )
+            );
 
         case 'Polygon':
         case 'MultiLineString':
             // Polygon/MultiLineString: array of LineString coordinates
-            return coordinates.every(ring => {
-                const isValid = Array.isArray(ring) &&
+            return coordinates.every((ring) => {
+                const isValid =
+                    Array.isArray(ring) &&
                     ring.length >= (type === 'Polygon' ? 4 : 2) &&
-                    ring.every(pos =>
-                        Array.isArray(pos) &&
-                        pos.length >= 2 &&
-                        pos.every(n => typeof n === 'number' && isFinite(n))
+                    ring.every(
+                        (pos) =>
+                            Array.isArray(pos) &&
+                            pos.length >= 2 &&
+                            pos.every((n) => typeof n === 'number' && isFinite(n))
                     );
 
                 // For Polygon, verify ring closure (first point === last point)
@@ -334,17 +333,20 @@ function validateGeometryCoordinates(type, coordinates) {
 
         case 'MultiPolygon':
             // MultiPolygon: array of Polygon coordinates
-            return coordinates.every(polygon =>
-                Array.isArray(polygon) &&
-                polygon.every(ring =>
-                    Array.isArray(ring) &&
-                    ring.length >= 4 &&
-                    ring.every(pos =>
-                        Array.isArray(pos) &&
-                        pos.length >= 2 &&
-                        pos.every(n => typeof n === 'number' && isFinite(n))
+            return coordinates.every(
+                (polygon) =>
+                    Array.isArray(polygon) &&
+                    polygon.every(
+                        (ring) =>
+                            Array.isArray(ring) &&
+                            ring.length >= 4 &&
+                            ring.every(
+                                (pos) =>
+                                    Array.isArray(pos) &&
+                                    pos.length >= 2 &&
+                                    pos.every((n) => typeof n === 'number' && isFinite(n))
+                            )
                     )
-                )
             );
 
         default:
@@ -363,11 +365,7 @@ function validateGeometryCoordinates(type, coordinates) {
  * @returns {boolean} True if valid GeoJSON structure
  */
 export function validateGeoJson(geoJson, options = {}) {
-    const {
-        requireFeatures = false,
-        validateGeometry = false,
-        strict = false
-    } = options;
+    const { requireFeatures = false, validateGeometry = false, strict = false } = options;
 
     // Null/undefined check
     if (!geoJson || typeof geoJson !== 'object') {
@@ -384,7 +382,7 @@ export function validateGeoJson(geoJson, options = {}) {
         'MultiPoint',
         'MultiLineString',
         'MultiPolygon',
-        'GeometryCollection'
+        'GeometryCollection',
     ];
 
     // Check if type is valid
@@ -405,7 +403,7 @@ export function validateGeoJson(geoJson, options = {}) {
 
         // Optional: validate each feature
         if (validateGeometry && geoJson.features.length > 0) {
-            return geoJson.features.every(feature =>
+            return geoJson.features.every((feature) =>
                 validateGeoJson(feature, { validateGeometry: true, strict })
             );
         }
@@ -442,7 +440,7 @@ export function validateGeoJson(geoJson, options = {}) {
             }
 
             if (validateGeometry) {
-                return geoJson.geometries.every(geom =>
+                return geoJson.geometries.every((geom) =>
                     validateGeoJson(geom, { validateGeometry: true, strict })
                 );
             }
@@ -521,4 +519,85 @@ export function calculateFeaturesTotalArea(features) {
 
         return totalArea;
     }, 0); // in square meters
+}
+
+/**
+ * Generate a lightweight fingerprint for a features array
+ * Captures geometry types, IDs, and coordinate counts without full serialization
+ * @param {Array} features - Array of GeoJSON features
+ * @returns {string} Fingerprint string
+ */
+function getGeoJsonFingerprint(features) {
+    let fingerprint = '';
+    for (let i = 0; i < features.length; i++) {
+        const feature = features[i];
+        const id = feature.id || feature.properties?.id || i;
+        const geomType = feature.geometry?.type || 'null';
+        const coordCount = countCoordinates(feature.geometry?.coordinates);
+        fingerprint += `${id}:${geomType}:${coordCount};`;
+    }
+    return fingerprint;
+}
+
+/**
+ * Count total coordinates in a geometry
+ * @param {Array} coordinates - GeoJSON coordinates array
+ * @returns {number} Total coordinate count
+ */
+function countCoordinates(coordinates) {
+    if (!coordinates) return 0;
+    if (typeof coordinates[0] === 'number') {
+        // Single coordinate [lng, lat] or [lng, lat, alt]
+        return 1;
+    }
+    let count = 0;
+    for (const coord of coordinates) {
+        count += countCoordinates(coord);
+    }
+    return count;
+}
+
+/**
+ * Check if GeoJSON data has changed using lightweight comparison
+ * Avoids expensive JSON.stringify for large datasets
+ * @param {Object} current - Current GeoJSON data
+ * @param {Object} next - Next GeoJSON data
+ * @returns {boolean} True if data has changed
+ */
+export function hasGeoJsonChanged(current, next) {
+    // Reference equality - fastest check
+    if (current === next) {
+        return false;
+    }
+
+    // Handle null/undefined cases
+    if (!current || !next) {
+        return current !== next;
+    }
+
+    // Check features array reference
+    if (current.features === next.features) {
+        return false;
+    }
+
+    // Handle missing features
+    if (!current.features || !next.features) {
+        return true;
+    }
+
+    // Quick count check
+    if (current.features.length !== next.features.length) {
+        return true;
+    }
+
+    // Empty arrays are equal
+    if (current.features.length === 0) {
+        return false;
+    }
+
+    // Compare feature fingerprints (geometry type + coordinate structure)
+    const currentFingerprint = getGeoJsonFingerprint(current.features);
+    const nextFingerprint = getGeoJsonFingerprint(next.features);
+
+    return currentFingerprint !== nextFingerprint;
 }

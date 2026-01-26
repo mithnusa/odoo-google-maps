@@ -20,6 +20,7 @@ import {
     getRandomColor,
     validateGeoJson,
     calculateFeaturesTotalArea,
+    hasGeoJsonChanged,
 } from '../../../utils/utils';
 import { analyzeFeaturePerformance, createEditableFeature } from '../../../utils/geometry_performance_utils';
 import { UploadGeoJsonFileDialog } from '../upload_geojson_dialog/upload_geojson_dialog';
@@ -116,22 +117,15 @@ export class TerraDrawToolsUI extends Component {
         onWillDestroy(() => this._cleanUp());
 
         onWillUpdateProps((nextProps) => {
-            if (!nextProps.googleMap || !this.terraDrawInstance) return;
+            if (!nextProps.googleMap || !this.terraDrawInstance || nextProps.renderingMode !== 'terra-draw') return;
 
-            const isGeoJsonChanged = this._hasGeoJsonChanged(this.props.dataGeoJson, nextProps.dataGeoJson);
-            console.log('GeoJSON changed:', isGeoJsonChanged);
+            if (this.state.isRestoring || this.state.isSaving) return;
+
+            const isGeoJsonChanged = hasGeoJsonChanged(this.props.dataGeoJson, nextProps.dataGeoJson);
             if (isGeoJsonChanged) {
-                if (this.state.isRestoring || this.state.isSaving) return;
                 this.terraDrawInstance.clear();
                 this.latLngBounds = null; // reset latLngBounds to recalculate
-                if (nextProps.renderingMode !== 'terra-draw') {
-                    console.log('Rendering mode changed, skipping loadRecordData');
-                    return;
-                }
                 this.loadRecordData(nextProps.dataGeoJson);
-            } else {
-                console.log('No changes in GeoJSON data detected.');
-                console.log({ curr: this.props.dataGeoJson, next: nextProps.dataGeoJson });
             }
         });
 
@@ -1417,7 +1411,7 @@ export class TerraDrawToolsUI extends Component {
             } catch (error) {
                 console.error(`Failed to create ${name} mode:`, error);
                 this.notificationService.add(
-                    sprintf(_t('Failed to initialize %s drawing mode %s', name)),
+                    sprintf(_t('Failed to initialize drawing mode %s', name)),
                     { type: 'warning' }
                 );
             }
@@ -1610,7 +1604,6 @@ export class TerraDrawToolsUI extends Component {
      * @private
      */
     _cleanUp() {
-        console.log('Cleaning up Terra Tools UI component resources...');
         // Clear any pending timeouts first
         if (this.debounceTimeout) {
             clearTimeout(this.debounceTimeout);
@@ -1669,87 +1662,4 @@ export class TerraDrawToolsUI extends Component {
         this.latLngBounds = null;
     }
 
-    /**
-     * Check if GeoJSON data has changed using lightweight comparison
-     * Avoids expensive JSON.stringify for large datasets
-     * @param {Object} current - Current GeoJSON data
-     * @param {Object} next - Next GeoJSON data
-     * @returns {boolean} True if data has changed
-     * @private
-     */
-    _hasGeoJsonChanged(current, next) {
-        // Reference equality - fastest check
-        if (current === next) {
-            return false;
-        }
-
-        // Handle null/undefined cases
-        if (!current || !next) {
-            return current !== next;
-        }
-
-        // Check features array reference
-        if (current.features === next.features) {
-            return false;
-        }
-
-        // Handle missing features
-        if (!current.features || !next.features) {
-            return true;
-        }
-
-        // Quick count check
-        if (current.features.length !== next.features.length) {
-            return true;
-        }
-
-        // Empty arrays are equal
-        if (current.features.length === 0) {
-            return false;
-        }
-
-        // Compare feature fingerprints (geometry type + coordinate structure)
-        const currentFingerprint = this._getGeoJsonFingerprint(current.features);
-        const nextFingerprint = this._getGeoJsonFingerprint(next.features);
-
-        return currentFingerprint !== nextFingerprint;
-    }
-
-    /**
-     * Generate a lightweight fingerprint for a features array
-     * Captures geometry types, IDs, and coordinate counts without full serialization
-     * @param {Array} features - Array of GeoJSON features
-     * @returns {string} Fingerprint string
-     * @private
-     */
-    _getGeoJsonFingerprint(features) {
-        let fingerprint = '';
-        for (let i = 0; i < features.length; i++) {
-            const feature = features[i];
-            const id = feature.id || feature.properties?.id || i;
-            const geomType = feature.geometry?.type || 'null';
-            const coordCount = this._countCoordinates(feature.geometry?.coordinates);
-            fingerprint += `${id}:${geomType}:${coordCount};`;
-        }
-        return fingerprint;
-    }
-
-    /**
-     * Count total coordinates in a geometry
-     * @param {Array} coordinates - GeoJSON coordinates array
-     * @returns {number} Total coordinate count
-     * @private
-     */
-    _countCoordinates(coordinates) {
-        if (!coordinates) return 0;
-        if (typeof coordinates[0] === 'number') {
-            // Single coordinate [lng, lat] or [lng, lat, alt]
-            return 1;
-        }
-        let count = 0;
-        for (const coord of coordinates) {
-            count += this._countCoordinates(coord);
-        }
-        return count;
-    }
 }
