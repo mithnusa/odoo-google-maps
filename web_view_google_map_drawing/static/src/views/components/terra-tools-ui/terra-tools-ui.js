@@ -1411,7 +1411,7 @@ export class TerraDrawToolsUI extends Component {
             } catch (error) {
                 console.error(`Failed to create ${name} mode:`, error);
                 this.notificationService.add(
-                    sprintf(_t('Failed to initialize drawing mode %s', name)),
+                    sprintf(_t('Failed to initialize drawing mode %s'), name),
                     { type: 'warning' }
                 );
             }
