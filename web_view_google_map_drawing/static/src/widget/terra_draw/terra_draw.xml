@@ -5,37 +5,52 @@
             <InMapSearchPlaces googleMap="googleMap"/>
             <div class="o_google_map_view" id="o_google_map_view" t-ref="map"></div>
             <Geolocate googleMap="googleMap" t-if="state.isMapReady"/>
-            <!-- Readonly Mode Banner for features with holes -->
-            <div class="o_complexity_banner" t-if="state.isMapReady and state.renderingMode === 'deckgl'">
-                <div class="alert alert-warning">
-                    <strong>Readonly Mode:</strong> Features contain polygons with holes (interior rings) which are not supported for editing.
-                </div>
-            </div>
 
-            <t t-if="props.readonly">
-                <!-- Conditional Rendering: DeckGL for complex features -->
-                <DeckGlEditor 
-                    dataGeoJson="geoJson" 
-                    googleMap="googleMap" 
-                    record="props.record" 
-                    t-if="state.isMapReady"/>
+            <t t-if="state.isMapReady">
+                <t t-if="props.readonly">
+                    <!-- Conditional Rendering: DeckGL for complex features -->
+                    <DeckGlEditor 
+                        dataGeoJson="geoJson" 
+                        googleMap="googleMap" 
+                        record="props.record"
+                        saveFeatures.bind="handleSave" 
+                        readonly="props.readonly"/>
+                </t>
+                <t t-elif="!props.readonly &amp;&amp; state.renderingMode === 'terra-draw'">
+                    <!-- Conditional Rendering: Terra Draw for simple features -->
+                    <TerraDrawToolsUI 
+                        dataGeoJson="geoJson" 
+                        googleMap="googleMap" 
+                        saveFeatures.bind="handleSave" 
+                        record="props.record"
+                        renderingMode="state.renderingMode"/>
+                </t>
+                <t t-elif="!props.readonly &amp;&amp; state.renderingMode === 'deckgl'">
+                    <!-- Conditional Rendering: DeckGL for complex features -->
+                    <DeckGlEditor 
+                        dataGeoJson="geoJson" 
+                        googleMap="googleMap" 
+                        record="props.record" 
+                        saveFeatures.bind="handleSave"
+                        renderingMode="state.renderingMode"
+                        readonly="props.readonly"/>
+                </t>
+                <t t-else="">
+                    <DeckGlEditor 
+                        dataGeoJson="geoJson" 
+                        googleMap="googleMap" 
+                        record="props.record" 
+                        saveFeatures.bind="handleSave"
+                        renderingMode="state.renderingMode"
+                        readonly="props.readonly"/>
+                </t>
             </t>
-            <t t-else="">
-                <!-- Conditional Rendering: Terra Draw for simple features -->
-                <TerraDrawToolsUI 
-                    dataGeoJson="geoJson" 
-                    googleMap="googleMap" 
-                    saveFeatures.bind="handleSave" 
-                    record="props.record" 
-                    t-if="state.isMapReady and state.renderingMode === 'terra-draw'"/>
-                
-                <!-- Conditional Rendering: DeckGL for complex features -->
-                <DeckGlEditor 
-                    dataGeoJson="geoJson" 
-                    googleMap="googleMap" 
-                    record="props.record" 
-                    t-if="state.isMapReady and state.renderingMode === 'deckgl'"/>
-            </t>
+        </div>
+        <!-- Readonly Mode Banner for features with holes -->
+        <div class="o_complexity_banner" t-if="state.isMapReady and state.renderingMode === 'deckgl'">
+            <p class="p-0 m-0 text-warning small">
+                *Features contain polygons with holes (interior rings) which are not supported for editing.
+            </p>
         </div>
     </div>
 </templates>

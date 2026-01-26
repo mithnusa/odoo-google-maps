@@ -12,10 +12,12 @@ The Google Maps Drawing has been deprecated ([source](https://developers.google.
 - **Drawing Tools**: Point, LineString, Polygon, Rectangle, Circle, and Freehand drawing modes
 - **GPU-Accelerated Rendering**: Deck.gl provides smooth 60fps rendering for 10k+ features
 - **Real-time Measurements**: Area, perimeter, length calculations using Turf.js
-- **GeoJSON Import**: Upload GeoJSON files directly into the drawing canvas
+- **GeoJSON Import/Export**: Upload and download GeoJSON files directly from the drawing canvas
 - **Undo/Redo**: Full history management for drawing operations
 - **Feature Simplification**: Reduce complex geometry for better editing performance
 - **Keyboard Shortcuts**: Efficient operation with keyboard controls
+- **3D Coordinate Support**: Automatic detection and rendering of 3D coordinates (with altitude)
+- **Smart Rendering Mode**: Automatically switches between Terra Draw and Deck.gl based on geometry complexity
 
 ## Keyboard Shortcuts
 
@@ -140,11 +142,56 @@ All libraries are bundled locally for reliability and offline capability:
 | [Deck.gl](https://deck.gl/) | GPU-accelerated rendering for large datasets |
 | [Turf.js](https://turfjs.org/) | Geospatial measurements and calculations |
 
+## Area Calculation
+
+The module uses Turf.js for accurate area calculations:
+
+- Supports both **Polygon** and **MultiPolygon** geometry types
+- Area is calculated in square meters
+- Total area is automatically computed when importing GeoJSON or saving features
+- Area values can be stored in a designated field using the `field_area` widget option
+
+## Import/Export GeoJSON
+
+Both Terra Draw and Deck.gl editors support importing and exporting GeoJSON files:
+
+### Import
+- Click the **Upload** button (↑) to import a GeoJSON file
+- Supported formats: `.geojson` and `.json` files
+- Maximum file size: 5MB
+- The imported GeoJSON is validated before being loaded
+
+### Export
+- Click the **Download** button (↓) to export current features as a GeoJSON file
+- The exported file is named `geojson_export_YYYY-MM-DD.geojson`
+- Internal properties (mode, midPoint, selectionPoint, _metadata) are automatically removed from the export
+
+## Rendering Modes
+
+The module automatically selects the appropriate rendering engine based on geometry complexity:
+
+| Condition | Rendering Engine | Reason |
+|-----------|------------------|--------|
+| Simple polygons without holes | Terra Draw | Full editing capabilities |
+| Polygons with holes (interior rings) | Deck.gl | Terra Draw doesn't support holes |
+| 3D coordinates (with altitude) | Deck.gl | Terra Draw doesn't support 3D |
+| Very complex features | Deck.gl | Better performance for large datasets |
+
 ## Known issues and limitations
 - Terra Draw doesn't support GeoJSON with holes or interior rings. Such GeoJSON will be rendered in read-only mode using Deck.gl.
+- Terra Draw doesn't support 3D coordinates (coordinates with altitude values). Such GeoJSON will be rendered using Deck.gl.
 - Editing very large GeoJSON data may lead to performance issues. Use the "Simplify Selected Feature" button in the drawing toolbar to reduce complexity, but be aware that this may result in a loss of detail.
 - Resize the browser window may cause the map to not render properly. To fix this issue, you can refresh the browser page.
 - GeoJSON file import is limited to 5MB file size.
+
+## Performance Optimizations
+
+The module includes several performance optimizations for handling large GeoJSON datasets:
+
+- **Chunked Processing**: Large feature sets are processed in chunks of 50 features to prevent UI blocking
+- **Lightweight Change Detection**: Uses fingerprinting (geometry type + coordinate count) instead of full JSON comparison
+- **Debounced Rendering**: Rendering operations are debounced to prevent excessive re-renders
+- **GPU Acceleration**: Deck.gl leverages WebGL for smooth rendering of 10,000+ features
 
 ## Authors
 - [Yopi Angi](https://www.github.com/gityopie)

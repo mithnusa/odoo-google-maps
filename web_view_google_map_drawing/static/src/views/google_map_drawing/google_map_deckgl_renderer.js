@@ -26,26 +26,8 @@ import {
     loadDeckGlAssets,
     loadTurfJSAssets,
 } from '../../utils/utils';
+import { DECKGL_CONFIG, STROKE_CONFIG } from '../../utils/map_config';
 
-/**
- * Deck.gl configuration constants
- */
-const DECKGL_CONFIG = {
-    // Visual styling
-    DEFAULT_COLORS: {
-        FILL: [70, 130, 180, 80], // Steel blue with 80% opacity
-        STROKE: [25, 25, 112, 255], // Midnight blue
-        SELECTED_FILL: [0, 123, 255, 120], // Bright blue with transparency
-        SELECTED_STROKE: [0, 86, 179, 255], // Deep blue
-        HOVERED_FILL: [255, 165, 0, 120], // Gold with transparency
-        HOVERED_STROKE: [255, 140, 0, 255], // Dark orange
-    },
-};
-
-const STROKE_CONFIG = { 
-    DEFAULT_WIDTH: 2, // Default stroke width in pixels
-    HOVER_WIDTH: 4,   // Stroke width on hover in pixels
-};
 
 /**
  * Deck.gl High-Performance Renderer Component

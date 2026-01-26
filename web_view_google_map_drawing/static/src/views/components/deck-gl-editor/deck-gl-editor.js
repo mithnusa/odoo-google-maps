@@ -11,118 +11,27 @@ import {
     onWillUpdateProps,
 } from '@odoo/owl';
 import { hexToRgba, generateColor } from '@web_view_google_map/views/google_map/utils';
-import { loadDeckGlAssets } from '../../../utils/utils';
-
-
-/**
- * Deck.gl configuration constants
- */
-const DECKGL_CONFIG = {
-    // Rendering performance
-    MAX_FEATURES_PER_BATCH: 50000, // Maximum features to process per batch
-    VIEWPORT_PADDING: 0.1, // Padding around viewport for culling (10%)
-
-    // Memory management
-    FEATURE_POOL_SIZE: 100000, // Pre-allocated feature object pool
-    GC_INTERVAL: 30000, // Garbage collection interval (30s)
-    MEMORY_THRESHOLD: 0.8, // Memory usage threshold for cleanup
-
-    // Visual styling
-    DEFAULT_COLORS: {
-        FILL: [70, 130, 180, 80], // Steel blue with 80% opacity
-        STROKE: [25, 25, 112, 255], // Midnight blue
-        SELECTED_FILL: [255, 215, 0, 120], // Gold with transparency
-        SELECTED_STROKE: [255, 140, 0, 255], // Dark orange
-    },
-
-    // Interactive features
-    HOVER_RADIUS: 10, // Pixels for hover detection
-    SELECT_RADIUS: 15, // Pixels for selection detection
-    ANIMATION_DURATION: 300, // Milliseconds for smooth transitions
-};
-
-/**
- * Enable debug mode to see the flag canvas
- * @type {boolean}
- */
-window.DEBUG_DECKGL = true;
-
-/**
- * Create icon atlas and mapping for Deck.gl IconLayer
- */
-const createIconAtlas = () => {
-    const canvas = document.createElement('canvas');
-    const size = 64;
-    canvas.width = size;
-    canvas.height = size;
-    const ctx = canvas.getContext('2d');
-    
-    // Clear canvas with transparent background
-    ctx.clearRect(0, 0, size, size);
-    
-    // Create a simple flag icon on canvas
-    ctx.fillStyle = '#dc3545'; // Red flag
-    ctx.strokeStyle = '#2d3748'; // Dark pole
-    ctx.lineWidth = 3;
-
-    // Draw flag pole
-    ctx.beginPath();
-    ctx.moveTo(12, 8);
-    ctx.lineTo(12, 56);
-    ctx.stroke();
-    
-    // Draw flag
-    ctx.fillStyle = '#dc3545';
-    ctx.beginPath();
-    ctx.moveTo(12, 8);
-    ctx.lineTo(48, 16);
-    ctx.lineTo(40, 28);
-    ctx.lineTo(48, 40);
-    ctx.lineTo(12, 32);
-    ctx.closePath();
-    ctx.fill();
-    
-    // Add border to flag
-    ctx.strokeStyle = '#721c24';
-    ctx.lineWidth = 1;
-    ctx.stroke();
-    
-    // Draw pole base
-    ctx.fillStyle = '#2d3748';
-    ctx.beginPath();
-    ctx.arc(12, 56, 4, 0, 2 * Math.PI);
-    ctx.fill();
-
-    return canvas;
-};
-
-/**
- * Icon mapping for Deck.gl IconLayer
- */
-const ICON_MAPPING = {
-    flag: {
-        x: 0,
-        y: 0,
-        width: 64,
-        height: 64,
-        anchorY: 56, // Anchor at the bottom of the pole
-        anchorX: 12, // Anchor at the pole center
-        mask: false
-    }
-};
+import { loadDeckGlAssets, validateGeoJson, calculateFeaturesTotalArea } from '../../../utils/utils';
+import { DECKGL_CONFIG, STROKE_CONFIG } from '../../../utils/map_config';
+import { UploadGeoJsonFileDialog } from '../upload_geojson_dialog/upload_geojson_dialog';
 
 
 export class DeckGlEditor extends Component {
     static template = 'web_view_google_map_drawing.DeckGlEditor';
     static props = {
+        readonly: Boolean,
+        renderingMode: String,
         googleMap: Object,
         dataGeoJson: { type: Object, optional: true },
+        saveFeatures: Function,
         record: Object,
         onSelectionChange: { type: Function, optional: true }, // Callback for selection changes
     };
 
     setup() {
         this.notificationService = useService('notification');
+        this.dialogService = useService('dialog');
+        this.uiService = useService('ui');
         this.editorRef = useRef('editor');
         this.googleMapBounds = null;
         this.deckglOverlay = null;
@@ -137,15 +46,11 @@ export class DeckGlEditor extends Component {
         this.isDragging = false;
         this.dragStartPosition = null;
         this.dragFeatureIds = new Set();
-        
-        // Icon atlas for flag markers
-        this.iconAtlas = null;
-        
+
         this.debounceRenderGeoJsonData = debounce(this.renderGeoJsonData.bind(this), 500);
 
         onWillStart(async () => {
-            await this._loadDeckGLAssets();
-            this._createIconAtlas();
+            await loadDeckGlAssets();
         });
 
         useEffect(
@@ -159,35 +64,17 @@ export class DeckGlEditor extends Component {
 
         onWillDestroy(() => this._cleanUp());
 
-        onWillUpdateProps(() => {
+        onWillUpdateProps((nextProps) => {
             if (this.props.dataGeoJson && this.deckglOverlay) {
+                if (nextProps.renderingMode !== 'deckgl') {
+                    console.warn('Rendering mode changed, skipping Deck.gl data render');
+                    return;
+                }
                 this.debounceRenderGeoJsonData();
             }
         });
     }
 
-
-    /**
-     * Load Deck.gl and Nebula GL assets and dependencies
-     * @private
-     */
-    async _loadDeckGLAssets() {
-        loadDeckGlAssets();
-    }
-
-    /**
-     * Create icon atlas for flag markers
-     * @private
-     */
-    _createIconAtlas() {
-        try {
-            this.iconAtlas = createIconAtlas();
-        } catch (error) {
-            console.error('Failed to create icon atlas:', error);
-            this.iconAtlas = null;
-        }
-    }
-    
     async _initializeDeckGLOverlay() {
         if (!window.deck || !this.props.googleMap) {
             throw new Error('Deck.gl or Google Maps not available');
@@ -334,255 +221,104 @@ export class DeckGlEditor extends Component {
         });
     }
 
-    renderGeoJsonData() {
-        if (!this.deckglOverlay || !this.props.dataGeoJson || !this.props.dataGeoJson.features) {
-            console.log('Deck.gl overlay or GeoJSON data not available');
+    renderGeoJsonData(geojson) {
+        if (this.props.renderingMode !== 'deckgl') {
+            console.warn('Rendering mode is not deckgl, skipping renderGeoJsonData');
             return;
         }
-        
-        // Ensure all features have unique IDs
-        this.props.dataGeoJson.features.forEach((feature, index) => {
-            if (!feature.properties) feature.properties = {};
-            if (!feature.properties.id) {
-                feature.properties.id = `feature_${index}`;
+        this.uiService.block();
+        try {
+            const dataGeoJson = geojson || this.props.dataGeoJson;
+            if (!this.deckglOverlay || !dataGeoJson || !dataGeoJson.features) {
+                console.log('Deck.gl overlay or GeoJSON data not available');
+                this.uiService.unblock();
+                return;
             }
-        });
 
-        const polygons = this.props.dataGeoJson.features.filter(f => ['Polygon', 'MultiPolygon'].includes(f.geometry.type));
-        const points = this.props.dataGeoJson.features.filter(f => ['Point', 'MultiPoint'].includes(f.geometry.type));
-        const lines = this.props.dataGeoJson.features.filter(f => ['LineString', 'MultiLineString'].includes(f.geometry.type));
-
-        const color = generateColor();
-        const normalFillColor = hexToRgba(color, 0.4, DECKGL_CONFIG.DEFAULT_COLORS.FILL);
-        const normalStrokeColor = hexToRgba(color, 1.0, DECKGL_CONFIG.DEFAULT_COLORS.FILL);
-
-        const layers = [
-            // Polygon layer for filled shapes
-            new window.deck.GeoJsonLayer({
-                id: 'polygonsLayer',
-                data: polygons,
-                stroked: true,
-                filled: true,
-                lineWidthMinPixels: 2,
-                opacity: 0.8,
-                pickable: true,
-                autoHighlight: false, // We handle highlighting manually
-                
-                // Dynamic styling based on selection/hover state
-                getFillColor: d => this._getFeatureFillColor(d, normalFillColor),
-                getLineColor: d => this._getFeatureStrokeColor(d, normalStrokeColor),
-                getLineWidth: d => this._getFeatureLineWidth(d, 2),
-                
-                // Update triggers for re-rendering when selection changes
-                updateTriggers: {
-                    getFillColor: [this.state.selectedFeatures, this.state.hoveredFeatureId],
-                    getLineColor: [this.state.selectedFeatures, this.state.hoveredFeatureId],
-                    getLineWidth: [this.state.selectedFeatures, this.state.hoveredFeatureId],
+            // Ensure all features have unique IDs
+            dataGeoJson.features.forEach((feature, index) => {
+                if (!feature.properties) feature.properties = {};
+                if (!feature.properties.id) {
+                    feature.properties.id = `feature_${index}`;
                 }
-            }),
+            });
 
-            // Line layer for LineString geometries
-            new window.deck.GeoJsonLayer({
-                id: 'linesLayer',
-                data: lines,
-                filled: false,
-                stroked: true,
-                pickable: true,
-                autoHighlight: false, // We handle highlighting manually
-                lineWidthMinPixels: 2,
-                
-                // Dynamic styling
-                getLineColor: d => this._getFeatureStrokeColor(d, normalStrokeColor),
-                getLineWidth: d => this._getFeatureLineWidth(d, 3),
-                
-                // Update triggers
-                updateTriggers: {
-                    getLineColor: [this.state.selectedFeatures, this.state.hoveredFeatureId],
-                    getLineWidth: [this.state.selectedFeatures, this.state.hoveredFeatureId],
-                }
-            }),
+            const polygons = dataGeoJson.features.filter(f => ['Polygon', 'MultiPolygon'].includes(f.geometry.type));
+            const points = dataGeoJson.features.filter(f => ['Point', 'MultiPoint'].includes(f.geometry.type));
+            const lines = dataGeoJson.features.filter(f => ['LineString', 'MultiLineString'].includes(f.geometry.type));
 
-            // Try IconLayer for flags, fallback to ScatterplotLayer if it fails
-            this._createPointLayer(points, normalFillColor, normalStrokeColor)
-        ];
+            const color = generateColor();
+            const normalFillColor = hexToRgba(color, 0.4, DECKGL_CONFIG.DEFAULT_COLORS.FILL);
+            const normalStrokeColor = hexToRgba(color, 1.0, DECKGL_CONFIG.DEFAULT_COLORS.FILL);
 
-        this.deckglOverlay.setProps({ layers });
-        this.centerMapToFeatures(this.props.dataGeoJson.features);
-    }
+            const layers = [
+                // Polygon layer for filled shapes
+                new window.deck.GeoJsonLayer({
+                    id: 'polygonsLayer',
+                    data: polygons,
+                    filled: true,
+                    stroked: true,
+                    wrapLongitude: true,
+                    getFillColor: () => DECKGL_CONFIG.DEFAULT_COLORS.SELECTED_FILL,
+                    getLineColor: () => DECKGL_CONFIG.DEFAULT_COLORS.SELECTED_STROKE,
+                    getLineWidth: () => STROKE_CONFIG.DEFAULT_WIDTH,
+                    lineWidthMinPixels: STROKE_CONFIG.DEFAULT_WIDTH,
+                    lineWidthMaxPixels: STROKE_CONFIG.HOVER_WIDTH,
+                    pickable: true,
+                    autoHighlight: true,
+                    highlightColor: DECKGL_CONFIG.DEFAULT_COLORS.HOVERED_FILL,
+                }),
 
-    /**
-     * Create point layer - try IconLayer first, fallback to ScatterplotLayer
-     * @private
-     */
-    _createPointLayer(points, normalFillColor, normalStrokeColor) {
-        // Check if IconLayer is available and atlas is ready
-        if (window.deck.IconLayer && this.iconAtlas) {
-            try {
-                return new window.deck.IconLayer({
+                // Line layer for LineString geometries
+                new window.deck.GeoJsonLayer({
+                    id: 'linesLayer',
+                    data: lines,
+                    filled: false,
+                    stroked: true,
+                    wrapLongitude: true,
+                    getLineColor: () => DECKGL_CONFIG.DEFAULT_COLORS.SELECTED_STROKE,
+                    getLineWidth: () => 3,
+                    lineWidthUnits: 'pixels',
+                    lineWidthMinPixels: 3,
+                    lineWidthMaxPixels: 8,
+                    pickable: true,
+                    autoHighlight: true,
+                    highlightColor: DECKGL_CONFIG.DEFAULT_COLORS.HOVERED_STROKE,
+                }),
+
+                // ScatterplotLayer for point features
+                new window.deck.ScatterplotLayer({
                     id: 'pointsLayer',
                     data: points.map(f => ({
                         ...f,
                         position: f.geometry.type === 'Point'
                             ? f.geometry.coordinates
-                            : f.geometry.coordinates[0],
-                        icon: 'flag'
+                            : f.geometry.coordinates[0]
                     })),
-                    iconAtlas: this.iconAtlas,
-                    iconMapping: ICON_MAPPING,
                     getPosition: d => d.position,
-                    getIcon: d => d.icon,
-                    sizeScale: 1,
-                    sizeMinPixels: 24,
-                    sizeMaxPixels: 80,
+                    getRadius: 6,
+                    radiusUnits: 'pixels',
+                    radiusMinPixels: 6,
+                    radiusMaxPixels: 20,
+                    stroked: true,
+                    filled: true,
+                    getFillColor: normalFillColor,
+                    getLineColor: normalStrokeColor,
+                    lineWidthMinPixels: 2,
+                    lineWidthMaxPixels: 4,
                     pickable: true,
-                    autoHighlight: false,
-                    billboard: true,
-                    alphaCutoff: 0.05,
-                    
-                    // Dynamic sizing based on state
-                    getSize: d => this._getFeatureIconSize(d, 48),
-                    getColor: d => this._getFeatureIconColor(d),
-                    
-                    // Update triggers
-                    updateTriggers: {
-                        getSize: [this.state.selectedFeatures, this.state.hoveredFeatureId],
-                        getColor: [this.state.selectedFeatures, this.state.hoveredFeatureId],
-                    }
-                });
-            } catch (error) {
-                console.error('Failed to create IconLayer, falling back to ScatterplotLayer:', error);
-            }
-        }
+                    autoHighlight: true,
+                    highlightColor: DECKGL_CONFIG.DEFAULT_COLORS.HOVERED_FILL,
+                })
+            ];
 
-        // Fallback to ScatterplotLayer
-        return new window.deck.ScatterplotLayer({
-            id: 'pointsLayer',
-            data: points.map(f => ({
-                ...f,
-                position: f.geometry.type === 'Point'
-                    ? f.geometry.coordinates
-                    : f.geometry.coordinates[0]
-            })),
-            getPosition: d => d.position,
-            radiusMinPixels: 8,
-            radiusMaxPixels: 50,
-            pickable: true,
-            autoHighlight: false,
-            
-            // Dynamic styling
-            getRadius: d => this._getFeatureIconSize(d, 15), // Reuse the same sizing logic
-            getFillColor: d => this._getFeatureIconColor(d), // Reuse the same coloring logic
-            getLineColor: d => this._getFeatureStrokeColor(d, normalStrokeColor),
-            getLineWidth: d => this._getFeatureLineWidth(d, 2),
-            
-            // Update triggers
-            updateTriggers: {
-                getRadius: [this.state.selectedFeatures, this.state.hoveredFeatureId],
-                getFillColor: [this.state.selectedFeatures, this.state.hoveredFeatureId],
-                getLineColor: [this.state.selectedFeatures, this.state.hoveredFeatureId],
-                getLineWidth: [this.state.selectedFeatures, this.state.hoveredFeatureId],
-            }
-        });
-    }
-
-    /**
-     * Get dynamic fill color based on feature state
-     */
-    _getFeatureFillColor(feature, normalColor) {
-        const featureId = feature.properties?.id;
-        
-        if (featureId === this.state.hoveredFeatureId) {
-            // Hover state - bright yellow/gold
-            return [255, 255, 0, 100];
+            this.deckglOverlay.setProps({ layers });
+            this.centerMapToFeatures(dataGeoJson.features);
+        } catch (error) {
+            console.error('Error rendering GeoJSON data in Deck.gl overlay:', error);
+        } finally {
+            this.uiService.unblock();
         }
-        
-        if (this.state.selectedFeatures.has(featureId)) {
-            // Selected state - gold with higher opacity
-            return DECKGL_CONFIG.DEFAULT_COLORS.SELECTED_FILL;
-        }
-        
-        // Normal state
-        return normalColor;
-    }
-
-    /**
-     * Get dynamic stroke color based on feature state  
-     */
-    _getFeatureStrokeColor(feature, normalColor) {
-        const featureId = feature.properties?.id;
-        
-        if (featureId === this.state.hoveredFeatureId) {
-            // Hover state - bright orange
-            return [255, 165, 0, 255];
-        }
-        
-        if (this.state.selectedFeatures.has(featureId)) {
-            // Selected state - dark orange
-            return DECKGL_CONFIG.DEFAULT_COLORS.SELECTED_STROKE;
-        }
-        
-        // Normal state
-        return normalColor;
-    }
-
-    /**
-     * Get dynamic line width based on feature state
-     */
-    _getFeatureLineWidth(feature, normalWidth) {
-        const featureId = feature.properties?.id;
-        
-        if (featureId === this.state.hoveredFeatureId) {
-            // Hover state - thicker line
-            return normalWidth + 2;
-        }
-        
-        if (this.state.selectedFeatures.has(featureId)) {
-            // Selected state - slightly thicker
-            return normalWidth + 1;
-        }
-        
-        // Normal state
-        return normalWidth;
-    }
-
-    /**
-     * Get dynamic icon size based on feature state
-     */
-    _getFeatureIconSize(feature, normalSize) {
-        const featureId = feature.properties?.id;
-        
-        if (featureId === this.state.hoveredFeatureId) {
-            // Hover state - larger icon
-            return normalSize * 1.5;
-        }
-        
-        if (this.state.selectedFeatures.has(featureId)) {
-            // Selected state - slightly larger
-            return normalSize * 1.2;
-        }
-        
-        // Normal state
-        return normalSize;
-    }
-
-    /**
-     * Get dynamic icon color based on feature state
-     */
-    _getFeatureIconColor(feature) {
-        const featureId = feature.properties?.id;
-        
-        if (featureId === this.state.hoveredFeatureId) {
-            // Hover state - bright yellow/gold
-            return [255, 215, 0, 255];
-        }
-        
-        if (this.state.selectedFeatures.has(featureId)) {
-            // Selected state - orange
-            return [255, 140, 0, 255];
-        }
-        
-        // Normal state - red flag
-        return [220, 53, 69, 255];
     }
 
     async centerMapToFeatures(features) {
@@ -644,7 +380,141 @@ export class DeckGlEditor extends Component {
         this._notifySelectionChange();
     }
 
+    /**
+     * Computed property to check if there is data to export
+     * @returns {boolean}
+     */
+    get hasDataToExport() {
+        return this.props.dataGeoJson?.features?.length > 0;
+    }
+
+    /**
+     * Handle Import button click - opens file upload dialog
+     */
+    onClickImport() {
+        this.dialogService.add(UploadGeoJsonFileDialog, {
+            confirm: (file) => this._processImportedFile(file),
+            cancel: () => {},
+        });
+    }
+
+    /**
+     * Process the imported GeoJSON file
+     * @param {File} file - The uploaded file
+     * @returns {Promise<boolean>} - Success status
+     * @private
+     */
+    async _processImportedFile(file) {
+        if (!file) {
+            this.notificationService.add(_t('No file was uploaded.'), { type: 'danger' });
+            return false;
+        }
+
+        return new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                try {
+                    const geojson = JSON.parse(e.target.result);
+                    const isValid = validateGeoJson(geojson, {
+                        requireFeatures: true,
+                        validateGeometry: true,
+                        strict: false,
+                    });
+                    if (!isValid) {
+                        this.notificationService.add(
+                            _t('The imported file is not a valid GeoJSON.'),
+                            { type: 'danger' }
+                        );
+                        resolve(false);
+                        return;
+                    }
+                    // Update the data and re-render
+                    this.notificationService.add(
+                        _t('GeoJSON file imported successfully.'),
+                        { type: 'success' }
+                    );
+                    const totalArea = calculateFeaturesTotalArea(geojson.features);
+                    await this.props.saveFeatures(geojson, totalArea);
+                    resolve(true);
+                } catch (error) {
+                    console.error('Error parsing imported GeoJSON file:', error);
+                    this.notificationService.add(
+                        _t('Failed to parse the imported GeoJSON file.'),
+                        { type: 'danger' }
+                    );
+                    resolve(false);
+                }
+            };
+            reader.onerror = () => {
+                this.notificationService.add(
+                    _t('Failed to read the imported GeoJSON file.'),
+                    { type: 'danger' }
+                );
+                resolve(false);
+            };
+            reader.readAsText(file);
+        });
+    }
+
+    /**
+     * Handle Export button click - downloads current GeoJSON data
+     */
+    onClickExport() {
+        if (!this.hasDataToExport) {
+            this.notificationService.add(_t('No data available to export.'), { type: 'warning' });
+            return;
+        }
+
+        try {
+            // Create clean GeoJSON export
+            const exportData = {
+                type: 'FeatureCollection',
+                features: this.props.dataGeoJson.features.map((feature) => ({
+                    type: 'Feature',
+                    geometry: feature.geometry,
+                    properties: this._cleanPropertiesForExport(feature.properties || {}),
+                })),
+            };
+
+            const jsonString = JSON.stringify(exportData, null, 2);
+            const blob = new Blob([jsonString], { type: 'application/geo+json' });
+            const url = URL.createObjectURL(blob);
+
+            const timestamp = new Date().toISOString().slice(0, 10);
+            const filename = `geojson_export_${timestamp}.geojson`;
+
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+
+            this.notificationService.add(_t('GeoJSON exported successfully.'), { type: 'success' });
+        } catch (error) {
+            console.error('Error exporting GeoJSON:', error);
+            this.notificationService.add(_t('Failed to export GeoJSON file.'), { type: 'danger' });
+        }
+    }
+
+    /**
+     * Clean properties for export - remove internal/transient properties
+     * @param {Object} properties - Feature properties
+     * @returns {Object} Cleaned properties
+     * @private
+     */
+    _cleanPropertiesForExport(properties) {
+        const cleanProps = { ...properties };
+        // Remove internal properties that should not be exported
+        const internalProps = ['mode', 'midPoint', 'selectionPoint', '_metadata'];
+        internalProps.forEach((prop) => delete cleanProps[prop]);
+        return cleanProps;
+    }
+
     _cleanUp() {
+        console.log('Cleaning up Deck.gl overlay resources');
         // Clear drag state
         this.isDragging = false;
         this.dragStartPosition = null;

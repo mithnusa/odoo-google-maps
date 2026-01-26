@@ -1,3 +1,49 @@
 .deck-gl-editor {
     position: relative;
+
+    .o_deckgl_toolbar {
+        // position: absolute;
+        top: 10px;
+        left: 10px;
+        display: flex;
+        flex-flow: column;
+        gap: 3px;
+        padding: 6px;
+        z-index: 1000;
+
+        .mode-button {
+            width: 32px;
+            height: 32px;
+            border: 1px solid #ccc;
+            background-color: #000000;
+            padding: 4px;
+            box-sizing: border-box;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            span {
+                color: white;
+            }
+
+            &:hover {
+                background-color: #333333;
+            }
+
+            &:active {
+                background-color: #71639e;
+            }
+
+            &:disabled,
+            &[disabled] {
+                background-color: #dcdcdc;
+                cursor: not-allowed;
+
+                span {
+                    color: #888888;
+                }
+            }
+        }
+    }
 }
