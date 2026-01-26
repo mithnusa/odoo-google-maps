@@ -148,7 +148,7 @@ export class GoogleMapTerraDrawField extends BaseGoogleMapComponent {
      */
     getMapOptions() {
         return MAP_OPTIONS;
-    };
+    }
 
     /**
      * Determine rendering mode based on feature support
