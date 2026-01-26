@@ -50,7 +50,7 @@
         <!-- Readonly Mode Banner for features with holes -->
         <div class="o_complexity_banner" t-if="state.isMapReady and state.renderingMode === 'deckgl'">
             <p class="p-0 m-0 text-warning small">
-                *Features contain complex geometry (polygon with holes or 3D coordinates) are not supported for editing.
+                *Features containing complex geometry (polygon with holes or 3D coordinates) are not supported for editing.
             </p>
         </div>
     </div>
