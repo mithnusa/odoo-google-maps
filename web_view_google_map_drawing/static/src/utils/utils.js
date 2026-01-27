@@ -6,50 +6,18 @@
  * and the readonly Terra Draw renderer.
  *
  * Key Features:
- * - Feature validation and proces        default:
-            return {
-                fillColor: color,
-                fillOpacity: TERRA_DRAW_DEFAULT_CONFIG.defaultFillOpacity,
-                outlineColor: color,
-                outlineWidth: TERRA_DRAW_DEFAULT_CONFIG.defaultOutlineWidth,
-            }; - UUID generation compatible with Terra Draw
+ * - Asset loading for Terra Draw, Deck.gl, and Turf.js
+ * - GeoJSON validation
  * - Coordinate normalization
- * - MultiPolygon processing and splitting
- * - Feature structure creation and validation
- * - Terra Draw compatibility utilities
+ * - Area calculation using Turf.js
+ * - Measurement formatting
  *
  * @author Yan - https://github.com/yan
  * @version 1.0.0
- * @requires Terra Draw Library
  */
 
 import { loadJS } from '@web/core/assets';
-import { formatNumber, generateUUID } from '@web_view_google_map/views/google_map/utils';
-
-/**
- * Terra Draw mode mapping
- */
-export const TERRA_DRAW_MODE_MAP = {
-    Point: 'point',
-    LineString: 'linestring',
-    Polygon: 'polygon',
-    Circle: 'circle',
-    Rectangle: 'rectangle',
-    MultiPoint: 'point',
-    MultiLineString: 'linestring',
-    MultiPolygon: 'polygon',
-};
-
-/**
- * Default Terra Draw configuration
- */
-export const TERRA_DRAW_DEFAULT_CONFIG = {
-    coordinatePrecision: 10,
-    defaultFillOpacity: 0.3,
-    // Default outline width
-    defaultOutlineWidth: 0.2,
-    uuidVersion: 4,
-};
+import { formatNumber } from '@web_view_google_map/views/google_map/utils';
 
 export const TERRA_DRAW_CONFIG = {
     COORDINATE_PRECISION: 9,
@@ -99,7 +67,9 @@ export async function loadTerraDrawAssets() {
     }
     try {
         await loadJS('/web_view_google_map_drawing/static/lib/terra-draw/terra-draw.umd.js');
-        await loadJS('/web_view_google_map_drawing/static/lib/terra-draw/terra-draw-google-maps-adapter.umd.js');
+        await loadJS(
+            '/web_view_google_map_drawing/static/lib/terra-draw/terra-draw-google-maps-adapter.umd.js'
+        );
         if (!window.terraDraw || !window.terraDrawGoogleMapsAdapter) {
             throw new Error('Terra Draw or its Google Maps adapter failed to load correctly.');
         }
@@ -140,70 +110,9 @@ export async function loadTurfJSAssets() {
 }
 
 /**
- * Validate if a feature meets Terra Draw requirements
- * @param {Object} feature - Feature to validate
- * @returns {boolean} - True if valid
- */
-export function validateTerraDrawFeature(feature) {
-    if (!feature) return false;
-
-    // Check required GeoJSON structure
-    if (!feature.type || feature.type !== 'Feature') {
-        console.error('Missing or invalid type:', feature.type);
-        return false;
-    }
-
-    if (!feature.id || typeof feature.id !== 'string') {
-        console.error('Missing or invalid id:', feature.id);
-        return false;
-    }
-
-    if (!feature.geometry || !feature.geometry.type || !feature.geometry.coordinates) {
-        console.error('Missing or invalid geometry:', feature.geometry);
-        return false;
-    }
-
-    if (!feature.properties || typeof feature.properties !== 'object') {
-        console.error('Missing or invalid properties:', feature.properties);
-        return false;
-    }
-
-    // Check Terra Draw specific requirements
-    if (!feature.properties.mode || typeof feature.properties.mode !== 'string') {
-        console.error('Missing mode property:', feature.properties.mode);
-        return false;
-    }
-
-    return true;
-}
-
-/**
- * Strip altitude (3rd coordinate) from coordinates to convert 3D to 2D
- * Terra Draw only supports 2D coordinates [longitude, latitude]
- * @param {Array} coordinates - Coordinate array (may be nested for polygons/lines)
- * @param {string} geometryType - GeoJSON geometry type
- * @returns {Array} - 2D coordinates
- */
-export function stripAltitude(coordinates, geometryType) {
-    if (!Array.isArray(coordinates)) return coordinates;
-
-    if (geometryType === 'Point') {
-        // Point: [lng, lat, alt?] -> [lng, lat]
-        return coordinates.slice(0, 2);
-    } else if (geometryType === 'LineString') {
-        // LineString: [[lng, lat, alt?], ...] -> [[lng, lat], ...]
-        return coordinates.map((coord) => coord.slice(0, 2));
-    } else if (geometryType === 'Polygon') {
-        // Polygon: [[[lng, lat, alt?], ...], ...] -> [[[lng, lat], ...], ...]
-        return coordinates.map((ring) => ring.map((coord) => coord.slice(0, 2)));
-    }
-    return coordinates;
-}
-
-/**
  * Normalize coordinates to remove excessive precision
  * @param {Array} coordinates - Coordinate array to normalize
- * @param {number} precision - Number of decimal places (default: 10)
+ * @param {number} precision - Number of decimal places (default: 9)
  * @returns {Array} - Normalized coordinates
  */
 export function normalizeCoordinates(coordinates, precision = 9) {
@@ -219,377 +128,9 @@ export function normalizeCoordinates(coordinates, precision = 9) {
     });
 }
 
-/**
- * Process complex MultiPolygon by splitting into individual polygons
- * @param {Object} multiPolygonFeature - Original MultiPolygon feature
- * @param {string} color - Color for the features
- * @param {boolean} isReadonly - Whether features should be readonly
- * @returns {Array} - Array of individual polygon features
- */
-export function processComplexMultiPolygon(multiPolygonFeature, color, isReadonly = false) {
-    const polygonFeatures = [];
-    const coordinates = multiPolygonFeature.geometry.coordinates;
-
-    coordinates.forEach((polygonCoords, index) => {
-        // Create individual polygon feature
-        const polygonFeature = {
-            type: 'Feature',
-            id: generateUUID(), // Generate Terra Draw compatible UUID
-            geometry: {
-                type: 'Polygon',
-                coordinates: normalizeCoordinates(polygonCoords),
-            },
-            properties: {
-                ...multiPolygonFeature.properties,
-                mode: 'polygon',
-                originalFeatureId: multiPolygonFeature.id,
-                partIndex: index,
-                totalParts: coordinates.length,
-            },
-        };
-
-        polygonFeatures.push(polygonFeature);
-    });
-
-    return polygonFeatures;
-}
-
-/**
- * Create Terra Draw compatible feature from GeoJSON feature
- * @param {Object} feature - Original GeoJSON feature
- * @param {string} color - Color for the feature
- * @param {boolean} isReadonly - Whether feature should be readonly
- * @returns {Object} - Terra Draw compatible feature
- */
-export function createTerraDrawFeature(feature, color, isReadonly = false) {
-    const geometry = feature.geometry;
-
-    // Normalize coordinates
-    const normalizedGeometry = {
-        ...geometry,
-        coordinates: normalizeCoordinates(geometry.coordinates),
-    };
-
-    // Generate Terra Draw compatible UUID if no ID exists
-    const featureId = feature.id || generateUUID();
-
-    // Determine Terra Draw mode based on geometry type
-    const modeMap = {
-        Point: 'point',
-        LineString: 'linestring',
-        Polygon: 'polygon',
-        Circle: 'circle',
-        Rectangle: 'rectangle',
-    };
-
-    const mode = modeMap[geometry.type] || 'polygon';
-
-    // Create Terra Draw feature
-    const terraDrawFeature = {
-        type: 'Feature',
-        id: featureId,
-        geometry: normalizedGeometry,
-        properties: {
-            ...feature.properties,
-            mode: mode,
-            // Permissions (readonly or editable)
-            // ...getFeaturePermissions(isReadonly),
-            // Styling based on geometry type
-            // ...getStylePropertiesForGeometry(geometry.type, color),
-        },
-    };
-
-    return terraDrawFeature;
-}
-
-/**
- * Get feature permissions based on readonly status
- * @param {boolean} isReadonly - Whether feature should be readonly
- * @returns {Object} - Permission properties
- */
-export function getFeaturePermissions(isReadonly) {
-    if (isReadonly) {
-        return {
-            editable: false,
-            draggable: false,
-            rotateable: false,
-            scaleable: false,
-            deletable: false,
-            coordinatesDraggable: false,
-            coordinatesDeletable: false,
-            coordinatesAddable: false,
-            midpoints: false,
-        };
-    } else {
-        return {
-            editable: true,
-            draggable: true,
-            rotateable: true,
-            scaleable: true,
-            deletable: true,
-            coordinatesDraggable: true,
-            coordinatesDeletable: true,
-            coordinatesAddable: true,
-            midpoints: true,
-        };
-    }
-}
-
-/**
- * Get style properties for different geometry types
- * @param {string} geometryType - Type of geometry
- * @param {string} color - Color for the feature
- * @returns {Object} - Style properties
- */
-export function getStylePropertiesForGeometry(geometryType, color) {
-    switch (geometryType) {
-        case 'Point':
-            return {
-                pointColor: color,
-                pointOutlineColor: color,
-            };
-
-        case 'LineString':
-        case 'MultiLineString':
-            return {
-                lineColor: color,
-                pointColor: color,
-            };
-
-        case 'Polygon':
-        case 'MultiPolygon':
-        case 'Rectangle':
-        case 'Circle':
-            return {
-                fillColor: color,
-                fillOpacity: TERRA_DRAW_DEFAULT_CONFIG.defaultFillOpacity,
-                outlineColor: color,
-                outlineWidth: TERRA_DRAW_DEFAULT_CONFIG.defaultOutlineWidth,
-            };
-
-        default:
-            return {
-                fillColor: color,
-                fillOpacity: 0.3,
-                outlineColor: color,
-                outlineWidth: TERRA_DRAW_DEFAULT_CONFIG.defaultOutlineWidth,
-            };
-    }
-}
-
-/**
- * Process GeoJSON features with enhanced MultiPolygon handling
- * @param {Object} geoJsonData - GeoJSON data
- * @param {string} color - Color for the features
- * @param {boolean} isReadonly - Whether features should be readonly
- * @returns {Array} - Processed Terra Draw features
- */
-export function processGeoJsonFeatures(geoJsonData, recordId, color, isReadonly = false) {
-    const processedFeatures = [];
-
-    geoJsonData.features.forEach((feature, featureIndex) => {
-        const geometry = feature.geometry;
-        feature.properties = Object.assign(feature.properties || {}, { odoo: recordId });;
-
-        if (geometry.type === 'MultiPolygon') {
-            // Split MultiPolygon into individual polygons
-            const splitPolygons = processComplexMultiPolygon(feature, color, isReadonly);
-            processedFeatures.push(...splitPolygons);
-        } else {
-            // Process single geometry features
-            const processedFeature = createTerraDrawFeature(feature, color, isReadonly);
-            if (processedFeature) {
-                processedFeatures.push(processedFeature);
-            }
-        }
-    });
-
-    return processedFeatures;
-}
-
-/**
- * Add features to Terra Draw with comprehensive debugging
- * @param {Object} terraDrawInstance - Terra Draw instance
- * @param {Array} features - Features to add
- * @param {string} context - Context for debugging (e.g., 'readonly', 'editable')
- * @returns {Promise<boolean>} - Success status
- */
-export async function addFeaturesToTerraDrawWithDebugging(
-    terraDrawInstance,
-    features,
-    context = ''
-) {
-    try {
-        // Validate first feature
-        if (features.length > 0) {
-            const isValid = validateTerraDrawFeature(features[0]);
-            if (!isValid) {
-                console.error(`Invalid feature in context ${context}:`, features[0]);
-                return false;
-            }
-        }
-
-        // Ensure Terra Draw is in select mode for viewing features
-        if (terraDrawInstance.getMode() !== 'select') {
-            terraDrawInstance.setMode('select');
-        }
-        
-        // Add features to Terra Draw
-        terraDrawInstance.addFeatures(features);
-        
-        // Wait for Terra Draw to process the features
-        await new Promise(resolve => setTimeout(resolve, 100));
-        
-        // Verify features were added successfully
-        try {
-            terraDrawInstance.getSnapshot();
-            return true;
-        } catch (error) {
-            console.warn('Failed to get Terra Draw snapshot after adding features:', error);
-            return false;
-        }
-        
-    } catch (error) {
-        console.error(`Error adding features to Terra Draw (${context}):`, error);
-        return false;
-    }
-}
-
 export function getRandomColor() {
     const randomIndex = Math.floor(Math.random() * COLOR_PALETTE.length);
     return COLOR_PALETTE[randomIndex];
-}
-
-/**
- * Calculate the distance between two geographic coordinates using Haversine formula
- * @param {number} lat1 - Latitude of first point
- * @param {number} lon1 - Longitude of first point
- * @param {number} lat2 - Latitude of second point
- * @param {number} lon2 - Longitude of second point
- * @param {string} unit - Unit of measurement ('metric' or 'imperial')
- * @returns {number} Distance in kilometers or miles
- */
-export function calculateDistance(lat1, lon1, lat2, lon2, unit = MEASUREMENT_CONFIG.UNITS.METRIC) {
-    const R =
-        unit === MEASUREMENT_CONFIG.UNITS.IMPERIAL
-            ? MEASUREMENT_CONFIG.EARTH_RADIUS_MILES
-            : MEASUREMENT_CONFIG.EARTH_RADIUS_KM;
-
-    const dLat = ((lat2 - lat1) * Math.PI) / 180;
-    const dLon = ((lon2 - lon1) * Math.PI) / 180;
-    const a =
-        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-        Math.cos((lat1 * Math.PI) / 180) *
-            Math.cos((lat2 * Math.PI) / 180) *
-            Math.sin(dLon / 2) *
-            Math.sin(dLon / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return R * c;
-}
-
-/**
- * Calculate the area of a polygon using the spherical excess formula
- * @param {Array} coordinates - Array of [lng, lat] coordinates forming the polygon
- * @param {string} unit - Unit of measurement ('metric' or 'imperial')
- * @returns {number} Area in square kilometers or square miles
- */
-export function calculatePolygonArea(coordinates, unit = MEASUREMENT_CONFIG.UNITS.METRIC) {
-    if (coordinates.length < 3) return 0;
-
-    const R =
-        unit === MEASUREMENT_CONFIG.UNITS.IMPERIAL
-            ? MEASUREMENT_CONFIG.EARTH_RADIUS_MILES
-            : MEASUREMENT_CONFIG.EARTH_RADIUS_KM;
-
-    let area = 0;
-    const coords = coordinates.slice(); // Copy array
-
-    // Ensure polygon is closed
-    if (
-        coords[0][0] !== coords[coords.length - 1][0] ||
-        coords[0][1] !== coords[coords.length - 1][1]
-    ) {
-        coords.push(coords[0]);
-    }
-
-    for (let i = 0; i < coords.length - 1; i++) {
-        const [lon1, lat1] = coords[i];
-        const [lon2, lat2] = coords[i + 1];
-
-        area +=
-            (lon2 - lon1) *
-            (2 + Math.sin((lat1 * Math.PI) / 180) + Math.sin((lat2 * Math.PI) / 180));
-    }
-
-    area = Math.abs((area * R * R * Math.PI) / 360);
-    return area;
-}
-
-/**
- * Calculate the total length of a linestring
- * @param {Array} coordinates - Array of [lng, lat] coordinates
- * @param {string} unit - Unit of measurement ('metric' or 'imperial')
- * @returns {number} Total length in kilometers or miles
- */
-export function calculateLineStringLength(coordinates, unit = MEASUREMENT_CONFIG.UNITS.METRIC) {
-    if (coordinates.length < 2) return 0;
-
-    let totalLength = 0;
-    for (let i = 0; i < coordinates.length - 1; i++) {
-        const [lon1, lat1] = coordinates[i];
-        const [lon2, lat2] = coordinates[i + 1];
-        totalLength += calculateDistance(lat1, lon1, lat2, lon2, unit);
-    }
-
-    return totalLength;
-}
-
-/**
- * Calculate the area of a circle given its radius
- * @param {number} radius - Radius in kilometers or miles
- * @returns {number} Area in square kilometers or square miles
- */
-export function calculateCircleArea(radius) {
-    return Math.PI * Math.pow(radius, 2);
-}
-
-/**
- * Calculate the radius of a circle from polygon coordinates
- * @param {Array} polygonCoords 
- * @param {string} unit 
- * @returns {number} radius in kilometers or miles
- */
-export function calculateCircleRadius(polygonCoords, unit = MEASUREMENT_CONFIG.UNITS.METRIC) {
-    // Assuming polygonCoords is an array of linear rings, take the first ring
-    const firstRing = polygonCoords[0];
-    if (firstRing.length < 2) return 0;
-
-    // Calculate the centroid of the polygon
-    let sumLat = 0;
-    let sumLng = 0;
-    firstRing.forEach(([lng, lat]) => {
-        sumLat += lat;
-        sumLng += lng;
-    });
-    const centroidLat = sumLat / firstRing.length;
-    const centroidLng = sumLng / firstRing.length;
-
-    // Calculate the distance from the centroid to the first point as radius
-    const [firstLng, firstLat] = firstRing[0];
-    const radius = calculateDistance(centroidLat, centroidLng, firstLat, firstLng, unit);
-
-    return radius;
-}
-
-/**
- * Calculate circle measurements: area and diameter
- * @param {Number} radius
- * @returns {Object} area and diameter
- */
-export function calculateCircleMeasurements(radius) {
-    const area = calculateCircleArea(radius);
-    const diameter = radius * 2;
-    return { area, diameter };
 }
 
 /**
@@ -602,80 +143,11 @@ export function formatPointCount(count) {
 }
 
 /**
- * Format measurement value with appropriate units and precision
- * @param {number} value - The measurement value
- * @param {string} type - Type of measurement ('distance', 'area')
- * @param {string} unit - Unit system ('metric' or 'imperial')
- * @returns {string} Formatted measurement string
- */
-export function formatMeasurement(value, type, unit = MEASUREMENT_CONFIG.UNITS.METRIC, locale = 'en-US') {
-    if (type === 'distance') {
-        if (unit === MEASUREMENT_CONFIG.UNITS.IMPERIAL) {
-            if (value < 0.1) {
-                // Very short distances in feet with no decimals for readability
-                const feet = value * 5280;
-                return `${formatNumber(feet, 0, locale)} ft`;
-            } else if (value < 1) {
-                // Short distances in feet with 1 decimal
-                const feet = value * 5280;
-                return `${formatNumber(feet, 1, locale)} ft`;
-            } else {
-                // Longer distances in miles
-                return `${formatNumber(value, 2, locale)} mi`;
-            }
-        } else {
-            if (value < 0.001) {
-                // Very short distances in centimeters
-                const cm = value * 100000;
-                return `${formatNumber(cm, 0, locale)} cm`;
-            } else if (value < 1) {
-                // Short distances in meters
-                const meters = value * 1000;
-                return `${formatNumber(meters, meters < 10 ? 1 : 0, locale)} m`;
-            } else {
-                // Longer distances in kilometers
-                return `${formatNumber(value, 2, locale)} km`;
-            }
-        }
-    } else if (type === 'area') {
-        if (unit === MEASUREMENT_CONFIG.UNITS.IMPERIAL) {
-            if (value < 0.0015625) {
-                // Very small areas in square feet
-                const sqFeet = value * 27878400; // 1 sq mile = 27,878,400 sq ft
-                return `${formatNumber(sqFeet, 0, locale)} ft²)`;
-            } else if (value < 1) {
-                // Small to medium areas in acres
-                const acres = value * 640;
-                return `${formatNumber(acres, acres < 1 ? 2 : 1, locale)} acres`;
-            } else {
-                // Large areas in square miles
-                return `${formatNumber(value, 2, locale)} m²`;
-            }
-        } else {
-            if (value < 0.01) {
-                // Small areas in square meters
-                const sqMeters = value * 1000000;
-                return `${formatNumber(sqMeters, sqMeters < 100 ? 1 : 0, locale)} m²`;
-            } else if (value < 1) {
-                // Medium areas in hectares
-                const hectares = value * 100;
-                return `${formatNumber(hectares, 2, locale)} ha`;
-            } else {
-                // Large areas in square kilometers
-                return `${formatNumber(value, 2, locale)} km²`;
-            }
-        }
-    }
-    return formatNumber(value, 2, locale);
-}
-
-
-/**
  * Format area measurement with appropriate unit based on size and unit system
  * Supports both metric (m², ha, km²) and imperial (sq ft, ac, sq mi) units
  * @param {number} areaInSquareMeter - Area value in square meters
- * @param {number} decimals - Number of decimal places (default: 2)
  * @param {string} locale - Locale for number formatting (default: 'en-US')
+ * @param {number} decimals - Number of decimal places (default: 2)
  * @param {string} unitSystem - Unit system to use: 'metric' or 'imperial' (default: 'metric')
  * @returns {string} Formatted area string with appropriate unit
  */
@@ -686,10 +158,7 @@ export function formatAreaMeasurement(
     unitSystem = MEASUREMENT_CONFIG.UNITS.METRIC
 ) {
     if (isNaN(parseFloat(areaInSquareMeter)) || !isFinite(areaInSquareMeter)) {
-        console.warn(
-            'Invalid area provided for formatting:',
-            areaInSquareMeter
-        );
+        console.warn('Invalid area provided for formatting:', areaInSquareMeter);
         return areaInSquareMeter;
     }
 
@@ -748,14 +217,8 @@ export function formatLengthMeasurement(
     decimals = 2,
     unitSystem = MEASUREMENT_CONFIG.UNITS.METRIC
 ) {
-    if (
-        isNaN(parseFloat(lengthInKilometers)) ||
-        !isFinite(lengthInKilometers)
-    ) {
-        console.warn(
-            'Invalid length provided for formatting:',
-            lengthInKilometers
-        );
+    if (isNaN(parseFloat(lengthInKilometers)) || !isFinite(lengthInKilometers)) {
+        console.warn('Invalid length provided for formatting:', lengthInKilometers);
         return lengthInKilometers;
     }
 
@@ -809,7 +272,6 @@ export function formatLengthMeasurement(
     return `${value} ${unit}`;
 }
 
-
 /**
  * Validate geometry coordinates based on geometry type
  * @param {string} type - Geometry type
@@ -825,31 +287,38 @@ function validateGeometryCoordinates(type, coordinates) {
     switch (type) {
         case 'Point':
             // Point: [lon, lat] or [lon, lat, elevation]
-            return coordinates.length >= 2 &&
-                   coordinates.length <= 3 &&
-                   coordinates.every(n => typeof n === 'number' && isFinite(n));
+            return (
+                coordinates.length >= 2 &&
+                coordinates.length <= 3 &&
+                coordinates.every((n) => typeof n === 'number' && isFinite(n))
+            );
 
         case 'LineString':
         case 'MultiPoint':
             // LineString/MultiPoint: array of positions (at least 2 for LineString)
             const minLength = type === 'LineString' ? 2 : 1;
-            return coordinates.length >= minLength &&
-                   coordinates.every(pos =>
-                       Array.isArray(pos) &&
-                       pos.length >= 2 &&
-                       pos.every(n => typeof n === 'number' && isFinite(n))
-                   );
+            return (
+                coordinates.length >= minLength &&
+                coordinates.every(
+                    (pos) =>
+                        Array.isArray(pos) &&
+                        pos.length >= 2 &&
+                        pos.every((n) => typeof n === 'number' && isFinite(n))
+                )
+            );
 
         case 'Polygon':
         case 'MultiLineString':
             // Polygon/MultiLineString: array of LineString coordinates
-            return coordinates.every(ring => {
-                const isValid = Array.isArray(ring) &&
+            return coordinates.every((ring) => {
+                const isValid =
+                    Array.isArray(ring) &&
                     ring.length >= (type === 'Polygon' ? 4 : 2) &&
-                    ring.every(pos =>
-                        Array.isArray(pos) &&
-                        pos.length >= 2 &&
-                        pos.every(n => typeof n === 'number' && isFinite(n))
+                    ring.every(
+                        (pos) =>
+                            Array.isArray(pos) &&
+                            pos.length >= 2 &&
+                            pos.every((n) => typeof n === 'number' && isFinite(n))
                     );
 
                 // For Polygon, verify ring closure (first point === last point)
@@ -864,17 +333,20 @@ function validateGeometryCoordinates(type, coordinates) {
 
         case 'MultiPolygon':
             // MultiPolygon: array of Polygon coordinates
-            return coordinates.every(polygon =>
-                Array.isArray(polygon) &&
-                polygon.every(ring =>
-                    Array.isArray(ring) &&
-                    ring.length >= 4 &&
-                    ring.every(pos =>
-                        Array.isArray(pos) &&
-                        pos.length >= 2 &&
-                        pos.every(n => typeof n === 'number' && isFinite(n))
+            return coordinates.every(
+                (polygon) =>
+                    Array.isArray(polygon) &&
+                    polygon.every(
+                        (ring) =>
+                            Array.isArray(ring) &&
+                            ring.length >= 4 &&
+                            ring.every(
+                                (pos) =>
+                                    Array.isArray(pos) &&
+                                    pos.length >= 2 &&
+                                    pos.every((n) => typeof n === 'number' && isFinite(n))
+                            )
                     )
-                )
             );
 
         default:
@@ -893,11 +365,7 @@ function validateGeometryCoordinates(type, coordinates) {
  * @returns {boolean} True if valid GeoJSON structure
  */
 export function validateGeoJson(geoJson, options = {}) {
-    const {
-        requireFeatures = false,
-        validateGeometry = false,
-        strict = false
-    } = options;
+    const { requireFeatures = false, validateGeometry = false, strict = false } = options;
 
     // Null/undefined check
     if (!geoJson || typeof geoJson !== 'object') {
@@ -914,7 +382,7 @@ export function validateGeoJson(geoJson, options = {}) {
         'MultiPoint',
         'MultiLineString',
         'MultiPolygon',
-        'GeometryCollection'
+        'GeometryCollection',
     ];
 
     // Check if type is valid
@@ -935,7 +403,7 @@ export function validateGeoJson(geoJson, options = {}) {
 
         // Optional: validate each feature
         if (validateGeometry && geoJson.features.length > 0) {
-            return geoJson.features.every(feature =>
+            return geoJson.features.every((feature) =>
                 validateGeoJson(feature, { validateGeometry: true, strict })
             );
         }
@@ -972,7 +440,7 @@ export function validateGeoJson(geoJson, options = {}) {
             }
 
             if (validateGeometry) {
-                return geoJson.geometries.every(geom =>
+                return geoJson.geometries.every((geom) =>
                     validateGeoJson(geom, { validateGeometry: true, strict })
                 );
             }
@@ -998,4 +466,138 @@ export function validateGeoJson(geoJson, options = {}) {
     }
 
     return false;
+}
+
+/**
+ * Calculate area of a polygon or multipolygon feature using Turf.js
+ * Supports both Polygon and MultiPolygon geometry types
+ * @param {Object} feature - GeoJSON Feature with Polygon or MultiPolygon geometry
+ * @returns {number} Area in square meters, or 0 if calculation fails
+ */
+export function calculateArea(feature) {
+    if (!feature || !feature.geometry || !window.turf) {
+        return 0;
+    }
+
+    const { type } = feature.geometry;
+
+    // Only calculate area for polygon types
+    if (!['Polygon', 'MultiPolygon'].includes(type)) {
+        return 0;
+    }
+
+    try {
+        // turf.area() accepts GeoJSON Feature directly
+        return window.turf.area(feature);
+    } catch (error) {
+        console.error('turf.area calculation failed:', error);
+        return 0;
+    }
+}
+
+/**
+ * Calculate total area of multiple polygon features using Turf.js
+ * Filters and sums areas of all Polygon and MultiPolygon features
+ * @param {Array<Object>} features - Array of GeoJSON Features
+ * @returns {number} Total area in square meters
+ */
+export function calculateFeaturesTotalArea(features) {
+    if (!features || !Array.isArray(features) || features.length === 0) {
+        return 0;
+    }
+
+    return features.reduce((totalArea, feature) => {
+        // Skip features without valid geometry
+        if (!feature?.geometry?.type) {
+            return totalArea;
+        }
+
+        const area = calculateArea(feature);
+        if (typeof area === 'number' && !isNaN(area) && isFinite(area)) {
+            return totalArea + area;
+        }
+
+        return totalArea;
+    }, 0); // in square meters
+}
+
+/**
+ * Generate a lightweight fingerprint for a features array
+ * Captures geometry types, IDs, and coordinate counts without full serialization
+ * @param {Array} features - Array of GeoJSON features
+ * @returns {string} Fingerprint string
+ */
+function getGeoJsonFingerprint(features) {
+    let fingerprint = '';
+    for (let i = 0; i < features.length; i++) {
+        const feature = features[i];
+        const id = feature.id || feature.properties?.id || i;
+        const geomType = feature.geometry?.type || 'null';
+        const coordCount = countCoordinates(feature.geometry?.coordinates);
+        fingerprint += `${id}:${geomType}:${coordCount};`;
+    }
+    return fingerprint;
+}
+
+/**
+ * Count total coordinates in a geometry
+ * @param {Array} coordinates - GeoJSON coordinates array
+ * @returns {number} Total coordinate count
+ */
+function countCoordinates(coordinates) {
+    if (!coordinates) return 0;
+    if (typeof coordinates[0] === 'number') {
+        // Single coordinate [lng, lat] or [lng, lat, alt]
+        return 1;
+    }
+    let count = 0;
+    for (const coord of coordinates) {
+        count += countCoordinates(coord);
+    }
+    return count;
+}
+
+/**
+ * Check if GeoJSON data has changed using lightweight comparison
+ * Avoids expensive JSON.stringify for large datasets
+ * @param {Object} current - Current GeoJSON data
+ * @param {Object} next - Next GeoJSON data
+ * @returns {boolean} True if data has changed
+ */
+export function hasGeoJsonChanged(current, next) {
+    // Reference equality - fastest check
+    if (current === next) {
+        return false;
+    }
+
+    // Handle null/undefined cases
+    if (!current || !next) {
+        return current !== next;
+    }
+
+    // Check features array reference
+    if (current.features === next.features) {
+        return false;
+    }
+
+    // Handle missing features
+    if (!current.features || !next.features) {
+        return true;
+    }
+
+    // Quick count check
+    if (current.features.length !== next.features.length) {
+        return true;
+    }
+
+    // Empty arrays are equal
+    if (current.features.length === 0) {
+        return false;
+    }
+
+    // Compare feature fingerprints (geometry type + coordinate structure)
+    const currentFingerprint = getGeoJsonFingerprint(current.features);
+    const nextFingerprint = getGeoJsonFingerprint(next.features);
+
+    return currentFingerprint !== nextFingerprint;
 }

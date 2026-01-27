@@ -1,5 +1,50 @@
 # Change Log
 
+## 19.0.1.0.8
+### Added
+- **GeoJSON Export**: Added export functionality to both Terra Draw and Deck.gl editors
+  - Download current features as a `.geojson` file with timestamp-based filename
+  - Automatic removal of internal properties (mode, midPoint, selectionPoint, _metadata) from export
+  - Filter out system features (midpoints, selection points) from Terra Draw exports
+- **Deck.gl Import/Export Toolbar**: Added import and export buttons to DeckGlEditor component
+  - Upload button for importing GeoJSON files
+  - Download button (disabled when no data available)
+  - Styled toolbar matching Terra Draw UI
+- **3D Coordinate Detection**: Automatic detection and handling of 3D coordinates (with altitude)
+  - Features with altitude values are automatically rendered using Deck.gl
+  - Added `_hasAltitude()` helper method for recursive coordinate checking
+
+### Improved
+- **Area Calculation**: Simplified `calculateArea()` function
+  - Now passes GeoJSON Feature directly to `turf.area()` instead of creating intermediate geometry
+  - Proper support for both Polygon and MultiPolygon geometry types
+  - Added robust validation for `calculateFeaturesTotalArea()`
+- **GeoJSON Change Detection**: Replaced expensive `JSON.stringify` comparison with lightweight fingerprinting
+  - New `_hasGeoJsonChanged()` method using reference equality and fingerprint comparison
+  - New `_getGeoJsonFingerprint()` method capturing geometry type, ID, and coordinate count
+  - New `_countCoordinates()` helper for recursive coordinate counting
+  - Significantly faster for large GeoJSON datasets
+- **Point Layer Rendering**: Simplified `_createPointLayer()` in DeckGlEditor
+  - Removed custom icon atlas implementation
+  - Now uses ScatterplotLayer exclusively for point features
+
+### Removed
+- Removed 17 unused functions from `utils.js` (reduced from ~1067 to ~537 lines):
+  - `generateUUID`, `formatNumber`, `hasPolygonsWithHoles`, `hexToRgba`
+  - `stripAltitude`, `stripAltitudeFromFeature`, `stripAltitudeFromGeometry`
+  - `debounce`, `AREA_THRESHOLDS`, `LENGTH_THRESHOLDS`
+  - `formatDistance`, `formatDistanceMeasurement`, `generateTooltipHtml`
+  - `GEOMETRY_COLORS`, `createFeatureCollection`, `extractPointsFromGeometry`
+  - `getMeasurementForGeometry`
+- Removed `createIconAtlas()` function and `ICON_MAPPING` constant from DeckGlEditor
+- Removed `window.DEBUG_DECKGL` debugging flag
+
+### Technical Details
+- Added `_cleanPropertiesForExport()` method to both TerraDrawToolsUI and DeckGlEditor
+- DeckGlEditor now imports `UploadGeoJsonFileDialog` component
+- Added `hasDataToExport` computed property to DeckGlEditor
+- Updated README.md with new Import/Export, Rendering Modes, and Performance Optimizations sections
+
 ## 19.0.1.0.7
 ### Added
 - **GeoJSON File Import**: New upload dialog for importing GeoJSON files directly into Terra Draw
