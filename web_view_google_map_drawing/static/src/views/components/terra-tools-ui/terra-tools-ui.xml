@@ -46,6 +46,9 @@
                 <button id="upload-button" class="mode-button" data-tooltip="Upload GeoJSON" t-on-click.prevent="onClickActionButton">
                     <span class="fa fa-upload fa-lg"></span>
                 </button>
+                <button id="download-button" class="mode-button" data-tooltip="Download GeoJSON" t-on-click.prevent="onClickActionButton">
+                    <span class="fa fa-download fa-lg"></span>
+                </button>
                 <button id="save-button" class="mode-button" data-tooltip="Save Changes (Ctrl+S)" t-on-click.prevent="onClickActionButton">
                     <span class="fa fa-save fa-lg"></span>
                 </button>

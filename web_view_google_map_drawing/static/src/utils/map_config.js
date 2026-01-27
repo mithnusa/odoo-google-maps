@@ -1,61 +1,38 @@
 
-const COLORS = {
-    DISPLAY: '#006ee5',
-    EDIT: '#ffa187',
-    STROKE: '#fc6c44',
+
+/**
+ * Deck.gl configuration constants
+ */
+export const DECKGL_CONFIG = {
+    // Visual styling
+    DEFAULT_COLORS: {
+        FILL: [70, 130, 180, 80], // Steel blue with 80% opacity
+        STROKE: [25, 25, 112, 255], // Midnight blue
+        SELECTED_FILL: [0, 123, 255, 120], // Bright blue with transparency
+        SELECTED_STROKE: [0, 86, 179, 255], // Deep blue
+        HOVERED_FILL: [255, 165, 0, 120], // Gold with transparency
+        HOVERED_STROKE: [255, 140, 0, 255], // Dark orange
+    },
 };
 
-export const MapConfig = {
-    DRAWING_MODES: [
-        'circle',
-        'polygon',
-        'rectangle',
-    ],
+/** 
+ * Stroke configuration constants
+ */
+export const STROKE_CONFIG = { 
+    DEFAULT_WIDTH: 2, // Default stroke width in pixels
+    HOVER_WIDTH: 4,   // Stroke width on hover in pixels
+};
 
-    COLORS: COLORS,
-
-    DEFAULT_SHAPE_OPTIONS: {
-        polygonOptions: {
-            strokeWeight: 2.0,
-            fillOpacity: 0.35,
-            editable: false,
-            strokeColor: COLORS.DISPLAY,
-            fillColor: COLORS.DISPLAY,
-        },
-        circleOptions: {
-            strokeWeight: 2.0,
-            fillOpacity: 0.35,
-            editable: false,
-            strokeColor: COLORS.DISPLAY,
-            fillColor: COLORS.DISPLAY,
-        },
-        rectangleOptions: {
-            strokeWeight: 2.0,
-            fillOpacity: 0.35,
-            editable: false,
-            strokeColor: COLORS.DISPLAY,
-            fillColor: COLORS.DISPLAY,
-        },
-    },
-
-    SHAPE_EDITING_OPTIONS: {
-        strokeColor: '#ffa187',
-        fillColor: '#ffa187',
-        strokeWeight: 2.0,
-        fillOpacity: 0.45,
-        editable: true
-    },
-
-    DEBOUNCE_DELAY: 500,
-
-    MAP_OPTIONS: {
-        mapTypeId: 'satellite',
-        center: { lat: 0, lng: 0 },
-        zoom: 4,
-        minZoom: 2,
-        maxZoom: 22,
-        fullscreenControl: true,
-        mapTypeControl: true,
-        gestureHandling: 'cooperative',
-    },
+/**
+ * Google Maps configuration constants
+ */
+export const MAP_OPTIONS = {
+    mapTypeId: 'satellite',
+    center: { lat: 0, lng: 0 },
+    zoom: 4,
+    minZoom: 2,
+    maxZoom: 22,
+    fullscreenControl: true,
+    mapTypeControl: true,
+    gestureHandling: 'cooperative',
 };

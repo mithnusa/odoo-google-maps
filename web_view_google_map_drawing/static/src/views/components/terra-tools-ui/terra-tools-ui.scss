@@ -4,18 +4,18 @@
 
 .o_terra_tools_ui {
     // background: white;
-    padding: 8px;
+    padding: 6px;
     display: flex;
     flex-flow: column;
 
     .o_terra_toolbar {
         display: flex;
         flex-flow: column;
-        gap: 3px;
+        gap: 1px;
     }
 
     button {
-        margin: 5px 0;
+        margin: 4px 0;
         cursor: pointer;
         // background-color: white;
     }

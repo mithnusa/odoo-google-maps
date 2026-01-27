@@ -16,10 +16,11 @@ import {
     loadTerraDrawAssets,
     loadTurfJSAssets,
     normalizeCoordinates,
-    stripAltitude,
     TERRA_DRAW_CONFIG,
     getRandomColor,
     validateGeoJson,
+    calculateFeaturesTotalArea,
+    hasGeoJsonChanged,
 } from '../../../utils/utils';
 import { analyzeFeaturePerformance, createEditableFeature } from '../../../utils/geometry_performance_utils';
 import { UploadGeoJsonFileDialog } from '../upload_geojson_dialog/upload_geojson_dialog';
@@ -62,6 +63,7 @@ export class TerraDrawToolsUI extends Component {
     static props = {
         googleMap: Object,
         saveFeatures: Function,
+        renderingMode: String,
         dataGeoJson: { type: Object, optional: true, default: null },
         record: Object,
     };
@@ -115,10 +117,12 @@ export class TerraDrawToolsUI extends Component {
         onWillDestroy(() => this._cleanUp());
 
         onWillUpdateProps((nextProps) => {
-            if (!nextProps.googleMap || !this.terraDrawInstance) return;
+            if (!nextProps.googleMap || !this.terraDrawInstance || nextProps.renderingMode !== 'terra-draw') return;
 
-            if (JSON.stringify(nextProps.dataGeoJson) !== JSON.stringify(this.props.dataGeoJson)) {
-                if (this.state.isRestoring || this.state.isSaving) return;
+            if (this.state.isRestoring || this.state.isSaving) return;
+
+            const isGeoJsonChanged = hasGeoJsonChanged(this.props.dataGeoJson, nextProps.dataGeoJson);
+            if (isGeoJsonChanged) {
                 this.terraDrawInstance.clear();
                 this.latLngBounds = null; // reset latLngBounds to recalculate
                 this.loadRecordData(nextProps.dataGeoJson);
@@ -126,8 +130,8 @@ export class TerraDrawToolsUI extends Component {
         });
 
         useEffect(
-            (googleMap, toolUiRef) => {
-                if (googleMap && toolUiRef.el && window.terraDraw) {
+            (googleMap, toolUiRef, renderingMode) => {
+                if (googleMap && toolUiRef.el && window.terraDraw && renderingMode === 'terra-draw') {
                     this.initTerraDraw().catch((error) => {
                         console.error('Failed to initialize Terra Draw:', error);
                         this.notificationService.add(
@@ -137,7 +141,7 @@ export class TerraDrawToolsUI extends Component {
                     });
                 }
             },
-            () => [this.props.googleMap, this.toolsUiRef]
+            () => [this.props.googleMap, this.toolsUiRef, this.props.renderingMode]
         );
     }
 
@@ -158,10 +162,17 @@ export class TerraDrawToolsUI extends Component {
             return; // nothing to load
         }
 
+        if (this.props.renderingMode !== 'terra-draw') {
+            console.warn('Current mode is not terra-draw, skipping loadRecordData');
+            return;
+        }
+
         if (!this.terraDrawInstance) {
             console.warn('TerraDraw instance not initialized yet');
             return;
         }
+
+        this.uiService.block();
 
         this._loadingData = true;
 
@@ -198,6 +209,7 @@ export class TerraDrawToolsUI extends Component {
         } finally {
             this.state.isRestoring = false;
             this._loadingData = false;
+            this.uiService.unblock();
         }
     }
 
@@ -232,9 +244,7 @@ export class TerraDrawToolsUI extends Component {
                     plainFeature.geometry.coordinates.forEach((_polygonCoords) => {
                         if (_polygonCoords.length > 1) return; // Skip parts with holes
 
-                        // Strip altitude and normalize coordinates
-                        const strippedCoords = stripAltitude(_polygonCoords, 'Polygon');
-                        const polygonCoords = normalizeCoordinates(strippedCoords, TERRA_DRAW_CONFIG.COORDINATE_PRECISION);
+                        const polygonCoords = normalizeCoordinates(_polygonCoords, TERRA_DRAW_CONFIG.COORDINATE_PRECISION);
                         multiPolygonFeatures.push({
                             type: 'Feature',
                             id: generateUUID(),
@@ -250,12 +260,6 @@ export class TerraDrawToolsUI extends Component {
                     if (!plainFeature.id || typeof plainFeature.id !== 'string') {
                         plainFeature.id = generateUUID();
                     }
-
-                    // Strip altitude for Terra Draw compatibility (only accepts 2D coordinates)
-                    plainFeature.geometry.coordinates = stripAltitude(
-                        plainFeature.geometry.coordinates,
-                        plainFeature.geometry.type
-                    );
 
                     plainFeature.geometry.coordinates = normalizeCoordinates(
                         plainFeature.geometry.coordinates,
@@ -283,12 +287,6 @@ export class TerraDrawToolsUI extends Component {
         return processedFeatures;
     }
 
-    /**
-     * Analyze a set of features for performance characteristics
-     * @param {Array} features - Array of GeoJSON features
-     * @returns {Object} Performance analysis report
-     * @private
-     */
     /**
      * Check if feature can be safely edited and show warning if complex
      * @param {Object} feature - Feature to check
@@ -588,9 +586,16 @@ export class TerraDrawToolsUI extends Component {
             this._actionSaveManually();
         } else if (action === 'upload-button') {
             this._actionUploadGeoJSON();
+        } else if (action === 'download-button') {
+            this._actionDownloadGeoJSON();
         }
     }
 
+    /**
+     * Import GeoJSON data from a file
+     * Opens a file dialog to select and upload a GeoJSON file
+     * @private
+     */
     _actionUploadGeoJSON() {
         this.dialogService.add(UploadGeoJsonFileDialog, {
             confirm: (file) => {
@@ -603,7 +608,7 @@ export class TerraDrawToolsUI extends Component {
                 }
                 return new Promise((resolve) => {
                     const reader = new FileReader();
-                    reader.onload = (e) => {
+                    reader.onload = async (e) => {
                         try {
                             const geojson = JSON.parse(e.target.result);
                             const isValid = validateGeoJson(geojson, { requireFeatures: true, validateGeometry: true, strict: false });
@@ -615,12 +620,12 @@ export class TerraDrawToolsUI extends Component {
                                 resolve(false);
                                 return;
                             }
-                            this._actionClearMode();
-                            this.loadRecordData(geojson);
                             this.notificationService.add(
                                 _t('GeoJSON file imported successfully.'),
                                 { type: 'success' }
                             );
+                            const totalArea = calculateFeaturesTotalArea(geojson.features);
+                            await this.props.saveFeatures(geojson, totalArea);
                             resolve(true);
                         } catch (error) {
                             console.error('Error parsing imported GeoJSON file:', error);
@@ -647,6 +652,89 @@ export class TerraDrawToolsUI extends Component {
     }
 
     /**
+     * Download GeoJSON data as a file
+     * Exports current Terra Draw features to a downloadable GeoJSON file
+     * @private
+     */
+    _actionDownloadGeoJSON() {
+        if (!this.terraDrawInstance) {
+            this.notificationService.add(
+                _t('Terra Draw is not initialized properly'),
+                { type: 'danger' }
+            );
+            return;
+        }
+
+        const features = this.terraDrawInstance.getSnapshot();
+
+        // Filter out system features (midpoints, selection points)
+        const exportFeatures = features.filter(
+            (f) => !f.properties?.midPoint && !f.properties?.selectionPoint
+        );
+
+        if (exportFeatures.length === 0) {
+            this.notificationService.add(
+                _t('No data available to export.'),
+                { type: 'warning' }
+            );
+            return;
+        }
+
+        try {
+            // Create clean GeoJSON export
+            const exportData = {
+                type: 'FeatureCollection',
+                features: exportFeatures.map((feature) => ({
+                    type: 'Feature',
+                    geometry: feature.geometry,
+                    properties: this._cleanPropertiesForExport(feature.properties || {}),
+                })),
+            };
+
+            const jsonString = JSON.stringify(exportData, null, 2);
+            const blob = new Blob([jsonString], { type: 'application/geo+json' });
+            const url = URL.createObjectURL(blob);
+
+            const timestamp = new Date().toISOString().slice(0, 10);
+            const filename = `geojson_export_${timestamp}.geojson`;
+
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+
+            this.notificationService.add(
+                _t('GeoJSON exported successfully.'),
+                { type: 'success' }
+            );
+        } catch (error) {
+            console.error('Error exporting GeoJSON:', error);
+            this.notificationService.add(
+                _t('Failed to export GeoJSON file.'),
+                { type: 'danger' }
+            );
+        }
+    }
+
+    /**
+     * Clean properties for export - remove internal/transient properties
+     * @param {Object} properties - Feature properties
+     * @returns {Object} Cleaned properties
+     * @private
+     */
+    _cleanPropertiesForExport(properties) {
+        const cleanProps = { ...properties };
+        // Remove internal properties that should not be exported
+        const internalProps = ['mode', 'midPoint', 'selectionPoint', '_metadata'];
+        internalProps.forEach((prop) => delete cleanProps[prop]);
+        return cleanProps;
+    }
+
+    /**
      * Manually save changes to features
      * Triggers immediate save without debounce
      * @private
@@ -661,34 +749,6 @@ export class TerraDrawToolsUI extends Component {
                 { type: 'danger' }
             );
         }
-    }
-
-    calculateArea(feature) {
-        if (!feature || !feature.geometry || !window.turf) return 0;
-
-        const { coordinates } = feature.geometry;
-        try {
-            const polygon = turf.polygon(coordinates);
-            return turf.area(polygon); // in square meters
-        } catch (error) {
-            console.error('turf.area failed', error);
-        }
-    }
-
-    calculateFeaturesTotalArea(features) {
-        let totalArea = 0;
-        if (!features || !Array.isArray(features) || features.length === 0) {
-            return totalArea;
-        }
-        features.forEach(feature => {
-            if (['Polygon', 'MultiPolygon'].includes(feature.geometry.type)) {
-                const area = this.calculateArea(feature);
-                if (!isNaN(area)) {
-                    totalArea += area;
-                }
-            }
-        });
-        return totalArea; // in square meters
     }
 
     /**
@@ -980,7 +1040,7 @@ export class TerraDrawToolsUI extends Component {
      * @private
      */
     _initializeTerraDrawInstance() {
-        if (this.terraDrawInstance || !this.props.googleMap) {
+        if (this.terraDrawInstance || !this.props.googleMap || this.props.renderingMode !== 'terra-draw') {
             return;
         }
 
@@ -999,7 +1059,8 @@ export class TerraDrawToolsUI extends Component {
 
             this.terraDrawInstance.start();
             this.terraDrawInstance.on('ready', () => {
-                if (this.props.dataGeoJson && this.props.dataGeoJson.features && this.props.dataGeoJson.features.length > 0) {
+                const isGeoJsonValid = validateGeoJson(this.props.dataGeoJson, { requireFeatures: true, validateGeometry: true, strict: true });
+                if (isGeoJsonValid) {
                     this.loadRecordData(this.props.dataGeoJson);
                 } else {
                     console.warn('⚠️ No dataGeoJson available on Terra Draw ready event');
@@ -1147,8 +1208,8 @@ export class TerraDrawToolsUI extends Component {
      * @private
      */
     async onDrawSelect(id) {
+        this.uiService.block();
         try {
-            this.uiService.block();
             // STEP 1: Get feature data BEFORE selection
             const features = this.terraDrawInstance.getSnapshot();
             const targetFeature = features.find(f => f.id === id);
@@ -1288,16 +1349,14 @@ export class TerraDrawToolsUI extends Component {
             this.uiService.block();
             this.setActiveMode('select-mode'); // Switch to select mode before saving
 
-            const snapshot = this.terraDrawInstance.getSnapshot();
-
+            const features = this.terraDrawInstance.getSnapshot();
             const geoJson = {
                 type: 'FeatureCollection',
-                features: snapshot,
+                features,
             };
-
-            const totalArea = this.calculateFeaturesTotalArea(snapshot);
+            const totalArea = calculateFeaturesTotalArea(features);
             await this.props.saveFeatures(geoJson, totalArea);
-            this._fitMapToBounds(snapshot);
+            this._fitMapToBounds(features);
         } catch (error) {
             console.error('Save failed:', error);
             this.notificationService.add(
@@ -1352,7 +1411,7 @@ export class TerraDrawToolsUI extends Component {
             } catch (error) {
                 console.error(`Failed to create ${name} mode:`, error);
                 this.notificationService.add(
-                    _t('Failed to initialize %s drawing mode', name),
+                    sprintf(_t('Failed to initialize drawing mode %s'), name),
                     { type: 'warning' }
                 );
             }
@@ -1602,4 +1661,5 @@ export class TerraDrawToolsUI extends Component {
         // Clear bounds
         this.latLngBounds = null;
     }
+
 }

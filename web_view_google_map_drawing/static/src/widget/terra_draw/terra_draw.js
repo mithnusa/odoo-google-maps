@@ -15,7 +15,7 @@ import { GoogleMapSearchPlaces } from '@web_view_google_map/views/google_map/com
 
 import { TerraDrawToolsUI } from '../../views/components/terra-tools-ui/terra-tools-ui';
 import { DeckGlEditor } from '../../views/components/deck-gl-editor/deck-gl-editor';
-import { MapConfig } from '../../utils/map_config';
+import { MAP_OPTIONS } from '../../utils/map_config';
 
 
 export class GoogleMapTerraDrawField extends BaseGoogleMapComponent {
@@ -147,12 +147,15 @@ export class GoogleMapTerraDrawField extends BaseGoogleMapComponent {
      * @returns {google.maps.MapOptions} Map options for Google Maps instance
      */
     getMapOptions() {
-        return MapConfig.MAP_OPTIONS;
+        return MAP_OPTIONS;
     }
 
     /**
      * Determine rendering mode based on feature support
-     * Terra Draw doesn't support polygons with holes (interior rings), use DeckGL for those
+     * Terra Draw doesn't support:
+     * - Polygons with holes (interior rings)
+     * - 3D coordinates (coordinates with altitude)
+     * Use DeckGL for those cases
      */
     determineRenderingMode(geojson) {
         const geoJson = typeof geojson === 'undefined' ? this.geoJson : geojson;
@@ -172,7 +175,38 @@ export class GoogleMapTerraDrawField extends BaseGoogleMapComponent {
             return false;
         });
 
-        this.state.renderingMode = hasPolygonsWithHoles ? 'deckgl' : 'terra-draw';
+        // Check if any feature has 3D coordinates (altitude/elevation)
+        const has3DCoordinates = geoJson.features.some((feature) => {
+            return this._hasAltitude(feature.geometry);
+        });
+
+        this.state.renderingMode = (hasPolygonsWithHoles || has3DCoordinates) ? 'deckgl' : 'terra-draw';
+    }
+
+    /**
+     * Check if geometry contains 3D coordinates (with altitude)
+     * @param {Object} geometry - GeoJSON geometry object
+     * @returns {boolean} - True if any coordinate has altitude
+     * @private
+     */
+    _hasAltitude(geometry) {
+        if (!geometry || !geometry.coordinates) {
+            return false;
+        }
+
+        const checkCoordinate = (coord) => {
+            // A coordinate with altitude has 3 or more values [lng, lat, alt, ...]
+            if (Array.isArray(coord) && typeof coord[0] === 'number') {
+                return coord.length > 2;
+            }
+            // Recursively check nested arrays
+            if (Array.isArray(coord)) {
+                return coord.some(checkCoordinate);
+            }
+            return false;
+        };
+
+        return checkCoordinate(geometry.coordinates);
     }
 
     validateProps() {
