@@ -13,6 +13,8 @@ import { sprintf } from '@web/core/utils/strings';
 
 /**
  * Performance configuration constants
+ * Note: These values are tuned for Terra Draw performance
+ * and may need adjustment based on real-world usage.
  */
 export const GEOMETRY_PERFORMANCE_CONFIG = {
     MAX_VERTICES_FOR_EDITING: 150,      // Safe editing threshold for Terra Draw
@@ -26,6 +28,11 @@ export const GEOMETRY_PERFORMANCE_CONFIG = {
     // Special handling for geographic boundary data
     GEOGRAPHIC_BOUNDARY_THRESHOLD: 150, // Specific threshold for province/country boundaries
     GEOGRAPHIC_SIMPLIFICATION_TOLERANCE: 0.008, // Optimized for coastlines and borders
+
+    // Dataset-level limits for automatic DeckGL routing
+    MAX_FEATURES_FOR_TERRA_DRAW: 3000,          // Total feature count limit
+    MAX_TOTAL_VERTICES_FOR_TERRA_DRAW: 5000,    // Sum of all vertices across features
+    MAX_POINTS_FOR_TERRA_DRAW: 5000,            // Specifically for Point geometries (lightweight)
 };
 
 /**
@@ -132,6 +139,75 @@ export function analyzeFeaturePerformance(feature) {
         isVeryComplex,
         recommendedAction,
         estimatedProcessingTime: Math.ceil(vertexCount / 1000) * 100, // Rough estimate in ms
+    };
+}
+
+/**
+ * Analyze an entire dataset to determine if it should use DeckGL instead of Terra Draw
+ * This checks total feature count, total vertices, and point-specific limits
+ * @param {Array} features - Array of GeoJSON features
+ * @returns {Object} Dataset analysis with recommendation
+ */
+export function analyzeDatasetPerformance(features) {
+    if (!features || !Array.isArray(features)) {
+        return {
+            totalFeatures: 0,
+            totalVertices: 0,
+            pointCount: 0,
+            shouldUseDeckGL: false,
+            reason: null,
+        };
+    }
+
+    let totalVertices = 0;
+    let pointCount = 0;
+
+    for (const feature of features) {
+        if (!feature?.geometry) continue;
+
+        const vertexCount = getVertexCount(feature.geometry);
+        totalVertices += vertexCount;
+
+        if (feature.geometry.type === 'Point') {
+            pointCount += 1;
+        } else if (feature.geometry.type === 'MultiPoint') {
+            pointCount += feature.geometry.coordinates.length;
+        }
+    }
+
+    const totalFeatures = features.length;
+    let shouldUseDeckGL = false;
+    let reason = null;
+
+    if (totalFeatures > GEOMETRY_PERFORMANCE_CONFIG.MAX_FEATURES_FOR_TERRA_DRAW) {
+        shouldUseDeckGL = true;
+        reason = sprintf(
+            _t('%s features exceeds limit of %s'),
+            totalFeatures,
+            GEOMETRY_PERFORMANCE_CONFIG.MAX_FEATURES_FOR_TERRA_DRAW
+        );
+    } else if (totalVertices > GEOMETRY_PERFORMANCE_CONFIG.MAX_TOTAL_VERTICES_FOR_TERRA_DRAW) {
+        shouldUseDeckGL = true;
+        reason = sprintf(
+            _t('%s total vertices exceeds limit of %s'),
+            totalVertices,
+            GEOMETRY_PERFORMANCE_CONFIG.MAX_TOTAL_VERTICES_FOR_TERRA_DRAW
+        );
+    } else if (pointCount > GEOMETRY_PERFORMANCE_CONFIG.MAX_POINTS_FOR_TERRA_DRAW) {
+        shouldUseDeckGL = true;
+        reason = sprintf(
+            _t('%s points exceeds limit of %s'),
+            pointCount,
+            GEOMETRY_PERFORMANCE_CONFIG.MAX_POINTS_FOR_TERRA_DRAW
+        );
+    }
+
+    return {
+        totalFeatures,
+        totalVertices,
+        pointCount,
+        shouldUseDeckGL,
+        reason,
     };
 }
 

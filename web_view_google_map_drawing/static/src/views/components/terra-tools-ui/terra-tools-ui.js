@@ -1164,16 +1164,20 @@ export class TerraDrawToolsUI extends Component {
             if (editableResult && editableResult.isSimplified) {
                 const simplifiedFeature = editableResult.feature;
 
+                // Generate a new ID for the simplified feature to avoid conflicts
+                // Terra Draw's Google Maps adapter may have issues when removing and
+                // adding a feature with the same ID in quick succession
+                const newFeatureId = generateUUID();
+                simplifiedFeature.id = newFeatureId;
+
                 // Replace the original feature with the simplified version
                 this.terraDrawInstance.removeFeatures([this.state.selectedFeatureId]);
                 this.terraDrawInstance.addFeatures([simplifiedFeature]);
 
                 // Update selection to the new feature
                 setTimeout(() => {
-                    if (simplifiedFeature.id) {
-                        this.terraDrawInstance.selectFeature(simplifiedFeature.id);
-                        this.setSelectedFeatureId(simplifiedFeature.id);
-                    }
+                    this.terraDrawInstance.selectFeature(newFeatureId);
+                    this.setSelectedFeatureId(newFeatureId);
                 }, 100);
 
                 const iterationsInfo = editableResult.iterations ? ` in ${editableResult.iterations} iteration(s)` : '';

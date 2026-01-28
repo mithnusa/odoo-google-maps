@@ -1,5 +1,32 @@
 # Change Log
 
+## 19.0.1.0.9
+### Added
+- **Dataset-Level Performance Analysis**: Automatic detection and routing of large datasets to DeckGL
+  - New `analyzeDatasetPerformance()` function in `geometry_performance_utils.js`
+  - Analyzes total feature count, total vertices, and point-specific counts
+  - Returns recommendation on whether to use DeckGL with detailed reason
+- **New Performance Thresholds**: Added dataset-level limits to `GEOMETRY_PERFORMANCE_CONFIG`
+  - `MAX_FEATURES_FOR_TERRA_DRAW`: 3000 (total feature count limit)
+  - `MAX_TOTAL_VERTICES_FOR_TERRA_DRAW`: 5000 (sum of all vertices across features)
+  - `MAX_POINTS_FOR_TERRA_DRAW`: 5000 (specifically for Point geometries)
+
+### Improved
+- **Automatic Renderer Selection**: Updated `determineRenderingMode()` in `terra_draw.js`
+  - Now checks dataset size limits before checking for polygon holes or 3D coordinates
+  - Logs warning to console when switching to DeckGL due to large dataset
+  - Prevents browser hang when loading 100k+ points or large feature sets
+
+### Fixed
+- **Feature Simplification ID Conflict**: Fixed "Feature could not be found by Google Maps API" error
+  - `simplifySelectedFeature()` now generates a new UUID for simplified features
+  - Prevents Terra Draw adapter conflicts when removing and adding features with same ID
+
+### Technical Details
+- Import `analyzeDatasetPerformance` in `terra_draw.js` from `geometry_performance_utils.js`
+- Dataset analysis runs before polygon hole and 3D coordinate checks (most common performance issue)
+- Point geometries are counted separately as they are lightweight compared to polygons
+
 ## 19.0.1.0.8
 ### Added
 - **GeoJSON Export**: Added export functionality to both Terra Draw and Deck.gl editors
