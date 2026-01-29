@@ -153,7 +153,21 @@ The module uses Turf.js for accurate area calculations:
 
 ## Import/Export GeoJSON
 
-Both Terra Draw and Deck.gl editors support importing and exporting GeoJSON files:
+Both Terra Draw and Deck.gl editors support importing and exporting GeoJSON files.
+
+### Why This Feature Exists
+
+Terra Draw has limitations that may require users to work with external tools:
+- **No support for polygons with holes** (interior rings)
+- **No support for 3D coordinates** (altitude/elevation data)
+- **Performance limits** with large datasets (3000+ features or 5000+ vertices)
+- **Limited advanced editing** capabilities compared to dedicated GIS software
+
+The Import/Export feature allows you to:
+- Create complex geometries in professional GIS tools (QGIS, ArcGIS, geojson.io) and import them
+- Export data for use in other mapping platforms or GIS applications
+- Back up your geospatial data in a standard, interoperable format
+- Share GeoJSON data with team members or external systems
 
 ### Import
 - Click the **Upload** button (↑) to import a GeoJSON file
@@ -166,7 +180,7 @@ Both Terra Draw and Deck.gl editors support importing and exporting GeoJSON file
 - The exported file is named `geojson_export_YYYY-MM-DD.geojson`
 - Internal properties (mode, midPoint, selectionPoint, _metadata) are automatically removed from the export
 
-This functionality allows easy data exchange with other GIS tools and platforms.
+This functionality enables seamless data exchange with other GIS tools and platforms, overcoming Terra Draw's inherent limitations.
 
 ## Rendering Modes
 
@@ -177,12 +191,12 @@ The module automatically selects the appropriate rendering engine based on geome
 | Simple polygons without holes | Terra Draw | Full editing capabilities |
 | Polygons with holes (interior rings) | Deck.gl | Terra Draw doesn't support holes |
 | 3D coordinates (with altitude) | Deck.gl | Terra Draw doesn't support 3D |
-| Very complex features | Deck.gl | Better performance for large datasets |
+| Large datasets (3000+ features, 5000+ vertices, or 5000+ points) | Deck.gl | Prevents browser freezing |
 
 ## Known issues and limitations
 - Terra Draw doesn't support GeoJSON with holes or interior rings. Such GeoJSON will be rendered in read-only mode using Deck.gl.
 - Terra Draw doesn't support 3D coordinates (coordinates with altitude values). Such GeoJSON will be rendered using Deck.gl.
-- Editing very large GeoJSON data may lead to performance issues. Use the "Simplify Selected Feature" button in the drawing toolbar to reduce complexity, but be aware that this may result in a loss of detail.
+- Large datasets are automatically routed to Deck.gl for display. For individual complex features within Terra Draw, use the "Simplify Selected Feature" button to reduce complexity, but be aware that this may result in a loss of detail.
 - Resize the browser window may cause the map to not render properly. To fix this issue, you can refresh the browser page.
 - GeoJSON file import is limited to 5MB file size.
 
@@ -190,6 +204,7 @@ The module automatically selects the appropriate rendering engine based on geome
 
 The module includes several performance optimizations for handling large GeoJSON datasets:
 
+- **Automatic Renderer Selection**: Datasets exceeding performance thresholds (3000+ features, 5000+ vertices, or 5000+ points) are automatically routed to Deck.gl
 - **Chunked Processing**: Large feature sets are processed in chunks of 50 features to prevent UI blocking
 - **Lightweight Change Detection**: Uses fingerprinting (geometry type + coordinate count) instead of full JSON comparison
 - **Debounced Rendering**: Rendering operations are debounced to prevent excessive re-renders
