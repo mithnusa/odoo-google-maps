@@ -16,6 +16,7 @@ import { GoogleMapSearchPlaces } from '@web_view_google_map/views/google_map/com
 import { TerraDrawToolsUI } from '../../views/components/terra-tools-ui/terra-tools-ui';
 import { DeckGlEditor } from '../../views/components/deck-gl-editor/deck-gl-editor';
 import { MAP_OPTIONS } from '../../utils/map_config';
+import { analyzeDatasetPerformance } from '../../utils/geometry_performance_utils';
 
 
 export class GoogleMapTerraDrawField extends BaseGoogleMapComponent {
@@ -151,17 +152,27 @@ export class GoogleMapTerraDrawField extends BaseGoogleMapComponent {
     }
 
     /**
-     * Determine rendering mode based on feature support
+     * Determine rendering mode based on feature support and performance
      * Terra Draw doesn't support:
      * - Polygons with holes (interior rings)
      * - 3D coordinates (coordinates with altitude)
+     * - Large datasets (3000+ features, 5000+ vertices, 5000+ points)
      * Use DeckGL for those cases
+     * @param {Object} [geojson] - Optional GeoJSON object to analyze. If not provided, uses this.geoJson
      */
     determineRenderingMode(geojson) {
         const geoJson = typeof geojson === 'undefined' ? this.geoJson : geojson;
 
         if (!geoJson?.features?.length) {
             this.state.renderingMode = 'terra-draw';
+            return;
+        }
+
+        // Check dataset size limits first (most common performance issue)
+        const datasetAnalysis = analyzeDatasetPerformance(geoJson.features);
+        if (datasetAnalysis.shouldUseDeckGL) {
+            console.warn(`Large dataset detected, switching to DeckGL: ${datasetAnalysis.reason}`);
+            this.state.renderingMode = 'deckgl';
             return;
         }
 
