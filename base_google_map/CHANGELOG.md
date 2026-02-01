@@ -1,5 +1,9 @@
 # Change Log
 
+## 19.0.1.0.5
+### Improved
+- **Scale Control**: Enabled scale control on the Google Map by default
+
 ## 19.0.1.0.4
 ### Fixed
 - **Code Cleanup**: Removed unused imports in configuration settings (`ast`, `ValidationError`)
