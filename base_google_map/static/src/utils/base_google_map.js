@@ -279,6 +279,8 @@ export class BaseGoogleMapComponent extends Component {
             keyboardShortcuts: true,
             // Accessibility
             clickableIcons: true,
+            // Scale control
+            scaleControl: true,
         };
 
         const values = {
