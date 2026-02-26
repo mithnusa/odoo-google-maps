@@ -12,7 +12,7 @@
     'website': 'https://github.com/mithnusa',
     'support': 'yopiangi@gmail.com',
     'category': 'Extra Tools',
-    'version': '1.0.2',
+    'version': '1.0.3',
     'depends': ['base_google_map'],
     'assets': {
         'web.assets_backend': [
