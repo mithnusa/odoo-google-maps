@@ -89,7 +89,13 @@ export class PartnerAutoCompleteCharFieldWithGooglePlace extends PartnerAutoComp
         this.state.isCollapseOpen = !isClosed;
         if (!isClosed) {
             const mappingConfig = await this.placeMapping.getMappingConfig();
-            this.state.mappingId = mappingConfig.id;
+            this.state.mappingId = mappingConfig?.id || -1; // Set to -1 if no valid mapping found
+            if (!mappingConfig || !mappingConfig.id) {
+                this.notificationService.add(
+                    _t('No valid mapping configuration found for Google Place Autocomplete.'),
+                    { type: 'warning' }
+                );
+            }
             delete mappingConfig.id;
             Object.assign(this.mappingConfig, mappingConfig);
         }
