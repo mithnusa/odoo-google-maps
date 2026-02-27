@@ -767,6 +767,7 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
 
         try {
             area = window.turf.area(feature);
+            totalArea = area; // Start with the feature's own area
             displayArea = formatAreaMeasurement(area, user.context.lang, 2, unit);
         } catch (error) {
             console.error('Error calculating area with Turf.js:', error);
@@ -782,7 +783,7 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
             }
         }
 
-        if (totalArea > 0) {
+        if (totalArea > 0 && totalArea !== area) {
             displayTotalArea = formatAreaMeasurement(totalArea, user.context.lang, 2, unit);
         }
 

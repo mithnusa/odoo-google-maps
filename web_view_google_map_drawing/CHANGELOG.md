@@ -1,5 +1,14 @@
 # Change Log
 
+## 19.0.1.0.10
+
+### Updated Dependencies
+
+- **Deck.gl**: Updated from 9.2.6 to 9.2.9
+- **Terra Draw**: Updated from 1.23.1 to 1.25.0
+- **Terra Draw Google Maps Adapter**: Updated from 1.2.1 to 1.3.1
+- **Turf.js**: Updated from 7.3.2 to 7.3.4
+
 ## 19.0.1.0.9
 ### Added
 - **Dataset-Level Performance Analysis**: Automatic detection and routing of large datasets to DeckGL
