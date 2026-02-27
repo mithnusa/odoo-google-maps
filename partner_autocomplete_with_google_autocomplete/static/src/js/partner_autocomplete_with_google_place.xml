@@ -12,7 +12,7 @@
         <xpath expr="//div[@id='o_google_place_autocomplete_wrapper']/div" position="inside">
             <xpath expr="//input" position="move"/>
             <a t-attf-href="#{ '#' + widgetId }"
-                class="btn btn-light align-content-center o_gplace_toggle collapsed"
+                t-attf-class="btn btn-light align-content-center o_gplace_toggle collapsed {{ state.isCollapseOpen ? 'bg-200' : '' }}"
                 role="button"
                 t-if="!props.readonly"
                 data-bs-toggle="collapse"
@@ -73,7 +73,7 @@
             <xpath expr="//PartnerAutoComplete" position="move"/>
             <a t-attf-href="#{ '#' + widgetId }"
                 t-if="!props.readonly"
-                class="btn btn-light align-content-center o_gplace_toggle collapsed"
+                t-attf-class="btn btn-light align-content-center o_gplace_toggle collapsed {{ state.isCollapseOpen ? 'bg-200' : '' }}"
                 role="button"
                 data-bs-toggle="collapse"
                 data-tooltip="Google Autocomplete"
