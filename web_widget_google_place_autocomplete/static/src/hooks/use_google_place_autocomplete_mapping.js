@@ -30,7 +30,7 @@ export function useGooglePlaceAutocompleteMapping(isTest = false) {
 
     /**
      * Returns a stable, unique DOM ID for this widget instance, derived from
-     * the current record's ID (or virtualId for unsaved records) and the
+     * the current record's ID or 'new' and the
      * field widget ID. Used to associate the autocomplete input with its
      * toggle element.
      *
@@ -38,7 +38,7 @@ export function useGooglePlaceAutocompleteMapping(isTest = false) {
      */
     function getUniqueWidgetId() {
         const { record, id } = component.props;
-        const recordPart = record?.resId || record?.virtualId || 'new';
+        const recordPart = record?.id || 'new';
         const _id = String(id || '');
         return 'place-autocomplete-input-widget-' + recordPart + '-' + _id;
     }
