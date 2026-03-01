@@ -3,7 +3,7 @@
     <t t-name="web_widget_google_place_autocomplete.GooglePlaceAutocomplete">
         <div class="bg-100 ps-2 pe-2 pb-2 pt-1 mt-1 rounded-2 border">
             <p class="mb-1 d-flex justify-content-between align-items-center fw-normal" t-if="props.id">
-                <small>Search Google <t t-if="props.mode === 'places'">Place</t><t t-elif="props.mode === 'address'">Address</t></small>
+                <small class="text-500">Search Google <t t-if="props.mode === 'places'">Place</t><t t-elif="props.mode === 'address'">Address</t></small>
                 <span class="ps-1 float-end cursor-pointer" style="font-size: 10px;" data-tooltip="Open Mapping Configuration" t-on-click.prevent="openMappingConfig" t-if="!props.isTest">
                     <i class="fa fa-cog text-600"/>
                 </span>

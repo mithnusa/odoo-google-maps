@@ -1,5 +1,16 @@
 # Change Log
 
+## 19.0.1.0.5
+
+### Improved
+
+- **Mode-Based Placeholder**: `PlaceAutocompleteElement` now displays a context-sensitive placeholder — `Search for an address` in address mode and `Search for a place` in all other modes
+- **Element Construction**: Simplified `PlaceAutocompleteElement` instantiation — merged the options/no-options branches into a single call using `this.props.options || {}`
+- **String API**: Replaced deprecated `String.prototype.substr()` with `substring()` in element ID generation
+- **Error Listener Binding**: Removed redundant `.bind()` from `gmp-error` event listener registration for `debounceHandleGooglePlaceError`
+- **Missing Fields Warning**: Added user-facing notification when no place fields are specified, replacing the silent console warning
+- **Label Style**: Added `text-500` CSS class to the search label `<small>` element for a softer, muted appearance
+
 ## 19.0.1.0.4
 
 ### Fixed
