@@ -545,6 +545,11 @@ export class AdvancedMarkerBoxSelector {
         this.selectionEnabled = true;
         const mapDiv = this.map.getDiv();
 
+        // Tilt map to 0 to ensure accurate pixel-to-lat/lng conversion during selection
+        if (this.map.getTilt() !== 0) {
+            this.map.setTilt(0);
+        }
+
         // Show instruction and change cursor
         this.instructionDiv.style.display = 'block';
         mapDiv.style.cursor = 'crosshair';
