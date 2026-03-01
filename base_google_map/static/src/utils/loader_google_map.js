@@ -401,7 +401,10 @@ function prepareSettingValues(params) {
     // Version - API release channel
     settings.v = params.version || 'beta';
     // Region - Affects geocoding results and map behavior
-    settings.region = params.region || 'US';
+    // Should be a valid CLDR region code (e.g., 'US', 'FR', 'JP') to ensure proper localization
+    if (params.region) {
+        settings.region = params.region.toUpperCase();
+    }
     // Language - UI and label translations
     settings.language = params.language || 'en_US';
     // Channel - Optional numeric identifier for usage analytics (0-999)

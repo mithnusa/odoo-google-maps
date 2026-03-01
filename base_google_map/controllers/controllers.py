@@ -16,10 +16,13 @@ class Main(http.Controller):
 
         values = {
             'api_key': api_key,
-            'region': region,
             'version': version,
             'map_id': map_id,
         }
+
+        # Set region only if it's defined
+        if region:
+            values['region'] = region
 
         # Extras
         color_scheme = IrParam.get_param('base_google_map.color_scheme', default='')
