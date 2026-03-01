@@ -4,10 +4,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo Server 19.0\n"
+"Project-Id-Version: Odoo Server 19.0-20260118\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-27 10:44+0000\n"
-"PO-Revision-Date: 2025-10-27 10:44+0000\n"
+"POT-Creation-Date: 2026-03-01 13:40+0000\n"
+"PO-Revision-Date: 2026-03-01 13:40+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -66,16 +66,6 @@ msgid "Armenian"
 msgstr ""
 
 #. module: base_google_map
-#: model:ir.model.fields.selection,name:base_google_map.selection__res_config_settings__google_maps_theme__atlas
-msgid "Atlas"
-msgstr ""
-
-#. module: base_google_map
-#: model:ir.model.fields.selection,name:base_google_map.selection__res_config_settings__google_maps_theme__aubergine
-msgid "Aubergine"
-msgstr ""
-
-#. module: base_google_map
 #: model:ir.model.fields.selection,name:base_google_map.selection__res_config_settings__google_maps_lang_localization__az
 msgid "Azerbaijani"
 msgstr ""
@@ -93,21 +83,6 @@ msgstr ""
 #. module: base_google_map
 #: model:ir.model.fields.selection,name:base_google_map.selection__res_config_settings__google_maps_lang_localization__bn
 msgid "Bengali"
-msgstr ""
-
-#. module: base_google_map
-#: model:ir.model.fields.selection,name:base_google_map.selection__res_config_settings__google_maps_theme__blue_essense
-msgid "Blue essense"
-msgstr ""
-
-#. module: base_google_map
-#: model:ir.model.fields.selection,name:base_google_map.selection__res_config_settings__google_maps_theme__blueprint
-msgid "Blue print"
-msgstr ""
-
-#. module: base_google_map
-#: model:ir.model.fields.selection,name:base_google_map.selection__res_config_settings__google_maps_theme__blue_water
-msgid "Blue water"
 msgstr ""
 
 #. module: base_google_map
@@ -161,12 +136,6 @@ msgid "Config Settings"
 msgstr ""
 
 #. module: base_google_map
-#. odoo-javascript
-#: code:addons/base_google_map/static/src/utils/components/warning_missing_view_dialog/warning_missing_view_dialog.js:0
-msgid "Configuration: Missing Required Google Map Form View"
-msgstr ""
-
-#. module: base_google_map
 #: model:ir.model.fields,field_description:base_google_map.field_res_config_settings__google_autocomplete_country_restriction
 msgid "Countries"
 msgstr ""
@@ -198,19 +167,7 @@ msgstr ""
 
 #. module: base_google_map
 #: model:ir.model.fields.selection,name:base_google_map.selection__res_config_settings__google_map_color_scheme__dark
-#: model:ir.model.fields.selection,name:base_google_map.selection__res_config_settings__google_maps_theme__dark
 msgid "Dark"
-msgstr ""
-
-#. module: base_google_map
-#: model:ir.model.fields.selection,name:base_google_map.selection__res_config_settings__google_maps_theme__default
-msgid "Default"
-msgstr ""
-
-#. module: base_google_map
-#. odoo-javascript
-#: code:addons/base_google_map/static/src/utils/components/warning_missing_view_dialog/warning_missing_view_dialog.xml:0
-msgid "Dismiss"
 msgstr ""
 
 #. module: base_google_map
@@ -224,15 +181,15 @@ msgid "Dutch"
 msgstr ""
 
 #. module: base_google_map
-#: model_terms:ir.ui.view,arch_db:base_google_map.res_config_settings_view_form
-msgid ""
-"Enable Google Places Search Autocomplete in Google Maps. This feature "
-"required the “Places API” to be enabled in your Google API key."
+#: model:ir.model.fields,field_description:base_google_map.field_res_config_settings__google_enable_map_place_search
+msgid "Enable Google Places Search"
 msgstr ""
 
 #. module: base_google_map
-#: model:ir.model.fields,field_description:base_google_map.field_res_config_settings__google_enable_map_place_search
-msgid "Enable Google Places search"
+#: model_terms:ir.ui.view,arch_db:base_google_map.res_config_settings_view_form
+msgid ""
+"Enable Google Places Search Autocomplete in Google Maps. This feature "
+"required the “Places API (New)” to be enabled in your Google API key."
 msgstr ""
 
 #. module: base_google_map
@@ -256,11 +213,6 @@ msgid "Estonian"
 msgstr ""
 
 #. module: base_google_map
-#: model:ir.model.fields.selection,name:base_google_map.selection__res_config_settings__google_maps_theme__even_lighter
-msgid "Even lighter"
-msgstr ""
-
-#. module: base_google_map
 #. odoo-javascript
 #: code:addons/base_google_map/static/src/utils/base_google_map.js:0
 msgid ""
@@ -280,12 +232,6 @@ msgstr ""
 #. module: base_google_map
 #: model:ir.model.fields.selection,name:base_google_map.selection__res_config_settings__google_maps_lang_localization__fi
 msgid "Finnish"
-msgstr ""
-
-#. module: base_google_map
-#. odoo-javascript
-#: code:addons/base_google_map/static/src/utils/components/warning_missing_view_dialog/warning_missing_view_dialog.xml:0
-msgid "Following example view of how to create one"
 msgstr ""
 
 #. module: base_google_map
@@ -404,11 +350,6 @@ msgid "Indonesian"
 msgstr ""
 
 #. module: base_google_map
-#: model:ir.model.fields.selection,name:base_google_map.selection__res_config_settings__google_maps_theme__interface_map
-msgid "Interface map"
-msgstr ""
-
-#. module: base_google_map
 #. odoo-javascript
 #: code:addons/base_google_map/static/src/utils/base_google_map.js:0
 msgid "Invalid Google Maps API key. Please check your configuration."
@@ -470,19 +411,8 @@ msgid "Latvian"
 msgstr ""
 
 #. module: base_google_map
-#: model:ir.model.fields,field_description:base_google_map.field_res_config_settings__google_maps_libraries
-#: model_terms:ir.ui.view,arch_db:base_google_map.res_config_settings_view_form
-msgid "Libraries"
-msgstr ""
-
-#. module: base_google_map
 #: model:ir.model.fields.selection,name:base_google_map.selection__res_config_settings__google_map_color_scheme__light
 msgid "Light"
-msgstr ""
-
-#. module: base_google_map
-#: model:ir.model.fields.selection,name:base_google_map.selection__res_config_settings__google_maps_theme__line_drawing
-msgid "Line drawing"
 msgstr ""
 
 #. module: base_google_map
@@ -528,11 +458,6 @@ msgid "Mongolian"
 msgstr ""
 
 #. module: base_google_map
-#: model:ir.model.fields.selection,name:base_google_map.selection__res_config_settings__google_maps_theme__muted_blue
-msgid "Muted blue"
-msgstr ""
-
-#. module: base_google_map
 #: model:ir.model.fields.selection,name:base_google_map.selection__res_config_settings__google_maps_lang_localization__ne
 msgid "Nepali"
 msgstr ""
@@ -550,24 +475,8 @@ msgid "Network error while loading the Google Maps JavaScript API."
 msgstr ""
 
 #. module: base_google_map
-#: model:ir.model.fields.selection,name:base_google_map.selection__res_config_settings__google_maps_theme__night
-msgid "Night"
-msgstr ""
-
-#. module: base_google_map
-#. odoo-javascript
-#: code:addons/base_google_map/static/src/utils/components/warning_missing_view_dialog/warning_missing_view_dialog.xml:0
-msgid "No view for Google Map Form were found in this model!"
-msgstr ""
-
-#. module: base_google_map
 #: model:ir.model.fields.selection,name:base_google_map.selection__res_config_settings__google_maps_lang_localization__no
 msgid "Norwegian"
-msgstr ""
-
-#. module: base_google_map
-#: model:ir.model.fields.selection,name:base_google_map.selection__res_config_settings__google_maps_theme__pale_down
-msgid "Pale down"
 msgstr ""
 
 #. module: base_google_map
@@ -608,11 +517,6 @@ msgid ""
 msgstr ""
 
 #. module: base_google_map
-#: model:ir.model.fields.selection,name:base_google_map.selection__res_config_settings__google_maps_theme__retro
-msgid "Retro"
-msgstr ""
-
-#. module: base_google_map
 #. odoo-javascript
 #: code:addons/base_google_map/static/src/utils/base_google_map.js:0
 msgid "Retry"
@@ -639,16 +543,6 @@ msgid "Set Map Color"
 msgstr ""
 
 #. module: base_google_map
-#: model:ir.model.fields.selection,name:base_google_map.selection__res_config_settings__google_maps_theme__shift_worker
-msgid "Shift worker"
-msgstr ""
-
-#. module: base_google_map
-#: model:ir.model.fields.selection,name:base_google_map.selection__res_config_settings__google_maps_theme__silver
-msgid "Silver"
-msgstr ""
-
-#. module: base_google_map
 #: model:ir.model.fields.selection,name:base_google_map.selection__res_config_settings__google_maps_lang_localization__si
 msgid "Sinhalese"
 msgstr ""
@@ -671,11 +565,6 @@ msgstr ""
 #. module: base_google_map
 #: model:ir.model.fields.selection,name:base_google_map.selection__res_config_settings__google_maps_lang_localization__es-419
 msgid "Spanish (Latin America)"
-msgstr ""
-
-#. module: base_google_map
-#: model:ir.model.fields.selection,name:base_google_map.selection__res_config_settings__google_maps_theme__subtle_gray
-msgid "Subtle gray"
 msgstr ""
 
 #. module: base_google_map
@@ -735,11 +624,6 @@ msgid ""
 msgstr ""
 
 #. module: base_google_map
-#: model:ir.model.fields,field_description:base_google_map.field_res_config_settings__google_maps_theme
-msgid "Theme"
-msgstr ""
-
-#. module: base_google_map
 #. odoo-javascript
 #: code:addons/base_google_map/static/src/utils/loader_google_map.js:0
 msgid "Timeout while loading the Google Maps JavaScript API."
@@ -751,11 +635,6 @@ msgid "Turkish"
 msgstr ""
 
 #. module: base_google_map
-#: model:ir.model.fields.selection,name:base_google_map.selection__res_config_settings__google_maps_theme__uber
-msgid "Uber"
-msgstr ""
-
-#. module: base_google_map
 #: model:ir.model.fields.selection,name:base_google_map.selection__res_config_settings__google_maps_lang_localization__uk
 msgid "Ukrainian"
 msgstr ""
@@ -764,11 +643,6 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/base_google_map/static/src/utils/loader_google_map.js:0
 msgid "Unknown status."
-msgstr ""
-
-#. module: base_google_map
-#: model:ir.model.fields.selection,name:base_google_map.selection__res_config_settings__google_maps_theme__unsaturated_brown
-msgid "Unsaturated brown"
 msgstr ""
 
 #. module: base_google_map
@@ -795,11 +669,6 @@ msgstr ""
 #. module: base_google_map
 #: model:ir.model.fields.selection,name:base_google_map.selection__res_config_settings__google_maps_lang_localization__vi
 msgid "Vietnamese"
-msgstr ""
-
-#. module: base_google_map
-#: model:ir.model.fields.selection,name:base_google_map.selection__res_config_settings__google_maps_theme__wy
-msgid "WY"
 msgstr ""
 
 #. module: base_google_map

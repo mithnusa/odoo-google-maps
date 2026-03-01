@@ -137,7 +137,7 @@ export class GoogleMapsAPILoader {
      */
     static serializedParams(params) {
         this.validateParams(params);
-        return Object.values(params).join('/');
+        return JSON.stringify(params, Object.keys(params).sort());
     }
 
     /**
@@ -220,7 +220,7 @@ export class GoogleMapsAPILoader {
             console.error('Google Maps API load error:', error);
         }
         
-        if (error.message.includes('auth')) {
+        if (error.type === LOADER_ERROR_TYPES.AUTH || error.name === 'AuthError') {
             this.loadingStatus = LOADER_STATUS.AUTH_FAILURE;
         } else if (error.message.includes('timeout') || error.message.includes('network')) {
             this.loadingStatus = LOADER_STATUS.NETWORK_ERROR;
@@ -372,7 +372,6 @@ export class GoogleMapsAPILoader {
  * @param {Object} params - Raw settings from the Odoo backend
  * @param {string} params.api_key - Google Maps API key (required)
  * @param {string} [params.map_id] - Google Maps Map ID for advanced features
- * @param {Array<string>} [params.libraries] - List of Google Maps libraries to load (defaults to ['geometry'])
  * @param {string} [params.version='beta'] - Google Maps API version (e.g., 'weekly', 'quarterly', 'beta')
  * @param {string} [params.region='US'] - Region localization code
  * @param {string} [params.language='en_US'] - Language code for map labels and controls
@@ -390,9 +389,8 @@ export class GoogleMapsAPILoader {
  * const settings = prepareSettingValues({
  *   api_key: 'AIza...',
  *   version: 'weekly',
- *   libraries: ['places', 'geometry']
  * });
- * // Returns: { key: 'AIza...', v: 'weekly', libraries: 'places,geometry', ... }
+ * // Returns: { key: 'AIza...', v: 'weekly', ... }
  */
 function prepareSettingValues(params) {
     const settings = {};
@@ -400,13 +398,6 @@ function prepareSettingValues(params) {
     settings.key = params.api_key;
     // Map ID - Required for advanced map features (3D, Cloud styling, etc.)
     settings.map_id = params.map_id;
-    // Libraries - Google Maps API libraries to load
-    let libraries = params.libraries;
-    const defaultLibraries = ['geometry'];
-    if (!Array.isArray(libraries) || libraries.length === 0) {
-        libraries = defaultLibraries;
-    }
-    settings.libraries = libraries.join(',');
     // Version - API release channel
     settings.v = params.version || 'beta';
     // Region - Affects geocoding results and map behavior
@@ -535,7 +526,6 @@ async function fetchSettingsWithRetry() {
  * @returns {string} returns.key - Google Maps API key
  * @returns {string} returns.v - API version (e.g., 'beta', 'weekly', 'quarterly')
  * @returns {string} returns.region - Region code
- * @returns {string} returns.libraries - Comma-separated list of libraries
  * @returns {string} returns.language - Language code
  * @returns {string} returns.color_scheme - Color scheme ('light' or 'dark')
  * @throws {Error} If settings fetch fails after all retry attempts
