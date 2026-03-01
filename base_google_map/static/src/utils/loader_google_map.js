@@ -373,7 +373,7 @@ export class GoogleMapsAPILoader {
  * @param {string} params.api_key - Google Maps API key (required)
  * @param {string} [params.map_id] - Google Maps Map ID for advanced features
  * @param {string} [params.version='beta'] - Google Maps API version (e.g., 'weekly', 'quarterly', 'beta')
- * @param {string} [params.region='US'] - Region localization code
+ * @param {string} [params.region] - Region localization code
  * @param {string} [params.language='en_US'] - Language code for map labels and controls
  * @param {number} [params.channel] - Optional channel number (0-999) for usage tracking
  * @param {string} [params.solution_channel] - Solution channel identifier for analytics
