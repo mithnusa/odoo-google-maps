@@ -189,7 +189,7 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:base_google_map.res_config_settings_view_form
 msgid ""
 "Enable Google Places Search Autocomplete in Google Maps. This feature "
-"required the “Places API (New)” to be enabled in your Google API key."
+"requires the “Places API (New)” to be enabled in your Google API key."
 msgstr ""
 
 #. module: base_google_map
