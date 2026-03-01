@@ -297,19 +297,24 @@ export class GooglePlaceAutocompleteElement extends Component {
             return; // Already initialized
         }
         try {
+            // Ensure Google Places library is loaded
             await this.googleApiloader.importLibrary('places');
-            if (this.props.options) {
-                this.placeAutocompleteEl = new google.maps.places.PlaceAutocompleteElement(
-                    this.props.options
-                );
-            } else {
-                this.placeAutocompleteEl = new google.maps.places.PlaceAutocompleteElement();
+            // Create the PlaceAutocompleteElement with provided options
+            this.placeAutocompleteEl = new google.maps.places.PlaceAutocompleteElement(this.props.options || {});
+            // Set element ID
+            this.placeAutocompleteEl.id = this.props.elementId || `gpa-${Math.random().toString(36).substring(2, 11)}`;
+            // Set placeholder text based on mode
+            let placeholderText = _t('Search for a place');
+            if (this.props.mode === 'address') {
+                placeholderText = _t('Search for an address');
             }
-            this.placeAutocompleteEl.id =
-                this.props.elementId || `gpa-${Math.random().toString(36).substr(2, 9)}`;
+            this.placeAutocompleteEl.placeholder = placeholderText;
+            // Append the autocomplete element to the container
             this.gAutocompleteRef.el.appendChild(this.placeAutocompleteEl);
+            // Register event listeners
             this.setGmpEventListener('gmp-select', this.handlePlaceSelect.bind(this));
-            this.setGmpEventListener('gmp-error', this.debounceHandleGooglePlaceError.bind(this));
+            this.setGmpEventListener('gmp-error', this.debounceHandleGooglePlaceError);
+            // Handle focus/blur based on collapse state
             this._handleGoogleComponent();
         } catch (error) {
             console.error('Error initializing Google Place Autocomplete Element:', error);
@@ -361,6 +366,10 @@ export class GooglePlaceAutocompleteElement extends Component {
         try {
             if (this.props.fields.length === 0) {
                 console.warn('No place fields specified to retrieve.');
+                this.notificationService.add(
+                    _t('No place fields specified. Please configure the widget to retrieve place details.'),
+                    { type: 'warning' }
+                );
                 return;
             }
 

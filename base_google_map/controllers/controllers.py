@@ -11,17 +11,18 @@ class Main(http.Controller):
 
         api_key = IrParam.get_param('base_google_map.api_key', default='')
         map_id = IrParam.get_param('base_google_map.map_id', default='')
-        libraries = IrParam.get_param('base_google_map.libraries', default='geometry')
         region = IrParam.get_param('base_google_map.region_localization', default='')
         version = IrParam.get_param('base_google_map.version', default='quarterly')
 
         values = {
             'api_key': api_key,
-            'libraries': [lib.strip() for lib in libraries.split(',')],
-            'region': region,
             'version': version,
             'map_id': map_id,
         }
+
+        # Set region only if it's defined
+        if region:
+            values['region'] = region
 
         # Extras
         color_scheme = IrParam.get_param('base_google_map.color_scheme', default='')
@@ -32,7 +33,7 @@ class Main(http.Controller):
             IrParam.get_param('base_google_map.autocomplete_lang_restrict', default='False')
         )
         language = IrParam.get_param('base_google_map.lang_localization', default='')
-        # if is_restrict_language and language:
+
         values['language'] = language
         values['restrict_language'] = is_restrict_language
 
