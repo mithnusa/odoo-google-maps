@@ -1,5 +1,22 @@
 # Change Log
 
+## 19.0.1.0.9
+
+### Removed
+
+- **Libraries Data File**: Deleted `data/gmap_libraries.xml` — the `geometry,places` library initializer is no longer needed following the removal of the libraries configuration system in `base_google_map`
+
+### Improved
+
+- **Places API (New) Compatibility**: Replaced deprecated `componentRestrictions` with `includedRegionCodes` in `PlaceAutocompleteElement` options, aligning with the Places API (New) specification
+- **Country Code Validation**: Added proper filtering of country codes — strips whitespace and rejects entries that are not exactly 2 characters
+- **Language Support**: Added `requestedLanguage` option to `PlaceAutocompleteElement` when language restriction is enabled in settings
+- **Region Support**: Added `requestedRegion` option to `PlaceAutocompleteElement` based on the configured region setting
+- **Autocomplete Placeholder**: Set a translated placeholder text (`Search for a place`) on the `PlaceAutocompleteElement`
+- **Event Listener Cleanup**: Stored the bound `gmp-select` listener reference (`_boundHandlePlaceSelect`) and use `removeEventListener` instead of `google.maps.event.clearListeners` for proper cleanup
+- **Lifecycle Hook**: Wrapped `_cleanup` call in `onWillUnmount` with an arrow function for correct binding
+- **Box Selection Accuracy**: Reset map tilt to `0` before activating the marker box selection mode to ensure accurate pixel-to-lat/lng coordinate conversion
+
 ## 19.0.1.0.8
 ### Fixed
 - **Geolocate button**: Fixed issue where geolocate button sometimes display twice.

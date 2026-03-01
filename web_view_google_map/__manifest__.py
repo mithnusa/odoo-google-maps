@@ -14,9 +14,9 @@
     'website': 'https://github.com/mithnusa',
     'support': 'yopiangi@gmail.com',
     'category': 'Extra Tools',
-    'version': '1.0.8',
+    'version': '1.0.9',
     'depends': ['base_google_map'],
-    'data': ['data/gmap_libraries.xml'],
+    'data': [],
     'assets': {
         'web.assets_backend': [
             'web_view_google_map/static/src/views/**/*',

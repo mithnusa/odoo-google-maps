@@ -110,15 +110,12 @@ class ResConfigSettings(models.TransientModel):
         string='Google Maps Region Localization',
         config_parameter='base_google_map.region_localization',
     )
-    google_maps_libraries = fields.Char(
-        string='Libraries', config_parameter='base_google_map.libraries'
-    )
     google_autocomplete_lang_restrict = fields.Boolean(
         string='Google Autocomplete Language Restriction',
         config_parameter='base_google_map.autocomplete_lang_restrict',
     )
     google_enable_map_place_search = fields.Boolean(
-        string='Enable Google Places search',
+        string='Enable Google Places Search',
         config_parameter='base_google_map.enable_map_place_search',
     )
     google_maps_version = fields.Char(
@@ -175,25 +172,10 @@ class ResConfigSettings(models.TransientModel):
         if not self.google_maps_lang_localization:
             self.google_maps_region_localization = ''
 
-    @api.onchange('google_enable_map_place_search')
-    def onchange_google_enable_map_place_search(self):
-        google_map_libraries = (self.google_maps_libraries or '').split(',')
-        if (
-            self.google_enable_map_place_search
-            and 'places' not in google_map_libraries
-        ):
-            google_map_libraries += ['places']
-
-        self.google_maps_libraries = ','.join(google_map_libraries)
-
     @api.model
     def get_values(self):
         res = super(ResConfigSettings, self).get_values()
-        is_web_google_map_installed = self.env['ir.module.module'].search_count([
-            ('name', '=', 'web_view_google_map'),
-            ('state', '=', 'installed'),
-        ]) > 0
-        res.update(
-            is_web_google_map_installed=is_web_google_map_installed,
-        )
+        module_web_view_google_map = self.env['ir.module.module']._get('web_view_google_map')
+        is_web_google_map_installed = bool(module_web_view_google_map.state == 'installed')
+        res.update(is_web_google_map_installed=is_web_google_map_installed)
         return res
