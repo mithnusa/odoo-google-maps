@@ -1,7 +1,8 @@
 import { registry } from '@web/core/registry';
 import { _t } from '@web/core/l10n/translation';
 import { useService } from '@web/core/utils/hooks';
-import { useState, useRef, onWillUnmount, onWillUpdateProps } from '@odoo/owl';
+import { exprToBoolean } from '@web/core/utils/strings';
+import { useState, useRef, onWillUnmount, onWillUpdateProps, useEffect } from '@odoo/owl';
 import { PartnerAutoCompleteCharField, partnerAutoCompleteCharField } from '@partner_autocomplete/js/partner_autocomplete_fieldchar';
 import { useGooglePlaceAutocompleteMapping } from '@web_widget_google_place_autocomplete/hooks/use_google_place_autocomplete_mapping';
 import { GooglePlaceAutocompleteElement } from '@web_widget_google_place_autocomplete/component/google_place_autocomplete';
@@ -36,6 +37,7 @@ export class PartnerAutoCompleteCharFieldWithGooglePlace extends PartnerAutoComp
         ...PartnerAutoCompleteCharField.props,
         mappingCode: { type: String, optional: true },
         mappingMode: { type: String, optional: true },
+        noManualEdit: { type: Boolean, optional: true }, // If true, the input field will be set to readonly to prevent manual edits. Other fields will still be populated based on the autocomplete selection. Default is false (manual edits allowed).
     };
 
     /**
@@ -55,6 +57,19 @@ export class PartnerAutoCompleteCharFieldWithGooglePlace extends PartnerAutoComp
         this.placeMapping = useGooglePlaceAutocompleteMapping();
         this.widgetId = this.placeMapping.getUniqueWidgetId();
         this.mappingConfig = {};
+
+        useEffect(
+            (inputRef, noManualEdit, readonly) => {
+                if (inputRef.el && !readonly) {
+                    if (noManualEdit) {
+                        inputRef.el.setAttribute('readonly', 'readonly');
+                    } else {
+                        inputRef.el.removeAttribute('readonly');
+                    }
+                }
+            },
+            () => [this.inputRef, this.props.noManualEdit, this.props.readonly]
+        );
 
         onWillUnmount(() => {
             this.closeGoogleAutocomplete();
@@ -255,6 +270,7 @@ export const partnerAutoCompleteCharFieldWithGooglePlace = {
         ...partnerAutoCompleteCharField.extractProps({ attrs, options, placeholder }),
         mappingCode: options.mapping_code,
         mappingMode: options.mapping_mode || 'places',
+        noManualEdit: exprToBoolean(options.no_manual_edit, false),
     }),
 };
 
