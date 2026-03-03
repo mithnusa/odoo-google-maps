@@ -14,6 +14,7 @@ import { GoogleMapGeolocate } from './components/geolocate/geolocate';
 import { GoogleMapSearchPlaces } from './components/search_places/search_places';
 import {
     darkenColor,
+    lightenColor,
     AdvancedMarkerBoxSelector,
     getRecordDataView,
 } from './utils';
@@ -46,10 +47,13 @@ const MARKER_CONFIG = {
             BORDER: '2px solid #fafafa',
         },
         ZOOM: {
-            DEFAULT: 17,
+            DEFAULT: 15,
             SHIFTED_DETAIL: 22,
         },
         TILT: 65,
+        DEFAULT_SCALE: 1,
+        SELECTED_SCALE: 1.4,
+        SELECTED_COLOR: '#4285F4',
     },
     BOUNDS: {
         DEFAULT_PADDING: 200,
@@ -610,7 +614,7 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
     }
 
     _handleAfterZoomAtMarker(marker) {
-        google.maps.event.trigger(marker, 'click');
+        google.maps.event.trigger(marker, 'gmp-click');
         const { ZOOM, TILT } = MARKER_CONFIG.VISUAL;
         this.googleMap.setTilt(TILT);
         if (this.googleMap.getZoom() < ZOOM.DEFAULT) {
@@ -814,7 +818,12 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
     async _selectMarker(marker) {
         if (!marker || !this.isMapLoaded()) return;
 
-        marker.content.className = this.markerSelectedClass;
+        if (marker._pin) {
+            marker._pin.scale = MARKER_CONFIG.VISUAL.SELECTED_SCALE;
+            marker._pin.borderColor = MARKER_CONFIG.VISUAL.SELECTED_COLOR;
+        } else {
+            marker.content.className = this.markerSelectedClass;
+        }
 
         try {
             // Center map on marker
@@ -833,7 +842,12 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
     async _deselectMarker(marker) {
         if (!marker || !this.isMapLoaded()) return;
 
-        marker.content.className = this.markerDefaultClass;
+        if (marker._pin) {
+            marker._pin.scale = MARKER_CONFIG.VISUAL.DEFAULT_SCALE;
+            marker._pin.borderColor = marker._elementValues?.borderColor;
+        } else {
+            marker.content.className = this.markerDefaultClass;
+        }
 
         try {
             // Center map on marker
@@ -1208,12 +1222,30 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
      * @returns {Object} AdvancedMarkerElement
      */
     async _buildAdvancedMarker(record, geolocation, data, elementValues) {
-        const { AdvancedMarkerElement } = await this.apiLoader.importLibrary('marker');
-        const content = this._createMarkerElement(record, elementValues);
+        const { AdvancedMarkerElement, PinElement } = await this.apiLoader.importLibrary('marker');
+        const pinElOptions = {
+            background: elementValues.background,
+            borderColor: elementValues.borderColor,
+            glyphColor: elementValues.glyphColor,
+            scale: MARKER_CONFIG.VISUAL.DEFAULT_SCALE,
+        };
+        if (data.title) {
+            pinElOptions.glyphText = data.title.charAt(0).toUpperCase();
+            if (pinElOptions.glyphColor) {
+                pinElOptions.glyphColor = lightenColor(pinElOptions.glyphColor, 0.9);
+            }
+        }
+        if (record.selected) {
+            pinElOptions.scale = MARKER_CONFIG.VISUAL.SELECTED_SCALE;
+            pinElOptions.borderColor = MARKER_CONFIG.VISUAL.SELECTED_COLOR;
+        }
+        const pin = new PinElement(pinElOptions);
         const options = this._createMarkerOptions(geolocation, data);
-        options.content = content;
-        
-        return new AdvancedMarkerElement(options);
+        options.content = pin;
+
+        const marker = new AdvancedMarkerElement(options);
+        marker._pin = pin;
+        return marker;
     }
 
     /**
@@ -1249,7 +1281,7 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
      */
     _attachMarkerEventListeners(marker, record) {
         const clickListener = marker.addListener(
-            'click',
+            'gmp-click',
             this._handleMarkerClick.bind(this, marker)
         );
         this._storeMarkerEventListener(record.id, 'click', clickListener);
@@ -1420,24 +1452,6 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
      */
     _attachConnectionLineToMarker(marker, line) {
         marker._connectionLine = line;
-    }
-
-    /**
-     * Enhanced marker element creation with configuration
-     * @private
-     * @param {Object} record Record data
-     * @param {Object} elementValues Values for marker styling
-     * @returns {HTMLElement} Marker content element
-     */
-    _createMarkerElement(record, elementValues) {
-        const content = document.createElement('div');
-        const { MARKER } = MARKER_CONFIG.VISUAL;
-        
-        content.className = record.selected ? MARKER.SELECTED_CLASS : MARKER.DEFAULT_CLASS;
-        content.style.background = elementValues.background;
-        content.style.border = MARKER.BORDER;
-        
-        return content;
     }
 
     /**

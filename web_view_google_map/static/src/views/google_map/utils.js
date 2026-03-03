@@ -85,18 +85,21 @@ export function getCurrentActionId() {
  * @returns {string|null} - Normalized color value or null
  */
 export function processColor(color) {
-    let marker_color;
-    if (typeof color === 'number') {
-        marker_color = getHexColorPicker(color);
-    } else if (/(?:#|0x)(?:[a-f0-9]{3}|[a-f0-9]{6})\b|(?:rgb|hsl)a?\([^\)]*\)/gi.test(color)) {
-        marker_color = color;
-    } else if (color && !marker_color) {
-        marker_color = normalizeColor(color);
+    let markerColor = null;
+    if (color !== undefined && color !== null) {
+        if (typeof color === 'number') {
+            markerColor = getHexColorPicker(color);
+        } else if (typeof color === 'string' && /(?:#|0x)(?:[a-f0-9]{3}|[a-f0-9]{6})\b|(?:rgb|hsl)a?\([^\)]*\)/gi.test(color)) {
+            markerColor = color;
+        }
+        if (!markerColor) {
+            markerColor = normalizeColor(color);
+        }
     }
-    if (!marker_color) {
-        marker_color = DEFAULT_COLOR;
+    if (!markerColor) {
+        markerColor = DEFAULT_COLOR;
     }
-    return marker_color;
+    return markerColor;
 }
 
 /**
@@ -197,7 +200,7 @@ export function parseRecord(record, viewConfig = {}, isGrouped = false) {
             const color = record.data[otherFields.__geoColor];
             if (typeof color === 'string' || (!color && typeof color !== 'number')) {
                 try {
-                    other['__geoColor'] = normalizeColor(otherFields.__geoColor);                    
+                    other['__geoColor'] = normalizeColor(color);
                 } catch (error) {
                     console.warn('Failed to normalize color, using default color.', error);
                     other['__geoColor'] = DEFAULT_COLOR;
@@ -222,6 +225,11 @@ export function getRecordDataView(record, viewAttrs) {
 }
 
 export function normalizeColor(color) {
+    // If already a hex color, return immediately without DOM manipulation
+    if (/^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/.test(color)) {
+        return color.toUpperCase();
+    }
+
     // Create a temporary element to leverage the browser's color parsing
     let tempElement = document.createElement('div');
     tempElement.style.color = color;
