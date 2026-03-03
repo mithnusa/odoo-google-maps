@@ -1,7 +1,8 @@
 import { _t } from '@web/core/l10n/translation';
 import { registry } from '@web/core/registry';
 import { useService } from '@web/core/utils/hooks';
-import { useRef, useState, onWillUnmount, onWillUpdateProps } from '@odoo/owl';
+import { exprToBoolean } from '@web/core/utils/strings';
+import { useRef, useState, onWillUnmount, onWillUpdateProps, useEffect } from '@odoo/owl';
 import { CharField, charField } from '@web/views/fields/char/char_field';
 import { GooglePlaceAutocompleteElement } from '../../component/google_place_autocomplete';
 import { useGooglePlaceAutocompleteMapping } from '../../hooks/use_google_place_autocomplete_mapping';
@@ -27,6 +28,7 @@ export class GooglePlaceAutocompleteCharField extends CharField {
         ...CharField.props,
         mappingCode: { type: String, optional: true },
         mappingMode: { type: String, optional: true }, // 'address' or 'places'
+        noManualEdit: { type: Boolean, optional: true }, // If true, the input field will be set to readonly to prevent manual edits. Other fields will still be populated based on the autocomplete selection. Default is false (manual edits allowed).
     };
 
     /**
@@ -46,6 +48,19 @@ export class GooglePlaceAutocompleteCharField extends CharField {
         this.placeMapping = useGooglePlaceAutocompleteMapping();
         this.widgetId = this.placeMapping.getUniqueWidgetId();
         this.mappingConfig = {};
+
+        useEffect(
+            (inputRef, noManualEdit, readonly) => {
+                if (inputRef.el && !readonly) {
+                    if (noManualEdit) {
+                        inputRef.el.setAttribute('readonly', 'readonly');
+                    } else {
+                        inputRef.el.removeAttribute('readonly');
+                    }
+                }
+            },
+            () => [this.input, this.props.noManualEdit, this.props.readonly]
+        );
 
         onWillUpdateProps((nextProps) => {
             if (nextProps.record?.id !== this.props.record?.id) {
@@ -247,6 +262,7 @@ export const googlePlaceAutocompleteCharField = {
         ...charField.extractProps({ attrs, options, placeholder }),
         mappingCode: options.mapping_code,
         mappingMode: options.mapping_mode,
+        noManualEdit: exprToBoolean(options.no_manual_edit, false),
     }),
 };
 
