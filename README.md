@@ -19,7 +19,7 @@ Most of the implementation in this modules are inspired from the samples that yo
 | [web_view_google_map_drawing](/web_view_google_map_drawing/README.md) | 19.0.1.0.10 | Base module for sub view of "google_map" for drawing capability |
 | [sale_google_map](/sale_google_map/README.md) | 19.0.1.0.5 | Implementation of view "Google Maps" on Sale Order |
 | [stock_google_map](/stock_google_map/README.md) | 19.0.1.0.0 | Implementation of view "Google Maps" on Inventory |
-| [web_widget_google_map](/web_widget_google_map/README.md) | 19.0.1.0.2 | Base module of Google Maps widget |
+| [web_widget_google_map](/web_widget_google_map/README.md) | 19.0.1.0.3 | Base module of Google Maps widget |
 | [web_widget_google_place_autocomplete](/web_widget_google_place_autocomplete/README.md) | 19.0.1.0.5 | Implementation of Google Places Autocomplete Element |
 
 
