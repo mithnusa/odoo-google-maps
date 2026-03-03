@@ -224,34 +224,57 @@ export function getRecordDataView(record, viewAttrs) {
     return dataView;
 }
 
+// Module-level cache — avoids repeated DOM reflows for the same color value
+const _normalizeColorCache = new Map();
+
 export function normalizeColor(color) {
-    // If already a hex color, return immediately without DOM manipulation
-    if (/^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/.test(color)) {
-        return color.toUpperCase();
+    // Return cached result if available
+    if (_normalizeColorCache.has(color)) {
+        return _normalizeColorCache.get(color);
     }
 
-    // Create a temporary element to leverage the browser's color parsing
-    let tempElement = document.createElement('div');
+    // Expand 3-digit hex → 6-digit before returning
+    if (/^#[0-9A-Fa-f]{3}$/.test(color)) {
+        const expanded = `#${color[1]}${color[1]}${color[2]}${color[2]}${color[3]}${color[3]}`.toUpperCase();
+        _normalizeColorCache.set(color, expanded);
+        return expanded;
+    }
+
+    // 6-digit hex: return immediately without DOM manipulation
+    if (/^#[0-9A-Fa-f]{6}$/.test(color)) {
+        const upper = color.toUpperCase();
+        _normalizeColorCache.set(color, upper);
+        return upper;
+    }
+
+    // Use the browser's color parser via a temporary element
+    const tempElement = document.createElement('div');
     tempElement.style.color = color;
     document.body.appendChild(tempElement);
 
-    // Get the computed color in RGB format
-    let computedColor = window.getComputedStyle(tempElement).color;
-    document.body.removeChild(tempElement);
-
-    // Extract the RGB components
-    let rgbMatch = computedColor.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);
-    if (rgbMatch) {
-        let r = parseInt(rgbMatch[1]);
-        let g = parseInt(rgbMatch[2]);
-        let b = parseInt(rgbMatch[3]);
-
-        // Convert RGB to hex
-        return '#' + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1).toUpperCase();
+    let computedColor;
+    try {
+        computedColor = window.getComputedStyle(tempElement).color;
+    } finally {
+        document.body.removeChild(tempElement);
     }
 
-    // If the input is already in hex format, return it as is
-    return color;
+    // Match both rgb(...) and rgba(...) — handles transparent and alpha colors
+    const rgbMatch = computedColor.match(
+        /^rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*[\d.]+)?\)$/
+    );
+    if (rgbMatch) {
+        const r = parseInt(rgbMatch[1]);
+        const g = parseInt(rgbMatch[2]);
+        const b = parseInt(rgbMatch[3]);
+        const hex = '#' + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1).toUpperCase();
+        _normalizeColorCache.set(color, hex);
+        return hex;
+    }
+
+    // Fallback: browser could not parse the color — return safe default
+    _normalizeColorCache.set(color, DEFAULT_COLOR);
+    return DEFAULT_COLOR;
 }
 
 export function generateColor() {
