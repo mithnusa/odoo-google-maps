@@ -1,5 +1,11 @@
 # Change Log
 
+## 19.0.1.0.5
+
+### Fixed
+
+- **Marker Click Event**: Changed marker click listener from deprecated `'click'` to `'gmp-click'` for `AdvancedMarkerElement` compatibility
+
 ## 19.0.1.0.4
 ### Improved
 - **Marker Responsiveness**: Enhanced marker sizing with flexible dimensions using min/max constraints
