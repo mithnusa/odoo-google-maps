@@ -1284,7 +1284,7 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
             'gmp-click',
             this._handleMarkerClick.bind(this, marker)
         );
-        this._storeMarkerEventListener(record.id, 'click', clickListener);
+        this._storeMarkerEventListener(record.id, 'gmp-click', clickListener);
     }
 
     /**
