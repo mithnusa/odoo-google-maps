@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_project_project_google_map" model="ir.ui.view">
+        <field name="name">project.project.google.map</field>
+        <field name="model">project.project</field>
+        <field name="arch" type="xml">
+            <google_map string="Project Sites" lat="site_latitude" lng="site_longitude" color="marker_color" sidebar_title="name" sidebar_subtitle="partner_id">
+                <field name="marker_color"/>
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="partner_site_id"/>
+                <field name="site_latitude"/>
+                <field name="site_longitude"/>
+            </google_map>
+        </field>
+    </record>
+    <record id="view_project_project_google_map_form" model="ir.ui.view">
+        <field name="name">project.project.google.map.form</field>
+        <field name="model">project.project</field>
+        <field name="inherit_id" ref="project.edit_project"/>
+        <field name="arch" type="xml">
+            <xpath expr="//page[1]" position="after">
+                <page string="Site">
+                    <group>
+                        <group>
+                            <field name="partner_site_id" string="Address" widget="res_partner_many2one" context="{'show_address': 1, 'default_type': 'site'}"/>
+                            <label for="site_latitude" string="Geo Location" class="o_form_label"/>
+                            <div>
+                                <span>Lat : <field name="site_latitude" nolabel="1" class="oe_inline"/></span>
+                                <br/>
+                                <span>Long: <field name="site_longitude" nolabel="1" class="oe_inline"/></span>
+                            </div>
+                        </group>
+                        <group>
+                            <widget name="google_map" lat="site_latitude" lng="site_longitude" maptype="satellite" width="100%" height="400" readonly="1"/>
+                        </group>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+    <record id="project.open_view_project_all" model="ir.actions.act_window">
+        <field name="view_mode">kanban,list,google_map,form</field>
+    </record>
+    <record id="project.open_view_project_all_group_stage" model="ir.actions.act_window">
+        <field name="view_mode">kanban,list,form,calendar,google_map,activity</field>
+    </record>
+    <record id="project.open_view_project_all_config" model="ir.actions.act_window">
+        <field name="view_mode">list,kanban,google_map,form</field>
+        <field name="view_ids">[(4, ref('project_google_map.view_project_project_google_map'))]</field>
+    </record>
+    <record id="project.open_view_project_all_config_group_stage" model="ir.actions.act_window">
+        <field name="view_mode">list,kanban,form,calendar,google_map,activity</field>
+    </record>
+</odoo>
