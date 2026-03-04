@@ -65,7 +65,7 @@ msgstr ""
 
 #. module: project_google_map
 #: model_terms:ir.ui.view,arch_db:project_google_map.view_project_project_google_map_form
-msgid "Lat :"
+msgid "Lat:"
 msgstr ""
 
 #. module: project_google_map
