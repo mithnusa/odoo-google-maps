@@ -1,5 +1,11 @@
 # Change Log
 
+## 19.0.1.0.11
+
+### Fixed
+
+- **Marker Listener Storage Key**: Fixed `_storeMarkerEventListener` being called with `'click'` instead of `'gmp-click'`, ensuring the stored listener key matches the actual event name used for proper cleanup
+
 ## 19.0.1.0.10
 
 ### Added
