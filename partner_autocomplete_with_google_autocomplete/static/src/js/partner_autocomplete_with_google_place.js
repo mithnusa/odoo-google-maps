@@ -59,16 +59,22 @@ export class PartnerAutoCompleteCharFieldWithGooglePlace extends PartnerAutoComp
         this.mappingConfig = {};
 
         useEffect(
-            (inputRef, noManualEdit, readonly) => {
-                if (inputRef.el && !readonly) {
-                    if (noManualEdit) {
-                        inputRef.el.setAttribute('readonly', 'readonly');
-                    } else {
-                        inputRef.el.removeAttribute('readonly');
-                    }
+            () => {
+                if (this.inputRef.el && !this.props.readonly && this.props.noManualEdit) {
+                    this.inputRef.el.setAttribute('readonly', 'readonly');
+                    this.inputRef.el.setAttribute(
+                        'data-tooltip',
+                        _t('This field is read-only because manual edits are disabled. Please use the Google Place Autocomplete to update the value.')
+                    );
                 }
+                return () => {
+                    if (this.inputRef.el) {
+                        this.inputRef.el.removeAttribute('readonly');
+                        this.inputRef.el.removeAttribute('data-tooltip');
+                    }
+                };
             },
-            () => [this.inputRef, this.props.noManualEdit, this.props.readonly]
+            () => [this.inputRef.el, this.props.noManualEdit, this.props.readonly]
         );
 
         onWillUnmount(() => {
