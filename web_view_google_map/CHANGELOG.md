@@ -1,5 +1,23 @@
 # Change Log
 
+## 19.0.1.0.10
+
+### Added
+
+- **Pin-style Markers with Letter Glyphs**: Map markers now use Google's native `PinElement` instead of custom HTML elements. Each pin displays the first letter of the record's title as a glyph, giving a cleaner, map-native appearance.
+- **Styled Place Search Marker**: The place search result is now shown as a distinctive orange teardrop marker with a search icon, making it easy to distinguish from record markers.
+
+### Improved
+
+- **Selected Marker Feedback**: Selected markers now scale up (1.4×) and highlight with a blue border (`#4285F4`), making the active record immediately obvious on the map.
+- **Default Zoom Level**: Reduced the default zoom level when panning to a marker from 17 to 15 for better spatial context.
+- **Color Processing**: `processColor()` was refactored for cleaner null/undefined handling. `normalizeColor()` now returns immediately for hex colors without unnecessary DOM manipulation, improving performance.
+
+### Fixed
+
+- **Marker Click Event**: Changed marker event listener from the deprecated `click` to `gmp-click`, which is the correct event for `AdvancedMarkerElement`.
+- **Color Field Bug**: Fixed a bug in `parseRecord()` where `normalizeColor()` was incorrectly called with the field name instead of the actual color value, causing markers to always fall back to the default color.
+
 ## 19.0.1.0.9
 
 ### Removed

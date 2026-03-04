@@ -4,10 +4,11 @@ import { sprintf } from '@web/core/utils/strings';
 import { useService } from '@web/core/utils/hooks';
 import { standardWidgetProps } from '@web/views/widgets/standard_widget_props';
 import { rpc } from '@web/core/network/rpc';
-import { Component, onWillStart, useRef, useEffect, useState, onWillUnmount } from '@odoo/owl';
+import { Component, onWillStart, useRef, useEffect, useState, onWillUnmount, useSubEnv } from '@odoo/owl';
 
 import { ConfirmationDialog } from '@web/core/confirmation_dialog/confirmation_dialog';
 import { useGoogleMapsAPILoader } from '@base_google_map/utils/loader_google_map';
+import { GoogleMapSearchPlaces } from '@web_view_google_map/views/google_map/components/search_places/search_places';
 
 /**
  * Dialog component for editing geolocation coordinates with an interactive Google Map.
@@ -17,6 +18,10 @@ import { useGoogleMapsAPILoader } from '@base_google_map/utils/loader_google_map
  */
 class GeolocationEditDialog extends ConfirmationDialog {
     static template = 'web_widget_google_map.GeolocationEditDialog';
+    static components = {
+        ...ConfirmationDialog.components,
+        GoogleMapSearchPlaces,
+    };
     static props = {
         ...ConfirmationDialog.props,
         confirm: Function,
@@ -46,7 +51,7 @@ class GeolocationEditDialog extends ConfirmationDialog {
         this.localLat = this.props.lat || 0.0;
         this.localLng = this.props.lng || 0.0;
 
-        this.state = useState({ isGoogleLoaded: false });
+        this.state = useState({ isGoogleLoaded: false, isMapReady: false });
 
         this.apiLoader = useGoogleMapsAPILoader(
             () => {
@@ -69,6 +74,12 @@ class GeolocationEditDialog extends ConfirmationDialog {
             },
             () => [this.state.isGoogleLoaded, this.mapRef]
         );
+
+        useSubEnv({
+            mapState: this.state,
+            apiLoader: this.apiLoader,
+            googleMap: () => this.googleMap,
+        });
 
         onWillUnmount(this._cleanupListeners.bind(this));
     }
@@ -142,6 +153,7 @@ class GeolocationEditDialog extends ConfirmationDialog {
                 resolve();
             });
         });
+        this.state.isMapReady = true;
         this.renderMarker();
     }
 
@@ -374,8 +386,10 @@ export class GoogleMapWidget extends Component {
      */
     generateSrc(api_key) {
         const params = { ...this.params, key: api_key };
+        const url = new URL(this.baseUrl);
         const searchParams = new URLSearchParams(params);
-        return `${this.baseUrl}?${searchParams.toString()}`;
+        url.search = searchParams.toString();
+        return url.toString();
     }
 
     /**

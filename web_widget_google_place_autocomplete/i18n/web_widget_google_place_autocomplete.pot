@@ -4,10 +4,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo Server 19.0-20260118\n"
+"Project-Id-Version: Odoo Server 19.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-01 13:49+0000\n"
-"PO-Revision-Date: 2026-03-01 13:49+0000\n"
+"POT-Creation-Date: 2026-03-04 09:24+0000\n"
+"PO-Revision-Date: 2026-03-04 09:24+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -787,6 +787,14 @@ msgstr ""
 msgid ""
 "The format of \"route\" and \"street_number\" will be configured dynamically"
 " based on the address's country. Check the"
+msgstr ""
+
+#. module: web_widget_google_place_autocomplete
+#. odoo-javascript
+#: code:addons/web_widget_google_place_autocomplete/static/src/widgets/GooglePlaceAutocompleteElement/google_place_autocomplete_element.js:0
+msgid ""
+"This field is read-only because manual edits are disabled. Please use the "
+"Google Place Autocomplete to update the value."
 msgstr ""
 
 #. module: web_widget_google_place_autocomplete

@@ -1,3 +1,23 @@
+.places-search-marker {
+    background: #FF6F00;
+    border: 2px solid darken(#FF6F00, 15%);
+    border-radius: 50% 50% 50% 0;
+    transform: rotate(-45deg);
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+
+    i {
+        transform: rotate(45deg);
+        color: #FFFFFF;
+        font-size: 14px;
+    }
+}
+
 .o_google_map_view {
     .google_search_places {
         margin-top: 10px;

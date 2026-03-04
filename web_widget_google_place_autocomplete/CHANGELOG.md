@@ -1,5 +1,11 @@
 # Change Log
 
+## 19.0.1.0.6
+
+### Added
+
+- **Read-only Input Mode** (`no_manual_edit`): New widget option that locks the autocomplete input field to prevent free-text edits. When set to `True`, users can only populate the field by selecting a Google Places suggestion; all mapped fields are still filled as usual. Defaults to `False` (free-text input allowed).
+
 ## 19.0.1.0.5
 
 ### Improved
