@@ -178,9 +178,10 @@ export class GoogleMapRendererCRM extends GoogleMapRenderer {
         options.content = this._createMarkerElement(record, elementValues);
 
         const advMarkerElement = new AdvancedMarkerElement(options);
-        advMarkerElement.addListener('gmp-click', () => {
+        const clickListener = advMarkerElement.addListener('gmp-click', () => {
             this.toggleMarkerHighlight(advMarkerElement);
         });
+        this._storeMarkerEventListener(record.id, 'gmp-click', clickListener);
         return advMarkerElement;
     }
 
