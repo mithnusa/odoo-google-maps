@@ -50,16 +50,22 @@ export class GooglePlaceAutocompleteCharField extends CharField {
         this.mappingConfig = {};
 
         useEffect(
-            (inputRef, noManualEdit, readonly) => {
-                if (inputRef.el && !readonly) {
-                    if (noManualEdit) {
-                        inputRef.el.setAttribute('readonly', 'readonly');
-                    } else {
-                        inputRef.el.removeAttribute('readonly');
-                    }
+            () => {
+                if (this.input.el && !this.props.readonly && this.props.noManualEdit) {
+                    this.input.el.setAttribute('readonly', 'readonly');
+                    this.input.el.setAttribute(
+                        'data-tooltip',
+                        _t('This field is read-only because manual edits are disabled. Please use the Google Place Autocomplete to update the value.')
+                    );
                 }
+                return () => {
+                    if (this.input.el) {
+                        this.input.el.removeAttribute('readonly');
+                        this.input.el.removeAttribute('data-tooltip');
+                    }
+                };
             },
-            () => [this.input, this.props.noManualEdit, this.props.readonly]
+            () => [this.input.el, this.props.noManualEdit, this.props.readonly]
         );
 
         onWillUpdateProps((nextProps) => {
