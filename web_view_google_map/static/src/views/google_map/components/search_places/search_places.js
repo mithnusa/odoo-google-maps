@@ -82,8 +82,15 @@ export class GoogleMapSearchPlaces extends Component {
                         this.props.googleMap.controls[
                             google.maps.ControlPosition.TOP_RIGHT
                         ].push(this.searchRef.el);
+
+                        const markerContent = document.createElement('div');
+                        markerContent.className = 'places-search-marker';
+                        const icon = document.createElement('i');
+                        icon.className = 'fa fa-search';
+                        markerContent.appendChild(icon);
                         this.markerPlacesSearch = new AdvancedMarkerElement({
                             map: this.props.googleMap,
+                            content: markerContent,
                         });
                         this.markerInfoWindow = new google.maps.InfoWindow();
                         this._boundHandlePlaceSelect = this.debouncedHandlePlaceSelect.bind(this);

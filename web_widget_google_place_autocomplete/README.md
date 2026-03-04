@@ -11,6 +11,9 @@ This widget gives you full control over how Google Places data is mapped to your
 - [Screenshots](#screenshots)
 - [Widget: gplace_autocomplete_el](#widget-gplace_autocomplete_el)
   - [Usage](#usage)
+    - [Option 1: Using Mapping Code](#option-1-using-mapping-code-recommended)
+    - [Option 2: Using Mapping Mode](#option-2-using-mapping-mode)
+    - [Option 3: Disable Manual Edit](#option-3-disable-manual-edit)
   - [Configuration Options](#configuration-options)
   - [Street Formatting](#street-formatting)
 - [Installation & Configuration](#installation--configuration)
@@ -26,6 +29,7 @@ This widget gives you full control over how Google Places data is mapped to your
 - **Interactive Mapping Test**: Built-in testing tool to verify your field mappings
 - **Quick Access**: Shortcut button in form views to access mapping configuration
 - **Street Format Control**: Configure street formatting per country (route + number or number + route)
+- **Read-only input mode** (`no_manual_edit`): Optionally lock the autocomplete input so users can only select from Google Places suggestions, preventing free-text edits while still auto-filling all mapped fields
 
 ## Screenshots
 
@@ -55,7 +59,7 @@ Before using the widget, ensure you have:
 
 ### Usage
 
-To use the widget in your form views, you can configure it in two ways:
+To use the widget in your form views, you can configure it using the following options:
 
 #### Option 1: Using Mapping Code (Recommended)
 
@@ -95,6 +99,25 @@ There are two available mapping modes:
       ...
     </form>
     </field>
+</record>
+```
+
+#### Option 3: Disable Manual Edit
+
+By default, users can freely type in the autocomplete field. Set `no_manual_edit` to `True` to make the input read-only, so data can only be populated through a Google Places suggestion. All mapped fields are still filled as usual when a suggestion is selected.
+
+```xml
+<record id="view_form_your_model" model="ir.ui.view">
+  <field name="name">your.model.form</field>
+  <field name="model">your.model</field>
+  <field name="arch" type="xml">
+    <form>
+      ...
+      <field name="your_field_name" widget="gplace_autocomplete_el"
+             options="{'mapping_mode': 'address', 'no_manual_edit': True}"/>
+      ...
+    </form>
+  </field>
 </record>
 ```
 
