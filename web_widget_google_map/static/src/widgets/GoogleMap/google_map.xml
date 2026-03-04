@@ -5,7 +5,7 @@
             <div class="o_google_map_widget" t-if="iframeSrc">
                 <iframe t-att-width="props.width" t-att-height="props.height" frameborder="0" style="border:0" referrerpolicy="no-referrer-when-downgrade" t-att-src="iframeSrc" allowfullscreen="allowfullscreen"></iframe>
             </div>
-            <button type="button" class="btn btn-light" t-on-click="handleOnEdit" t-att-disabled="props.readonly">Edit</button>
+            <button type="button" class="btn btn-light" t-on-click="handleOnEdit" t-if="!props.readonly">Edit</button>
         </div>
     </t>
     <t t-name="web_widget_google_map.GeolocationEditDialog">
