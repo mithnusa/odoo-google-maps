@@ -15,6 +15,7 @@
     'depends': [
         'project',
         'web_view_google_map',
+        'web_widget_google_map',
     ],
     'data': ['views/project_project.xml'],
     'demo': [],
