@@ -1,13 +1,13 @@
 import { _t } from '@web/core/l10n/translation';
 import { Layout } from '@web/search/layout';
 import { useModelWithSampleData } from '@web/model/model';
+import { evaluateBooleanExpr } from "@web/core/py_js/py";
 import { extractFieldsFromArchInfo } from '@web/model/relational_model/utils';
 import { usePager } from '@web/search/pager_hook';
 import { useService } from '@web/core/utils/hooks';
 import { rpc } from "@web/core/network/rpc";
 import { user } from "@web/core/user";
 import { unique } from '@web/core/utils/arrays';
-import { ExportDataDialog } from '@web/views/view_dialogs/export_data_dialog';
 import { download } from '@web/core/network/download';
 import {
     ConfirmationDialog,
@@ -15,6 +15,7 @@ import {
 } from '@web/core/confirmation_dialog/confirmation_dialog';
 import { omit } from '@web/core/utils/objects';
 import { ActionMenus, STATIC_ACTIONS_GROUP_NUMBER } from '@web/search/action_menus/action_menus';
+import { MultiRecordViewButton } from "@web/views/view_button/multi_record_view_button";
 import { standardViewProps } from '@web/views/standard_view_props';
 import { useSetupAction } from "@web/search/action_hook";
 import { useViewButtons } from "@web/views/view_button/view_button_hook";
@@ -24,6 +25,7 @@ import { SelectionBox } from "@web/views/view_components/selection_box";
 import { ViewButton } from '@web/views/view_button/view_button';
 import { executeButtonCallback } from '@web/views/view_button/view_button_hook';
 import { CogMenu } from '@web/search/cog_menu/cog_menu';
+import { useExportRecords, useDeleteRecords } from "@web/views/view_hook";
 import { GoogleMapSearchBar } from './google_map_search_bar';
 
 import {
@@ -133,6 +135,12 @@ export class GoogleMapController extends Component {
         });
 
         this.searchBarToggler = useSearchBarToggler();
+
+        this.exportRecords = useExportRecords(this.env, this.props.context, () =>
+            this.getExportableFields()
+        );
+
+        this.deleteRecordsWithConfirmation = useDeleteRecords(this.model);
     }
 
     /**
@@ -159,7 +167,7 @@ export class GoogleMapController extends Component {
     async onWillSaveRecord(record) {}
 
     async onDeleteSelectedRecords() {
-        this.dialogService.add(ConfirmationDialog, this.deleteConfirmationDialogProps);
+        this.deleteRecordsWithConfirmation(this.deleteConfirmationDialogProps);
     }
 
     discardSelection() {
@@ -196,7 +204,7 @@ export class GoogleMapController extends Component {
                 sequence: 10,
                 icon: 'fa fa-upload',
                 description: _t('Export'),
-                callback: () => this.onExportData(),
+                callback: () => this.exportRecords(),
             },
             archive: {
                 isAvailable: () => this.archiveEnabled && !isM2MGrouped,
@@ -238,7 +246,7 @@ export class GoogleMapController extends Component {
             otherActionItems.push({
                 key: 'export',
                 description: _t('Export'),
-                callback: () => this.onExportData(),
+                callback: () => this.exportRecords(),
             });
         }
         if (this.archiveEnabled && !isM2MGrouped) {
@@ -284,17 +292,6 @@ export class GoogleMapController extends Component {
             }
         });
         this.model.root.selectDomain(false);
-    }
-
-    async onExportData() {
-        const dialogProps = {
-            context: this.props.context,
-            defaultExportList: this.defaultExportList,
-            download: this.downloadExport.bind(this),
-            getExportedFields: this.getExportedFields.bind(this),
-            root: this.model.root,
-        };
-        this.dialogService.add(ExportDataDialog, dialogProps);
     }
 
     async downloadExport(fields, import_compat, format) {
@@ -350,16 +347,6 @@ export class GoogleMapController extends Component {
         await this.downloadExport(this.defaultExportList, false, 'xlsx');
     }
 
-    async onExportData() {
-        const dialogProps = {
-            context: this.props.context,
-            defaultExportList: this.defaultExportList,
-            download: this.downloadExport.bind(this),
-            getExportedFields: this.getExportedFields.bind(this),
-            root: this.model.root,
-        };
-        this.dialogService.add(ExportDataDialog, dialogProps);
-    }
     async downloadExport(fields, import_compat, format) {
         let ids = false;
         if (!this.isDomainSelected) {
@@ -592,6 +579,18 @@ export class GoogleMapController extends Component {
         };
     }
 
+    getExportableFields() {
+        return unique(
+            this.props.archInfo.columns
+                .filter((col) => col.type === "field")
+                .filter((col) => !col.optional || this.optionalActiveFields[col.name])
+                .filter((col) => !evaluateBooleanExpr(col.column_invisible, this.props.context))
+                .map((col) => this.props.fields[col.name])
+                .filter((field) => field.exportable !== false)
+                .filter((field) => field.type !== "properties")
+        );
+    }
+
     get archiveDialogProps() {
         return {
             body: _t('Are you sure that you want to archive all the selected records?'),
@@ -703,10 +702,13 @@ export class GoogleMapController extends Component {
         return this.model.root.isDomainSelected;
     }
 
+    evalViewModifier(modifier) {
+        return evaluateBooleanExpr(modifier, this.model.root.evalContext);
+    }
+
     get hasSelectors() {
         return this.props.allowSelectors && !this.env.isSmall;
     }
-
 
     get rendererProps() {
         return {

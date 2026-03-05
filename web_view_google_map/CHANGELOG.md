@@ -1,5 +1,17 @@
 # Change Log
 
+## 19.0.1.0.12
+
+### Fixed
+
+- **Export Button**: Fixed the export action by replacing the manual `ExportDataDialog` implementation with Odoo's built-in `useExportRecords` hook, resolving errors triggered when clicking the Export button in the Action Menu
+
+### Improved
+
+- **Delete with Confirmation**: Replaced the inline `ConfirmationDialog` call in `onDeleteSelectedRecords` with Odoo's built-in `useDeleteRecords` hook for consistent deletion behavior
+- **Exportable Fields**: Added `getExportableFields()` method that correctly filters visible, non-properties, exportable fields from the view's columns, respecting `column_invisible` modifiers and optional field visibility
+- **View Modifier Evaluation**: Added `evalViewModifier()` helper using `evaluateBooleanExpr` for evaluating view modifiers against the current record context
+
 ## 19.0.1.0.11
 
 ### Fixed
