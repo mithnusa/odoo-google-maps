@@ -15,7 +15,6 @@ import {
 } from '@web/core/confirmation_dialog/confirmation_dialog';
 import { omit } from '@web/core/utils/objects';
 import { ActionMenus, STATIC_ACTIONS_GROUP_NUMBER } from '@web/search/action_menus/action_menus';
-import { MultiRecordViewButton } from "@web/views/view_button/multi_record_view_button";
 import { standardViewProps } from '@web/views/standard_view_props';
 import { useSetupAction } from "@web/search/action_hook";
 import { useViewButtons } from "@web/views/view_button/view_button_hook";
@@ -345,37 +344,6 @@ export class GoogleMapController extends Component {
 
     async onDirectExportData() {
         await this.downloadExport(this.defaultExportList, false, 'xlsx');
-    }
-
-    async downloadExport(fields, import_compat, format) {
-        let ids = false;
-        if (!this.isDomainSelected) {
-            const resIds = await this.getSelectedResIds();
-            ids = resIds.length > 0 && resIds;
-        }
-        const exportedFields = fields.map((field) => ({
-            name: field.name || field.id,
-            label: field.label || field.string,
-            store: field.store,
-            type: field.field_type || field.type,
-        }));
-        if (import_compat) {
-            exportedFields.unshift({ name: 'id', label: _t('External ID') });
-        }
-        await download({
-            data: {
-                data: JSON.stringify({
-                    import_compat,
-                    context: this.props.context,
-                    domain: this.model.root.domain,
-                    fields: exportedFields,
-                    groupby: this.model.root.groupBy,
-                    ids,
-                    model: this.model.root.resModel,
-                }),
-            },
-            url: `/web/export/${format}`,
-        });
     }
 
     centerMap() {
