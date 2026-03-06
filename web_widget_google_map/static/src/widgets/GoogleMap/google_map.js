@@ -276,7 +276,7 @@ export class GoogleMapWidget extends Component {
         maptype: { type: String, optional: true },
     };
     static defaultProps = {
-        zoom: 16,
+        zoom: 14,
         maptype: 'roadmap',
         width: 400,
         height: 200,

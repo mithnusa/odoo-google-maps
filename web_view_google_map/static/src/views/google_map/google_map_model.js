@@ -73,14 +73,13 @@ export class GoogleMapModel extends RelationalModel {
      * @returns
      */
     _getNextConfig(currentConfig, params) {
-        const domain = params.domain || [];
+        const nextConfig = super._getNextConfig(currentConfig, params);
         const mapDomain = this.mapDomain;
-        if (mapDomain) {
+        if (mapDomain && mapDomain.length) {
             // add domain for geolocation fields
-            const newDomain = Domain.and([domain, mapDomain]).toList({});
-            params = Object.assign({}, params, { domain: newDomain });
+            nextConfig.domain = Domain.and([nextConfig.domain ?? [], mapDomain]).toList({});
         }
-        return super._getNextConfig(currentConfig, params);
+        return nextConfig;
     }
     /**
      * Filter for geolocation fields
