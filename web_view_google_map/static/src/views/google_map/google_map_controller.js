@@ -5,7 +5,6 @@ import { evaluateBooleanExpr } from "@web/core/py_js/py";
 import { extractFieldsFromArchInfo } from '@web/model/relational_model/utils';
 import { usePager } from '@web/search/pager_hook';
 import { useService } from '@web/core/utils/hooks';
-import { rpc } from "@web/core/network/rpc";
 import { user } from "@web/core/user";
 import { unique } from '@web/core/utils/arrays';
 import { download } from '@web/core/network/download';
@@ -324,14 +323,6 @@ export class GoogleMapController extends Component {
                 }),
             },
             url: `/web/export/${format}`,
-        });
-    }
-
-    async getExportedFields(model, import_compat, parentParams) {
-        return await rpc('/web/export/get_fields', {
-            ...parentParams,
-            model,
-            import_compat,
         });
     }
 
