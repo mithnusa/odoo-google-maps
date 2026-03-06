@@ -1,5 +1,16 @@
 # Change Log
 
+## 19.0.1.0.4
+
+### Improved
+
+- **Default Zoom Level**: Reduced the default zoom level from 16 to 14 to provide better spatial context when the map widget is first rendered.
+- **Iframe Lazy Loading**: Added `loading="lazy"` to the embedded Google Maps iframe so it defers loading until the widget enters the viewport, improving page load performance.
+
+### Fixed
+
+- **Edit Button Visibility**: The "Edit" button is now fully hidden (removed from the DOM) when the field is in readonly mode, instead of being rendered as a disabled button.
+
 ## 19.0.1.0.3
 
 ### Added
