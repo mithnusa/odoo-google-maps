@@ -9,6 +9,11 @@ export class GoogleMapArchParser {
     get defaultLimit() {
         return 100;
     }
+
+    processButton(node) {
+        return processButton(node);
+    }
+
     parse(xmlDoc, models, modelName) {
         const className = xmlDoc.getAttribute('class') || null;
         const jsClass = xmlDoc.getAttribute('js_class');
@@ -25,6 +30,9 @@ export class GoogleMapArchParser {
         const creates = [];
 
         let nextId = 0;
+        let buttonId = 0;
+        let headerButtons = [];
+
         const columns = [];
 
         const groupBy = {
@@ -82,6 +90,13 @@ export class GoogleMapArchParser {
                     fieldNodes: groupByArchInfo.fieldNodes,
                     fields: models[coModelName].fields,
                 };
+            } else if (node.tagName === "header") {
+                headerButtons = [...node.children].map((node) => ({
+                    ...this.processButton(node),
+                    type: "button",
+                    id: buttonId++,
+                }));
+                return false;
             } else if (node.tagName === 'google_map') {
                 this.parseGoogleMapAttrs(xmlDoc, node, googleMapAttr);
             }
@@ -91,6 +106,7 @@ export class GoogleMapArchParser {
             columns,
             className,
             fieldNodes,
+            headerButtons,
             viewTitle,
             xmlDoc,
             groupBy,

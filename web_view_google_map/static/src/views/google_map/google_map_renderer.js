@@ -57,7 +57,7 @@ const MARKER_CONFIG = {
     },
     BOUNDS: {
         DEFAULT_PADDING: 200,
-        MAX_AUTO_ZOOM: 17,
+        MAX_AUTO_ZOOM: 15,
     },
     BATCH: {
         SELECTION_SIZE: 20,
@@ -581,7 +581,7 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
 
             const currentZoom = this.googleMap.getZoom();
             this.googleMap.setCenter(position);
-            const counter = attempts === 0 ? 4 : 3;
+            const counter = attempts === 0 ? 4 : 2;
             this._handleSmoothZoomToMarker(currentZoom + counter, currentZoom, 200);
             attempts += 1;
 

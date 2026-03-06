@@ -1,5 +1,36 @@
 # Change Log
 
+## 19.0.1.0.12
+
+### Added
+
+- **Header Button Support**: The map view now parses `<header>` buttons from the view's arch XML and renders them in the control panel using `MultiRecordViewButton`, matching the behavior of standard list views. Buttons with `display="always"` appear persistently; others appear in the selection actions area and in the cog menu on small screens.
+
+### Fixed
+
+- **Export Button**: Fixed the export action by replacing the manual `ExportDataDialog` implementation with Odoo's built-in `useExportRecords` hook, resolving errors triggered when clicking the Export button in the Action Menu
+- **Action Service Calls**: Replaced `this.model.action.doAction` with `this.actionService.doAction` throughout the controller, resolving errors when opening form views or switching views from the map.
+- **Domain Handling in `_getNextConfig`**: Map domain is now applied after calling `super._getNextConfig()` rather than before, preventing the map's geolocation filter from being overridden by the parent config.
+- **Form View and Views Checks**: Changed truthy checks on `form_view` and `views` to use `.length` to correctly detect empty arrays.
+- **Missing Form View Notification**: Replaced `console.warn` with a proper `notificationService` danger notification when no form view is available for a record.
+- **Unselect All**: Simplified `onUnselectAll` by removing the marker-specific `_toggleMarkerSelection` branch; all records now use the standard `toggleSelection(false)` path.
+- **Auto-Zoom Behavior**: Reduced `MAX_AUTO_ZOOM` from 17 to 15 and the smooth zoom increment on subsequent clicks from 3 to 2, resulting in less aggressive auto-zoom when centering on a marker.
+
+### Improved
+
+- **Delete with Confirmation**: Replaced the inline `ConfirmationDialog` call in `onDeleteSelectedRecords` with Odoo's built-in `useDeleteRecords` hook for consistent deletion behavior
+- **Exportable Fields**: Added `getExportableFields()` method that correctly filters visible, non-properties, exportable fields from the view's columns, respecting `column_invisible` modifiers and optional field visibility
+- **View Modifier Evaluation**: Added `evalViewModifier()` helper using `evaluateBooleanExpr` for evaluating view modifiers against the current record context
+- **`optionalActiveFields` Initialization**: Added `this.optionalActiveFields = {}` in the controller setup to prevent potential undefined access errors.
+
+### Code Cleanup
+
+- Removed the custom `getActionMenuItems()` method; action menu items are now handled by the standard Odoo mechanism.
+- Removed unused `deleteConfirmationMessage` import from `confirmation_dialog`.
+- Removed unused `RelationalModel` import from `google_map_view.js`.
+- Removed the duplicate `downloadExport` method left over from a prior refactor.
+- Removed the unused `getExportedFields` method and its associated `rpc` import.
+
 ## 19.0.1.0.11
 
 ### Fixed
