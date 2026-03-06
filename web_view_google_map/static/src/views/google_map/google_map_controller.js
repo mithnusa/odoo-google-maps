@@ -8,10 +8,7 @@ import { useService } from '@web/core/utils/hooks';
 import { user } from '@web/core/user';
 import { unique } from '@web/core/utils/arrays';
 import { download } from '@web/core/network/download';
-import {
-    ConfirmationDialog,
-    deleteConfirmationMessage,
-} from '@web/core/confirmation_dialog/confirmation_dialog';
+import { ConfirmationDialog } from '@web/core/confirmation_dialog/confirmation_dialog';
 import { omit } from '@web/core/utils/objects';
 import { ActionMenus, STATIC_ACTIONS_GROUP_NUMBER } from '@web/search/action_menus/action_menus';
 import { standardViewProps } from '@web/views/standard_view_props';
