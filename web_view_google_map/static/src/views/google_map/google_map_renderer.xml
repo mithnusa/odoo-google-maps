@@ -30,14 +30,15 @@
                     <div>
                         <t t-esc="subTitle"/>
                     </div>
-                    <div class="pt-3 d-flex text-nowrap justify-content-between gap-1">
-                        <a t-attf-href="https://www.google.com/maps/dir/?api=1&amp;destination={{ destination }}" target="_blank" tabindex="-1" class="btn btn-sm btn-secondary" id="btn-navigate_to" data-toggle="tooltip" title="Navigate to this location">
-                            <i class="fa fa-map-signs"></i>
-                            <span class="ps-1 fw-light smaller">Navigate to</span>
+                    <div class="pt-3 d-flex text-nowrap gap-1">
+                        <a href="#" role="button" class="btn btn-sm btn-outline-dark" id="btn-show_nearby" data-tooltip="Show nearby records" tabindex="-1">
+                            <i class="fa fa-location-arrow"></i>
                         </a>
-                        <a t-attf-href="https://www.google.com/maps/search/?api=1&amp;query={{ destination }}" target="_blank" tabindex="-1" class="btn btn-sm btn-secondary" id="btn-view-on-googlemaps" data-toggle="tooltip" title="View on Google Maps website">
+                        <a t-attf-href="https://www.google.com/maps/dir/?api=1&amp;destination={{ destination }}" target="_blank" tabindex="-1" class="btn btn-sm btn-outline-dark" id="btn-navigate_to" data-tooltip="Navigate to this location">
+                            <i class="fa fa-map-signs"></i>
+                        </a>
+                        <a t-attf-href="https://www.google.com/maps/search/?api=1&amp;query={{ destination }}" target="_blank" tabindex="-1" class="btn btn-sm btn-outline-dark" id="btn-view-on-googlemaps" data-tooltip="View on Google Maps website">
                             <i class="fa fa-external-link"></i>
-                            <span class="ps-1 fw-light smaller">View on Google Maps</span>
                         </a>
                     </div>
                 </main>

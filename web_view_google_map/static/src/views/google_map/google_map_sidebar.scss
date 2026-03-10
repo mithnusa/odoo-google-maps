@@ -53,14 +53,14 @@
                     white-space: nowrap;
                     overflow: hidden;
                     text-overflow: ellipsis;
-                    max-width: 250px; // Default for large screens
+                    max-width: 200px; // Default for large screens
 
                     // Responsive max-width adjustments
                     @media (max-width: 1920px) {
-                        max-width: 200px;
+                        max-width: 160px;
                     }
                     @media (max-width: 1800px) {
-                        max-width: 180px;
+                        max-width: 120px;
                     }
                 }
 

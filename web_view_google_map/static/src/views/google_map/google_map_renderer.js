@@ -80,6 +80,7 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
         openRecord: Function,
         showRecord: Function,
         showRecordsByDomain: Function,
+        showNearbyRecords: Function,
         readonly: Boolean,
         list: Object,
         onAdd: { type: Function, optional: true },
@@ -483,6 +484,19 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
     }
 
     /**
+     * Reads the configured search radius from API settings and delegates to the
+     * controller's showNearbyRecords to display records near the given record.
+     * Falls back to the controller's default radius when nearby_radius_search
+     * is not set.
+     *
+     * @param {Object} record - The reference record with geolocation data
+     */
+    searchNearbyRecords(record) {
+        const settings = this.apiLoader.getSettings();
+        this.props.showNearbyRecords(record, settings.nearby_radius_search);
+    }
+
+    /**
      * Terminates all ongoing zoom operations including animations and event listeners.
      * This is called when starting a new zoom operation or when user manually interacts with the map.
      *
@@ -728,6 +742,7 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
             renderGroupedRecordsFitBounds: this._renderGroupedRecordsFitBounds.bind(this),
             openRecord: this.props.openRecord.bind(this),
             showRecordsByDomain: this.props.showRecordsByDomain.bind(this),
+            showNearbyRecords: this.searchNearbyRecords.bind(this),
             pointInMap: this.pointInMap.bind(this),
             deleteGroupRecords: this.deleteGroupRecords.bind(this),
             handleToggleRecordSelection: this.toggleRecordSelection.bind(this),
@@ -1609,6 +1624,13 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
                 const eventHandler = this.props.showRecord.bind(this, record);
                 openButton.addEventListener('click', eventHandler);
                 this._storeElementEventListener(openButton, 'click', eventHandler);
+            }
+
+            const nearbyButton = divContent.querySelector('#btn-show_nearby');
+            if (nearbyButton) {
+                const eventHandler = this.props.showNearbyRecords.bind(this, record);
+                nearbyButton.addEventListener('click', eventHandler);
+                this._storeElementEventListener(nearbyButton, 'click', eventHandler);
             }
 
             return divContent;

@@ -6,10 +6,13 @@ import { extractFieldsFromArchInfo } from '@web/model/relational_model/utils';
 import { usePager } from '@web/search/pager_hook';
 import { useService } from '@web/core/utils/hooks';
 import { user } from '@web/core/user';
+import { Domain } from '@web/core/domain';
 import { unique } from '@web/core/utils/arrays';
+import { FormViewDialog } from "@web/views/view_dialogs/form_view_dialog";
 import { download } from '@web/core/network/download';
 import { ConfirmationDialog } from '@web/core/confirmation_dialog/confirmation_dialog';
 import { omit } from '@web/core/utils/objects';
+import { sprintf } from '@web/core/utils/strings';
 import { ActionMenus, STATIC_ACTIONS_GROUP_NUMBER } from '@web/search/action_menus/action_menus';
 import { standardViewProps } from '@web/views/standard_view_props';
 import { MultiRecordViewButton } from '@web/views/view_button/multi_record_view_button';
@@ -24,6 +27,8 @@ import { CogMenu } from '@web/search/cog_menu/cog_menu';
 import { DropdownItem } from '@web/core/dropdown/dropdown_item';
 import { useExportRecords, useDeleteRecords } from '@web/views/view_hook';
 import { GoogleMapSearchBar } from './google_map_search_bar';
+
+const DEFAULT_NEARBY_RADIUS = 1000; // meters
 
 import {
     Component,
@@ -137,8 +142,6 @@ export class GoogleMapController extends Component {
             },
             () => [this.model.root.selection.length, this.model.root.isDomainSelected]
         );
-
-        this.optionalActiveFields = {};
 
         this.firstLoad = true;
         onWillPatch(() => {
@@ -344,47 +347,19 @@ export class GoogleMapController extends Component {
      */
     async showRecord(record) {
         if (record) {
-            let action = null;
-            const action_title = this._getRecordName(record);
-            if (this.actionService.currentController) {
-                const form_view = this.actionService.currentController.action.views.filter((view) => view[1] === 'form');
-                if (form_view.length) {
-                    action = {
-                        name: action_title,
-                        type: 'ir.actions.act_window',
-                        res_model: this.model.root.resModel,
-                        views: form_view,
-                        view_mode: 'form',
-                        res_id: record.resId,
-                        target: 'new'
-                    };
-                }
-            }
-            if (!action) {
-                action = {
-                    name: action_title,
-                    type: 'ir.actions.act_window',
-                    res_model: this.model.root.resModel,
-                    views: [[false, 'form']],
-                    view_mode: 'form',
-                    res_id: record.resId,
-                    target: 'new'
-                };
-            }
-            if (!action.views.length) {
-                this.notificationService.add(_t('No form view available for this record.'), { type: 'danger' });
-                return;
-            }
-            this.actionService.doAction(action, {
-                props: {
-                    onSave: async (record) => {
-                        await record.load();
-                        record.model.notify();
-                        this.actionService.doAction({
-                            type: 'ir.actions.act_window_close',
-                        });
-                        await this.model.root.load();
-                    },
+            this.dialogService.add(FormViewDialog, {
+                title: this._getRecordName(record),
+                resModel: record.resModel,
+                resId: record.resId,
+                context: record.context,
+                readonly: this.props.readonly,
+                onRecordSaved: async (record) => {
+                    this.actionService.doAction({
+                        type: "ir.actions.act_window_close",
+                    });
+                    await record.load();
+                    record.model.notify();
+                    await this.model.root.load();
                 },
             });
         }
@@ -394,7 +369,7 @@ export class GoogleMapController extends Component {
         target = target || 'current';
         let action = null;
         if (this.actionService.currentController) {
-            const views = this.actionService.currentController.action.views.filter((view) => view[1] !== 'google_map');
+            const views = this.actionService.currentController.action.views;
             const view_mode = views.map((view) => view[1]).join(',');
             if (views.length) {
                 action = {
@@ -415,9 +390,10 @@ export class GoogleMapController extends Component {
                 res_model: this.model.root.resModel,
                 views: [
                     [false, 'list'],
+                    [false, 'google_map'],
                     [false, 'form'],
                 ],
-                view_mode: 'list,form',
+                view_mode: 'list,google_map,form',
                 domain: domain,
                 target: target,
             };
@@ -425,6 +401,69 @@ export class GoogleMapController extends Component {
         if (action) {
             this.actionService.doAction(action);
         }
+    }
+
+    /**
+     * Shows nearby records within a given radius around the record's location.
+     * Uses a bounding-box approximation to filter records (actual circular
+     * distance may vary at box corners, especially at high latitudes).
+     *
+     * @param {Object} record - The reference record with geolocation data
+     * @param {number} [searchRadius] - Search radius in meters (defaults to DEFAULT_NEARBY_RADIUS)
+     */
+    showNearbyRecords(record, searchRadius) {
+        const { latitudeField, longitudeField } = this.archInfo;
+        if (!latitudeField || !longitudeField) {
+            this.notificationService.add(
+                _t('This view is not configured with latitude and longitude fields.'),
+                { type: 'warning' }
+            );
+            return;
+        }
+        const lat = record.data[latitudeField];
+        const lng = record.data[longitudeField];
+        if (lat == null || lng == null || !isFinite(lat) || !isFinite(lng)) {
+            this.notificationService.add(
+                _t('The selected record does not have valid geolocation data.'),
+                { type: 'warning' }
+            );
+            return;
+        }
+        const radius = searchRadius || DEFAULT_NEARBY_RADIUS;
+        const { minLat, maxLat, minLng, maxLng } = this._computeBoundingBox(lat, lng, radius);
+        const domain = new Domain([
+            [latitudeField, '>=', minLat],
+            [latitudeField, '<=', maxLat],
+            [longitudeField, '>=', minLng],
+            [longitudeField, '<=', maxLng],
+        ]).toList();
+        const viewTitle = this.archInfo.viewTitle || _t('Nearby Records');
+        const title = sprintf(
+            _t('Nearby %s (within %s km)'),
+            viewTitle,
+            (radius / 1000).toFixed(1)
+        );
+        this.showRecordsByDomain(title, domain);
+    }
+
+    /**
+     * Computes a bounding box around a geographic point for proximity search.
+     * @param {number} lat - Center latitude in decimal degrees
+     * @param {number} lng - Center longitude in decimal degrees
+     * @param {number} radiusMeters - Search radius in meters
+     * @returns {{ minLat: number, maxLat: number, minLng: number, maxLng: number }}
+     */
+    _computeBoundingBox(lat, lng, radiusMeters) {
+        const latDelta = radiusMeters / 111320;
+        // Clamp cosine to avoid division by zero near the poles
+        const cosLat = Math.max(Math.abs(Math.cos((lat * Math.PI) / 180)), 0.0001);
+        const lngDelta = radiusMeters / (111320 * cosLat);
+        return {
+            minLat: lat - latDelta,
+            maxLat: lat + latDelta,
+            minLng: lng - lngDelta,
+            maxLng: lng + lngDelta,
+        };
     }
 
     /**
@@ -507,8 +546,8 @@ export class GoogleMapController extends Component {
         return unique(
             this.props.archInfo.columns
                 .filter((col) => col.type === "field")
-                .filter((col) => !col.optional || this.optionalActiveFields[col.name])
-                .filter((col) => !evaluateBooleanExpr(col.column_invisible, this.props.context))
+                .filter((col) => !col.optional)
+                .filter((col) => !this.evalViewModifier(col.column_invisible, this.props.context))
                 .map((col) => this.props.fields[col.name])
                 .filter((field) => field.exportable !== false)
                 .filter((field) => field.type !== "properties")
@@ -552,7 +591,7 @@ export class GoogleMapController extends Component {
         return unique(
             this.props.archInfo.columns
                 .filter((col) => col.type === 'field')
-                .filter((col) => !col.optional || this.optionalActiveFields[col.name])
+                .filter((col) => !col.optional)
                 .map((col) => this.props.fields[col.name])
                 .filter((field) => field.exportable !== false)
         );
@@ -614,8 +653,12 @@ export class GoogleMapController extends Component {
         return this.model.root.isDomainSelected;
     }
 
-    evalViewModifier(modifier) {
-        return evaluateBooleanExpr(modifier, this.model.root.evalContext);
+    evalViewModifier(modifier, context) {
+        if (modifier === null || modifier === undefined || modifier === '') {
+            return false;
+        }
+        context = context || this.model.root.evalContext;
+        return evaluateBooleanExpr(modifier, context);
     }
 
     get hasSelectors() {
@@ -634,6 +677,7 @@ export class GoogleMapController extends Component {
             onAdd: this.createRecord.bind(this),
             showRecord: this.showRecord.bind(this),
             showRecordsByDomain: this.showRecordsByDomain.bind(this),
+            showNearbyRecords: this.showNearbyRecords.bind(this),
         };
     }
 
