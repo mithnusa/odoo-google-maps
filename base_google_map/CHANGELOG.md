@@ -1,5 +1,12 @@
 # Change Log
 
+## 19.0.1.0.7
+
+### Documentation
+
+- **README**: Rewrote `README.md` to follow the project documentation template — added Overview, What It Does, Key Features, Dependencies, Installation (including required Google Cloud APIs), Basic Usage, and Related Modules sections
+- **Features Reference**: Created `docs/FEATURES.md` with detailed descriptions of all module features organized by category: Settings Configuration, Autocomplete Restrictions, In-Map Place Search, API Loader, and Base Map Component
+
 ## 19.0.1.0.6
 
 ### Removed

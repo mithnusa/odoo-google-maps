@@ -383,6 +383,7 @@ export class GoogleMapsAPILoader {
  * @param {boolean} [params.autocomplete_restrict_country=false] - Enable country restrictions for autocomplete
  * @param {Array<string>} [params.autocomplete_list_countries_restriction=[]] - List of country codes for autocomplete restrictions
  * @param {string} [params.auth_referrer_policy] - Referrer policy for API requests
+ * @param {Object} [restConfig] - Additional settings that may be included in the backend response
  * @returns {Object} Settings object formatted for Google Maps API
  *
  * @example
@@ -393,40 +394,57 @@ export class GoogleMapsAPILoader {
  * // Returns: { key: 'AIza...', v: 'weekly', ... }
  */
 function prepareSettingValues(params) {
-    const settings = {};
+    const {
+        api_key,
+        map_id,
+        version,
+        region,
+        language,
+        channel,
+        solution_channel,
+        color_scheme,
+        is_places_search_enable,
+        restrict_language,
+        autocomplete_restrict_country,
+        autocomplete_list_countries_restriction,
+        auth_referrer_policy,
+        ...restConfig
+    } = params;
+
+    const settings = { ...restConfig };
     // API Key - Required for Google Maps API authentication
-    settings.key = params.api_key;
+    settings.key = api_key;
     // Map ID - Required for advanced map features (3D, Cloud styling, etc.)
-    settings.map_id = params.map_id;
+    settings.map_id = map_id;
     // Version - API release channel
-    settings.v = params.version || 'beta';
+    settings.v = version || 'beta';
     // Region - Affects geocoding results and map behavior
     // Should be a valid CLDR region code (e.g., 'US', 'FR', 'JP') to ensure proper localization
-    if (params.region) {
-        settings.region = params.region.toUpperCase();
+    if (region) {
+        settings.region = region.toUpperCase();
     }
     // Language - UI and label translations
-    settings.language = params.language || 'en_US';
+    settings.language = language || 'en_US';
     // Channel - Optional numeric identifier for usage analytics (0-999)
-    if (params.channel === undefined || params.channel < 0 || params.channel > 999) {
+    if (channel === undefined || channel < 0 || channel > 999) {
         delete settings.channel;
     }
     // Solution Channel - Identifier for tracking specific implementations
-    if (params.solution_channel === undefined) {
+    if (solution_channel === undefined) {
         settings.solutionChannel = DEFAULT_SOLUTION_CHANNEL;
-    } else if (params.solution_channel === null || params.solution_channel === '') {
+    } else if (solution_channel === null || solution_channel === '') {
         delete settings.solutionChannel;
     }
     // Color scheme - Visual theme for map UI
-    settings.color_scheme = params.color_scheme || 'light';
+    settings.color_scheme = color_scheme || 'light';
     // In Map Place Search - Enable/disable place search within map view
-    settings.in_map_place_search = params.is_places_search_enable || false;
+    settings.in_map_place_search = is_places_search_enable || false;
     // Restrict Language - Limit search results to specified language
-    settings.restrict_language = params.restrict_language || false;
+    settings.restrict_language = restrict_language || false;
     // Restrict Country - Enable geographical restrictions for autocomplete
-    settings.autocomplete_restrict_country = params.autocomplete_restrict_country || false;
+    settings.autocomplete_restrict_country = autocomplete_restrict_country || false;
     // List of country restrictions - ISO 3166-1 Alpha-2 country codes
-    settings.autocomplete_list_countries_restriction = params.autocomplete_list_countries_restriction || [];
+    settings.autocomplete_list_countries_restriction = autocomplete_list_countries_restriction || [];
     // Auth Referrer Policy - Controls how much referrer information is sent with API requests
     // Possible values per Referrer Policy specification:
     // - 'no-referrer': No referrer information sent
@@ -437,8 +455,8 @@ function prepareSettingValues(params) {
     // - 'strict-origin': Origin sent only when protocol security level stays same
     // - 'strict-origin-when-cross-origin': Full URL for same-origin, origin for cross-origin when protocol matches
     // - 'unsafe-url': Full URL always sent regardless of security
-    if (params.auth_referrer_policy) {
-        settings.authReferrerPolicy = params.auth_referrer_policy;
+    if (auth_referrer_policy) {
+        settings.authReferrerPolicy = auth_referrer_policy;
     }
     return settings;
 }
