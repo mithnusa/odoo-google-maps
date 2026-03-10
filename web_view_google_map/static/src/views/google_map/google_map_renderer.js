@@ -1628,7 +1628,7 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
 
             const nearbyButton = divContent.querySelector('#btn-show_nearby');
             if (nearbyButton) {
-                const eventHandler = this.props.showNearbyRecords.bind(this, record);
+                const eventHandler = this.searchNearbyRecords.bind(this, record);
                 nearbyButton.addEventListener('click', eventHandler);
                 this._storeElementEventListener(nearbyButton, 'click', eventHandler);
             }

@@ -12,5 +12,9 @@ class WebViewGoogleMapController(Main):
             .sudo()
             .get_param("web_view_google_map.nearby_radius_search", default="1000")
         )
-        values["nearby_radius_search"] = int(nearby_radius_search)
+        default_radius = 1000
+        try:
+            values["nearby_radius_search"] = int(nearby_radius_search)
+        except (ValueError, TypeError):
+            values["nearby_radius_search"] = default_radius
         return values

@@ -422,22 +422,42 @@ export class GoogleMapController extends Component {
         }
         const lat = record.data[latitudeField];
         const lng = record.data[longitudeField];
-        if (lat == null || lng == null || !isFinite(lat) || !isFinite(lng)) {
+        if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
             this.notificationService.add(
                 _t('The selected record does not have valid geolocation data.'),
                 { type: 'warning' }
             );
             return;
         }
-        const radius = searchRadius || DEFAULT_NEARBY_RADIUS;
+        const radius = (Number.isFinite(searchRadius) && searchRadius > 0) ? searchRadius : DEFAULT_NEARBY_RADIUS;
         const { minLat, maxLat, minLng, maxLng } = this._computeBoundingBox(lat, lng, radius);
-        const domain = new Domain([
-            [latitudeField, '>=', minLat],
-            [latitudeField, '<=', maxLat],
-            [longitudeField, '>=', minLng],
-            [longitudeField, '<=', maxLng],
-        ]).toList();
-        const viewTitle = this.archInfo.viewTitle || _t('Nearby Records');
+        // When the bounding box crosses ±180°, split the longitude range into
+        // two segments joined with OR to handle antimeridian wraparound.
+        let lngDomain;
+        if (maxLng > 180) {
+            // e.g. centre lng=179, maxLng=182  →  lng >= 176  OR  lng <= -178
+            lngDomain = Domain.or([
+                [[longitudeField, '>=', minLng]],
+                [[longitudeField, '<=', maxLng - 360]]
+            ]);
+        } else if (minLng < -180) {
+            // e.g. centre lng=-179, minLng=-182  →  lng <= maxLng  OR  lng >= minLng+360
+            lngDomain = Domain.or([
+                [[longitudeField, '<=', maxLng]],
+                [[longitudeField, '>=', minLng + 360]]
+            ]);
+        } else {
+            lngDomain = Domain.and([
+                [[longitudeField, '>=', minLng]],
+                [[longitudeField, '<=', maxLng]]
+            ]);
+        }
+        const latDomain = Domain.and([
+            [[latitudeField, '>=', minLat]],
+            [[latitudeField, '<=', maxLat]],
+        ]);
+        const domain = Domain.and([latDomain, lngDomain]).toList();
+        const viewTitle = this.archInfo.viewTitle || _t('Records');
         const title = sprintf(
             _t('Nearby %s (within %s km)'),
             viewTitle,
@@ -459,8 +479,8 @@ export class GoogleMapController extends Component {
         const cosLat = Math.max(Math.abs(Math.cos((lat * Math.PI) / 180)), 0.0001);
         const lngDelta = radiusMeters / (111320 * cosLat);
         return {
-            minLat: lat - latDelta,
-            maxLat: lat + latDelta,
+            minLat: Math.max(lat - latDelta, -90),
+            maxLat: Math.min(lat + latDelta, 90),
             minLng: lng - lngDelta,
             maxLng: lng + lngDelta,
         };

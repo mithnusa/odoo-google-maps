@@ -31,9 +31,9 @@
                         <t t-esc="subTitle"/>
                     </div>
                     <div class="pt-3 d-flex text-nowrap gap-1">
-                        <a href="#" role="button" class="btn btn-sm btn-outline-dark" id="btn-show_nearby" data-tooltip="Show nearby records" tabindex="-1">
+                        <button type="button" class="btn btn-sm btn-outline-dark" id="btn-show_nearby" data-tooltip="Show nearby records" tabindex="-1">
                             <i class="fa fa-location-arrow"></i>
-                        </a>
+                        </button>
                         <a t-attf-href="https://www.google.com/maps/dir/?api=1&amp;destination={{ destination }}" target="_blank" tabindex="-1" class="btn btn-sm btn-outline-dark" id="btn-navigate_to" data-tooltip="Navigate to this location">
                             <i class="fa fa-map-signs"></i>
                         </a>
