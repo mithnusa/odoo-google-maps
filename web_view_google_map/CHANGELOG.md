@@ -1,5 +1,18 @@
 # Change Log
 
+## 19.0.1.0.15
+
+- [Fixed] **Nearby Search Robustness**: Invalid `nearby_radius_search` config values (e.g. non-integer strings) now fall back to the default 1000 meters instead of raising an unhandled exception
+- [Fixed] **Antimeridian Wraparound**: Nearby search bounding box now correctly handles locations near the international date line (±180° longitude) by splitting the longitude domain into two OR segments, ensuring accurate results for records in that region
+- [Fixed] **Latitude Clamping**: Nearby search bounding box latitude values are now clamped to the valid range [-90, 90] to prevent invalid domain queries
+- [Fixed] **Nearby Button Handler**: Fixed the "Show nearby" button click handler calling the wrong method (`showNearbyRecords` instead of `searchNearbyRecords`), which caused nearby search to silently fail
+- [Fixed] **Search Radius Validation**: Added guard to reject non-finite or non-positive radius values before computing the bounding box, falling back to the configured default
+- [Improved] **Geolocation Validation**: Replaced loose `isFinite()` check with `Number.isFinite()` for stricter validation of latitude/longitude values before triggering nearby search
+- [Improved] **Nearby Button Semantics**: Replaced `<a href="#">` anchor with a `<button>` element for the nearby search trigger, improving semantic HTML and keyboard accessibility
+- [Cleanup] **Settings View**: Removed unused import from `res_config_settings.xml`
+- [Docs] **README**: Updated "Nearby Records" key feature description to mention the sidebar row as an additional trigger and the rectangle overlay shown on the map
+- [Docs] **Features Reference**: Updated `Nearby Records Search` section to document the sidebar row trigger, bounding box rectangle overlay visualization, and view title update during a nearby search
+
 ## 19.0.1.0.14
 
 - [Added] **Nearby Search Radius Setting**: Added `nearby_radius_search` configuration field (default: 1000 meters) to Settings → General Settings → Google Maps, allowing administrators to control the search radius used by the "Show nearby records" feature on the map

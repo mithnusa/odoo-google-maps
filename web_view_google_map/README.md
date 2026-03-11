@@ -19,7 +19,7 @@ Registers a new `google_map` view type alongside Odoo's standard list, form, and
 - **Multi-Selection**: Hold Alt (or Cmd on Mac) and drag on the map to draw a selection box around multiple markers
 - **In-Map Place Search**: Search for any location on the map using Google Places autocomplete (requires Places API New)
 - **Geolocation Button**: Show the user's current location on the map with a single click
-- **Nearby Records**: From any marker's info window, find other records within a configurable radius
+- **Nearby Records**: From any marker's info window or sidebar row, find other records within a configurable radius; a rectangle overlay shows the search area on the map
 - **Record Actions**: Open, archive, duplicate, delete, or export selected records from the action menu
 - **Embedded Map in Forms**: Embed a map inside a form view using the `google_map_one2many` or `google_map_many2many` field widget
 - **Dark Mode Support**: Map styles and sidebar automatically adapt to Odoo's dark mode

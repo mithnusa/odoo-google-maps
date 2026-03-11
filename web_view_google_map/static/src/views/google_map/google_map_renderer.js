@@ -95,6 +95,7 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
         this.googleMapBounds = null;
         this.googleMapBoundsSelected = null;
         this.markerClusterer = null;
+        this._nearbySearchCoverageRectangle = null;
 
         // Make sidebar state non-reactive
         this._isSidebarAction = false;
@@ -244,12 +245,44 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
      * Render all markers on the map
      * @param {boolean} [noClear=false] Whether to clear existing markers
      */
-    renderGeolocationData() {
+    async renderGeolocationData() {
         if (!this.isMapLoaded()) return;
+
+        this.clearNearbySearchCoverageArea();
 
         this.clearMarkers();
 
-        this.renderMarkers();
+        await this.renderMarkers();
+
+        this.renderNearbySearchCoverageArea();
+    }
+
+    /**
+     * Renders a filled rectangle on the map to visually represent the nearby search
+     * bounding box. Reads `is_nearby_search` and `nearby_bounding_box` from the list's
+     * eval context (set by {@link GoogleMapController#showNearbyRecords}).
+     * The rectangle is stored in `_nearbySearchCoverageRectangle` and removed by
+     * {@link clearNearbySearchCoverageArea}. Does nothing if the context does not
+     * indicate a nearby search.
+     */
+    renderNearbySearchCoverageArea() {
+        const context = this.props.list.evalContext;
+        if (context?.is_nearby_search && context?.nearby_bounding_box) {
+            this._nearbySearchCoverageRectangle = new google.maps.Rectangle({
+                strokeColor: MARKER_CONFIG.VISUAL.CONNECTION_LINE.STROKE_COLOR,
+                strokeOpacity: 0.8,
+                strokeWeight: 1.5,
+                fillColor: MARKER_CONFIG.VISUAL.CONNECTION_LINE.STROKE_COLOR,
+                fillOpacity: 0.3,
+                map: this.googleMap,
+                bounds: context.nearby_bounding_box,
+            });
+            // Fit map to rectangle bounds
+            const bounds = this._nearbySearchCoverageRectangle.getBounds();
+            if (bounds) {
+                this._fitMapBoundsWithLimit(bounds);
+            }
+        }
     }
 
     onSelectedMarkers(selectedMarkers) {
@@ -376,6 +409,18 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
         } catch (error) {
             this._handleMarkerError(error);
             return null;
+        }
+    }
+
+    /**
+     * Removes the nearby search coverage rectangle from the map and releases the reference.
+     * Called by {@link renderGeolocationData} on every re-render to prevent stale rectangles
+     * from accumulating. Safe to call when no rectangle is currently rendered.
+     */
+    clearNearbySearchCoverageArea() {
+        if (this._nearbySearchCoverageRectangle) {
+            this._nearbySearchCoverageRectangle.setMap(null);
+            this._nearbySearchCoverageRectangle = null;
         }
     }
 
@@ -1171,7 +1216,9 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
                 map: this.googleMap,
                 onClusterClick: (event, cluster, map) => {
                     this.markerInfoWindow.close();
-                    this._fitMapBoundsWithLimit(cluster.bounds);
+                    // set padding to prevent zooming too much on close clusters
+                    const padding = MARKER_CONFIG.BOUNDS.DEFAULT_PADDING;
+                    map.fitBounds(cluster.bounds, padding);
                 },
             });
         } catch (error) {
@@ -1674,6 +1721,9 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
             this._removeElementEventListeners(element);
         }
 
+        // Remove nearby search marker if exists
+        this.clearNearbySearchCoverageArea();
+
         // Remove all markers from the map and clear event listeners
         for (const [id, marker] of this.cache) {
             this._cleanUpMarker(id, marker);
@@ -1685,7 +1735,6 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
             this.markerClusterer.setMap(null);
             this.markerClusterer = null;
         }
-
 
         this.cacheRecordDataView.clear();
         this.cache.clear();

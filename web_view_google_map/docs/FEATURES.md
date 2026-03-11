@@ -92,11 +92,11 @@
 
 ## Nearby Records Search
 
-**What it does**: From any record's info window on the map, a "Show nearby" button filters the view to display only records within a configurable radius of that record's location.
+**What it does**: From any record's info window or sidebar row, a "Show nearby" button filters the view to display only records within a configurable radius of that record's location.
 
 **Why it matters**: Enables proximity-based workflows — for example, finding all customers near a delivery location, or identifying leads in the same area as an existing client.
 
-**How it works**: Clicking "Show nearby" computes a bounding box around the selected record's coordinates using the configured radius (default: 1000 meters, adjustable in **Settings → General Settings → Google Maps → Nearby Search Radius**). The view domain is updated to return only records within that bounding box.
+**How it works**: Clicking "Show nearby" computes a bounding box around the selected record's coordinates using the configured radius (default: 1000 meters, adjustable in **Settings → General Settings → Google Maps → Nearby Search Radius**). The view domain is updated to return only records within that bounding box, and a rectangle overlay is drawn on the map showing the exact search area. The view title updates to indicate the search context (e.g., "Nearby Contacts (within 1 km)").
 
 ---
 

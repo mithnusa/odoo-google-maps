@@ -7,7 +7,7 @@
         <field name="inherit_id" ref="base_setup.res_config_settings_view_form"/>
         <field name="arch" type="xml">
             <xpath expr="//block[@name='base_google_map']" position="inside">
-                <setting id="nearby_radius_search_setting" help="Set the default radius for nearby search in Google Maps. The radius is specified in meters, and must be a positive integer. The default value is 1000 meters (1 kilometer).">
+                <setting id="nearby_radius_search_setting" help="Set the default radius for the nearby search in Google Maps. The search uses a bounding box approximation — all records within a square area of this radius around the selected location are returned. The radius is specified in meters and must be a positive integer. The default value is 1000 meters (1 kilometer).">
                     <field name="nearby_radius_search" string="Nearby Search Radius (m)"/>
                 </setting>
             </xpath>

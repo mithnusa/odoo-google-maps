@@ -365,8 +365,9 @@ export class GoogleMapController extends Component {
         }
     }
 
-    showRecordsByDomain(title, domain, target) {
+    showRecordsByDomain(title, domain, target, context) {
         target = target || 'current';
+        context = context || this.props.context;
         let action = null;
         if (this.actionService.currentController) {
             const views = this.actionService.currentController.action.views;
@@ -380,6 +381,7 @@ export class GoogleMapController extends Component {
                     res_model: this.model.root.resModel,
                     domain: domain,
                     target: target,
+                    context: context,
                 };
             }
         }
@@ -396,6 +398,7 @@ export class GoogleMapController extends Component {
                 view_mode: 'list,google_map,form',
                 domain: domain,
                 target: target,
+                context: context,
             };
         }
         if (action) {
@@ -404,12 +407,18 @@ export class GoogleMapController extends Component {
     }
 
     /**
-     * Shows nearby records within a given radius around the record's location.
-     * Uses a bounding-box approximation to filter records (actual circular
-     * distance may vary at box corners, especially at high latitudes).
+     * Opens a new map view scoped to records within a bounding box around the
+     * given record's location. The bounding box is a rectangular approximation
+     * of the search radius — records near the box corners may be slightly farther
+     * than the stated radius, but no in-radius records are excluded.
      *
-     * @param {Object} record - The reference record with geolocation data
-     * @param {number} [searchRadius] - Search radius in meters (defaults to DEFAULT_NEARBY_RADIUS)
+     * The nearby search context keys (`is_nearby_search`, `nearby_search_center`,
+     * `nearby_search_radius`, `nearby_bounding_box`) are forwarded to the new view
+     * so the renderer can draw the coverage rectangle overlay via
+     * {@link renderNearbySearchCoverageArea}.
+     *
+     * @param {Object} record - The reference record; must have valid lat/lng field values
+     * @param {number} [searchRadius] - Search radius in meters; defaults to DEFAULT_NEARBY_RADIUS
      */
     showNearbyRecords(record, searchRadius) {
         const { latitudeField, longitudeField } = this.archInfo;
@@ -430,21 +439,53 @@ export class GoogleMapController extends Component {
             return;
         }
         const radius = (Number.isFinite(searchRadius) && searchRadius > 0) ? searchRadius : DEFAULT_NEARBY_RADIUS;
-        const { minLat, maxLat, minLng, maxLng } = this._computeBoundingBox(lat, lng, radius);
+        const { domain, boundingBox } = this._computeBoundingBoxDomain(lat, lng, radius);
+        const viewTitle = this.archInfo.viewTitle || _t('Records');
+        const title = sprintf(
+            _t('Nearby %s (within %s km)'),
+            viewTitle,
+            (radius / 1000).toFixed(1)
+        );
+        const context = {
+            ...(this.props.context || record.context),
+            is_nearby_search: true,
+            nearby_search_center: { lat, lng },
+            nearby_search_radius: radius,
+            nearby_bounding_box: boundingBox,
+        };
+        this.showRecordsByDomain(title, domain, 'current', context);
+    }
+
+    /**
+     * Builds an Odoo domain that filters records within a bounding box around
+     * a geographic point. Longitude wraparound at ±180° is handled by splitting
+     * the longitude range into two OR segments when the box crosses the antimeridian.
+     *
+     * Returns both the domain (for the SQL query) and the bounding box coordinates
+     * (for forwarding to the renderer via context).
+     *
+     * @param {number} lat - Center latitude in decimal degrees
+     * @param {number} lng - Center longitude in decimal degrees
+     * @param {number} radiusMeters - Search radius in meters; determines box half-width
+     * @returns {{ domain: Array, boundingBox: { north: number, south: number, east: number, west: number } }}
+     */
+    _computeBoundingBoxDomain(lat, lng, radiusMeters) {
+        const { latitudeField, longitudeField } = this.archInfo;
+        const { minLat, maxLat, minLng, maxLng } = this._computeBoundingBox(lat, lng, radiusMeters);
         // When the bounding box crosses ±180°, split the longitude range into
         // two segments joined with OR to handle antimeridian wraparound.
         let lngDomain;
         if (maxLng > 180) {
-            // e.g. centre lng=179, maxLng=182  →  lng >= 176  OR  lng <= -178
+            // e.g. centre lng=179, maxLng=182 → lng >= 176 OR lng <= -178
             lngDomain = Domain.or([
                 [[longitudeField, '>=', minLng]],
                 [[longitudeField, '<=', maxLng - 360]]
             ]);
         } else if (minLng < -180) {
-            // e.g. centre lng=-179, minLng=-182  →  lng <= maxLng  OR  lng >= minLng+360
+            // e.g. centre lng=-179, minLng=-182  →  lng <= maxLng OR lng >= minLng+360
             lngDomain = Domain.or([
-                [[longitudeField, '<=', maxLng]],
-                [[longitudeField, '>=', minLng + 360]]
+                [[longitudeField, '>=', minLng + 360]],
+                [[longitudeField, '<=', maxLng]]
             ]);
         } else {
             lngDomain = Domain.and([
@@ -456,14 +497,15 @@ export class GoogleMapController extends Component {
             [[latitudeField, '>=', minLat]],
             [[latitudeField, '<=', maxLat]],
         ]);
-        const domain = Domain.and([latDomain, lngDomain]).toList();
-        const viewTitle = this.archInfo.viewTitle || _t('Records');
-        const title = sprintf(
-            _t('Nearby %s (within %s km)'),
-            viewTitle,
-            (radius / 1000).toFixed(1)
-        );
-        this.showRecordsByDomain(title, domain);
+        return {
+            domain: Domain.and([latDomain, lngDomain]).toList(),
+            boundingBox: {
+                north: maxLat,
+                south: minLat,
+                east: maxLng > 180 ? maxLng - 360 : maxLng,
+                west: minLng < -180 ? minLng + 360 : minLng,
+            },
+        };
     }
 
     /**

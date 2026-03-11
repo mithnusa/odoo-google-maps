@@ -17,7 +17,7 @@
             </td>
             <td>
                 <div class="d-flex align-items-center justify-content-center">
-                    <span class="me-2" t-if="_showMarker">
+                    <span class="pe-1" t-if="_showMarker">
                         <i class="fa fa-map-marker" t-attf-style="color: #{data?.other?.__geoColor || 'red'};" />
                     </span>
                     <button type="button" class="btn btn-sm btn-link" id="action-show-nearby" data-tooltip="Nearby" t-on-click="() => props.showNearbyRecords(record)">
