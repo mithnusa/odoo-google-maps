@@ -1,5 +1,16 @@
 # Change Log
 
+## 19.0.1.0.8
+
+- [Added] **`filterValidParams()` Method**: New static method on `GoogleMapsAPILoader` that strips application-level settings (e.g. `color_scheme`, `map_id`, `in_map_place_search`) from the full settings cache, returning only the keys accepted by the Google Maps API bootstrap script loader (`key`, `v`, `region`, `language`, `channel`, `solutionChannel`, `authReferrerPolicy`)
+- [Improved] **`serializedParams()`**: Now filters params through `filterValidParams()` before serializing, ensuring cache keys only reflect loader-relevant parameters and do not drift when application settings change
+- [Improved] **`sanitizeParams()`**: Refactored to use `filterValidParams()` before iterating, removing the need for special-cased URL character validation on `callback` and `libraries` keys (which are no longer present after filtering)
+- [Improved] **`prepareSettingValues()` — Channel**: Replaced negative-condition exclusion with a positive `Number.isFinite()` guard so `channel` is only included when it is a valid finite number in the range 0–999
+- [Improved] **`prepareSettingValues()` — Solution Channel**: Replaced multi-branch null/empty check with a single `typeof === 'string'` guard; falls back to `DEFAULT_SOLUTION_CHANNEL` when `solution_channel` is undefined
+- [Improved] **`handleLoadError()` — Safe Error Access**: Added optional chaining (`error?.type`, `error?.name`, `error?.message`) and an extracted `errorMessage` variable to prevent crashes when the error object is null or missing properties
+- [Improved] **`useGoogleMapsAPILoader`**: Simplified `importLibrary` availability check from `=== undefined || !...` to a single `=== undefined` guard
+- [Removed] **`ALLOWED_URL_CHARS` Constant**: Removed the URL character validation regex; URL-specific sanitization for `callback` and `libraries` is no longer needed as those keys are excluded by `filterValidParams()`
+
 ## 19.0.1.0.7
 
 ### Documentation
