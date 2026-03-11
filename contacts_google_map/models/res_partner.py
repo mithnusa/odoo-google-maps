@@ -118,7 +118,7 @@ class ResPartner(models.Model):
             self.env["ir.config_parameter"]
             .sudo()
             .get_param(
-                "contacts_google_map.nearby_search_radius_meters", default="1000"
+                "web_view_google_map.nearby_radius_search", default="1000"
             )
         )
         try:
