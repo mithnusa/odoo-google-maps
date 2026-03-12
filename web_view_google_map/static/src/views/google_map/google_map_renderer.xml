@@ -19,25 +19,29 @@
         <div class="infoWindow">
             <article role="link" class="o_kanban_record d-flex flex-grow-1 flex-md-shrink-1 flex-shrink-0 flex-row border-0">
                 <main class="ps-2">
-                    <div class="mb-1">
-                        <a href="#" role="button" t-att-data-id="recordId" class="text-decoration-none" id="btn-open_form" tabindex="-1">
-                            <h4>
-                                <span t-esc="title"/>
-                                <i t-if="isShifted" class="fa fa-info-circle ms-1 text-info" data-tooltip="This marker has been adjusted slightly so it doesn't overlap with others. The line points to its original location."></i>
-                            </h4>
-                        </a>
-                    </div>
+                    <h4>
+                        <span t-esc="title"/>
+                        <i t-if="isShifted" class="fa fa-info-circle ms-1 text-info" data-tooltip="This marker has been adjusted slightly so it doesn't overlap with others. The line points to its original location."></i>
+                    </h4>
                     <div>
                         <t t-esc="subTitle"/>
                     </div>
-                    <div class="pt-3 d-flex text-nowrap justify-content-between gap-1">
-                        <a t-attf-href="https://www.google.com/maps/dir/?api=1&amp;destination={{ destination }}" target="_blank" tabindex="-1" class="btn btn-sm btn-secondary" id="btn-navigate_to" data-toggle="tooltip" title="Navigate to this location">
+                    <div class="pt-3 d-flex text-nowrap gap-1">
+                        <button type="button" t-att-data-id="recordId" class="btn btn-sm btn-outline-dark" id="btn-open_form" data-tooltip="Open" tabindex="-1">
+                            <i class="fa fa-angle-right fa-lg"></i>
+                            <span class="visually-hidden">Open</span>
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-dark" id="btn-show_nearby" data-tooltip="Show nearby records" tabindex="-1">
+                            <i class="fa fa-location-arrow"></i>
+                            <span class="visually-hidden">Nearby</span>
+                        </button>
+                        <a t-attf-href="https://www.google.com/maps/dir/?api=1&amp;destination={{ destination }}" target="_blank" tabindex="-1" class="btn btn-sm btn-outline-dark" id="btn-navigate_to" data-tooltip="Navigate to this location">
                             <i class="fa fa-map-signs"></i>
-                            <span class="ps-1 fw-light smaller">Navigate to</span>
+                            <span class="visually-hidden">Navigate to</span>
                         </a>
-                        <a t-attf-href="https://www.google.com/maps/search/?api=1&amp;query={{ destination }}" target="_blank" tabindex="-1" class="btn btn-sm btn-secondary" id="btn-view-on-googlemaps" data-toggle="tooltip" title="View on Google Maps website">
+                        <a t-attf-href="https://www.google.com/maps/search/?api=1&amp;query={{ destination }}" target="_blank" tabindex="-1" class="btn btn-sm btn-outline-dark" id="btn-view-on-googlemaps" data-tooltip="View on Google Maps website">
                             <i class="fa fa-external-link"></i>
-                            <span class="ps-1 fw-light smaller">View on Google Maps</span>
+                            <span class="visually-hidden">Open Google Maps</span>
                         </a>
                     </div>
                 </main>

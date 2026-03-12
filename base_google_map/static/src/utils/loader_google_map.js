@@ -44,12 +44,6 @@ const NETWORK_TIMEOUT = 10000;
  */
 const MAX_RETRY_ATTEMPTS = 3;
 
-/**
- * Regular expression for validating URL characters.
- * Used for security validation of URL-like parameters.
- * @constant {RegExp}
- */
-const ALLOWED_URL_CHARS = /^[a-zA-Z0-9._~:/?#[\]@!$&'()*+,;=-]+$/;
 
 /**
  * Regular expression for detecting dangerous characters in user input.
@@ -137,7 +131,8 @@ export class GoogleMapsAPILoader {
      */
     static serializedParams(params) {
         this.validateParams(params);
-        return JSON.stringify(params, Object.keys(params).sort());
+        const loaderParams = this.filterValidParams(params);
+        return JSON.stringify(loaderParams, Object.keys(loaderParams).sort());
     }
 
     /**
@@ -219,10 +214,10 @@ export class GoogleMapsAPILoader {
         if (this.isDebugMode) {
             console.error('Google Maps API load error:', error);
         }
-        
-        if (error.type === LOADER_ERROR_TYPES.AUTH || error.name === 'AuthError') {
+        const errorMessage = error?.message || '';
+        if (error?.type === LOADER_ERROR_TYPES.AUTH || error?.name === 'AuthError') {
             this.loadingStatus = LOADER_STATUS.AUTH_FAILURE;
-        } else if (error.message.includes('timeout') || error.message.includes('network')) {
+        } else if (errorMessage.includes('timeout') || errorMessage.includes('network')) {
             this.loadingStatus = LOADER_STATUS.NETWORK_ERROR;
         } else {
             this.loadingStatus = LOADER_STATUS.FAILED;
@@ -238,17 +233,10 @@ export class GoogleMapsAPILoader {
      */
     static sanitizeParams(params) {
         return Object.fromEntries(
-            Object.entries(params).map(([key, value]) => {
+            Object.entries(this.filterValidParams(params)).map(([key, value]) => {
                 if (typeof value === 'string') {
                     // Remove dangerous characters
-                    let sanitized = value.replace(DANGEROUS_CHARS, '');
-                    // Validate URL format for URL-like parameters
-                    if (['callback', 'libraries'].includes(key)) {
-                        if (!ALLOWED_URL_CHARS.test(sanitized)) {
-                            console.warn(`Invalid characters in parameter ${key}:`, value);
-                            sanitized = sanitized.replace(/[^a-zA-Z0-9.,_-]/g, '');
-                        }
-                    }
+                    const sanitized = value.replace(DANGEROUS_CHARS, '');
                     return [key, sanitized];
                 }
                 return [key, value];
@@ -256,6 +244,21 @@ export class GoogleMapsAPILoader {
         );
     }
 
+    /**
+     * Injects the Google Maps JavaScript API bootstrap script into the document.
+     *
+     * Sanitizes and filters the provided parameters to valid loader keys only, then
+     * executes the official Google Maps bootstrap snippet. The snippet installs
+     * `google.maps.importLibrary` on the window, enabling dynamic library loading
+     * (e.g. 'maps', 'marker', 'places'). camelCase parameter keys are automatically
+     * converted to snake_case query string arguments (e.g. `solutionChannel` → `solution_channel`).
+     *
+     * The script is appended to `document.head` only once — subsequent calls with
+     * different parameters are silently ignored by the Google Maps API with a console warning.
+     *
+     * @param {Object} params - Settings object (will be sanitized and filtered before use)
+     * @returns {void}
+     */
     static loadGoogle(params) {
         const sanitizedParams = this.sanitizeParams(params);
         (g => {
@@ -274,6 +277,30 @@ export class GoogleMapsAPILoader {
             }));
             d[l] ? console.warn(p + " only loads once. Ignoring:", g) : d[l] = (f, ...n) => r.add(f) && u().then(() => d[l](f, ...n));
         })(sanitizedParams);
+    }
+
+    /**
+     * Filters a settings object to only the keys accepted by the Google Maps JavaScript API script loader.
+     *
+     * Strips all application-level settings (e.g. color_scheme, map_id, in_map_place_search)
+     * from the full settings cache, returning only the parameters that are valid query string
+     * arguments for the Maps API bootstrap script.
+     *
+     * Valid keys:
+     * - `key`: API authentication key
+     * - `v`: API version (e.g. 'beta', 'weekly', 'quarterly')
+     * - `region`: CLDR region code (e.g. 'US', 'FR')
+     * - `language`: Language code for map UI labels
+     * - `channel`: Numeric usage analytics channel (0–999)
+     * - `solutionChannel`: Solution tracking identifier
+     * - `authReferrerPolicy`: HTTP referrer policy for API requests
+     *
+     * @param {Object} params - Full settings object (may contain both loader and app-level keys)
+     * @returns {Object} Object containing only valid Google Maps API loader keys
+     */
+    static filterValidParams(params) {
+        const validKeys = ['key', 'v', 'region', 'language', 'channel', 'solutionChannel', 'authReferrerPolicy'];
+        return Object.fromEntries(Object.entries(params).filter(([key]) => validKeys.includes(key)));
     }
 
     /**
@@ -383,6 +410,7 @@ export class GoogleMapsAPILoader {
  * @param {boolean} [params.autocomplete_restrict_country=false] - Enable country restrictions for autocomplete
  * @param {Array<string>} [params.autocomplete_list_countries_restriction=[]] - List of country codes for autocomplete restrictions
  * @param {string} [params.auth_referrer_policy] - Referrer policy for API requests
+ * @param {Object} [restConfig] - Additional settings that may be included in the backend response
  * @returns {Object} Settings object formatted for Google Maps API
  *
  * @example
@@ -393,40 +421,57 @@ export class GoogleMapsAPILoader {
  * // Returns: { key: 'AIza...', v: 'weekly', ... }
  */
 function prepareSettingValues(params) {
-    const settings = {};
+    const {
+        api_key,
+        map_id,
+        version,
+        region,
+        language,
+        channel,
+        solution_channel,
+        color_scheme,
+        is_places_search_enable,
+        restrict_language,
+        autocomplete_restrict_country,
+        autocomplete_list_countries_restriction,
+        auth_referrer_policy,
+        ...restConfig
+    } = params;
+
+    const settings = { ...restConfig };
     // API Key - Required for Google Maps API authentication
-    settings.key = params.api_key;
+    settings.key = api_key;
     // Map ID - Required for advanced map features (3D, Cloud styling, etc.)
-    settings.map_id = params.map_id;
+    settings.map_id = map_id;
     // Version - API release channel
-    settings.v = params.version || 'beta';
+    settings.v = version || 'beta';
     // Region - Affects geocoding results and map behavior
     // Should be a valid CLDR region code (e.g., 'US', 'FR', 'JP') to ensure proper localization
-    if (params.region) {
-        settings.region = params.region.toUpperCase();
+    if (region) {
+        settings.region = region.toUpperCase();
     }
     // Language - UI and label translations
-    settings.language = params.language || 'en_US';
+    settings.language = language || 'en_US';
     // Channel - Optional numeric identifier for usage analytics (0-999)
-    if (params.channel === undefined || params.channel < 0 || params.channel > 999) {
-        delete settings.channel;
+    if (Number.isFinite(channel) && channel >= 0 && channel <= 999) {
+        settings.channel = channel;
     }
     // Solution Channel - Identifier for tracking specific implementations
-    if (params.solution_channel === undefined) {
+    if (typeof solution_channel === 'string' && solution_channel !== '') {
+        settings.solutionChannel = solution_channel;
+    } else if (solution_channel === undefined) {
         settings.solutionChannel = DEFAULT_SOLUTION_CHANNEL;
-    } else if (params.solution_channel === null || params.solution_channel === '') {
-        delete settings.solutionChannel;
     }
     // Color scheme - Visual theme for map UI
-    settings.color_scheme = params.color_scheme || 'light';
+    settings.color_scheme = color_scheme || 'light';
     // In Map Place Search - Enable/disable place search within map view
-    settings.in_map_place_search = params.is_places_search_enable || false;
+    settings.in_map_place_search = is_places_search_enable || false;
     // Restrict Language - Limit search results to specified language
-    settings.restrict_language = params.restrict_language || false;
+    settings.restrict_language = restrict_language || false;
     // Restrict Country - Enable geographical restrictions for autocomplete
-    settings.autocomplete_restrict_country = params.autocomplete_restrict_country || false;
+    settings.autocomplete_restrict_country = autocomplete_restrict_country || false;
     // List of country restrictions - ISO 3166-1 Alpha-2 country codes
-    settings.autocomplete_list_countries_restriction = params.autocomplete_list_countries_restriction || [];
+    settings.autocomplete_list_countries_restriction = autocomplete_list_countries_restriction || [];
     // Auth Referrer Policy - Controls how much referrer information is sent with API requests
     // Possible values per Referrer Policy specification:
     // - 'no-referrer': No referrer information sent
@@ -437,8 +482,8 @@ function prepareSettingValues(params) {
     // - 'strict-origin': Origin sent only when protocol security level stays same
     // - 'strict-origin-when-cross-origin': Full URL for same-origin, origin for cross-origin when protocol matches
     // - 'unsafe-url': Full URL always sent regardless of security
-    if (params.auth_referrer_policy) {
-        settings.authReferrerPolicy = params.auth_referrer_policy;
+    if (auth_referrer_policy) {
+        settings.authReferrerPolicy = auth_referrer_policy;
     }
     return settings;
 }
@@ -655,7 +700,7 @@ export const useGoogleMapsAPILoader = (
             return loadedLibraries.get(name);
         }
 
-        if (window.google?.maps?.importLibrary === undefined || !window.google?.maps?.importLibrary) {
+        if (window.google?.maps?.importLibrary === undefined) {
             throw new Error('importLibrary was called before the Google Maps API was defined');
         }
 

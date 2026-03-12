@@ -18,6 +18,7 @@ export class GoogleMapSidebar extends Component {
         renderGroupedRecordsFitBounds: Function,
         openRecord: Function,
         showRecordsByDomain: Function,
+        showNearbyRecords: Function,
         pointInMap: Function,
         deleteGroupRecords: Function,
         handleToggleSelection: Function,

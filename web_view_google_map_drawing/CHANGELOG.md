@@ -1,5 +1,10 @@
 # Change Log
 
+## 19.0.1.0.11
+
+- [Improved] **Sidebar UI**: Removed the "Show Nearby" button from the drawing view's sidebar record items — the nearby search action is not applicable in the drawing context and the button was inherited from the base map view
+- [Docs] **Features Reference**: Created `docs/FEATURES.md` covering all module features: Drawing Tools, GeoJSON Storage, Google Drawing Shape Mixin, Intelligent Rendering (Terra Draw vs Deck.gl), Area and Length Measurements, Import/Export GeoJSON, Geometry Simplification, Drawing Map View Type, Embedded Drawing Widget, Deck.gl High-Performance Viewer, and Bundled Libraries
+
 ## 19.0.1.0.10
 
 ### Updated Dependencies

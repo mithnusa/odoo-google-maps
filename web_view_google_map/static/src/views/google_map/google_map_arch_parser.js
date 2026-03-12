@@ -70,7 +70,7 @@ export class GoogleMapArchParser {
                     if (childNode.tagName === 'button') {
                         creates.push({
                             type: 'button',
-                            ...processButton(childNode),
+                            ...this.processButton(childNode),
                         });
                     } else if (childNode.tagName === 'create') {
                         creates.push({
