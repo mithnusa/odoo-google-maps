@@ -54,4 +54,15 @@
             </xpath>
         </field>
     </record>
+    <record id="view_res_partner_form_inherit_nearby_search" model="ir.ui.view">
+        <field name="name">view.res.partner.form.inherit.nearby.search</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="priority">1000</field>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_nearby_search" type="object" string="Nearby Contacts" icon="fa-location-arrow" class="btn-sm" invisible="not partner_latitude and not partner_longitude"/>
+            </xpath>
+        </field>
+    </record>
 </odoo>
