@@ -332,7 +332,7 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
 
         // Two midlines forming a crosshair at the center — marks the origin point used for the nearby search radius
         const polylinePaths = [
-            [{ lat: midLat, lng: west }, { lat: midLat, lng: east }],    // E → W
+            [{ lat: midLat, lng: west }, { lat: midLat, lng: east }],    // W → E
             [{ lat: north, lng: midLng }, { lat: south, lng: midLng }],  // N → S
         ];
         this._nearbySearchCoveragePolylines = polylinePaths.map(
@@ -474,9 +474,9 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
     }
 
     /**
-     * Removes the nearby search coverage rectangle from the map and releases the reference.
-     * Called by {@link renderGeolocationData} on every re-render to prevent stale rectangles
-     * from accumulating. Safe to call when no rectangle is currently rendered.
+     * Typically invoked from {@link renderNearbySearchCoverageArea} during re-renders to
+     * prevent stale coverage shapes from accumulating. Safe to call when no rectangle is
+     * currently rendered.
      */
     clearNearbySearchCoverageArea() {
         if (this._nearbySearchCoverageRectangle) {
