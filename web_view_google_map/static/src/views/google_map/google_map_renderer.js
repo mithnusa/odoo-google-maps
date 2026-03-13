@@ -55,6 +55,14 @@ const MARKER_CONFIG = {
         SELECTED_SCALE: 1.4,
         SELECTED_COLOR: '#4285F4',
     },
+    NEARBY_SEARCH: {
+        STROKE_COLOR: 'rgb(255, 61, 61)',
+        STROKE_OPACITY: 0.8,
+        STROKE_WEIGHT: 1.2,
+        FILL_OPACITY: 0.3,
+        DOT_SCALE: 0.5,
+        DOT_REPEAT: '5px',
+    },
     BOUNDS: {
         DEFAULT_PADDING: 200,
         MAX_AUTO_ZOOM: 15,
@@ -95,7 +103,9 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
         this.googleMapBounds = null;
         this.googleMapBoundsSelected = null;
         this.markerClusterer = null;
+
         this._nearbySearchCoverageRectangle = null;
+        this._nearbySearchCoveragePolylines = [];
 
         // Make sidebar state non-reactive
         this._isSidebarAction = false;
@@ -248,8 +258,6 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
     async renderGeolocationData() {
         if (!this.isMapLoaded()) return;
 
-        this.clearNearbySearchCoverageArea();
-
         this.clearMarkers();
 
         await this.renderMarkers();
@@ -266,22 +274,75 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
      * indicate a nearby search.
      */
     renderNearbySearchCoverageArea() {
+        this.clearNearbySearchCoverageArea();
+
         const context = this.props.list.evalContext;
-        if (context?.is_nearby_search && context?.nearby_bounding_box) {
-            this._nearbySearchCoverageRectangle = new google.maps.Rectangle({
-                strokeColor: MARKER_CONFIG.VISUAL.CONNECTION_LINE.STROKE_COLOR,
-                strokeOpacity: 0.8,
-                strokeWeight: 1.5,
-                fillColor: MARKER_CONFIG.VISUAL.CONNECTION_LINE.STROKE_COLOR,
-                fillOpacity: 0.3,
-                map: this.googleMap,
-                bounds: context.nearby_bounding_box,
-            });
-            // Fit map to rectangle bounds
-            const bounds = this._nearbySearchCoverageRectangle.getBounds();
-            if (bounds) {
-                this._fitMapBoundsWithLimit(bounds);
-            }
+
+        if (!context?.is_nearby_search || !context.nearby_bounding_box) return;
+
+        const bbox = context.nearby_bounding_box;
+        const { north, south, east, west } = bbox;
+        if (![north, south, east, west].every(Number.isFinite)) {
+            console.warn('Invalid nearby search bounding box:', bbox);
+            return;
+        }
+
+        const {
+            FILL_OPACITY,
+            STROKE_WEIGHT,
+            DOT_REPEAT,
+            DOT_SCALE,
+            STROKE_COLOR,
+            STROKE_OPACITY
+        } = MARKER_CONFIG.NEARBY_SEARCH;
+        this._nearbySearchCoverageRectangle = new google.maps.Rectangle({
+            strokeColor: STROKE_COLOR,
+            strokeOpacity: STROKE_OPACITY,
+            strokeWeight: STROKE_WEIGHT,
+            fillColor: STROKE_COLOR,
+            fillOpacity: FILL_OPACITY,
+            map: this.googleMap,
+            bounds: bbox,
+        });
+
+        const polylineOptions = {
+            strokeOpacity: 0,
+            icons: [
+                {
+                    icon: {
+                        path: google.maps.SymbolPath.CIRCLE,
+                        fillOpacity: FILL_OPACITY,
+                        fillColor: STROKE_COLOR,
+                        strokeOpacity: STROKE_OPACITY,
+                        strokeColor: STROKE_COLOR,
+                        scale: DOT_SCALE,
+                    },
+                    offset: '0',
+                    repeat: DOT_REPEAT,
+                },
+            ],
+            map: this.googleMap,
+        };
+        const midLat = (north + south) / 2;
+        let midLng = (east + west) / 2;
+        if (east < west) {
+            // handle antimeridian crossing
+            midLng = midLng > 0 ? midLng - 180 : midLng + 180;
+        }
+
+        // Two midlines forming a crosshair at the center — marks the origin point used for the nearby search radius
+        const polylinePaths = [
+            [{ lat: midLat, lng: west }, { lat: midLat, lng: east }],    // W → E
+            [{ lat: north, lng: midLng }, { lat: south, lng: midLng }],  // N → S
+        ];
+        this._nearbySearchCoveragePolylines = polylinePaths.map(
+            (path) => new google.maps.Polyline({ ...polylineOptions, path })
+        );
+
+        // Fit map to rectangle bounds
+        const bounds = this._nearbySearchCoverageRectangle.getBounds();
+        if (bounds) {
+            this._fitMapBoundsWithLimit(bounds);
         }
     }
 
@@ -413,14 +474,20 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
     }
 
     /**
-     * Removes the nearby search coverage rectangle from the map and releases the reference.
-     * Called by {@link renderGeolocationData} on every re-render to prevent stale rectangles
-     * from accumulating. Safe to call when no rectangle is currently rendered.
+     * Typically invoked from {@link renderNearbySearchCoverageArea} during re-renders to
+     * prevent stale coverage shapes from accumulating. Safe to call when no rectangle is
+     * currently rendered.
      */
     clearNearbySearchCoverageArea() {
         if (this._nearbySearchCoverageRectangle) {
             this._nearbySearchCoverageRectangle.setMap(null);
             this._nearbySearchCoverageRectangle = null;
+        }
+        if (this._nearbySearchCoveragePolylines.length > 0) {
+            for (const polyline of this._nearbySearchCoveragePolylines) {
+                polyline.setMap(null);
+            }
+            this._nearbySearchCoveragePolylines = [];
         }
     }
 
