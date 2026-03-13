@@ -1,5 +1,14 @@
 # Change Log
 
+## 19.0.1.0.16
+
+- [Added] **Nearby Search Crosshair Overlay**: The nearby search coverage area now renders two dotted polylines forming a crosshair at the bounding box center, visually marking the origin point used for the radius calculation
+- [Added] **Dedicated Nearby Search Styling Constants**: Extracted overlay styling (stroke color, opacity, fill opacity, dot scale/repeat) into a `NEARBY_SEARCH` block within `MARKER_CONFIG`, keeping visual configuration in one place
+- [Improved] **Nearby Coverage Area Rendering Order**: Moved `clearNearbySearchCoverageArea()` from `renderGeolocationData()` into `renderNearbySearchCoverageArea()` itself, so the coverage overlay is cleared and redrawn atomically on each render cycle
+- [Improved] **Bounding Box Validation**: Added a `Number.isFinite` guard on all four bbox coordinates before rendering; logs a warning and exits early if any value is invalid
+- [Improved] **Antimeridian-Aware Crosshair**: Midpoint longitude for the crosshair is computed correctly when the bounding box crosses the antimeridian (east < west)
+- [Fixed] **Polyline Cleanup**: `clearNearbySearchCoverageArea()` now also removes and resets `_nearbySearchCoveragePolylines`, preventing orphaned overlay elements when the nearby search is cleared
+
 ## 19.0.1.0.15
 
 - [Fixed] **Nearby Search Robustness**: Invalid `nearby_radius_search` config values (e.g. non-integer strings) now fall back to the default 1000 meters instead of raising an unhandled exception
