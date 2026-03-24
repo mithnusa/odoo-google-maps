@@ -1,0 +1,36 @@
+.o_google_map_renderer {
+    .o_google_map_view {
+        .place_creation_indicator {
+            margin-right: 10px;
+            margin-bottom: 8px;
+            cursor: help;
+
+            .btn {
+                opacity: 1;
+                cursor: help;
+                padding: 6px 10px;
+                width: 42px;
+            }
+        }
+
+        .animate {
+            animation: notification 1.5s infinite;
+            color: white;
+        }
+
+        @keyframes notification {
+            5% {
+                transform:rotate(10deg);
+            }
+            10% {
+                transform:rotate(-10deg);
+            }
+            15% {
+                transform:rotate(10deg);
+            }
+            20% {
+                transform:rotate(0deg);
+            }
+        }
+    }
+}

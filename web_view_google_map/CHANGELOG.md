@@ -1,5 +1,11 @@
 # Change Log
 
+## 19.0.1.0.17
+
+- [Improved] **Geolocate Button Layout**: Moved `margin-right` from the inner `.btn` element to the `.button_geolocate_user` container and added `margin-bottom: 8px`, ensuring consistent spacing regardless of button state
+- [Improved] **Geolocate Button Size**: Set an explicit `width: 42px` on the geolocate `.btn` to give it a fixed, predictable size
+- [Improved] **Child Component Environment**: Added `model` and `openRecord` to the env object passed to child components in `GoogleMapRenderer`, making the view model and record-opening callback available to components that extend the renderer
+
 ## 19.0.1.0.16
 
 - [Added] **Nearby Search Crosshair Overlay**: The nearby search coverage area now renders two dotted polylines forming a crosshair at the bounding box center, visually marking the origin point used for the radius calculation
