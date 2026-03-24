@@ -1,11 +1,14 @@
 .o_google_map_renderer {
     .o_google_map_view {
         .button_geolocate_user {
+            margin-right: 10px;
+            margin-bottom: 8px;
+
             .btn {
                 opacity: 1;
                 cursor: pointer;
                 padding: 6px 10px 5px 8px;
-                margin-right: 10px;
+                width: 42px;
             }
         }
     }

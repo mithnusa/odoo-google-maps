@@ -144,6 +144,8 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
             apiLoader: this.apiLoader,
             cache: this.cache,
             googleMap: () => this.googleMap,
+            model: this.props.list.model,
+            openRecord: this.props.openRecord,
             isMapLoaded: this.isMapLoaded.bind(this),
         });
 
