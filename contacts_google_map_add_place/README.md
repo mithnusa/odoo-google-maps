@@ -47,4 +47,3 @@ Click on a building or address that has no Google Place listing. The module reve
 
 - `web_view_google_map`: Provides the core Google Map view type used by this module.
 - `contacts_google_map`: Provides the Contacts-specific Google Maps view that this module extends.
-- `contacts_google_map_add_place_extended`: Adds extra Google Places data fields to contacts created through this workflow (if installed).
