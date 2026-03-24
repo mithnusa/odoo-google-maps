@@ -108,20 +108,18 @@ class ResPartner(models.Model):
 
         :param odoo_fields: dict returned by :meth:`_get_mapping_odoo_fields`
         :param location_dict: dict with ``lat`` and ``lng`` float values,
-            as returned by the Google Places API location field
+            as returned by the Google Places API ``location`` field
         :return: dict mapping Odoo field names to their float coordinate values,
             or an empty dict if coordinates are missing
         """
         values = {}
-        if (
-            odoo_fields.get("lat")
-            and location_dict.get("lat")
-            and odoo_fields.get("lng")
-            and location_dict.get("lng")
-        ):
-            values[odoo_fields["lat"]] = location_dict["lat"]
-            values[odoo_fields["lng"]] = location_dict["lng"]
-
+        lat_field = odoo_fields.get("lat")
+        lng_field = odoo_fields.get("lng")
+        lat = location_dict.get("lat")
+        lng = location_dict.get("lng")
+        if lat_field and lng_field and isinstance(lat, (int, float)) and isinstance(lng, (int, float)):
+            values[lat_field] = lat
+            values[lng_field] = lng
         return values
 
     def _mapping_address(
