@@ -224,9 +224,14 @@ class ResPartner(models.Model):
                     return None, None
             response.raise_for_status()
             data = response.json()
-            if data:
+            if (
+                data
+                and isinstance(data, list)
+                and "lat" in data[0]
+                and "lon" in data[0]
+            ):
                 return float(data[0]["lat"]), float(data[0]["lon"])
-        except (requests.RequestException, ValueError, KeyError):
+        except (requests.RequestException, ValueError, KeyError, TypeError):
             _logger.warning(
                 'Failed to geolocate address "%s" via Nominatim.', address, exc_info=True
             )
