@@ -1,10 +1,16 @@
 # -*- coding: utf-8 -*-
 import math
 from ast import literal_eval
+import requests
+import time
+import logging
 
 from odoo import _, api, fields, models
 from odoo.fields import Domain
 from odoo.exceptions import UserError
+
+
+_logger = logging.getLogger(__name__)
 
 
 class ResPartner(models.Model):
@@ -98,16 +104,130 @@ class ResPartner(models.Model):
         return domain, bounding_box
 
     @api.model
-    def action_cron_geolocalize(self):
+    def action_cron_geolocalize_using_nominatim(self):
+        """Cron entry point: geolocate partners that have a country but no coordinates.
+
+        Processes up to 50 partners per run to respect Nominatim's rate limit
+        (1 request/second). The next cron run will pick up the remaining records.
+        """
         self.search(
             [
                 ("country_id", "!=", False),
                 ("partner_latitude", "=", False),
                 ("partner_longitude", "=", False),
             ],
-            limit=500,
-        ).geo_localize()
+            limit=50,
+            order="id desc",
+        )._geolocalize_using_nominatim()
         return True
+
+    def _geolocalize_using_nominatim(self):
+        """Geolocate each partner in the recordset using the Nominatim API.
+
+        Skips partners with no resolvable address. Coordinates are written
+        directly on the record upon a successful lookup.
+        """
+        _logger.info(
+            'Starting Nominatim geolocation for %d contact(s).', len(self)
+        )
+        for partner in self:
+            address_parts = [
+                partner.street,
+                partner.street2,
+                partner.city,
+                partner.state_id.name if partner.state_id else None,
+                partner.zip,
+                partner.country_id.name if partner.country_id else None,
+            ]
+            address = ", ".join(filter(None, address_parts))
+            if not address:
+                continue
+
+            lat, lng = self._geolocate_address_using_nominatim(
+                address, country_code=partner.country_id.code
+            )
+            if lat is not None and lng is not None:
+                partner.partner_latitude = lat
+                partner.partner_longitude = lng
+
+    def _geolocate_address_using_nominatim(self, address, country_code):
+        """Resolve a free-form address to (latitude, longitude) via Nominatim.
+
+        Enforces a 1-second delay before every request to comply with
+        Nominatim's usage policy. On a 429 response, waits an additional
+        5 seconds and retries once. Returns (None, None) on any failure.
+
+        Args:
+            address (str): Full address string to geocode.
+            country_code (str): ISO 3166-1 alpha-2 code used to bias results
+                (e.g. "MY", "US"). Passed as ``countrycodes`` to Nominatim.
+
+        Returns:
+            tuple[float, float] | tuple[None, None]: (latitude, longitude) on
+            success, or (None, None) if the address could not be resolved.
+        """
+        # Nominatim's usage policy requires at most 1 request per second.
+        time.sleep(1)
+
+        params = {
+            "q": address,
+            "format": "json",
+            "limit": 1,
+        }
+        if country_code:
+            params["countrycodes"] = country_code.lower()
+
+        # Nominatim requires a descriptive User-Agent identifying the app and
+        # a contact URL so abusive traffic can be traced. The context key
+        # ``cron_user_agent_geocoder`` allows callers to override the value,
+        # e.g. to include a specific job identifier in scheduled runs.
+        company_name = (self.env.company.name or "Odoo").replace(" ", "-").lower()
+        base_url = (
+            self.env["ir.config_parameter"]
+            .sudo()
+            .get_param("web.base.url", default="http://localhost")
+        )
+        default_user_agent = f"odoo-{company_name}-geocoder/1.0 ({base_url})"
+        user_agent = self.env.context.get("cron_user_agent_geocoder", default_user_agent) or default_user_agent
+        headers = {
+            "User-Agent": user_agent,
+            "Referer": base_url,
+        }
+
+        try:
+            response = requests.get(
+                "https://nominatim.openstreetmap.org/search",
+                params=params,
+                headers=headers,
+                timeout=10,
+            )
+            if response.status_code == 429:
+                _logger.warning(
+                    'Nominatim rate limit exceeded for "%s". Retrying after 5s delay.',
+                    address,
+                )
+                time.sleep(5)
+                response = requests.get(
+                    "https://nominatim.openstreetmap.org/search",
+                    params=params,
+                    headers=headers,
+                    timeout=10,
+                )
+                if response.status_code == 429:
+                    _logger.warning(
+                        'Nominatim rate limit still exceeded for "%s". Skipping.',
+                        address,
+                    )
+                    return None, None
+            response.raise_for_status()
+            data = response.json()
+            if data:
+                return float(data[0]["lat"]), float(data[0]["lon"])
+        except (requests.RequestException, ValueError, KeyError):
+            _logger.warning(
+                'Failed to geolocate address "%s" via Nominatim.', address, exc_info=True
+            )
+        return None, None
 
     def action_nearby_search(self):
         self.ensure_one()

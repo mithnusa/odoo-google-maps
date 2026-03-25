@@ -56,4 +56,4 @@
 
 **Why it matters**: Keeps your contacts' geolocation data up to date without manual effort, especially useful after bulk imports or when contacts are created without coordinates.
 
-**How it works**: The cron job runs daily and processes up to 500 contacts per batch that have a country set but no geolocation. It uses Odoo's built-in `geo_localize()` method from the `base_geolocalize` module. The job is installed in an **inactive** state and must be manually activated in **Settings → Technical → Scheduled Actions → Auto Geolocalize Contacts**.
+**How it works**: The cron job runs daily and processes up to 50 contacts per batch that have a country set but no geolocation. It uses the Nominatim (OpenStreetMap) geocoding service, with a mandatory 1-second delay between requests to comply with Nominatim's usage policy. If the service is temporarily rate-limited, it retries once after a 5-second wait before skipping that contact. The job is installed in an **inactive** state and must be manually activated in **Settings → Technical → Scheduled Actions → Contact: Geolocate Using Nominatim**.

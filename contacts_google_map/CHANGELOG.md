@@ -1,5 +1,11 @@
 # Change Log
 
+## 19.0.1.0.5
+
+- [Imp] **Geocoder service**: Changed geocoder service to Nominatim (OpenStreetMap) for automatic contact geolocation
+- [Fix] **Nominatim geocoder — rate limit handling**: Improved handling of 429 Too Many Requests; the geocoder now correctly detects a sustained rate limit after a retry and skips the address gracefully instead of raising an unhandled error
+- [Imp] **Nominatim geocoder — cron batch size**: Reduced the number of contacts geocoded per cron run from 500 to 50 to prevent cron worker timeout given the required 1-second delay between requests
+
 ## 19.0.1.0.4
 
 - [Added] **Nearby Contacts Search**: Added `action_nearby_search()` method on `res.partner` that opens the Contacts map view filtered to contacts within a configurable radius of the selected contact's location; supports antimeridian wraparound and passes bounding box context for map overlay visualization

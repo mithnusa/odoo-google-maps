@@ -11,7 +11,7 @@ Most of the implementation in this modules are inspired from the samples that yo
 |--------|---------|-------------|
 | [base_google_map](/base_google_map/README.md) | 19.0.1.0.8 | Base module of Google Maps contains settings to setup Google API Key |
 | [contacts_google_autocomplete](/contacts_google_autocomplete/README.md) | 19.0.1.0.1 | Implementation of Google Places Autocomplete on Contacts |
-| [contacts_google_map](/contacts_google_map/README.md) | 19.0.1.0.4 | Implementation of view "Google Maps" on Contacts |
+| [contacts_google_map](/contacts_google_map/README.md) | 19.0.1.0.5 | Implementation of view "Google Maps" on Contacts |
 | [contacts_google_map_add_place](/contacts_google_map_add_place/README.md) | 19.0.1.0.0 | Click on Google Map to add contact with Google Places data |
 | [crm_google_autocomplete](/crm_google_autocomplete/README.md) | 19.0.1.0.1 | Implementation of Google Places Autocomplete on CRM Leads/Opportunities |
 | [crm_google_map](/crm_google_map/README.md) | 19.0.1.0.5 | Implementation of view "Google Maps" on CRM |

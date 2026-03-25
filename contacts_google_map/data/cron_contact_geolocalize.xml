@@ -2,10 +2,15 @@
 <odoo>
     <!-- A cron to geolocate existing contacts which doesn't geolocated yet -->
     <record id="ir_cron_data_contact_geolocate" model="ir.cron">
-        <field name="name">Contact: geolocate</field>
+        <field name="name">Contact: Geolocate Using Nominatim</field>
         <field name="model_id" ref="base.model_res_partner"/>
         <field name="state">code</field>
-        <field name="code">model.with_context(from_cron=True).action_cron_geolocalize()</field>
+        <field name="code">
+# Upon sending the request to Nominatim, we specify a user agent to identify the source of the request. This is a good practice to avoid being blocked by Nominatim.
+# By default, we use this format "odoo-{COMPANY_NAME}-geocoder/1.0 ({BASE_URL})"
+# If you would like to change the identifier, you can set it via context key "cron_user_agent_geocoder", for example "odoo-mycompany-geocoder/1.0 (https://mycompany.com)"
+model.with_context(from_cron=True,cron_user_agent_geocoder=False).action_cron_geolocalize_using_nominatim()
+        </field>
         <field name="interval_number">1</field>
         <field name="interval_type">days</field>
         <field name="active" eval="False"/>
