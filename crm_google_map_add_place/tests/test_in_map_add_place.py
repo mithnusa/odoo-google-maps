@@ -144,9 +144,12 @@ class TestPrepareGeolocationFields(TransactionCase):
         self.assertEqual(result, {})
 
     def test_zero_coordinates(self):
-        """Zero lat/lng (falsy) should NOT populate geolocation fields."""
+        """Zero lat/lng should populate geolocation fields as valid coordinates."""
         result = self.lead_model._prepare_geolocation_fields(self.odoo_fields, {"lat": 0, "lng": 0})
-        self.assertEqual(result, {})
+        self.assertIn("customer_latitude", result)
+        self.assertIn("customer_longitude", result)
+        self.assertAlmostEqual(result["customer_latitude"], 0)
+        self.assertAlmostEqual(result["customer_longitude"], 0)
 
 
 # ---------------------------------------------------------------------------

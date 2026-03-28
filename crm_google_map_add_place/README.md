@@ -6,7 +6,7 @@ This module activates the click-to-create workflow on the CRM Google Maps view. 
 
 ## What It Does
 
-Extends `crm.lead` with the `google.map.add.place.partner.mixin` and patches the CRM Google Maps renderer to include the click-to-create UI component. When the map is zoomed in sufficiently, clicking a named Google Place or an empty location on the map opens a quick-create form with address, contact, and location details already filled in.
+Extends `crm.lead` with the `google_map.add_place.mixin` and patches the CRM Google Maps renderer to include the click-to-create UI component. When the map is zoomed in sufficiently, clicking a named Google Place or an empty location on the map opens a quick-create form with address, contact, and location details already filled in.
 
 ## Key Features
 

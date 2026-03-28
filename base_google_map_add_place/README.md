@@ -12,7 +12,7 @@ This module is a base layer — it does not activate the feature on any model by
 
 ## Key Features
 
-- **Abstract Model Mixin**: Provides `google.map.add.place.partner.mixin` with all the logic for fetching place details, parsing addresses, and opening quick-create forms
+- **Abstract Model Mixin**: Provides `google_map.add_place.mixin` with all the logic for fetching place details, parsing addresses, and opening quick-create forms
 - **Places API Integration**: Fetches name, address, phone, website, and coordinates from the Google Places API (New) when clicking a named place
 - **Reverse Geocoding**: Resolves map coordinates to a structured address via the Google Geocoding API when clicking empty map space
 - **Address Mapping**: Maps Google address components to Odoo partner fields (street, city, zip, state, country) with multi-country format support

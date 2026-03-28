@@ -2,7 +2,7 @@
 
 ## 1.0.0 - Initial Release
 
-- **Abstract Model Mixin**: Added `google.map.add.place.partner.mixin` with `gplace_id` field and core click-to-create logic reusable across any Odoo model
+- **Abstract Model Mixin**: Added `google_map.add_place.mixin` with `gplace_id` field and core click-to-create logic reusable across any Odoo model
 - **Places API Integration**: `action_in_map_google_place_create` method fetches place name, address components, phone, website, and coordinates from the Google Places API (New) and returns a pre-populated quick-create form action
 - **Reverse Geocoding**: `action_in_map_google_place_from_reverse_geocode` method maps Geocoding API results to Odoo partner fields and returns a pre-populated form action
 - **Address Mapping**: `_mapping_address` resolves Google address components to Odoo fields (street, street2, city, zip, state_id, country_id) with country/state resolved to Odoo record IDs

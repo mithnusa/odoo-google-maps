@@ -279,7 +279,7 @@ class GoogleMapAddPlaceMixin(models.AbstractModel):
                 model_description = self.env[self._name]._description or _("Record")
                 return {
                     "type": "ir.actions.act_window",
-                    "name": _("%s exists: %s", model_description, record_id.name),
+                    "name": _("%s exists: %s", model_description, record_id.display_name),
                     "res_model": self._name,
                     "view_mode": "form",
                     "view_id": False,
@@ -377,7 +377,7 @@ class GoogleMapAddPlaceMixin(models.AbstractModel):
             if record_id:
                 return {
                     "type": "ir.actions.act_window",
-                    "name": _("%s exists: %s", model_description, record_id.name),
+                    "name": _("%s exists: %s", model_description, record_id.display_name),
                     "res_model": self._name,
                     "view_mode": "form",
                     "view_id": False,

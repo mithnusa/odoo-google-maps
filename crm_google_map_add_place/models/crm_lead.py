@@ -45,5 +45,4 @@ class CrmLead(models.Model):
             place_display_name = place.get("displayName")
             if place_display_name:
                 action["context"]["default_name"] = _("%s's opportunity", place_display_name)
-            return action
         return action

@@ -3,7 +3,7 @@
 ## Abstract Model Mixin
 
 ### Google Map Add Place Mixin
-**What it does**: Provides a reusable abstract model (`google.map.add.place.partner.mixin`) that any Odoo model can inherit to gain click-to-create from Google Maps.
+**What it does**: Provides a reusable abstract model (`google_map.add_place.mixin`) that any Odoo model can inherit to gain click-to-create from Google Maps.
 
 **Why it matters**: Keeps the core logic in one place so multiple application modules (Contacts, CRM, etc.) share the same implementation without duplication.
 

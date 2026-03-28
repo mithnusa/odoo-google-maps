@@ -3,7 +3,7 @@
 ## CRM Lead Integration
 
 ### Mixin Inheritance on crm.lead
-**What it does**: Extends the `crm.lead` model with `google.map.add.place.partner.mixin`, adding the `gplace_id` field and all click-to-create methods to CRM leads.
+**What it does**: Extends the `crm.lead` model with `google_map.add_place.mixin`, adding the `gplace_id` field and all click-to-create methods to CRM leads.
 
 **Why it matters**: Connects the reusable base mixin to the CRM module so that the click-to-create workflow works natively with CRM leads without duplicating any logic.
 
