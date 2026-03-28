@@ -1,5 +1,10 @@
 # Change Log
 
+## 19.0.1.0.12
+
+- [Fixed] **Props Compatibility**: Excluded `showNearbyRecords` from `GoogleMapsDrawingSidebar.props` — the prop is inherited from the base sidebar but unused in drawing mode, causing OWL prop validation warnings
+- [Improved] **Controller**: Overrode `rendererProps` in `GoogleMapDrawingController` to strip `showNearbyRecords` before passing props to the renderer, keeping the drawing view decoupled from nearby search functionality
+
 ## 19.0.1.0.11
 
 - [Improved] **Sidebar UI**: Removed the "Show Nearby" button from the drawing view's sidebar record items — the nearby search action is not applicable in the drawing context and the button was inherited from the base map view
