@@ -43,6 +43,8 @@ class CrmLead(models.Model):
         if not action.get("res_id") and action.get("context", {}).get("default_gplace_id"):
             #  Set default name
             place_display_name = place.get("displayName")
-            if place_display_name:
-                action["context"]["default_name"] = _("%s's opportunity", place_display_name)
+            field_name = self._get_mapping_odoo_fields().get("name")
+            if place_display_name and action["context"].get(f"default_{field_name}"):
+                name_value = action["context"][f"default_{field_name}"]
+                action["context"]["default_name"] = _("%s's opportunity", name_value)
         return action

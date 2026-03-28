@@ -45,12 +45,15 @@ export class InMapClickAddPlace extends Component {
         // Store bound reference for proper cleanup
         this._boundClickListener = this._onMapClick.bind(this);
         // Store bound reference for map idle listener to properly clean it up
-        this._boundMapClickableAddPlaceIndicatorListener =
-            this._handleMapClickableAddPlaceIndicator.bind(this);
+        this._boundMapClickableAddPlaceIndicatorListener = this._handleMapClickableAddPlaceIndicator.bind(this);
         // Store click listener reference for proper cleanup
         this._placeClickListener = null;
         // Store reference to the map click listener for proper cleanup
         this._mapIdleAddPlaceIndicatorListener = null;
+        // Store reference to the injected indicator element for cleanup
+        this._indicatorElement = null;
+        // Store bound reference for button click listener to properly clean it up
+        this._boundButtonClickListener = this.actionZoomInMap.bind(this);
         onRendered(this._onRendered);
         onWillUnmount(this._cleanup);
     }
@@ -78,10 +81,9 @@ export class InMapClickAddPlace extends Component {
                 'base_google_map_add_place.PlaceCreationIndicator',
                 {}
             );
-            const indicator = new DOMParser()
-                .parseFromString(content, 'text/html')
-                .querySelector('div');
-            this.props.googleMap.controls[google.maps.ControlPosition.RIGHT_TOP].push(indicator);
+            this._indicatorElement = new DOMParser().parseFromString(content, 'text/html').querySelector('div');
+            this._indicatorElement.querySelector('button').addEventListener('click', this._boundButtonClickListener);
+            this.props.googleMap.controls[google.maps.ControlPosition.RIGHT_TOP].push(this._indicatorElement);
             this._mapIdleAddPlaceIndicatorListener = this.props.googleMap.addListener(
                 'idle',
                 this._boundMapClickableAddPlaceIndicatorListener
@@ -356,6 +358,80 @@ export class InMapClickAddPlace extends Component {
     }
 
     /**
+     * Handles a click on the add-place indicator button.
+     *
+     * When the map is below {@link ZOOM_THRESHOLD}, zooms in to the threshold
+     * level and pans to the nearest marker visible in the current viewport
+     * (see {@link _computeSmartZoomTarget}). If no markers are visible the map
+     * simply zooms in on the current centre, preserving the user's intended
+     * location.
+     *
+     * Does nothing when the map is already at or above the threshold.
+     *
+     * @param {MouseEvent} ev - The button click event.
+     * @returns {void}
+     */
+    actionZoomInMap(ev) {
+        ev.stopPropagation();
+        if (!this.props.googleMap) return;
+
+        const currentZoom = this.props.googleMap.getZoom();
+        if (currentZoom >= ZOOM_THRESHOLD) return;
+
+        const target = this._computeSmartZoomTarget();
+        this.props.googleMap.setZoom(ZOOM_THRESHOLD);
+        this.props.googleMap.panTo(target);
+    }
+
+    /**
+     * Computes the best pan target for the zoom-in action.
+     *
+     * Finds the marker closest to the current map centre among those already
+     * visible inside the current viewport bounds. This keeps the result
+     * within the user's current view and anchors it to an actual data point
+     * rather than a computed average.
+     *
+     * Falls back to `map.getCenter()` when no markers are visible in the
+     * viewport (e.g. the user has panned to an empty area), preserving the
+     * existing zoom-to-centre behaviour.
+     *
+     * Uses `marker._originalPosition` in preference to `marker.position` to
+     * avoid bias introduced by overlap-offset shifts.
+     *
+     * @returns {google.maps.LatLng|{lat: number, lng: number}}
+     * @private
+     */
+    _computeSmartZoomTarget() {
+        const cache = this.env.cache;
+        const center = this.props.googleMap.getCenter();
+        if (!cache?.size) return center;
+
+        const bounds = this.props.googleMap.getBounds();
+        const centerLat = center.lat();
+        const centerLng = center.lng();
+
+        // Euclidean distance on lat/lng — sufficient at this scale
+        const dist = (pos) =>
+            (pos.lat - centerLat) ** 2 + (pos.lng - centerLng) ** 2;
+
+        let nearest = null;
+        let nearestDist = Infinity;
+
+        for (const marker of cache.values()) {
+            const pos = marker._originalPosition || marker.position;
+            if (!pos) continue;
+            if (!bounds?.contains({ lat: pos.lat, lng: pos.lng })) continue;
+            const d = dist(pos);
+            if (d < nearestDist) {
+                nearestDist = d;
+                nearest = pos;
+            }
+        }
+
+        return nearest ?? center;
+    }
+
+    /**
      * OWL `onWillUnmount` hook. Removes all Google Maps event listeners
      * registered by this component and strips the add-place indicator control
      * from the map's RIGHT_TOP corner to prevent memory leaks and stale UI.
@@ -369,6 +445,10 @@ export class InMapClickAddPlace extends Component {
      * @private
      */
     _cleanup() {
+        if (this._indicatorElement) {
+            this._indicatorElement.querySelector('button').removeEventListener('click', this._boundButtonClickListener);
+            this._indicatorElement = null;
+        }
         if (this._placeClickListener) {
             this._placeClickListener.remove();
             this._placeClickListener = null;

@@ -74,7 +74,7 @@ class GoogleMapAddPlaceMixin(models.AbstractModel):
     )
 
     def _get_mapping_odoo_fields(self):
-        """Return a mapping of alias keys to actual Odoo field names on res.partner.
+        """Return a mapping of alias keys to actual Odoo field names on this model.
 
         Used by the place-creation methods to resolve which Odoo field should
         receive each piece of data returned by the Google Places API.
@@ -128,7 +128,7 @@ class GoogleMapAddPlaceMixin(models.AbstractModel):
         adr_format_address,
         field_mapping=None,
     ):
-        """Map Google Places address components to Odoo partner address fields.
+        """Map Google Places address components to Odoo record address fields.
 
         Builds a flat address dict by:
 
@@ -248,13 +248,13 @@ class GoogleMapAddPlaceMixin(models.AbstractModel):
 
     @api.model
     def action_in_map_google_place_create(self, place):
-        """Create a new partner pre-filled from a Google Places API result.
+        """Create a new record pre-filled from a Google Places API result.
 
-        If a partner with the same gplace_id already exists, opens that
+        If a record with the same gplace_id already exists, opens that
         record in a popup form instead of creating a duplicate.
 
         Otherwise, maps the place data (name, website, phone, address,
-        coordinates) to Odoo partner fields and opens a new partner form
+        coordinates) to Odoo record fields and opens a new record form
         pre-populated via context defaults, allowing the user to review and
         save the record.
 
@@ -267,7 +267,7 @@ class GoogleMapAddPlaceMixin(models.AbstractModel):
             - addressComponents (list): structured address components
             - adrFormatAddress (str): HTML adr microformat address string
             - location (dict): lat and lng float coordinates
-        :return: ir.actions.act_window action opening a partner form in a
+        :return: ir.actions.act_window action opening a record form in a
             popup (target: "new"), either for the existing or a new record
         """
         place_id = place.get("placeId")
@@ -347,7 +347,7 @@ class GoogleMapAddPlaceMixin(models.AbstractModel):
 
     @api.model
     def action_in_map_google_place_from_reverse_geocode(self, geocoding):
-        """Create a new partner pre-filled from a Google Geocoding API result.
+        """Create a new record pre-filled from a Google Geocoding API result.
 
         Intended for use with reverse geocoding (coordinate → address), where
         a full Places API result is not available. Follows the same
@@ -365,7 +365,7 @@ class GoogleMapAddPlaceMixin(models.AbstractModel):
             - formatted_address (str): plain-text full address string
             - geometry (dict): with a nested location dict holding
               lat and lng float values
-        :return: ir.actions.act_window action opening a partner form in a
+        :return: ir.actions.act_window action opening a record form in a
             popup (target: "new"), either for the existing or a new record
         """
         place_id = geocoding.get("place_id")
