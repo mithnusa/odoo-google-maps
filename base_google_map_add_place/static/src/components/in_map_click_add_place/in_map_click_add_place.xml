@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates xml:space="preserve">
-    <t t-name="contacts_google_map_add_place.ClickAddPlace">
+    <t t-name="base_google_map_add_place.ClickAddPlace">
         <span></span>
     </t>
-    <t t-name="contacts_google_map_add_place.PlaceCreationIndicator">
+    <t t-name="base_google_map_add_place.PlaceCreationIndicator">
         <div id="custom-control-add-places-indicator" class="place-creation-indicator">
             <div class="place_creation_indicator" data-tooltip="Zoom in on the map until this control turns green. Then click anywhere on the map to open a quick-create form with pre-filled location details">
-                <button class="btn btn-sm btn-light rounded-5 shadow-sm" disabled="1" type="button">
+                <button class="btn btn-sm btn-light rounded-5 shadow-sm" type="button">
                     <i class="fa fa-lightbulb-o fa-2x"></i>
                 </button>
             </div>

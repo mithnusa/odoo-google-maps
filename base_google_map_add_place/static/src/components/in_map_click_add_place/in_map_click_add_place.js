@@ -12,7 +12,7 @@ import { renderToString } from '@web/core/utils/render';
 const ZOOM_THRESHOLD = 15;
 
 /**
- * OWL component that enables users to add new Odoo contacts directly from
+ * OWL component that enables users to add new Odoo record directly from
  * the Google Maps view by clicking on the map.
  *
  * When the map zoom level is at or above {@link ZOOM_THRESHOLD}:
@@ -29,7 +29,7 @@ const ZOOM_THRESHOLD = 15;
  * @extends {Component}
  */
 export class InMapClickAddPlace extends Component {
-    static template = 'contacts_google_map_add_place.ClickAddPlace';
+    static template = 'base_google_map_add_place.ClickAddPlace';
     static props = ['googleMap'];
 
     /**
@@ -45,12 +45,15 @@ export class InMapClickAddPlace extends Component {
         // Store bound reference for proper cleanup
         this._boundClickListener = this._onMapClick.bind(this);
         // Store bound reference for map idle listener to properly clean it up
-        this._boundMapClickableAddPlaceIndicatorListener =
-            this._handleMapClickableAddPlaceIndicator.bind(this);
+        this._boundMapClickableAddPlaceIndicatorListener = this._handleMapClickableAddPlaceIndicator.bind(this);
         // Store click listener reference for proper cleanup
         this._placeClickListener = null;
         // Store reference to the map click listener for proper cleanup
         this._mapIdleAddPlaceIndicatorListener = null;
+        // Store reference to the injected indicator element for cleanup
+        this._indicatorElement = null;
+        // Store bound reference for button click listener to properly clean it up
+        this._boundButtonClickListener = this.actionZoomInMap.bind(this);
         onRendered(this._onRendered);
         onWillUnmount(this._cleanup);
     }
@@ -75,13 +78,12 @@ export class InMapClickAddPlace extends Component {
 
         if (!this._mapIdleAddPlaceIndicatorListener) {
             const content = renderToString(
-                'contacts_google_map_add_place.PlaceCreationIndicator',
+                'base_google_map_add_place.PlaceCreationIndicator',
                 {}
             );
-            const indicator = new DOMParser()
-                .parseFromString(content, 'text/html')
-                .querySelector('div');
-            this.props.googleMap.controls[google.maps.ControlPosition.RIGHT_TOP].push(indicator);
+            this._indicatorElement = new DOMParser().parseFromString(content, 'text/html').querySelector('div');
+            this._indicatorElement.querySelector('button').addEventListener('click', this._boundButtonClickListener);
+            this.props.googleMap.controls[google.maps.ControlPosition.RIGHT_TOP].push(this._indicatorElement);
             this._mapIdleAddPlaceIndicatorListener = this.props.googleMap.addListener(
                 'idle',
                 this._boundMapClickableAddPlaceIndicatorListener
@@ -216,7 +218,7 @@ export class InMapClickAddPlace extends Component {
         } = placeData; // Destructure to ensure place details are fetched
 
         const action = await this.ormService.call(
-            'res.partner',
+            this.env.model.config.resModel,
             'action_in_map_google_place_create',
             [
                 {
@@ -274,7 +276,7 @@ export class InMapClickAddPlace extends Component {
         const { results } = await geocoder.geocode({ location: event.latLng });
         if (results && results.length > 0) {
             const action = await this.ormService.call(
-                'res.partner',
+                this.env.model.config.resModel,
                 'action_in_map_google_place_from_reverse_geocode',
                 [results[0]]
             );
@@ -308,7 +310,7 @@ export class InMapClickAddPlace extends Component {
      * 1. Closes the dialog/action window.
      * 2. Reloads the parent map view's root record set.
      * 3. Shows a sticky-free info notification with an "Open" button that
-     *    navigates to the newly created or updated contact.
+     *    navigates to the newly created or updated record.
      *
      * @param {import('@web/model/record').Record} record - The saved record object.
      * @param {'create'|'write'} mode - Whether the form performed a creation
@@ -324,28 +326,28 @@ export class InMapClickAddPlace extends Component {
             this.env.model.notify();
 
             if (mode === 'create') {
-                this.notificationService.add(_t('New contact is created successfully'), {
+                this.notificationService.add(_t('Record created successfully'), {
                     type: 'info',
                     autocloseDelay: 5000,
                     sticky: false,
                     buttons: [
                         {
                             name: _t('Open'),
-                            onClick: async () => {
+                            onClick: () => {
                                 this.env.openRecord(record);
                             },
                         },
                     ],
                 });
             } else if (mode === 'write') {
-                this.notificationService.add(_t('Contact is updated successfully'), {
+                this.notificationService.add(_t('Record updated successfully'), {
                     type: 'info',
                     autocloseDelay: 5000,
                     sticky: false,
                     buttons: [
                         {
                             name: _t('Open'),
-                            onClick: async () => {
+                            onClick: () => {
                                 this.env.openRecord(record);
                             },
                         },
@@ -353,6 +355,80 @@ export class InMapClickAddPlace extends Component {
                 });
             }
         }
+    }
+
+    /**
+     * Handles a click on the add-place indicator button.
+     *
+     * When the map is below {@link ZOOM_THRESHOLD}, zooms in to the threshold
+     * level and pans to the nearest marker visible in the current viewport
+     * (see {@link _computeSmartZoomTarget}). If no markers are visible the map
+     * simply zooms in on the current centre, preserving the user's intended
+     * location.
+     *
+     * Does nothing when the map is already at or above the threshold.
+     *
+     * @param {MouseEvent} ev - The button click event.
+     * @returns {void}
+     */
+    actionZoomInMap(ev) {
+        ev.stopPropagation();
+        if (!this.props.googleMap) return;
+
+        const currentZoom = this.props.googleMap.getZoom();
+        if (currentZoom >= ZOOM_THRESHOLD) return;
+
+        const target = this._computeSmartZoomTarget();
+        this.props.googleMap.setZoom(ZOOM_THRESHOLD);
+        this.props.googleMap.panTo(target);
+    }
+
+    /**
+     * Computes the best pan target for the zoom-in action.
+     *
+     * Finds the marker closest to the current map centre among those already
+     * visible inside the current viewport bounds. This keeps the result
+     * within the user's current view and anchors it to an actual data point
+     * rather than a computed average.
+     *
+     * Falls back to `map.getCenter()` when no markers are visible in the
+     * viewport (e.g. the user has panned to an empty area), preserving the
+     * existing zoom-to-centre behaviour.
+     *
+     * Uses `marker._originalPosition` in preference to `marker.position` to
+     * avoid bias introduced by overlap-offset shifts.
+     *
+     * @returns {google.maps.LatLng|{lat: number, lng: number}}
+     * @private
+     */
+    _computeSmartZoomTarget() {
+        const cache = this.env.cache;
+        const center = this.props.googleMap.getCenter();
+        if (!cache?.size) return center;
+
+        const bounds = this.props.googleMap.getBounds();
+        const centerLat = center.lat();
+        const centerLng = center.lng();
+
+        // Euclidean distance on lat/lng — sufficient at this scale
+        const dist = (pos) =>
+            (pos.lat - centerLat) ** 2 + (pos.lng - centerLng) ** 2;
+
+        let nearest = null;
+        let nearestDist = Infinity;
+
+        for (const marker of cache.values()) {
+            const pos = marker._originalPosition || marker.position;
+            if (!pos) continue;
+            if (!bounds?.contains({ lat: pos.lat, lng: pos.lng })) continue;
+            const d = dist(pos);
+            if (d < nearestDist) {
+                nearestDist = d;
+                nearest = pos;
+            }
+        }
+
+        return nearest ?? center;
     }
 
     /**
@@ -369,6 +445,10 @@ export class InMapClickAddPlace extends Component {
      * @private
      */
     _cleanup() {
+        if (this._indicatorElement) {
+            this._indicatorElement.querySelector('button').removeEventListener('click', this._boundButtonClickListener);
+            this._indicatorElement = null;
+        }
         if (this._placeClickListener) {
             this._placeClickListener.remove();
             this._placeClickListener = null;
