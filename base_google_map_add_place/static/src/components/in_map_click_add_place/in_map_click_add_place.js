@@ -12,7 +12,7 @@ import { renderToString } from '@web/core/utils/render';
 const ZOOM_THRESHOLD = 15;
 
 /**
- * OWL component that enables users to add new Odoo contacts directly from
+ * OWL component that enables users to add new Odoo record directly from
  * the Google Maps view by clicking on the map.
  *
  * When the map zoom level is at or above {@link ZOOM_THRESHOLD}:
@@ -29,7 +29,7 @@ const ZOOM_THRESHOLD = 15;
  * @extends {Component}
  */
 export class InMapClickAddPlace extends Component {
-    static template = 'contacts_google_map_add_place.ClickAddPlace';
+    static template = 'base_google_map_add_place.ClickAddPlace';
     static props = ['googleMap'];
 
     /**
@@ -75,7 +75,7 @@ export class InMapClickAddPlace extends Component {
 
         if (!this._mapIdleAddPlaceIndicatorListener) {
             const content = renderToString(
-                'contacts_google_map_add_place.PlaceCreationIndicator',
+                'base_google_map_add_place.PlaceCreationIndicator',
                 {}
             );
             const indicator = new DOMParser()
@@ -308,7 +308,7 @@ export class InMapClickAddPlace extends Component {
      * 1. Closes the dialog/action window.
      * 2. Reloads the parent map view's root record set.
      * 3. Shows a sticky-free info notification with an "Open" button that
-     *    navigates to the newly created or updated contact.
+     *    navigates to the newly created or updated record.
      *
      * @param {import('@web/model/record').Record} record - The saved record object.
      * @param {'create'|'write'} mode - Whether the form performed a creation
@@ -324,28 +324,28 @@ export class InMapClickAddPlace extends Component {
             this.env.model.notify();
 
             if (mode === 'create') {
-                this.notificationService.add(_t('New contact is created successfully'), {
+                this.notificationService.add(_t('Record created successfully'), {
                     type: 'info',
                     autocloseDelay: 5000,
                     sticky: false,
                     buttons: [
                         {
                             name: _t('Open'),
-                            onClick: async () => {
+                            onClick: () => {
                                 this.env.openRecord(record);
                             },
                         },
                     ],
                 });
             } else if (mode === 'write') {
-                this.notificationService.add(_t('Contact is updated successfully'), {
+                this.notificationService.add(_t('Record updated successfully'), {
                     type: 'info',
                     autocloseDelay: 5000,
                     sticky: false,
                     buttons: [
                         {
                             name: _t('Open'),
-                            onClick: async () => {
+                            onClick: () => {
                                 this.env.openRecord(record);
                             },
                         },

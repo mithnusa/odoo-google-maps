@@ -21,6 +21,7 @@
     "version": "1.0.0",
     "depends": [
         "web_view_google_map",
+        "base_google_map_add_place",
         "contacts_google_map",
     ],
     "data": [],

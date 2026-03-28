@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 19.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-23 16:42+0000\n"
-"PO-Revision-Date: 2026-03-23 16:42+0000\n"
+"POT-Creation-Date: 2026-03-28 03:42+0000\n"
+"PO-Revision-Date: 2026-03-28 03:42+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -18,12 +18,6 @@ msgstr ""
 #. module: contacts_google_map_add_place
 #: model:ir.model,name:contacts_google_map_add_place.model_res_partner
 msgid "Contact"
-msgstr ""
-
-#. module: contacts_google_map_add_place
-#. odoo-python
-#: code:addons/contacts_google_map_add_place/models/res_partner.py:0
-msgid "Contact exists: %s"
 msgstr ""
 
 #. module: contacts_google_map_add_place
@@ -62,19 +56,12 @@ msgstr ""
 
 #. module: contacts_google_map_add_place
 #: model:ir.model.fields,field_description:contacts_google_map_add_place.field_res_partner__gplace_id
-#: model:ir.model.fields,field_description:contacts_google_map_add_place.field_res_users__gplace_id
 msgid "Google Place ID"
 msgstr ""
 
 #. module: contacts_google_map_add_place
 #: model:ir.model.fields,field_description:contacts_google_map_add_place.field_res_partner__id
 msgid "ID"
-msgstr ""
-
-#. module: contacts_google_map_add_place
-#. odoo-python
-#: code:addons/contacts_google_map_add_place/models/res_partner.py:0
-msgid "New Contact from Google Place"
 msgstr ""
 
 #. module: contacts_google_map_add_place
@@ -90,14 +77,7 @@ msgid "Open"
 msgstr ""
 
 #. module: contacts_google_map_add_place
-#. odoo-python
-#: code:addons/contacts_google_map_add_place/models/res_partner.py:0
-msgid "Reverse Geocoded Location"
-msgstr ""
-
-#. module: contacts_google_map_add_place
 #: model:ir.model.fields,help:contacts_google_map_add_place.field_res_partner__gplace_id
-#: model:ir.model.fields,help:contacts_google_map_add_place.field_res_users__gplace_id
 msgid ""
 "The unique identifier for the place in Google Maps. This is used to link the"
 " partner to a specific location on the map."
