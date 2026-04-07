@@ -83,7 +83,7 @@ export class GoogleMapTerraDrawField extends BaseGoogleMapComponent {
         if (this.props.defaultCenter && this.props.defaultCenter.length === 2) {
             const lat = parseFloat(this.props.defaultCenter[0]);
             const lng = parseFloat(this.props.defaultCenter[1]);
-            if (isNaN(lat) || isNaN(lng)) {
+            if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
                 console.warn('Invalid defaultCenter coordinates, must be numbers.');
             } else {
                 values.center = { lat, lng };

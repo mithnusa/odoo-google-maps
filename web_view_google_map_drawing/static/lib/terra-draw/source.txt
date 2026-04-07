@@ -1,2 +1,2 @@
-https://unpkg.com/terra-draw@1.25.0/dist/terra-draw.umd.js
+https://unpkg.com/terra-draw@1.27.0/dist/terra-draw.umd.js
 https://unpkg.com/terra-draw-google-maps-adapter@1.3.1/dist/terra-draw-google-maps-adapter.umd.js
