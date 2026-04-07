@@ -11,7 +11,6 @@
                 <field name="partner_site_id"/>
                 <field name="site_latitude"/>
                 <field name="site_longitude"/>
-                <field name="open_task_count"/>
             </google_map>
         </field>
     </record>

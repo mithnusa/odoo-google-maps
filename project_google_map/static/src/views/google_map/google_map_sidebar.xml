@@ -2,7 +2,7 @@
 <templates xml:space="preserve">
     <t t-name="project_google_map.RecordItem" t-inherit="web_view_google_map.RecordItem" t-inherit-mode="primary">
         <xpath expr="//span[@t-if='_showMarker']" position="before">
-            <button type="button" class="btn btn-link btn-sm" id="action-view-task" data-tooltip="View Tasks" t-on-click="() => this.actionViewTask(record)">
+            <button type="button" class="btn btn-link btn-sm" id="action-view-task" data-tooltip="View Tasks" t-on-click="() => props.onActionViewTask(record)">
                 <i class="fa fa-list-ul"/>
             </button>
         </xpath>
