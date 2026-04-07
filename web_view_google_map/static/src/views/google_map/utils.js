@@ -10,17 +10,17 @@ const DEFAULT_COLOR_RGBA = [240, 96, 80, 1];
 
 export const WIDGET_COLOR_PICKER_COLOR = [
     null,
-    '#F06050', // Red
-    '#F4A460', // Orange
-    '#F7CD1F', // Yellow
-    '#6CC1ED', // Light blue
-    '#814968', // Dark purple
-    '#EB7E7F', // Salmon pink
-    '#2C8397', // Medium blue
-    '#475577', // Dark blue
-    '#D6145F', // Fuchsia
-    '#30C381', // Green
-    '#9365B8', // Purple
+    '#ee2d2d', // Red
+    '#dc8534', // Orange
+    '#e8bc1d', // Yellow
+    '#5793dd', // Light blue
+    '#9f628f', // Dark purple
+    '#db8865', // Salmon pink
+    '#41a9a2', // Medium blue
+    '#304ae0', // Dark blue
+    '#ee2f8b', // Fuchsia
+    '#61c36e', // Green
+    '#9972e6', // Purple
 ];
 
 export function getHexColorPicker(index) {
@@ -34,7 +34,7 @@ export function getHexColorPicker(index) {
  * @returns {string} Formatted number with commas
  */
 export function formatNumber(num, decimals = 2, locale = 'en-US') {
-    if (isNaN(parseFloat(num)) || !isFinite(num)) {
+    if (!Number.isFinite(num)) {
         console.warn('Invalid number provided for formatting:', num);
         return num;
     }

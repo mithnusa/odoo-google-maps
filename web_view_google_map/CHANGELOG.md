@@ -1,5 +1,10 @@
 # Change Log
 
+## 19.0.1.0.18
+
+- [Improved] **Color Picker Palette**: Updated `WIDGET_COLOR_PICKER_COLOR` hex values with more vibrant and visually distinct colors across all 11 color slots
+- [Improved] **Number Validation**: Replaced `isNaN`/`isFinite` check with `Number.isFinite` in `formatNumber()` for stricter validation
+
 ## 19.0.1.0.17
 
 - [Improved] **Geolocate Button Layout**: Moved `margin-right` from the inner `.btn` element to the `.button_geolocate_user` container and added `margin-bottom: 8px`, ensuring consistent spacing regardless of button state
