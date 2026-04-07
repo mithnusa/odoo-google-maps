@@ -157,7 +157,7 @@ export function formatAreaMeasurement(
     decimals = 2,
     unitSystem = MEASUREMENT_CONFIG.UNITS.METRIC
 ) {
-    if (isNaN(parseFloat(areaInSquareMeter)) || !isFinite(areaInSquareMeter)) {
+    if (!Number.isFinite(areaInSquareMeter)) {
         console.warn('Invalid area provided for formatting:', areaInSquareMeter);
         return areaInSquareMeter;
     }
@@ -217,7 +217,7 @@ export function formatLengthMeasurement(
     decimals = 2,
     unitSystem = MEASUREMENT_CONFIG.UNITS.METRIC
 ) {
-    if (isNaN(parseFloat(lengthInKilometers)) || !isFinite(lengthInKilometers)) {
+    if (!Number.isFinite(lengthInKilometers)) {
         console.warn('Invalid length provided for formatting:', lengthInKilometers);
         return lengthInKilometers;
     }
@@ -513,7 +513,7 @@ export function calculateFeaturesTotalArea(features) {
         }
 
         const area = calculateArea(feature);
-        if (typeof area === 'number' && !isNaN(area) && isFinite(area)) {
+        if (Number.isFinite(area)) {
             return totalArea + area;
         }
 
