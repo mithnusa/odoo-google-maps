@@ -1,4 +1,4 @@
-from odoo import api, fields, models
+from odoo import fields, models
 
 
 class ProjectTask(models.Model):
@@ -16,4 +16,5 @@ class ProjectTask(models.Model):
     )
     marker_color = fields.Integer(
         string="Marker Color",
+        default=1,
     )

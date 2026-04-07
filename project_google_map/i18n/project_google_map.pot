@@ -130,20 +130,6 @@ msgid "Task Sites"
 msgstr ""
 
 #. module: project_google_map
-#: model:ir.model.fields,help:project_google_map.field_project_task__display_name
-msgid ""
-"Use these keywords in the title to set new tasks:\n"
-"\n"
-"            #tags Set tags on the task\n"
-"            @user Assign the task to a user\n"
-"            ! Set the task a medium priority\n"
-"            !! Set the task a high priority\n"
-"            !!! Set the task a urgent priority\n"
-"\n"
-"            Make sure to use the right format and order e.g. Improve the configuration screen #feature #v16 @Mitchell !"
-msgstr ""
-
-#. module: project_google_map
 #. odoo-javascript
 #: code:addons/project_google_map/static/src/views/google_map/google_map_renderer.xml:0
 #: code:addons/project_google_map/static/src/views/google_map/google_map_sidebar.xml:0
