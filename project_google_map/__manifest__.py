@@ -1,10 +1,13 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'Project Google Maps',
-    'summary': 'Show projects in Google Maps view',
+    'summary': 'Display and navigate projects on an interactive Google Maps view',
     'description': '''
-        A new view 'Google Maps' added on projects, gives you
-        an ability to show the project location in Google Maps
+        Adds a Google Maps view to the Project module, allowing you to
+        visualize project locations on an interactive map. Each project
+        is shown as a marker based on its site coordinates. A sidebar
+        lists all projects alongside the map, and a "View Tasks" button
+        on each project opens the related task list directly from the map.
     ''',
     'license': 'AGPL-3',
     'author': 'Yopi Angi',
