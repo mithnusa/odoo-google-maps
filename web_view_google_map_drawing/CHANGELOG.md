@@ -1,5 +1,14 @@
 # Change Log
 
+## 19.0.1.0.13
+
+- [Updated] **Terra Draw**: Updated from 1.25.0 to 1.27.0
+- [Improved] **Coordinate Validation**: Replaced `isNaN`/`isFinite` checks with `Number.isFinite` throughout for stricter and more idiomatic number validation
+  - `formatAreaMeasurement()` in `utils.js`
+  - `formatLengthMeasurement()` in `utils.js`
+  - `calculateFeaturesTotalArea()` in `utils.js`
+  - `defaultCenter` coordinate validation in `terra_draw.js`
+
 ## 19.0.1.0.12
 
 - [Fixed] **Props Compatibility**: Excluded `showNearbyRecords` from `GoogleMapsDrawingSidebar.props` — the prop is inherited from the base sidebar but unused in drawing mode, causing OWL prop validation warnings
