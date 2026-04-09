@@ -8,7 +8,7 @@
     'website': 'https://github.com/mithnusa',
     'support': 'yopiangi@gmail.com',
     'category': 'Sales/Sales',
-    'version': '17.0.1.0.0',
+    'version': '17.0.1.0.1',
     'depends': ['sale_management', 'web_view_google_map'],
     'data': ['views/sale_order.xml'],
     'assets': {

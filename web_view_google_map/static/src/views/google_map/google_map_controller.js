@@ -75,8 +75,8 @@ export class GoogleMapController extends Component {
             'active' in this.props.fields
                 ? !this.props.fields.active.readonly
                 : 'x_active' in this.props.fields
-                ? !this.props.fields.x_active.readonly
-                : false;
+                  ? !this.props.fields.x_active.readonly
+                  : false;
 
         onWillStart(async () => {
             this.isExportEnable = await this.userService.hasGroup('base.group_allow_export');
@@ -159,6 +159,11 @@ export class GoogleMapController extends Component {
             openGroupsByDefault: false,
         };
 
+        const groupsLimit =
+            Number.isFinite(this.archInfo.groupsLimit) && this.archInfo.groupsLimit > 0
+                ? this.archInfo.groupsLimit
+                : Number.MAX_SAFE_INTEGER;
+
         return {
             config: modelConfig,
             state: this.props.state?.modelState,
@@ -166,8 +171,8 @@ export class GoogleMapController extends Component {
             limit: this.archInfo.limit || this.props.limit,
             countLimit: this.archInfo.countLimit,
             defaultOrderBy: this.archInfo.defaultOrder,
-            defaultGroupBy: false,
-            groupsLimit: this.archInfo.groupsLimit,
+            defaultGroupBy: this.archInfo.defaultGroupBy,
+            groupsLimit: groupsLimit,
             multiEdit: this.archInfo.multiEdit,
             activeIdsLimit: session.active_ids_limit,
             hooks: {

@@ -7,10 +7,9 @@ export class GoogleMapControllerSales extends GoogleMapController {
         const config = Object.assign(params.config, {
             openGroupsByDefault: true,
         });
-        return Object.assign(params, {
-            config,
-            defaultGroupBy: 'partner_id',
-            maxGroupByDepth: 1,
-        });
+        if (params.defaultGroupBy) {
+            params.maxGroupByDepth = 1;
+        }
+        return Object.assign(params, { config });
     }
 }

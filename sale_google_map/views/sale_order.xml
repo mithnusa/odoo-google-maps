@@ -5,7 +5,7 @@
         <field name="model">sale.order</field>
         <field name="priority" eval="100"/>
         <field name="arch" type="xml">
-            <google_map js_class="google_map_sales" disable_area_selector="1" string="Quotations" sidebar_title="partner_id" lat="partner_latitude" lng="partner_longitude" marker_icon="circle" icon_scale="0.6" color="#ad2df7">
+            <google_map js_class="google_map_sales" groups_limit="100" limit="1" default_group_by="partner_id" disable_area_selector="1" string="Quotations" sidebar_title="partner_id" lat="partner_latitude" lng="partner_longitude" marker_icon="circle" icon_scale="0.6" color="#ad2df7">
                 <field name="partner_latitude"/>
                 <field name="partner_longitude"/>
                 <field name="name"/>
@@ -24,7 +24,7 @@
         <field name="model">sale.order</field>
         <field name="priority" eval="200"/>
         <field name="arch" type="xml">
-            <google_map js_class="google_map_sales" disable_area_selector="1" string="Orders" sidebar_title="partner_id" lat="partner_latitude" lng="partner_longitude" marker_icon="circle" icon_scale="0.6" color="#482df7">
+            <google_map js_class="google_map_sales" groups_limit="100" limit="1" default_group_by="partner_id"  disable_area_selector="1" string="Orders" sidebar_title="partner_id" lat="partner_latitude" lng="partner_longitude" marker_icon="circle" icon_scale="0.6" color="#482df7">
                 <field name="partner_latitude"/>
                 <field name="partner_longitude"/>
                 <field name="name"/>
@@ -48,7 +48,7 @@
         <field name="model">sale.order</field>
         <field name="priority" eval="100"/>
         <field name="arch" type="xml">
-            <google_map js_class="google_map_sales" disable_area_selector="1" string="Orders to Invoice" sidebar_title="partner_id" lat="partner_latitude" lng="partner_longitude" marker_icon="circle" icon_scale="0.6" color="#0dbaa9">
+            <google_map js_class="google_map_sales" groups_limit="100" limit="1" default_group_by="partner_id" disable_area_selector="1" string="Orders to Invoice" sidebar_title="partner_id" lat="partner_latitude" lng="partner_longitude" marker_icon="circle" icon_scale="0.6" color="#0dbaa9">
                 <field name="partner_latitude"/>
                 <field name="partner_longitude"/>
                 <field name="name"/>
@@ -109,7 +109,7 @@
         <field name="model">sale.order</field>
         <field name="priority" eval="100"/>
         <field name="arch" type="xml">
-            <google_map js_class="google_map_sales" disable_area_selector="1" string="Orders to Upsell" sidebar_title="partner_id" lat="partner_latitude" lng="partner_longitude" marker_icon="circle" icon_scale="0.6" color="#6c0dba">
+            <google_map js_class="google_map_sales" groups_limit="100" limit="1" default_group_by="partner_id" disable_area_selector="1" string="Orders to Upsell" sidebar_title="partner_id" lat="partner_latitude" lng="partner_longitude" marker_icon="circle" icon_scale="0.6" color="#6c0dba">
                 <field name="partner_latitude"/>
                 <field name="partner_longitude"/>
                 <field name="name"/>
