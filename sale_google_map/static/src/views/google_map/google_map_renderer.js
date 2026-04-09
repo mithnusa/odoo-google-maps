@@ -196,6 +196,7 @@ export class GoogleMapRendererSales extends GoogleMapRenderer {
     get sidebarProps() {
         let props = super.sidebarProps;
         props.records = this.props.list.groups;
+        props.isGrouped = !!this.props.list.groupBy;
         props.openCustomerSales = this.actionSeeSales.bind(this);
         return props;
     }
