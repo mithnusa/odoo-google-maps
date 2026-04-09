@@ -164,10 +164,7 @@ export class GoogleMapRenderer extends BaseGoogleMap {
     async onMapReady(map) {
         // Wait for map to be fully loaded
         await new Promise((resolve) => {
-            const listener = map.addListener('tilesloaded', () => {
-                google.maps.event.removeListener(listener);
-                resolve();
-            });
+            google.maps.event.addListenerOnce(map, 'tilesloaded', resolve);
         });
         this.state.isMapReady = true;
         // Trigger resize to ensure proper rendering
@@ -344,17 +341,17 @@ export class GoogleMapRenderer extends BaseGoogleMap {
         if (typeof color === 'number') {
             const ColorList = [
                 null,
-                '#F06050', // Red
-                '#F4A460', // Orange
-                '#F7CD1F', // Yellow
-                '#6CC1ED', // Light blue
-                '#814968', // Dark purple
-                '#EB7E7F', // Salmon pink
-                '#2C8397', // Medium blue
-                '#475577', // Dark blue
-                '#D6145F', // Fuchsia
-                '#30C381', // Green
-                '#9365B8', // Purple
+                '#ee2d2d', // Red
+                '#dc8534', // Orange
+                '#e8bc1d', // Yellow
+                '#5793dd', // Light blue
+                '#9f628f', // Dark purple
+                '#db8865', // Salmon pink
+                '#41a9a2', // Medium blue
+                '#304ae0', // Dark blue
+                '#ee2f8b', // Fuchsia
+                '#61c36e', // Green
+                '#9972e6', // Purple
             ];
             markerColor = ColorList[color] || markerColor;
         } else if (/(?:#|0x)(?:[a-f0-9]{3}|[a-f0-9]{6})\b|(?:rgb|hsl)a?\([^\)]*\)/gi.test(color)) {
@@ -486,6 +483,10 @@ export class GoogleMapRenderer extends BaseGoogleMap {
                 this.markerInfoWindow.setPosition(position);
             });
         }
+    }
+
+    get isGrouped() {
+        return this.props.list.isGrouped;
     }
 
     get isEmpty() {
