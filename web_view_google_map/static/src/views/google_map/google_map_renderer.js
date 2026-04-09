@@ -33,7 +33,11 @@ export class GoogleMapRenderer extends BaseGoogleMap {
         this.isShiftKeyPressed = false;
         this.cache = new Map();
 
-        this.state = useState({ ...this.state, sidebarIsFolded: false });
+        this.state = useState({
+            ...this.state,
+            isMapReady: null,
+            sidebarIsFolded: false,
+        });
 
         if (this.props.allowSelectors) {
             const ui = useService('ui');
@@ -44,6 +48,7 @@ export class GoogleMapRenderer extends BaseGoogleMap {
             getRecordMarker: (recordId) => this.cache.get(recordId),
             hasGeolocation: (record) => this.getLatLng(record),
             getMarkerColor: (record) => this.getMarkerColor(record),
+            googleMap: () => this.googleMap,
         });
 
         useEffect(
@@ -149,10 +154,24 @@ export class GoogleMapRenderer extends BaseGoogleMap {
         if (!this.googleMap) {
             const options = this.getMapOptions();
             this.googleMap = new google.maps.Map(this.mapRef.el, options);
+            this.onMapReady(this.googleMap);
             this.setMapTheme();
         }
         this.markerInfoWindow = new google.maps.InfoWindow({ disableAutoPan: true });
         this.renderGooglePlaceSearch(this.searchPlacesRef, this.markerInfoWindow);
+    }
+
+    async onMapReady(map) {
+        // Wait for map to be fully loaded
+        await new Promise((resolve) => {
+            const listener = map.addListener('tilesloaded', () => {
+                google.maps.event.removeListener(listener);
+                resolve();
+            });
+        });
+        this.state.isMapReady = true;
+        // Trigger resize to ensure proper rendering
+        google.maps.event.trigger(map, 'resize');
     }
 
     /**

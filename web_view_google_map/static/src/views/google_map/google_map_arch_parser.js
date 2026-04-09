@@ -84,6 +84,12 @@ export class GoogleMapArchParser {
                     xmlDoc.getAttribute('default_order') || null
                 );
 
+                const defaultGroupBy = node.getAttribute('default_group_by');
+                googleMapAttr.defaultGroupBy = defaultGroupBy;
+
+                const groupsLimitAttr = node.getAttribute("groups_limit");
+                googleMapAttr.groupsLimit = groupsLimitAttr && parseInt(groupsLimitAttr, 10);
+
                 // custom open action when clicking on record row
                 const action = xmlDoc.getAttribute('action');
                 const type = xmlDoc.getAttribute('type');

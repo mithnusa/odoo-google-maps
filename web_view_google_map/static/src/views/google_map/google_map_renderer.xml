@@ -13,7 +13,7 @@
             </div>
             <div t-attf-class="o_map_right_sidebar #{state.sidebarIsFolded ? 'closed': 'open'}">
                 <div class="content">
-                    <Sidebar t-props="sidebarProps"/>
+                    <Sidebar t-props="sidebarProps" t-if="state.isMapReady"/>
                 </div>
                 <div class="toggle_right_sidenav">
                     <button data-toggle="tooltip" data-placement="right" title="Expand side panel" t-on-click="() => this.toggleSidebar()"></button>

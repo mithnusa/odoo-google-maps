@@ -166,8 +166,8 @@ export class GoogleMapController extends Component {
             limit: this.archInfo.limit || this.props.limit,
             countLimit: this.archInfo.countLimit,
             defaultOrderBy: this.archInfo.defaultOrder,
-            defaultGroupBy: false,
-            groupsLimit: this.archInfo.groupsLimit,
+            defaultGroupBy: this.archInfo.defaultGroupBy,
+            groupsLimit: this.archInfo.groupsLimit || Number.MAX_SAFE_INTEGER,
             multiEdit: this.archInfo.multiEdit,
             activeIdsLimit: session.active_ids_limit,
             hooks: {
