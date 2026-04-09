@@ -2,7 +2,7 @@
 
 import { _t } from '@web/core/l10n/translation';
 import { DynamicRecordList } from '@web/model/relational_model/dynamic_record_list';
-import { useRef, useState, useChildSubEnv, onRendered, useEffect } from '@odoo/owl';
+import { useRef, useState, useChildSubEnv, onRendered, useEffect, onWillUnmount } from '@odoo/owl';
 import { renderToString } from '@web/core/utils/render';
 import { useBus, useService } from '@web/core/utils/hooks';
 
@@ -31,6 +31,7 @@ export class GoogleMapRenderer extends BaseGoogleMap {
         this.searchPlacesRef = useRef('searchPlaces');
         this.markerCluster = null;
         this.isShiftKeyPressed = false;
+        this._isDestroyed = false;
         this.cache = new Map();
 
         this.state = useState({
@@ -38,6 +39,9 @@ export class GoogleMapRenderer extends BaseGoogleMap {
             isMapReady: null,
             sidebarIsFolded: false,
         });
+
+        this._boundOnMapKeydown = this.onMapKeydown.bind(this);
+        this._boundOnMapKeyup = this.onMapKeyup.bind(this);
 
         if (this.props.allowSelectors) {
             const ui = useService('ui');
@@ -52,19 +56,22 @@ export class GoogleMapRenderer extends BaseGoogleMap {
         });
 
         useEffect(
-            (mapEl, loaderStatus) => {
+            (mapEl, loaderStatus, isMapReady) => {
                 // Allow you to select a marker in the map, by pressing a Shift key + click the marker
-                if (mapEl && loaderStatus === LOADER_STATUS.SUCCESS) {
+                if (mapEl && loaderStatus === LOADER_STATUS.SUCCESS && isMapReady) {
                     this.addMapCustomEvListeners();
                     return () => this.removeMapCustomEvListeners();
                 }
             },
-            () => [this.mapRef.el, this.state.loaderStatus]
+            () => [this.mapRef.el, this.state.loaderStatus, this.state.isMapReady]
         );
 
         // The following lifecycle hooks are to maintain the data rendered on the map
         // When the same list ID is rendered, I won't re-render the markers and also won't change the current map center
         onRendered(this.handleOnRendered);
+
+        // When the component is unmounted, I need to clear all markers and clusters on the map and reset the cache
+        onWillUnmount(this.cleanUp);
     }
 
     /**
@@ -72,16 +79,16 @@ export class GoogleMapRenderer extends BaseGoogleMap {
      */
     addMapCustomEvListeners() {
         // Allow you to select a marker in the map, by pressing a Shift key + click the marker
-        this.mapRef.el.addEventListener('keydown', this.onMapKeydown.bind(this));
-        this.mapRef.el.addEventListener('keyup', this.onMapKeyup.bind(this));
+        this.mapRef.el.addEventListener('keydown', this._boundOnMapKeydown);
+        this.mapRef.el.addEventListener('keyup', this._boundOnMapKeyup);
     }
 
     /**
      * Remove custom event listeners added to the map element
      */
     removeMapCustomEvListeners() {
-        this.mapRef.el.removeEventListener('keydown', this.onMapKeydown.bind(this));
-        this.mapRef.el.removeEventListener('keyup', this.onMapKeyup.bind(this));
+        this.mapRef.el.removeEventListener('keydown', this._boundOnMapKeydown);
+        this.mapRef.el.removeEventListener('keyup', this._boundOnMapKeyup);
     }
 
     onMapKeydown(ev) {
@@ -104,9 +111,13 @@ export class GoogleMapRenderer extends BaseGoogleMap {
             isMarkerSelected = this.props.list.selection.length > 0;
         }
         this.isMarkerSelected = isMarkerSelected;
-        if (this.state.loaderStatus === LOADER_STATUS.SUCCESS) {
+        if (this.isReadyToRender()) {
             this.renderMap();
         }
+    }
+
+    isReadyToRender() {
+        return this.state.isMapReady && this.state.loaderStatus === LOADER_STATUS.SUCCESS;
     }
 
     /**
@@ -146,19 +157,27 @@ export class GoogleMapRenderer extends BaseGoogleMap {
      * Initialize Google Map instance & Google search places (if enabled)
      */
     initialize() {
-        this._initializeGoogleMap();
-        this.handleSearchPlaceBounds();
+        this._initializeGoogleMap()
+            .then(() => {
+                this.handleSearchPlaceBounds();
+            })
+            .catch((error) => {
+                console.error('Error initializing Google Map:', error);
+                this.notification.add(_t('Failed to load Google Map. Please try again later.'), {
+                    type: 'danger',
+                });
+            });
     }
 
-    _initializeGoogleMap() {
+    async _initializeGoogleMap() {
         if (!this.googleMap) {
             const options = this.getMapOptions();
             this.googleMap = new google.maps.Map(this.mapRef.el, options);
-            this.onMapReady(this.googleMap);
+            await this.onMapReady(this.googleMap);
             this.setMapTheme();
+            this.markerInfoWindow = new google.maps.InfoWindow({ disableAutoPan: true });
+            this.renderGooglePlaceSearch(this.searchPlacesRef, this.markerInfoWindow);
         }
-        this.markerInfoWindow = new google.maps.InfoWindow({ disableAutoPan: true });
-        this.renderGooglePlaceSearch(this.searchPlacesRef, this.markerInfoWindow);
     }
 
     async onMapReady(map) {
@@ -166,9 +185,9 @@ export class GoogleMapRenderer extends BaseGoogleMap {
         await new Promise((resolve) => {
             google.maps.event.addListenerOnce(map, 'tilesloaded', resolve);
         });
-        this.state.isMapReady = true;
-        // Trigger resize to ensure proper rendering
-        google.maps.event.trigger(map, 'resize');
+        if (!this._isDestroyed) {
+            this.state.isMapReady = true;
+        }
     }
 
     /**
@@ -640,5 +659,22 @@ export class GoogleMapRenderer extends BaseGoogleMap {
                 this._handleActionSeeMore(actionId, domain);
             }
         }
+    }
+
+    cleanUp() {
+        this._isDestroyed = true;
+        this.cache.forEach((marker) => {
+            google.maps.event.clearInstanceListeners(marker);
+            marker.setMap(null);
+        });
+        if (this.googleMap) {
+            google.maps.event.clearInstanceListeners(this.googleMap);
+        }
+        if (this.markerCluster) {
+            google.maps.event.clearInstanceListeners(this.markerCluster);
+            this.markerCluster.clearMarkers();
+            this.markerCluster.setMap(null);
+        }
+        this.cache.clear();
     }
 }
