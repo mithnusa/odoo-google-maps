@@ -1,7 +1,7 @@
 /** @odoo-module **/
 import { onWillUnmount, onMounted, onWillUpdateProps } from '@odoo/owl';
 import { useService } from '@web/core/utils/hooks';
-import { debounce as debounceFn } from "@web/core/utils/timing";
+import { debounce as debounceFn } from '@web/core/utils/timing';
 import { GoogleMapSidebar } from '@web_view_google_map/views/google_map/google_map_sidebar';
 
 export class GoogleMapSidebarSales extends GoogleMapSidebar {
@@ -50,8 +50,14 @@ export class GoogleMapSidebarSales extends GoogleMapSidebar {
         if (currentRecords.length !== nextRecords.length) {
             return true;
         }
-        const currentIds = currentRecords.map(r => r.id).sort().join(',');
-        const nextIds = nextRecords.map(r => r.id).sort().join(',');
+        const currentIds = currentRecords
+            .map((r) => r.id)
+            .sort()
+            .join(',');
+        const nextIds = nextRecords
+            .map((r) => r.id)
+            .sort()
+            .join(',');
         return currentIds !== nextIds;
     }
 
@@ -61,17 +67,23 @@ export class GoogleMapSidebarSales extends GoogleMapSidebar {
         const foldedGroups = this.props.records.filter((g) => g.isFolded);
         if (foldedGroups.length === 0) return;
 
+        const BATCH_SIZE = 10;
+
         try {
             this._isLoading = true;
             this.uiService.block();
-            const groupPromises = foldedGroups.map(async (group) => {
-                try {
-                    await group.toggle();
-                } catch (error) {
-                    console.error('Error toggling group:', error);
-                }
-            });
-            await Promise.all(groupPromises);
+            for (let i = 0; i < foldedGroups.length; i += BATCH_SIZE) {
+                const batchGroups = foldedGroups.slice(i, i + BATCH_SIZE);
+                await Promise.all(
+                    batchGroups.map(async (group) => {
+                        try {
+                            await group.toggle();
+                        } catch (error) {
+                            console.error(`Failed to load group ${group.displayName}:`, error);
+                        }
+                    })
+                );
+            }
         } finally {
             this._isLoading = false;
             this.uiService.unblock();
