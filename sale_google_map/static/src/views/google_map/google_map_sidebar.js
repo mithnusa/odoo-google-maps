@@ -1,5 +1,6 @@
 import { onMounted, onWillUnmount, onWillUpdateProps } from '@odoo/owl';
 import { debounce } from '@web/core/utils/timing';
+import { useService } from '@web/core/utils/hooks';
 import { GoogleMapSidebar } from '@web_view_google_map/views/google_map/google_map_sidebar';
 
 /**
@@ -22,6 +23,8 @@ export class GoogleMapSidebarSaleOrder extends GoogleMapSidebar {
     setup() {
         super.setup();
         this._isLoading = false;
+
+        this.uiService = useService('ui');
 
         this.debouncedLoadGroupRecord = debounce(this.loadGroupRecord.bind(this), 500);
 
@@ -69,6 +72,7 @@ export class GoogleMapSidebarSaleOrder extends GoogleMapSidebar {
 
         try {
             this._isLoading = true;
+            this.uiService.block();
             for (let i = 0; i < groups.length; i += BATCH_SIZE) {
                 const batch = groups.slice(i, i + BATCH_SIZE);
                 await Promise.all(batch.map(async ({ group }) => {
@@ -83,6 +87,7 @@ export class GoogleMapSidebarSaleOrder extends GoogleMapSidebar {
             console.error('Error toggling group:', error);
         } finally {
             this._isLoading = false;
+            this.uiService.unblock();
         }
     }
 

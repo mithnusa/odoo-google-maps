@@ -3,7 +3,7 @@
     <t t-name="crm_google_map.MarkerInfoWindow">
         <div t-attf-class="crm_lead marker-drop-animation #{ isSelected ? 'selected-marker' : '' }">
             <div class="marker-icon">
-                <i class="fa fa-handshake-o fa-2x p-1" t-attf-style="color: {{ markerColor || 'red' }};"/>
+                <i class="fa fa-handshake-o fa-lg" t-attf-style="color: {{ markerColor || 'red' }};"/>
             </div>
             <div class="marker-content">
                 <div class="mb-1 lead-title">
