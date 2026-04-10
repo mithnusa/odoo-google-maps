@@ -1,5 +1,17 @@
 # Change Log
 
+## 19.0.1.0.9
+
+### Improved
+
+- **`onMapReady()`**: Replaced manual `addListener` + `removeListener` pattern with `addListenerOnce` for cleaner one-time `tilesloaded` event handling; removed the manual `resize` trigger that is no longer needed
+- **`onMapReady()` — Destroyed Component Guard**: `isMapReady` state is now only set if the component has not been destroyed, preventing state updates on unmounted components
+- **`_cleanUp()`**: Sets `_isComponentDestroyed = true` flag on teardown to signal that the component lifecycle has ended
+
+### Fixed
+
+- **Stale State Update After Destroy**: Added `_isComponentDestroyed` flag to prevent `onMapReady` from updating reactive state after the component has been cleaned up, avoiding potential errors on unmounted components
+
 ## 19.0.1.0.8
 
 - [Added] **`filterValidParams()` Method**: New static method on `GoogleMapsAPILoader` that strips application-level settings (e.g. `color_scheme`, `map_id`, `in_map_place_search`) from the full settings cache, returning only the keys accepted by the Google Maps API bootstrap script loader (`key`, `v`, `region`, `language`, `channel`, `solutionChannel`, `authReferrerPolicy`)

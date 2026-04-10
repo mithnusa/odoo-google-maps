@@ -28,6 +28,7 @@ export class BaseGoogleMapComponent extends Component {
         this.mapEventListeners = new Map();
         this.resizeObserver = null;
         this.loadTimeout = null;
+        this._isComponentDestroyed = false;
 
         // Services
         this.notificationService = useService('notification');
@@ -336,14 +337,13 @@ export class BaseGoogleMapComponent extends Component {
     async onMapReady(map) {
         // Wait for map to be fully loaded
         await new Promise((resolve) => {
-            const listener = map.addListener('tilesloaded', () => {
-                google.maps.event.removeListener(listener);
-                resolve();
-            });
+            google.maps.event.addListenerOnce(map, 'tilesloaded', resolve);
         });
-        this.state.isMapReady = true;
-        // Trigger resize to ensure proper rendering
-        google.maps.event.trigger(map, 'resize');
+
+        if (!this._isComponentDestroyed) {
+            // Map is ready for interaction
+            this.state.isMapReady = true;
+        }
     }
 
     /**
@@ -364,6 +364,7 @@ export class BaseGoogleMapComponent extends Component {
     }
 
     _cleanUp() {
+        this._isComponentDestroyed = true;
         // Clear timeouts
         if (this.loadTimeout) {
             clearTimeout(this.loadTimeout);
