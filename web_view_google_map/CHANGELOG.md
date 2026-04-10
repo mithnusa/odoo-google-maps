@@ -1,5 +1,17 @@
 # Change Log
 
+## 19.0.1.0.19
+
+- [Added] **`defaultGroupsLimit` Getter**: New getter on `GoogleMapArchParser` returning `80` as the default groups limit, used as a fallback when `groups_limit` is not defined in the view arch
+- [Improved] **`groupsLimit` Auto-Default**: When `default_group_by` is set on the view and no explicit `groups_limit` is defined, `groupsLimit` is now automatically set to `defaultGroupsLimit` (80) to avoid loading excessive groups on the map
+- [Improved] **`groupsLimit` Parsing**: Fixed `parseInt` call to use `this.defaultGroupsLimit` as the radix fallback — ensures the parsed value is consistent with the module default
+- [Improved] **`groupsLimit` Validation in Controller**: Replaced `this.archInfo.groupsLimit || Number.MAX_SAFE_INTEGER` with an explicit `Number.isFinite` and positive-value guard before falling back to `Number.MAX_SAFE_INTEGER`, preventing `0` or negative values from being passed to the model
+- [Improved] **Pager — Sample Model Guard**: `usePager` now returns early when `useSampleModel` is active, preventing the pager from rendering against sample data
+- [Improved] **Pager — Grouped View**: Pager is now always rendered (grouped and ungrouped); `updateTotal` is only provided when the list is not grouped and `hasLimitedCount` is true
+- [Improved] **Pager — Removed `onUpdatedPager` call**: Removed the `onUpdatedPager()` call from the pager `onUpdate` handler as it is no longer needed
+- [Improved] **Search Bar Toggler**: Updated `SearchBar` usage to pass `toggler` prop directly; toggler component is now conditionally rendered only when no records are selected
+- [Improved] **Marker Colors**: Updated `generateColor()` palette — brightened colors replaced with darker, more accessible variants for better contrast on map markers
+
 ## 19.0.1.0.18
 
 - [Improved] **Color Picker Palette**: Updated `WIDGET_COLOR_PICKER_COLOR` hex values with more vibrant and visually distinct colors across all 11 color slots

@@ -10,6 +10,10 @@ export class GoogleMapArchParser {
         return 100;
     }
 
+    get defaultGroupsLimit() {
+        return 80;
+    }
+
     processButton(node) {
         return processButton(node);
     }
@@ -131,7 +135,7 @@ export class GoogleMapArchParser {
         attrs.countLimit = countLimitAttr && parseInt(countLimitAttr, 10);
 
         const groupsLimitAttr = node.getAttribute("groups_limit");
-        attrs.groupsLimit = groupsLimitAttr && parseInt(groupsLimitAttr, 10);
+        attrs.groupsLimit = groupsLimitAttr && parseInt(groupsLimitAttr, this.defaultGroupsLimit);
 
         attrs.defaultOrder = stringToOrderBy(
             xmlDoc.getAttribute('default_order') || null
@@ -177,6 +181,11 @@ export class GoogleMapArchParser {
 
         const defaultGroupBy = xmlDoc.getAttribute('default_group_by');
         attrs.defaultGroupBy = defaultGroupBy;
+
+        // For performance reason, when defaultGroupBy is set and groupsLimit is not defined, we set groupsLimit to 10 to avoid loading too many groups on the map.
+        if (attrs.defaultGroupBy && !Number.isFinite(attrs.groupsLimit)) {
+            attrs.groupsLimit = this.defaultGroupsLimit;
+        }
 
     }
 }
