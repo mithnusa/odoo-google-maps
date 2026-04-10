@@ -513,7 +513,8 @@ export class GoogleMapRendererSaleOrder extends GoogleMapRenderer {
     }
 
     /**
-     * @override
+     * @overwrite
+     * This is a rewrite of the original method to handle the sale_google_map case.
      */
     onWillUpdatePropsRenderMarkers(nextProps) {
         if (!this.isMapLoaded()) return;

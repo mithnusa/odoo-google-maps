@@ -34,10 +34,10 @@ Map ID is a must to ensure all the functionalities are working.
 For more details please check this link [https://developers.google.com/maps/documentation/javascript/map-ids/get-map-id](https://developers.google.com/maps/documentation/javascript/map-ids/get-map-id)
 
 Please activate the following Services/API for your Google API Key:
-1.Geocoding API
-2.Maps JavaScript API
-4.Places API (New)
-5. Maps Embed API
+1. Geocoding API
+2. Maps JavaScript API
+3. Places API (New)
+4. Maps Embed API
 
 ## Notes
 

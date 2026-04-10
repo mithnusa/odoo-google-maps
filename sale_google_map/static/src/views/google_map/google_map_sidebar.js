@@ -51,8 +51,7 @@ export class GoogleMapSidebarSaleOrder extends GoogleMapSidebar {
 
     /**
      * Loads and expands all grouped records on the map.
-     * Iterates through all groups, toggles them open, and adjusts the map bounds
-     * to fit all grouped records.
+     * Iterates through all groups and toggles them open
      *
      * @async
      * @returns {Promise<void>}
