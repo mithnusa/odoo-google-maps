@@ -4,12 +4,11 @@ In this version I tried to use the latest version of Google Maps, so it's recomm
 
 Most of the implementation in this modules are inspired from the samples that you can find in the Google Maps Javascript Guide [https://developers.google.com/maps/documentation/javascript](https://developers.google.com/maps/documentation/javascript)
 
-
 ## Modules
 
 | Module | Version | Description |
-|--------|---------|-------------|
-| [base_google_map](/base_google_map/README.md) | 19.0.1.0.8 | Base module of Google Maps contains settings to setup Google API Key |
+| -------- | --------- | ------------- |
+| [base_google_map](/base_google_map/README.md) | 19.0.1.0.9 | Base module of Google Maps contains settings to setup Google API Key |
 | [base_google_map_add_place](/base_google_map_add_place/README.md) | 19.0.1.0.0 | Base module to add place from Google Map, can be inherited by other modules to add place from map |
 | [contacts_google_autocomplete](/contacts_google_autocomplete/README.md) | 19.0.1.0.1 | Implementation of Google Places Autocomplete on Contacts |
 | [contacts_google_map](/contacts_google_map/README.md) | 19.0.1.0.4 | Implementation of view "Google Maps" on Contacts |
@@ -19,13 +18,12 @@ Most of the implementation in this modules are inspired from the samples that yo
 | [crm_google_map_add_place](/crm_google_map_add_place/README.md) | 19.0.1.0.0 | Click on Google Map to add CRM Lead/Opportunity with Google Places data |
 | [partner_autocomplete_with_google_autocomplete](/partner_autocomplete_with_google_autocomplete/README.md) | 19.0.1.0.3 | Implementation of Google Places Autocomplete along with existing Odoo Partner Autocomplete on Contact form |
 | [project_google_map](/project_google_map/README.md) | 19.0.1.0.1 | Implementation of view "Google Maps" on Projects |
-| [sale_google_map](/sale_google_map/README.md) | 19.0.1.0.5 | Implementation of view "Google Maps" on Sale Order |
+| [sale_google_map](/sale_google_map/README.md) | 19.0.1.0.6 | Implementation of view "Google Maps" on Sale Order |
 | [stock_google_map](/stock_google_map/README.md) | 19.0.1.0.0 | Implementation of view "Google Maps" on Inventory |
-| [web_view_google_map](/web_view_google_map/README.md) | 19.0.1.0.18 | Base module for a new view "google_map" |
+| [web_view_google_map](/web_view_google_map/README.md) | 19.0.1.0.19 | Base module for a new view "google_map" |
 | [web_view_google_map_drawing](/web_view_google_map_drawing/README.md) | 19.0.1.0.13 | Base module for sub view of "google_map" for drawing capability |
 | [web_widget_google_map](/web_widget_google_map/README.md) | 19.0.1.0.4 | Base module of Google Maps widget |
 | [web_widget_google_place_autocomplete](/web_widget_google_place_autocomplete/README.md) | 19.0.1.0.6 | Implementation of Google Places Autocomplete Element |
-
 
 ## Usage
 
@@ -38,13 +36,11 @@ For more details please check this link [https://developers.google.com/maps/docu
 Please activate the following Services/API for your Google API Key:
 1. Geocoding API
 2. Maps JavaScript API
-4. Places API (New)
-5. Maps Embed API
-
+3. Places API (New)
+4. Maps Embed API
 
 ## Notes
 
 These modules are not perfect — if you encounter any bugs or unexpected behavior, please don’t hesitate to open an issue.
-
 
 if you’d like to integrate Google Maps with another Odoo module or your own custom module, feel free to start a discussion or reach out to me by email.

@@ -28,6 +28,12 @@ export class BaseGoogleMapComponent extends Component {
         this.mapEventListeners = new Map();
         this.resizeObserver = null;
         this.loadTimeout = null;
+        this._isComponentDestroyed = false;
+
+        this._destroyResolve = null;
+        this._destroyPromise = new Promise((resolve) => {
+            this._destroyResolve = resolve;
+        });
 
         // Services
         this.notificationService = useService('notification');
@@ -334,16 +340,18 @@ export class BaseGoogleMapComponent extends Component {
      * @returns {Promise<void>} Promise that resolves when ready setup is complete
      */
     async onMapReady(map) {
-        // Wait for map to be fully loaded
-        await new Promise((resolve) => {
-            const listener = map.addListener('tilesloaded', () => {
-                google.maps.event.removeListener(listener);
-                resolve();
-            });
+        // Race tilesloaded against component destruction. _cleanUp() calls
+        // clearInstanceListeners() which removes the tilesloaded listener,
+        // so without the race the promise would hang indefinitely after teardown.
+        const tilesLoaded = new Promise((resolve) => {
+            google.maps.event.addListenerOnce(map, 'tilesloaded', resolve);
         });
-        this.state.isMapReady = true;
-        // Trigger resize to ensure proper rendering
-        google.maps.event.trigger(map, 'resize');
+        await Promise.race([tilesLoaded, this._destroyPromise]);
+
+        if (!this._isComponentDestroyed) {
+            // Map is ready for interaction
+            this.state.isMapReady = true;
+        }
     }
 
     /**
@@ -364,6 +372,13 @@ export class BaseGoogleMapComponent extends Component {
     }
 
     _cleanUp() {
+        this._isComponentDestroyed = true;
+        if (this._destroyResolve) {
+            this._destroyResolve();
+            this._destroyResolve = null;
+        }
+        this._destroyPromise = null;
+
         // Clear timeouts
         if (this.loadTimeout) {
             clearTimeout(this.loadTimeout);

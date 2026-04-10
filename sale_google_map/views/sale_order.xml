@@ -106,7 +106,7 @@
         <field name="priority" eval="100"/>
         <field name="arch" type="xml">
             <!-- Limit 1, as we grouped per partner_id, so only one record needed to show the marker on the map -->
-            <google_map js_class="google_map_sale_order" limit="1"  disable_cluster_marker="1" default_group_by="partner_id" string="Orders to Upsell" lat="partner_latitude" lng="partner_longitude" sidebar_title="name" sidebar_subtitle="partner_id">
+            <google_map js_class="google_map_sale_order" limit="1" disable_cluster_marker="1" default_group_by="partner_id" string="Orders to Upsell" lat="partner_latitude" lng="partner_longitude" sidebar_title="name" sidebar_subtitle="partner_id">
                 <field name="partner_latitude"/>
                 <field name="partner_longitude"/>
                 <field name="name"/>

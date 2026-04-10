@@ -279,26 +279,26 @@ export function normalizeColor(color) {
 
 export function generateColor() {
     const colors = [
-        '#FF0000', // – Red
-        '#00FF00', // – Lime
-        '#0000FF', // – Blue
-        '#FFFF00', // – Yellow
-        '#FF00FF', // – Magenta
-        '#00FFFF', // – Cyan
-        '#FFA500', // – Orange
+        '#CC0000', // – Red
+        '#007A00', // – Lime (darkened)
+        '#0000CC', // – Blue
+        '#B8860B', // – Yellow (darkened to Dark Goldenrod)
+        '#CC00CC', // – Magenta
+        '#008B8B', // – Cyan (darkened to Dark Cyan)
+        '#CC7A00', // – Orange (darkened)
         '#800080', // – Purple
-        '#008000', // – Dark Green
+        '#006400', // – Dark Green
         '#000080', // – Navy
-        '#FFC0CB', // – Pink
+        '#C2185B', // – Pink (darkened to Dark Pink)
         '#A52A2A', // – Brown
         '#808000', // – Olive
-        '#008080', // – Teal
-        '#FF1493', // – Deep Pink
-        '#7FFF00', // – Chartreuse
+        '#007070', // – Teal (darkened)
+        '#C2006A', // – Deep Pink (darkened)
+        '#5A8F00', // – Chartreuse (darkened)
         '#DC143C', // – Crimson
-        '#40E0D0', // – Turquoise
+        '#2E8B8B', // – Turquoise (darkened)
         '#2F4F4F', // – Dark Slate Gray
-        '#FFD700', // – Gold
+        '#B8860B', // – Gold (darkened to Dark Goldenrod)
     ];
     return colors[Math.floor(Math.random() * colors.length)];
 }
