@@ -1,4 +1,17 @@
+<!-- markdownlint-disable MD024 -->
 # Change Log
+
+## 19.0.1.0.6
+
+### Fixed
+
+- **Expanded Marker Z-Index**: Expanded markers now render above all other markers; raised `HOVER` z-index from `1` to `1000` on the `AdvancedMarkerElement` and added `z-index: 1000` to the `.highlight` CSS state
+
+### Improved
+
+- **Marker Tip**: Replaced the CSS border-triangle tip with a rotated square using `border-right`/`border-bottom`, giving the tip a proper bordered outline that matches the marker card border
+- **Marker Icon Size**: Reduced handshake icon from `fa-2x` to `fa-lg` for a more proportional compact marker
+- **SCSS Cleanup**: Removed all vendor prefixes (`-webkit-`, `-moz-`, `-ms-`, `-o-`) from transforms, transitions, box-shadows, and animations; moved `@keyframes markerDrop` to top-level scope; switched `transition: all` to explicit property list to avoid unintended transitions
 
 ## 19.0.1.0.5
 

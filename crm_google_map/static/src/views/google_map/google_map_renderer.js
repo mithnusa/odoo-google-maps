@@ -16,7 +16,7 @@ const CRM_MARKER_CONFIG = {
         },
         Z_INDEX: {
             DEFAULT: null,
-            HOVER: 1,
+            HOVER: 1000,
         },
     },
 };
