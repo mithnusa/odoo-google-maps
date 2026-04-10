@@ -4,7 +4,7 @@
 
 - [Added] **`defaultGroupsLimit` Getter**: New getter on `GoogleMapArchParser` returning `80` as the default groups limit, used as a fallback when `groups_limit` is not defined in the view arch
 - [Improved] **`groupsLimit` Auto-Default**: When `default_group_by` is set on the view and no explicit `groups_limit` is defined, `groupsLimit` is now automatically set to `defaultGroupsLimit` (80) to avoid loading excessive groups on the map
-- [Improved] **`groupsLimit` Parsing**: Fixed `parseInt` call to use `this.defaultGroupsLimit` as the radix fallback — ensures the parsed value is consistent with the module default
+- [Fixed] **`groupsLimit` Parsing**: Changed the fallback when `groups_limit` attribute is absent from `this.defaultGroupsLimit` to `null`, so the arch parser no longer overrides the default prematurely — the controller's downstream logic now applies the correct default
 - [Improved] **`groupsLimit` Validation in Controller**: Replaced `this.archInfo.groupsLimit || Number.MAX_SAFE_INTEGER` with an explicit `Number.isFinite` and positive-value guard before falling back to `Number.MAX_SAFE_INTEGER`, preventing `0` or negative values from being passed to the model
 - [Improved] **Pager — Sample Model Guard**: `usePager` now returns early when `useSampleModel` is active, preventing the pager from rendering against sample data
 - [Improved] **Pager — Grouped View**: Pager is now always rendered (grouped and ungrouped); `updateTotal` is only provided when the list is not grouped and `hasLimitedCount` is true

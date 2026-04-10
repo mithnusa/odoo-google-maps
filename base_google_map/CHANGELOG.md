@@ -6,11 +6,15 @@
 
 - **`onMapReady()`**: Replaced manual `addListener` + `removeListener` pattern with `addListenerOnce` for cleaner one-time `tilesloaded` event handling; removed the manual `resize` trigger that is no longer needed
 - **`onMapReady()` — Destroyed Component Guard**: `isMapReady` state is now only set if the component has not been destroyed, preventing state updates on unmounted components
+- **`onMapReady()` — Teardown-Aware Await**: The `tilesloaded` promise is now raced against `_destroyPromise`. If the component is destroyed while awaiting, `_cleanUp()` fires `clearInstanceListeners()` which removes the listener — without the race this left the promise permanently pending. The async path now exits immediately on teardown.
 - **`_cleanUp()`**: Sets `_isComponentDestroyed = true` flag on teardown to signal that the component lifecycle has ended
+- **`_cleanUp()` — Early Destroy Signal**: `_destroyResolve()` is called at the start of `_cleanUp()`, immediately after `_isComponentDestroyed` is set, so all awaiters racing against `_destroyPromise` unblock before the map instance and its listeners are cleared
+- **`setup()` — Destruction Signal**: Added `_destroyPromise` and `_destroyResolve` properties; `_destroyPromise` resolves as soon as `_cleanUp()` runs, providing a cancellation signal for in-flight async operations that await map events
 
 ### Fixed
 
 - **Stale State Update After Destroy**: Added `_isComponentDestroyed` flag to prevent `onMapReady` from updating reactive state after the component has been cleaned up, avoiding potential errors on unmounted components
+- **`onMapReady()` — Infinite Hang on Component Destroy**: Previously, if the component was destroyed before the `tilesloaded` event fired, `_cleanUp()` would silently remove the listener via `clearInstanceListeners()`, leaving the awaited promise — and the entire async initialization path — permanently pending
 
 ## 19.0.1.0.8
 

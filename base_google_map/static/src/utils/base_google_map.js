@@ -30,6 +30,11 @@ export class BaseGoogleMapComponent extends Component {
         this.loadTimeout = null;
         this._isComponentDestroyed = false;
 
+        this._destroyResolve = null;
+        this._destroyPromise = new Promise((resolve) => {
+            this._destroyResolve = resolve;
+        });
+
         // Services
         this.notificationService = useService('notification');
         this.uiService = useService('ui');
@@ -335,24 +340,13 @@ export class BaseGoogleMapComponent extends Component {
      * @returns {Promise<void>} Promise that resolves when ready setup is complete
      */
     async onMapReady(map) {
-        // Wait for map to be fully loaded
-        let tileListener;
-        try {
-            await new Promise((resolve) => {
-                tileListener = google.maps.event.addListenerOnce(
-                    map,
-                    'tilesloaded',
-                    resolve
-                );
-            });
-        } finally {
-            // Ensure the listener is removed even if the component was
-            // destroyed while awaiting (addListenerOnce is not tracked in
-            // mapEventListeners, so _cleanUp() would not remove it otherwise)
-            if (tileListener) {
-                google.maps.event.removeListener(tileListener);
-            }
-        }
+        // Race tilesloaded against component destruction. _cleanUp() calls
+        // clearInstanceListeners() which removes the tilesloaded listener,
+        // so without the race the promise would hang indefinitely after teardown.
+        const tilesLoaded = new Promise((resolve) => {
+            google.maps.event.addListenerOnce(map, 'tilesloaded', resolve);
+        });
+        await Promise.race([tilesLoaded, this._destroyPromise]);
 
         if (!this._isComponentDestroyed) {
             // Map is ready for interaction
@@ -379,6 +373,12 @@ export class BaseGoogleMapComponent extends Component {
 
     _cleanUp() {
         this._isComponentDestroyed = true;
+        if (this._destroyResolve) {
+            this._destroyResolve();
+            this._destroyResolve = null;
+        }
+        this._destroyPromise = null;
+
         // Clear timeouts
         if (this.loadTimeout) {
             clearTimeout(this.loadTimeout);
