@@ -1,4 +1,11 @@
+<!-- markdownlint-disable MD024 -->
 # Change Log
+
+## 19.0.1.0.7
+
+### Fixed
+
+- **`GoogleMapSidebarSaleOrder` — UI Block Restored**: Re-introduced `uiService.block()` / `uiService.unblock()` around the batch group-toggling loop to prevent user interaction during loading; added the required `useService('ui')` import and hook call
 
 ## 19.0.1.0.6
 
