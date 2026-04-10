@@ -336,9 +336,23 @@ export class BaseGoogleMapComponent extends Component {
      */
     async onMapReady(map) {
         // Wait for map to be fully loaded
-        await new Promise((resolve) => {
-            google.maps.event.addListenerOnce(map, 'tilesloaded', resolve);
-        });
+        let tileListener;
+        try {
+            await new Promise((resolve) => {
+                tileListener = google.maps.event.addListenerOnce(
+                    map,
+                    'tilesloaded',
+                    resolve
+                );
+            });
+        } finally {
+            // Ensure the listener is removed even if the component was
+            // destroyed while awaiting (addListenerOnce is not tracked in
+            // mapEventListeners, so _cleanUp() would not remove it otherwise)
+            if (tileListener) {
+                google.maps.event.removeListener(tileListener);
+            }
+        }
 
         if (!this._isComponentDestroyed) {
             // Map is ready for interaction

@@ -138,7 +138,7 @@ export class GoogleMapArchParser {
 
         const groupsLimitAttr = node.getAttribute("groups_limit");
         const parsedGroupsLimit = groupsLimitAttr ? parseInt(groupsLimitAttr, 10) : null;
-        attrs.groupsLimit = Number.isFinite(parsedGroupsLimit) ? parsedGroupsLimit : this.defaultGroupsLimit;
+        attrs.groupsLimit = Number.isFinite(parsedGroupsLimit) ? parsedGroupsLimit : null;
 
         attrs.defaultOrder = stringToOrderBy(
             xmlDoc.getAttribute('default_order') || null
