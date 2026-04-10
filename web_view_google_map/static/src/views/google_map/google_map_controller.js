@@ -117,23 +117,22 @@ export class GoogleMapController extends Component {
         });
 
         usePager(() => {
-            const root = this.model.root;
-            const { count, hasLimitedCount, isGrouped, limit, offset } = root;
-            if (!isGrouped) {
-                return {
-                    offset: offset,
-                    limit: limit,
-                    total: count,
-                    onUpdate: async ({ offset, limit }, hasNavigated) => {
-                        await this.model.root.load({ offset, limit });
-                        await this.onUpdatedPager();
-                        if (hasNavigated) {
-                            this.onPageChangeScroll();
-                        }
-                    },
-                    updateTotal: hasLimitedCount ? () => root.fetchCount() : undefined,
-                };
+            if (this.model.useSampleModel) {
+                return;
             }
+            const { count, hasLimitedCount, isGrouped, limit, offset } = this.model.root;
+            return {
+                offset: offset,
+                limit: limit,
+                total: count,
+                onUpdate: async ({ offset, limit }, hasNavigated) => {
+                    await this.model.root.load({ offset, limit });
+                    if (hasNavigated) {
+                        this.onPageChangeScroll();
+                    }
+                },
+                updateTotal: !isGrouped && hasLimitedCount ? () => this.model.root.fetchCount() : undefined,
+            };
         });
 
         useEffect(
@@ -585,6 +584,7 @@ export class GoogleMapController extends Component {
         };
 
         const viewConfig = this.viewMapConfig;
+        const groupsLimit = Number.isFinite(this.archInfo.groupsLimit) && this.archInfo.groupsLimit > 0 ? this.archInfo.groupsLimit : Number.MAX_SAFE_INTEGER;
         return {
             config: modelConfig,
             state: this.props.state?.modelState,
@@ -593,7 +593,7 @@ export class GoogleMapController extends Component {
             countLimit: this.archInfo.countLimit,
             defaultOrderBy: this.archInfo.defaultOrder,
             defaultGroupBy: this.archInfo.defaultGroupBy,
-            groupsLimit: this.archInfo.groupsLimit || Number.MAX_SAFE_INTEGER,
+            groupsLimit: groupsLimit,
             multiEdit: this.archInfo.multiEdit,
             activeIdsLimit: session.active_ids_limit,
             hooks: {

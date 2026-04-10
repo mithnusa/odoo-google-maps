@@ -391,7 +391,8 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
      */
     getGroupsOrRecords() {
         if (!this.isMapLoaded()) return [];
-        const { list } = this.props;
+
+        const list = this.props.list;
 
         const currentProps = {
             isGrouped: list.isGrouped,

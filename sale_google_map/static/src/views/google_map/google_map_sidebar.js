@@ -1,5 +1,5 @@
-import { onMounted, onWillUnmount } from '@odoo/owl';
-import { useService } from '@web/core/utils/hooks';
+import { onMounted, onWillUnmount, onWillUpdateProps } from '@odoo/owl';
+import { debounce } from '@web/core/utils/timing';
 import { GoogleMapSidebar } from '@web_view_google_map/views/google_map/google_map_sidebar';
 
 /**
@@ -15,70 +15,74 @@ export class GoogleMapSidebarSaleOrder extends GoogleMapSidebar {
 
     /**
      * Initializes the component.
-     * Sets up UI service, Google Maps event listeners, and lifecycle hooks.
+     * Sets up Google Maps event listeners and lifecycle hooks.
      * When the map tiles are loaded, automatically triggers group record loading
-     * with a 300ms delay to ensure proper rendering.
+     * with a 500ms delay to ensure proper rendering.
      */
     setup() {
         super.setup();
-        this.uiService = useService('ui');
-        this.loadGroupTimeout = null;
+        this._isLoading = false;
+
+        this.debouncedLoadGroupRecord = debounce(this.loadGroupRecord.bind(this), 500);
 
         onMounted(() => {
             const googleMap = this.env.googleMap();
             if (!googleMap) return;
+            this.debouncedLoadGroupRecord();
+        });
 
-            google.maps.event.addListenerOnce(googleMap, 'tilesloaded', () => {
-                if (this.loadGroupTimeout) {
-                    clearTimeout(this.loadGroupTimeout);
-                }
-                this.loadGroupTimeout = setTimeout(() => {
-                    this.loadGroupRecord();
-                }, 300);
-            });
+        onWillUpdateProps((nextProps) => {
+            const googleMap = this.env.googleMap();
+            if (!googleMap || !nextProps.isGrouped) return;
+
+            if (this.debouncedLoadGroupRecord.cancel) {
+                this.debouncedLoadGroupRecord.cancel();
+            }
+            this.debouncedLoadGroupRecord();
         });
 
         onWillUnmount(() => {
-            if (this.loadGroupTimeout) {
-                clearTimeout(this.loadGroupTimeout);
-                this.loadGroupTimeout = null;
+            this._isLoading = false;
+            if (this.debouncedLoadGroupRecord.cancel) {
+                this.debouncedLoadGroupRecord.cancel();
             }
         });
     }
 
     /**
      * Loads and expands all grouped records on the map.
-     * Iterates through all groups, toggles them open, and adjusts the map bounds
-     * to fit all grouped records. Blocks the UI during the operation to prevent
-     * user interaction with partially loaded data.
+     * Iterates through all groups and toggles them open
      *
      * @async
      * @returns {Promise<void>}
      */
     async loadGroupRecord() {
-        if (this.props.isGrouped) {
-            const data = this.props.getGroupsOrRecords();
-            const groups = data.filter(({ group }) => group.records.length === 0);
-            if (groups.length === 0) {
-                return;
-            }
+        if (this._isLoading || !this.props.isGrouped) return;
 
-            const groupPromises = groups.map(async ({ group }) => {
-                try {
-                    await this.props.toggleGroup(group);
-                } catch (error) {
-                    console.error('Error toggling group:', error);
-                }
-            });
+        const BATCH_SIZE = 10;
+        const datas = this.props.getGroupsOrRecords();
+        const groups = datas.filter(({ group }) => group.isFolded);
 
-            try {
-                this.uiService.block();
-                await Promise.all(groupPromises);
-                const updatedDatas = this.props.getGroupsOrRecords();
-                await this.props.renderGroupedRecordsFitBounds(updatedDatas);
-            } finally {
-                this.uiService.unblock();
+        if (groups.length === 0) {
+            return;
+        }
+
+        try {
+            this._isLoading = true;
+            for (let i = 0; i < groups.length; i += BATCH_SIZE) {
+                const batch = groups.slice(i, i + BATCH_SIZE);
+                await Promise.all(batch.map(async ({ group }) => {
+                    try {
+                        await this.props.toggleGroup(group);
+                    } catch (error) {
+                        console.error('Error toggling group:', error);
+                    }
+                }));
             }
+        } catch (error) {
+            console.error('Error toggling group:', error);
+        } finally {
+            this._isLoading = false;
         }
     }
 
@@ -93,7 +97,7 @@ export class GoogleMapSidebarSaleOrder extends GoogleMapSidebar {
      */
     getAvatarUrl({ group }) {
         const partnerId = group?.value;
-        if (partnerId) {
+        if (Number.isFinite(partnerId) && typeof partnerId === 'number') {
             return `/web/image/res.partner/${partnerId}/avatar_128`;
         }
         return null;
