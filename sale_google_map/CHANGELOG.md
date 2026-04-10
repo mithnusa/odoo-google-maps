@@ -1,5 +1,29 @@
 # Change Log
 
+## 19.0.1.0.6
+
+### Marker Animations
+
+- [Added] **Marker Hover Glow Animation**: Added `markerBorderGlow` keyframe animation to `.marker-hover-animation` — pulses a blue `outline` on the marker border once on hover
+- [Improved] **Marker Hover Scale**: Replaced `font-size: large` with `transform: translateY(-8px) scale(1.06)` to enlarge the marker on hover without affecting the layout hit-box, fixing hover oscillation/jitter
+
+### Bug Fixes
+
+- [Fixed] **Hover Jitter / Oscillation**: `font-size: large` caused the marker to resize its layout bounds, triggering a `mouseleave`/`mouseenter` loop — replaced with `transform: scale()` which is compositor-only and does not affect the hit-box
+- [Fixed] **Customer Logo Guard**: Strengthened `_createCustomerLogo` null check — now validates `partnerId` with `Number.isFinite` and `typeof === 'number'` before rendering the avatar image
+- [Fixed] **Avatar URL Guard**: Applied the same `Number.isFinite` + `typeof` guard in `getAvatarUrl()` to prevent invalid partner IDs from generating broken image URLs
+
+### Improvements
+
+- [Improved] **`GoogleMapControllerSaleOrder`**: Removed the custom `static template` override and replaced it with a `modelParams` getter that sets `maxGroupByDepth = 1` when `defaultGroupBy` is active, limiting group nesting depth
+- [Removed] **`google_map_controller.xml`**: Deleted the custom XML template that hid the `SearchBar` — now handled natively by the parent controller's search bar toggler
+- [Improved] **`GoogleMapSidebarSaleOrder` — Debounced Loading**: Replaced `setTimeout` + `tilesloaded` listener with a `debounce`-based `loadGroupRecord` call on `onMounted` and `onWillUpdateProps`, ensuring groups are loaded reliably on mount and on prop changes
+- [Improved] **`GoogleMapSidebarSaleOrder` — Batched Group Toggling**: Groups are now toggled in batches of 10 instead of all at once via `Promise.all`, reducing the risk of overwhelming the server with concurrent requests
+- [Improved] **`GoogleMapSidebarSaleOrder` — Loading Guard**: Added `_isLoading` flag to prevent concurrent `loadGroupRecord` executions
+- [Removed] **`GoogleMapSidebarSaleOrder` — UI Block**: Removed `uiService.block()` / `uiService.unblock()` calls — group loading no longer blocks the entire UI
+- [Improved] **`onWillUpdatePropsRenderMarkers`**: Added override to debounce and re-render grouped markers when props update, cancelling any in-flight debounce before re-queuing
+- [Improved] **SCSS Cleanup**: Removed all vendor prefixes, moved `@keyframes` to root level, updated `:after` to `::after`, and removed unused `opacity` and `font-size` transition
+
 ## 19.0.1.0.5
 ### Performance Improvements
 - Added marker caching to prevent duplicate marker creation for existing groups

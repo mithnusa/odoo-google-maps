@@ -188,7 +188,7 @@ export class GoogleMapRendererSaleOrder extends GoogleMapRenderer {
     }
 
     _createCustomerLogo(partnerId) {
-        if (!partnerId) return;
+        if (!partnerId || !Number.isFinite(partnerId) || typeof partnerId !== 'number') return;
 
         const divEl = document.createElement('div');
         divEl.className = SALE_MARKER_CONFIG.VISUAL.CLASSES.IMG_LOGO_CONTAINER;
@@ -500,6 +500,7 @@ export class GoogleMapRendererSaleOrder extends GoogleMapRenderer {
             delete marker._hoverTimeout;
         }, 1000);
     }
+
     /**
      * @override
      */
@@ -509,6 +510,23 @@ export class GoogleMapRendererSaleOrder extends GoogleMapRenderer {
             clearTimeout(marker._hoverTimeout);
             delete marker._hoverTimeout;
         }
+    }
+
+    /**
+     * @override
+     */
+    onWillUpdatePropsRenderMarkers(nextProps) {
+        if (!this.isMapLoaded()) return;
+
+        this._invalidateMarkerPositionIndex();
+
+        if (!nextProps.list.isGrouped) return;
+
+        if (this.debounceRenderGeolocationData.cancel) {
+            this.debounceRenderGeolocationData.cancel();
+        }
+
+        this.debounceRenderGeolocationData();
     }
 
 }

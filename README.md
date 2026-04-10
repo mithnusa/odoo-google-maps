@@ -18,7 +18,7 @@ Most of the implementation in this modules are inspired from the samples that yo
 | [crm_google_map_add_place](/crm_google_map_add_place/README.md) | 19.0.1.0.0 | Click on Google Map to add CRM Lead/Opportunity with Google Places data |
 | [partner_autocomplete_with_google_autocomplete](/partner_autocomplete_with_google_autocomplete/README.md) | 19.0.1.0.3 | Implementation of Google Places Autocomplete along with existing Odoo Partner Autocomplete on Contact form |
 | [project_google_map](/project_google_map/README.md) | 19.0.1.0.1 | Implementation of view "Google Maps" on Projects |
-| [sale_google_map](/sale_google_map/README.md) | 19.0.1.0.5 | Implementation of view "Google Maps" on Sale Order |
+| [sale_google_map](/sale_google_map/README.md) | 19.0.1.0.6 | Implementation of view "Google Maps" on Sale Order |
 | [stock_google_map](/stock_google_map/README.md) | 19.0.1.0.0 | Implementation of view "Google Maps" on Inventory |
 | [web_view_google_map](/web_view_google_map/README.md) | 19.0.1.0.19 | Base module for a new view "google_map" |
 | [web_view_google_map_drawing](/web_view_google_map_drawing/README.md) | 19.0.1.0.13 | Base module for sub view of "google_map" for drawing capability |
