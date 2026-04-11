@@ -5,19 +5,26 @@ import { formatNumber } from '@web_view_google_map/views/google_map/utils';
 import { GoogleMapSidebarSaleOrder } from './google_map_sidebar';
 
 /**
+ * Duration in milliseconds for the automatic hover effect triggered after
+ * zooming to a marker via {@link _triggerMarkerHoverEffect}.
+ * @constant {number}
+ */
+const HOVER_EFFECT_DURATION_MS = 1000;
+
+/**
  * Configuration constants for sale order marker behavior and styling
  */
 const SALE_MARKER_CONFIG = {
     VISUAL: {
         CLASSES: {
             CONTAINER: 'sale_order marker-drop-animation',
-            LAYOUT: 'd-flex align-items-center justify-content-end gap-2',
-            INFO_SECTION: 'flex-grow-1',
-            NAME: 'mb-0 fs-6',
+            LAYOUT: 'd-flex align-items-center justify-content-around gap-2',
+            INFO_SECTION: 'd-flex flex-column gap-1',
+            NAME: 'mb-0 fs-6 py-1 border-bottom',
             AMOUNT: 'font-monospace',
             BUTTON: 'btn btn-link btn-sm flex-shrink-0',
             ICON: 'fa fa-angle-double-right fa-lg',
-            INFO_ICON: 'fa fa-info-circle ms-1 text-info float-end',
+            INFO_ICON: 'fa fa-info-circle ms-1 text-info',
             IMG_LOGO_CONTAINER: 'd-inline-block position-relative opacity-trigger-hover',
             IMG_LOGO: 'img img-fluid o_avatar rounded',
         },
@@ -51,8 +58,8 @@ export class GoogleMapRendererSaleOrder extends GoogleMapRenderer {
                 if (records && records.length > 0) {
                     await this.createMarker(group, records[0]);
                 }
-            } catch (error) {
-                console.error('Failed to load group records:', error);
+            } catch (_error) {
+                // silent failure — one marker failing should not break the full map render
             }
         });
         await Promise.all(groupPromises);
@@ -75,8 +82,7 @@ export class GoogleMapRendererSaleOrder extends GoogleMapRenderer {
             const geolocation = dataView.geolocation;
             const marker = await this._createNewMarker(group, geolocation);
             return marker;
-        } catch (error) {
-            console.error('Error creating marker for group:', error);
+        } catch (_error) {
             return null;
         }
     }
@@ -112,7 +118,6 @@ export class GoogleMapRendererSaleOrder extends GoogleMapRenderer {
      */
     _isValidGroupForMarkerElement(group) {
         if (!group || !group.aggregates) {
-            console.warn('Invalid group data for marker creation:', group);
             return false;
         }
         return true;
@@ -156,13 +161,13 @@ export class GoogleMapRendererSaleOrder extends GoogleMapRenderer {
         layout.className = SALE_MARKER_CONFIG.VISUAL.CLASSES.LAYOUT;
 
         const infoSection = this._createInfoSection(displayName, formattedAmount);
-        const actionButton = this._createActionButton(group);
+        const actionButtons = this._createActionButtons(group);
         const logoEl = this._createCustomerLogo(group.value);
         if (logoEl) {
             layout.appendChild(logoEl);
         }
         layout.appendChild(infoSection);
-        layout.appendChild(actionButton);
+        layout.appendChild(actionButtons);
 
         return layout;
     }
@@ -185,6 +190,22 @@ export class GoogleMapRendererSaleOrder extends GoogleMapRenderer {
         infoDiv.appendChild(amountEl);
 
         return infoDiv;
+    }
+
+    /**
+     * Create action buttons container holding the open and nearby buttons
+     * @private
+     * @param {Object} group The group data
+     * @returns {HTMLElement} Container element with both action buttons
+     */
+    _createActionButtons(group) {
+        const actionDiv = document.createElement('div');
+        actionDiv.className = 'd-flex flex-column';
+        const actionOpenButton = this._createActionOpenButton(group);
+        const actionNearbyButton = this._createActionNearbyButton(group);
+        actionDiv.appendChild(actionOpenButton);
+        actionDiv.appendChild(actionNearbyButton);
+        return actionDiv;
     }
 
     _createCustomerLogo(partnerId) {
@@ -225,6 +246,7 @@ export class GoogleMapRendererSaleOrder extends GoogleMapRenderer {
      * @returns {HTMLElement} Amount element
      */
     _createAmountElement(formattedAmount) {
+        console.log('Formatted amount for marker:', formattedAmount);
         const amountEl = document.createElement('small');
         amountEl.className = SALE_MARKER_CONFIG.VISUAL.CLASSES.AMOUNT;
         amountEl.textContent = `$ ${formattedAmount}`;
@@ -237,14 +259,14 @@ export class GoogleMapRendererSaleOrder extends GoogleMapRenderer {
      * @param {Object} group The group data
      * @returns {HTMLElement} Action button element
      */
-    _createActionButton(group) {
+    _createActionOpenButton(group) {
         const button = document.createElement('button');
         button.type = 'button';
         button.className = SALE_MARKER_CONFIG.VISUAL.CLASSES.BUTTON;
         button.dataset.tooltip = _t('Open');
         button.dataset.id = group.id;
 
-        const icon = this._createActionButtonIcon();
+        const icon = this._createActionOpenButtonIcon();
         button.appendChild(icon);
 
         const clickHandler = this._createActionClickHandler(group);
@@ -259,11 +281,54 @@ export class GoogleMapRendererSaleOrder extends GoogleMapRenderer {
      * @private
      * @returns {HTMLElement} Icon element
      */
-    _createActionButtonIcon() {
+    _createActionOpenButtonIcon() {
         const icon = document.createElement('i');
         icon.className = SALE_MARKER_CONFIG.VISUAL.CLASSES.ICON;
         icon.setAttribute('aria-hidden', 'true');
         return icon;
+    }
+
+    /**
+     * Create the "find nearby records" button for a marker
+     * @private
+     * @param {Object} group The group data
+     * @returns {HTMLElement} Button element that triggers a nearby-records search
+     */
+    _createActionNearbyButton(group) {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = SALE_MARKER_CONFIG.VISUAL.CLASSES.BUTTON;
+        button.dataset.tooltip = _t('Find nearby records');
+        button.dataset.id = group.id;
+
+        const icon = document.createElement('i');
+        icon.className = 'fa fa-location-arrow fa-lg';
+        icon.setAttribute('aria-hidden', 'true');
+        button.appendChild(icon);
+
+        const clickHandler = this._createNearbyActionClickHandler(group);
+        button.addEventListener('click', clickHandler);
+        this._storeElementEventListener(button, 'click', clickHandler);
+
+        return button;
+    }
+
+    _createNearbyActionClickHandler(group) {
+        return (ev) => {
+            try {
+                ev.preventDefault();
+                ev.stopPropagation();
+
+                if (!group.records || group.records.length === 0) {
+                    this.notificationService.add(_t('No records available in this group to find nearby records.'), { type: 'warning' });
+                    return;
+                }
+
+                this.searchNearbyRecords(group.records[0]);
+            } catch (_error) {
+                // silent failure
+            }
+        };
     }
 
     /**
@@ -280,14 +345,13 @@ export class GoogleMapRendererSaleOrder extends GoogleMapRenderer {
 
                 const domain = group.groupDomain;
                 if (!domain) {
-                    console.warn('No domain found for this group.', group);
                     return;
                 }
 
                 const displayName = group.displayName || _t('Customer');
                 this.props.showRecordsByDomain(displayName, domain);
-            } catch (error) {
-                console.error('Error handling marker action button click:', error);
+            } catch (_error) {
+                // silent failure
             }
         };
     }
@@ -399,7 +463,7 @@ export class GoogleMapRendererSaleOrder extends GoogleMapRenderer {
 
         const handleMouseLeave = () => {
             marker.zIndex = SALE_MARKER_CONFIG.VISUAL.Z_INDEX.DEFAULT;
-            content.classList.remove('marker-hover-animation');
+            content.classList.remove('marker-drop-animation', 'marker-hover-animation');
         };
 
         return {
@@ -498,7 +562,7 @@ export class GoogleMapRendererSaleOrder extends GoogleMapRenderer {
                 content.dispatchEvent(mouseLeaveEvent);
             }
             delete marker._hoverTimeout;
-        }, 1000);
+        }, HOVER_EFFECT_DURATION_MS);
     }
 
     /**
@@ -513,15 +577,18 @@ export class GoogleMapRendererSaleOrder extends GoogleMapRenderer {
     }
 
     /**
-     * @overwrite
-     * This is a rewrite of the original method to handle the sale_google_map case.
+     * @override
+     * Full replacement of the base method to enforce grouped-only rendering for sale orders.
      */
     onWillUpdatePropsRenderMarkers(nextProps) {
         if (!this.isMapLoaded()) return;
 
         this._invalidateMarkerPositionIndex();
 
-        if (!nextProps.list.isGrouped) return;
+        if (!nextProps.list.isGrouped) {
+            this.notificationService.add(_t('Please group the records to display markers on the map. The Google Maps view is designed to load grouped data'), { type: 'info' });
+            return;
+        }
 
         if (this.debounceRenderGeolocationData.cancel) {
             this.debounceRenderGeolocationData.cancel();

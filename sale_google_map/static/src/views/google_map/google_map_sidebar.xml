@@ -5,12 +5,23 @@
         <xpath expr="//button[contains(@t-attf-class, 'collapsed')]" position="replace">
             <div class="ps-1 cursor-pointer o_map_sidebar_group" t-on-click="() => fnPinPointInMap(group.group.id)">
                 <t t-set="title" t-value="(group.group.displayName || 'None') + ' (' + group.group.count + ')' " />
+                <t t-set="totalAmount" t-value="getTotalAmount(group.group)"/>
                 <t t-set="avatar_url" t-value="this.getAvatarUrl(group)"/>
-                <div class="d-inline-block position-relative opacity-trigger-hover" t-if="avatar_url">
-                    <img loading="lazy" t-att-src="avatar_url" class="img img-fluid o_avatar rounded" alt="Avatar" height="24" width="24" style="height: 24px; width: 24px;"/>
+                <div class="d-flex align-items-center justify-content-between gap-2">
+                    <div class="d-inline-block position-relative opacity-trigger-hover" t-if="avatar_url">
+                        <img loading="lazy" t-att-src="avatar_url" class="o_avatar rounded" alt="Avatar" height="24" width="24" style="height: 24px; width: 24px;"/>
+                    </div>
+                    <div class="d-flex flex-column">
+                        <span t-out="title" t-att-data-tooltip="title"/>
+                        <small class="smaller font-monospace" t-out="totalAmount" t-att-data-tooltip="totalAmount"/>
+                    </div>
                 </div>
-                <span class="ms-1 ps-1 pe-1" t-out="title" t-att-data-tooltip="title"/>
             </div>
+        </xpath>
+        <xpath expr="//div[@t-if='group.group.count']/button" position="before">
+            <button type="button" class="btn btn-sm btn-link" id="action-show-nearby" data-tooltip="Nearby" t-on-click="() => props.showNearbyRecords(group.group.records[0])">
+                <i class="fa fa-location-arrow" />
+            </button>
         </xpath>
     </t>
     <t t-name="sale_google_map.GoogleMapSidebar" t-inherit="web_view_google_map.GoogleMapSidebar" t-inherit-mode="primary">
