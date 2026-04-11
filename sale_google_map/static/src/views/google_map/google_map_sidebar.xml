@@ -19,9 +19,11 @@
             </div>
         </xpath>
         <xpath expr="//div[@t-if='group.group.count']/button" position="before">
-            <button type="button" class="btn btn-sm btn-link" id="action-show-nearby" data-tooltip="Nearby" t-on-click="() => props.showNearbyRecords(group.group.records[0])">
-                <i class="fa fa-location-arrow" />
-            </button>
+            <t t-if="group.group.records &amp;&amp; group.group.records.length > 0">
+                <button type="button" class="btn btn-sm btn-link" id="action-show-nearby" data-tooltip="Nearby" t-on-click="() => props.showNearbyRecords(group.group.records[0])">
+                    <i class="fa fa-location-arrow" />
+                </button>
+            </t>
         </xpath>
     </t>
     <t t-name="sale_google_map.GoogleMapSidebar" t-inherit="web_view_google_map.GoogleMapSidebar" t-inherit-mode="primary">

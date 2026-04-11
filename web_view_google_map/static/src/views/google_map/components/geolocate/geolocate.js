@@ -160,7 +160,7 @@ export class GoogleMapGeolocate extends Component {
     _cleanup() {
         if (this.marker) {
             this.marker.map = null;
-            google.maps.event.clearListeners(this.marker, 'click');
+            google.maps.event.clearListeners(this.marker, 'gmp-click');
         }
         if (this.infoWindow) {
             this.infoWindow.close();

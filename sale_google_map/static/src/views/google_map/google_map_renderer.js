@@ -246,7 +246,6 @@ export class GoogleMapRendererSaleOrder extends GoogleMapRenderer {
      * @returns {HTMLElement} Amount element
      */
     _createAmountElement(formattedAmount) {
-        console.log('Formatted amount for marker:', formattedAmount);
         const amountEl = document.createElement('small');
         amountEl.className = SALE_MARKER_CONFIG.VISUAL.CLASSES.AMOUNT;
         amountEl.textContent = `$ ${formattedAmount}`;
