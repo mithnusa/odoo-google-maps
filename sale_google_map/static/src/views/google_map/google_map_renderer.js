@@ -584,13 +584,13 @@ export class GoogleMapRendererSaleOrder extends GoogleMapRenderer {
 
         this._invalidateMarkerPositionIndex();
 
+        if (this.debounceRenderGeolocationData.cancel) {
+            this.debounceRenderGeolocationData.cancel();
+        }
+
         if (!nextProps.list.isGrouped) {
             this.notificationService.add(_t('Please group the records to display markers on the map. The Google Maps view is designed to load grouped data'), { type: 'info' });
             return;
-        }
-
-        if (this.debounceRenderGeolocationData.cancel) {
-            this.debounceRenderGeolocationData.cancel();
         }
 
         this.debounceRenderGeolocationData();

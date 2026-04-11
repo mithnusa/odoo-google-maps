@@ -20,8 +20,9 @@
         </xpath>
         <xpath expr="//div[@t-if='group.group.count']/button" position="before">
             <t t-if="group.group.records &amp;&amp; group.group.records.length > 0">
-                <button type="button" class="btn btn-sm btn-link" id="action-show-nearby" data-tooltip="Nearby" t-on-click="() => props.showNearbyRecords(group.group.records[0])">
+                <button type="button" class="btn btn-sm btn-link" data-tooltip="Nearby" t-on-click="() => props.showNearbyRecords(group.group.records[0])">
                     <i class="fa fa-location-arrow" />
+                    <span class="visually-hidden">Nearby</span>
                 </button>
             </t>
         </xpath>
