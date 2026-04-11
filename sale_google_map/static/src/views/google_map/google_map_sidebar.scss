@@ -4,18 +4,24 @@
             .content {
                 .sale_google_map {
                     table tr td .o_map_sidebar_group {
-                        display: block;
+                        display: block; // Required for text-overflow ellipsis to work
                         white-space: nowrap;
                         overflow: hidden;
                         text-overflow: ellipsis;
-                        max-width: 300px;
+                        max-width: 300px; // Default for large/ultra-wide screens
 
-                        @media (max-width: 1920px) {
-                            max-width: 250px;
+                        // Responsive max-width adjustments
+                        @media (max-width: 2560px) {
+                            max-width: 220px;
                         }
-
+                        @media (max-width: 1920px) {
+                            max-width: 200px;
+                        }
                         @media (max-width: 1600px) {
-                            max-width: 230px;
+                            max-width: 180px;
+                        }
+                        @media (max-width: 1200px) {
+                            max-width: 140px;
                         }
                     }
                 }

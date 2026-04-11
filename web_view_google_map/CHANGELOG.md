@@ -1,5 +1,12 @@
 # Change Log
 
+## 19.0.1.0.20
+
+- [Fixed] **`GoogleMapGeolocate` — OWL Lifecycle Hook**: Replaced `onMounted(this._onRendered)` with `onMounted(() => { this._onMounted(); })` and `onWillUnmount(this._cleanup)` with `onWillUnmount(() => { this._cleanup(); })` — arrow-function wrappers ensure correct `this` binding; method renamed from `_onRendered` to `_onMounted` to reflect its actual lifecycle timing
+- [Fixed] **`GoogleMapGeolocate` — `geolocateBtn` Initialization**: Added explicit `this.geolocateBtn = null` in `setup()` so the null-check guard in `_onMounted` is reliable from the first render
+- [Fixed] **Geolocate Marker Click Event**: Changed the marker click listener from the deprecated `'click'` to `'gmp-click'`, matching the correct event name for `AdvancedMarkerElement`
+- [Improved] **Geolocate Marker SVG**: Replaced the plain red Feather map-pin (24×24) with a styled blue-gradient teardrop pin (28×36) — uses a radial gradient (`#5b9cf6` → `#1a56c4`), a `feDropShadow` filter, and a white inner circle for a more polished, map-native appearance
+
 ## 19.0.1.0.19
 
 - [Added] **`defaultGroupsLimit` Getter**: New getter on `GoogleMapArchParser` returning `80` as the default groups limit, used as a fallback when `groups_limit` is not defined in the view arch

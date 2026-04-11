@@ -1,6 +1,36 @@
 <!-- markdownlint-disable MD024 -->
 # Change Log
 
+## 19.0.1.0.8
+
+### Added
+
+- **"Find Nearby Records" Button on Markers**: Each marker now renders a second action button (fa-location-arrow) alongside the existing "Open" button; clicking it calls `searchNearbyRecords` for the group's first record
+- **"Nearby" Button in Sidebar**: Added a `fa-location-arrow` button in the sidebar group header that triggers `props.showNearbyRecords` for the group's first record
+- **`getTotalAmount` in Sidebar**: New method on `GoogleMapSidebarSaleOrder` that returns a formatted `$ amount_total` string using `formatNumber` and the current user locale; displayed as a `<small>` line below the group title in the sidebar
+- **`HOVER_EFFECT_DURATION_MS` Constant**: Extracted the hardcoded `1000` ms hover-effect timeout into a named constant for clarity
+
+### Improved
+
+- **Stored Geolocation Fields**: `partner_latitude` and `partner_longitude` related fields now have `store=True`, enabling direct DB queries on sale orders without joining to `res.partner`
+- **Marker Layout**: Updated CSS classes — layout changed from `justify-content-end` to `justify-content-around`; info section is now `d-flex flex-column gap-1`; order name has `py-1 border-bottom` styling; `INFO_ICON` no longer floats right
+- **Marker Width**: Increased from `250px` to `280px` to accommodate the new two-button action column
+- **`_createActionButtons` Container**: Refactored single `_createActionButton` into `_createActionButtons` which composes `_createActionOpenButton` and `_createActionNearbyButton` inside a `d-flex flex-column` wrapper
+- **Sidebar Group Item Layout**: Redesigned using a flex row — avatar thumbnail, title + total amount column side by side; replaced bare `<span>` with a structured `d-flex flex-column` sub-layout
+- **`onWillUpdatePropsRenderMarkers`**: Now shows an `info` notification when the view is not grouped, informing the user that grouped data is required for markers to appear
+- **`handleMouseLeave`**: Also removes the `marker-drop-animation` class on mouse-leave, not only `marker-hover-animation`, preventing the drop animation from persisting after hover ends
+- **SCSS Responsive Breakpoints**: Added a `2560px` breakpoint (`max-width: 220px`); tightened existing breakpoint widths (1920px: 250px → 200px, 1600px: 230px → 180px); added new `1200px` breakpoint at `140px`; fixed missing newline at end of file
+- **JSDoc `@override`**: Corrected `@overwrite` typo to `@override` in `onWillUpdatePropsRenderMarkers`
+
+### Removed
+
+- **`partner_contact_address` Field**: Removed the `related` field and its references in both google_map view definitions — address data is no longer passed to the frontend view
+- **`console.error` / `console.warn` Calls**: Replaced noisy console statements in marker creation and click-handler error paths with silent failures (`_error` convention), keeping individual marker failures from polluting the browser console
+
+### Fixed
+
+- **`_createActionButton` Rename**: Method split and renamed to `_createActionOpenButton` / `_createActionOpenButtonIcon` for clarity; callers updated accordingly
+
 ## 19.0.1.0.7
 
 ### Fixed

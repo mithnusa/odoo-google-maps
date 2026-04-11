@@ -1,6 +1,8 @@
 import { onMounted, onWillUnmount, onWillUpdateProps } from '@odoo/owl';
 import { debounce } from '@web/core/utils/timing';
 import { useService } from '@web/core/utils/hooks';
+import { user } from '@web/core/user';
+import { formatNumber } from '@web_view_google_map/views/google_map/utils';
 import { GoogleMapSidebar } from '@web_view_google_map/views/google_map/google_map_sidebar';
 
 /**
@@ -106,5 +108,21 @@ export class GoogleMapSidebarSaleOrder extends GoogleMapSidebar {
             return `/web/image/res.partner/${partnerId}/avatar_128`;
         }
         return null;
+    }
+
+    /**
+     * Returns a formatted price string for the given group's aggregated total.
+     * The `$` prefix is a generic price indicator, not a real currency symbol.
+     *
+     * @param {Object} group - The group object containing aggregated field values
+     * @param {Object} group.aggregates - Aggregated field values for the group
+     * @param {number} [group.aggregates.amount_total] - Aggregated sale order total
+     * @returns {string} Formatted amount string, e.g. `"$ 1,234.56"`
+     */
+    getTotalAmount(group) {
+        const { aggregates } = group;
+        const amountTotal = aggregates?.amount_total || 0;
+        const formattedAmount = formatNumber(amountTotal, 2, user.context.lang);
+        return `$ ${formattedAmount}`;
     }
 }
