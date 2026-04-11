@@ -1,5 +1,9 @@
 # Change Log
 
+## 1.0.1 - 2026-04-11
+
+- **Fix OWL lifecycle hook**: Replaced `onRendered` with `onMounted` in `InMapClickAddPlace` — the map click listener and RIGHT_TOP indicator control are now registered once after the initial mount instead of after every re-render, preventing duplicate listener registration
+
 ## 1.0.0 - Initial Release
 
 - **Abstract Model Mixin**: Added `google_map.add_place.mixin` with `gplace_id` field and core click-to-create logic reusable across any Odoo model
