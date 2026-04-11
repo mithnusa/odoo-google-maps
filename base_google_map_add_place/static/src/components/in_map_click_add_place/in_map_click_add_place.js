@@ -1,5 +1,5 @@
 import { _t } from '@web/core/l10n/translation';
-import { Component, onWillUnmount, onRendered } from '@odoo/owl';
+import { Component, onWillUnmount, onMounted } from '@odoo/owl';
 import { useService } from '@web/core/utils/hooks';
 import { renderToString } from '@web/core/utils/render';
 
@@ -54,19 +54,25 @@ export class InMapClickAddPlace extends Component {
         this._indicatorElement = null;
         // Store bound reference for button click listener to properly clean it up
         this._boundButtonClickListener = this.actionZoomInMap.bind(this);
-        onRendered(this._onRendered);
-        onWillUnmount(this._cleanup);
+
+        onMounted(() => {
+            this._onMounted();
+        });
+
+        onWillUnmount(() => {
+            this._cleanup();
+        });
     }
 
     /**
-     * Called by OWL after every render. Registers the map click listener and
+     * Called by OWL after component is mounted. Registers the map click listener and
      * injects the add-place indicator control into the map's RIGHT_TOP corner
      * exactly once — subsequent renders are no-ops thanks to the null-checks.
      *
      * @returns {void}
      * @private
      */
-    _onRendered() {
+    _onMounted() {
         if (!this.props.googleMap) return;
 
         if (!this._placeClickListener) {

@@ -9,10 +9,18 @@ export class GoogleMapGeolocate extends Component {
 
     setup() {
         this.notificationService = useService('notification');
+        this.geolocateBtn = null;
         // Store bound reference for proper cleanup
         this._boundGeolocation = this.geolocation.bind(this);
-        onMounted(this._onRendered);
-        onWillUnmount(this._cleanup);
+
+        onMounted(() => {
+            this._onMounted();
+        });
+
+        onWillUnmount(() => {
+            this._cleanup();
+        });
+
     }
 
     /**
@@ -20,7 +28,7 @@ export class GoogleMapGeolocate extends Component {
      * @returns {void}
      * @private
      */
-    _onRendered() {
+    _onMounted() {
         if (this.props.googleMap && !this.geolocateBtn) {
             this.infoWindow = new google.maps.InfoWindow();
             const content = renderToString('web_view_google_map.GeolocateBtn', {});
@@ -85,7 +93,7 @@ export class GoogleMapGeolocate extends Component {
                 content,
             });
 
-            this.marker.addListener('click', this._onMarkerClick.bind(this));
+            this.marker.addListener('gmp-click', this._onMarkerClick.bind(this));
 
             // Hide marker when info window is closed
             this.infoWindow.addListener('closeclick', () => {
@@ -152,7 +160,7 @@ export class GoogleMapGeolocate extends Component {
     _cleanup() {
         if (this.marker) {
             this.marker.map = null;
-            google.maps.event.clearListeners(this.marker, 'click');
+            google.maps.event.clearListeners(this.marker, 'gmp-click');
         }
         if (this.infoWindow) {
             this.infoWindow.close();
