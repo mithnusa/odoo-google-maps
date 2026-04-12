@@ -12,7 +12,6 @@
                 <field name="name"/>
                 <field name="partner_id"/>
                 <field name="amount_total"/>
-                <field name="currency_id"/>
             </google_map>
         </field>
     </record>
@@ -111,7 +110,6 @@
                 <field name="name"/>
                 <field name="partner_id"/>
                 <field name="amount_total"/>
-                <field name="currency_id"/>
             </google_map>
         </field>
     </record>

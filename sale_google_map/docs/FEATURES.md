@@ -12,11 +12,11 @@
 ---
 
 ### Marker Content
-**What it does**: Each marker shows the customer name, aggregated order total, and customer avatar (when available).
+**What it does**: Each marker shows the customer name with order count, aggregated order total, and customer avatar (when available).
 
-**Why it matters**: Sales teams can scan the map and immediately see the value of each customer's orders without opening any records.
+**Why it matters**: Sales teams can scan the map and immediately see both the value and the volume of each customer's orders without opening any records.
 
-**How it works**: The marker renders a card with a color-coded left border (matching the group color), the customer's `avatar_128` image, the group display name, and the sum of `amount_total` for all orders in the group, formatted according to the user's locale.
+**How it works**: The marker renders a card with a color-coded left border (matching the group color), the customer's `avatar_128` image, the group display name suffixed with the record count (e.g. `"Acme Corp (3)"`), and the sum of `amount_total` for all orders in the group, formatted according to the user's locale.
 
 ---
 
@@ -82,11 +82,11 @@
 ---
 
 ### Automatic Group Loading
-**What it does**: When the map view opens, all groups are automatically expanded in batches so their markers appear without any manual action.
+**What it does**: When the map view opens, all groups are automatically expanded so their markers appear without any manual action.
 
 **Why it matters**: Without this, the sidebar would show collapsed groups and the map would be empty until the user manually expanded each one.
 
-**How it works**: On `onMounted` and `onWillUpdateProps`, a debounced `loadGroupRecord` call iterates through folded groups in batches of 10 and toggles them open. The UI is blocked during this process to prevent interaction conflicts.
+**How it works**: The model sets `openGroupsByDefault: true` when a default group-by is active, instructing the initial `web_read_group` RPC to return each group's records in the same response. This means markers are available immediately after the first load — no extra per-group requests are needed. On `onMounted`, `loadGroupRecord` also runs immediately (without a debounce delay) as a safety net for any groups that may still be folded; `onWillUpdateProps` uses a 200 ms debounce to handle filter and search changes. The UI is blocked during this process to prevent interaction conflicts.
 
 ---
 

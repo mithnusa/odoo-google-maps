@@ -5,6 +5,9 @@ export class GoogleMapControllerSaleOrder extends GoogleMapController {
         const params = super.modelParams;
         if (params.defaultGroupBy) {
             params.maxGroupByDepth = 1;
+            params.config = Object.assign({}, params.config, {
+                openGroupsByDefault: true,
+            });
         }
         return params;
     }

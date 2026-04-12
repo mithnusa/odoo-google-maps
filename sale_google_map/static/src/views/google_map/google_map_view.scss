@@ -36,12 +36,12 @@
                 position: absolute;
                 left: 50%;
                 top: 100%;
-                transform: translate(-50%, 0);
-                width: 0;
-                height: 0;
-                border-left: 12px solid transparent;
-                border-right: 12px solid transparent;
-                border-top: 12px solid light-dark(#fafafa, black);
+                transform: translate(-50%, -48%) rotate(45deg);
+                width: 14px;
+                height: 14px;
+                background-color: light-dark(#fafafa, black);
+                border-right: 1px solid light-dark(rgba(140, 139, 139, 0.5), rgba(118, 116, 116, 0.5));
+                border-bottom: 1px solid light-dark(rgba(140, 139, 139, 0.5), rgba(118, 116, 116, 0.5));
             }
 
             &.marker-drop-animation {
