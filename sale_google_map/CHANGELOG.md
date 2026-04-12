@@ -1,6 +1,19 @@
 <!-- markdownlint-disable MD024 -->
 # Change Log
 
+## 19.0.1.0.9
+
+### Performance
+
+- **Pre-unfolded Groups on Load**: `GoogleMapControllerSaleOrder.modelParams` now sets `openGroupsByDefault: true` on the model config when `defaultGroupBy` is active; this passes `auto_unfold: true` to `web_read_group`, returning each group's records in the initial RPC and eliminating the per-group `web_search_read` that `group.toggle()` would otherwise fire
+- **Immediate Group Loading on Mount**: `loadGroupRecord` is now called directly in `onMounted` instead of through the debounced wrapper, eliminating the 500 ms forced wait before the first group toggle RPC fires
+- **Reduced `onWillUpdateProps` Debounce**: Debounce delay for prop-triggered group loading reduced from 500 ms to 200 ms, cutting re-render latency after filter or search changes while still batching rapid updates
+
+### Improved
+
+- **Marker Display Name Shows Count**: `_createMarkerElement` now renders the group display name as `"{Customer} ({count})"` using `sprintf`, giving a quick visual count of orders per customer directly on the map marker
+- **Manifest Description**: Expanded `summary` and `description` in `__manifest__.py` to document key features, supported action windows, and configuration requirements
+
 ## 19.0.1.0.8
 
 ### Added
