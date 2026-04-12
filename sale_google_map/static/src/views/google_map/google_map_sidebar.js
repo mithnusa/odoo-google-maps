@@ -20,7 +20,7 @@ export class GoogleMapSidebarSaleOrder extends GoogleMapSidebar {
      * Initializes the component.
      * Sets up Google Maps event listeners and lifecycle hooks.
      * When the map tiles are loaded, automatically triggers group record loading
-     * with a 500ms delay to ensure proper rendering.
+     * with a 200ms delay to ensure proper rendering.
      */
     setup() {
         super.setup();
@@ -28,12 +28,12 @@ export class GoogleMapSidebarSaleOrder extends GoogleMapSidebar {
 
         this.uiService = useService('ui');
 
-        this.debouncedLoadGroupRecord = debounce(this.loadGroupRecord.bind(this), 500);
+        this.debouncedLoadGroupRecord = debounce(this.loadGroupRecord.bind(this), 200);
 
         onMounted(() => {
             const googleMap = this.env.googleMap();
             if (!googleMap) return;
-            this.debouncedLoadGroupRecord();
+            this.loadGroupRecord();
         });
 
         onWillUpdateProps((nextProps) => {
