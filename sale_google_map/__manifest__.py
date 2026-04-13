@@ -23,7 +23,7 @@ Requires a Google API Key configured in Settings → General Settings → Google
     'website': 'https://github.com/mithnusa',
     'support': 'yopiangi@gmail.com',
     'category': 'Sales/Sales',
-    'version': '1.0.9',
+    'version': '1.0.10',
     'depends': ['sale_management', 'web_view_google_map'],
     'data': ['views/sale_order.xml', 'views/res_partner.xml'],
     'assets': {

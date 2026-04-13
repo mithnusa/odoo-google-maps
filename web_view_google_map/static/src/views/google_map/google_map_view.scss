@@ -1,18 +1,13 @@
-.o_dialog {
-    .o_google_map_view {
-        min-height: 500px;
-    }
-}
-
-.o_google_map_renderer, .o_dialog {
+.o_google_map_renderer, .o_dialog .o_google_map_renderer {
     display: flex;
-    align-content: stretch;
+    align-items: stretch;
     overflow-x: hidden;
     height: 100%;
 
     .o_google_map_view {
+        flex: 1;
+        min-width: 0; // prevents flex child from overflowing its container
         width: 100%;
-        will-change: transform;
 
         .gm-style-iw {
             opacity: 0.95;
@@ -84,13 +79,8 @@
             height: 20px;
             border-radius: 50%;
             border: 3px solid #ffffff;
-            -webkit-box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-            -moz-box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
             cursor: pointer;
-            -webkit-transition: all 0.2s ease;
-            -moz-transition: all 0.2s ease;
-            -o-transition: all 0.2s ease;
             transition: all 0.2s ease;
         }
 
@@ -98,14 +88,7 @@
             width: 28px;
             height: 28px;
             border: 4px solid #ffffff;
-            -webkit-box-shadow: 0 0 0 3px #4285F4, 0 4px 12px rgba(0,0,0,0.4);
-            -moz-box-shadow: 0 0 0 3px #4285F4, 0 4px 12px rgba(0,0,0,0.4);
-            box-shadow: 0 0 0 3px #4285F4, 0 4px 12px rgba(0,0,0,0.4);
-            -webkit-transform: scale(1.0);
-            -moz-transform: scale(1.0);
-            -ms-transform: scale(1.0);
-            -o-transform: scale(1.0);
-            transform: scale(1.0);
+            box-shadow: 0 0 0 3px #4285F4, 0 4px 12px rgba(0, 0, 0, 0.4);
         }
     }
 
@@ -115,7 +98,6 @@
         width: auto;
         padding: 0px 6px;
         margin: 0px 15px 5px 0px;
-        // background-color: #ffffff;
         border-radius: 2px;
         line-height: 25px;
         font-family: 'Roboto,Arial,sans-serif';
@@ -377,5 +359,9 @@
         }
     }
 
+}
 
+// When the map view is rendered inside a dialog, ensure enough vertical space
+.o_dialog .o_google_map_view {
+    min-height: 500px;
 }

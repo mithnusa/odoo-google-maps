@@ -1,6 +1,10 @@
 <!-- markdownlint-disable MD024 -->
 # Change Log
 
+## 19.0.1.0.10
+
+- [Removed] **`google_map_sidebar.scss`**: Deleted the module-specific sidebar SCSS file — the viewport-based media-query breakpoints for `.o_map_sidebar_group` max-width are now superseded by the `clamp()`-based rule added to the base `web_view_google_map` sidebar styles, making the per-module overrides redundant
+
 ## 19.0.1.0.9
 
 ### Performance
