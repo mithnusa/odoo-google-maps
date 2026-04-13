@@ -1,5 +1,9 @@
 # Change Log
 
+## 19.0.1.0.5
+
+- [Fixed] **Sidebar Record Name — Wide Screen Clipping**: Added `max-width: 220px` as a base rule on `.o_map_sidebar_record.with_avatar` to cover viewports wider than 1600px; without this, the name column had no width cap at that breakpoint, causing the table layout algorithm to squeeze the action buttons (map marker, Nearby, Open) off the right edge where they were hidden by `overflow-x: hidden`
+
 ## 19.0.1.0.4
 
 - [Added] **Nearby Contacts Search**: Added `action_nearby_search()` method on `res.partner` that opens the Contacts map view filtered to contacts within a configurable radius of the selected contact's location; supports antimeridian wraparound and passes bounding box context for map overlay visualization

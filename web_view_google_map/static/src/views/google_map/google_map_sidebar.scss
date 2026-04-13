@@ -6,29 +6,41 @@
             height: 100%;
             background-color: $o-view-background-color;
             z-index: 1;
-            width: 25%; // Default width
+            width: 25%;
             max-width: 400px;
-            min-width: 300px;
-            will-change: width;
-            -webkit-transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            -moz-transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            -o-transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            // min-width lives only in .open / .closed so both values are always
+            // explicit and the browser can interpolate instead of snapping.
+            // box-shadow is included here so it fades out smoothly on close too.
+            transition:
+                width 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                min-width 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                box-shadow 0.3s ease-out;
 
-            .content {
+            // Clips the content as the sidebar narrows without affecting the
+            // toggle button, which lives outside this element.
+            .sidebar_content_clip {
                 position: relative;
+                overflow: hidden;
                 height: 100%;
                 width: 100%;
-                min-width: 200px;
-                padding: 0px 2px 0px 2px;
+            }
+
+            .content {
+                // Fills the open sidebar width exactly, then stops shrinking at
+                // 300px so the clip container takes over from that point onward.
+                // This prevents right-side clipping when the sidebar is open and
+                // keeps the content layout stable for most of the closing animation.
+                position: absolute;
+                top: 0;
+                left: 0;
+                bottom: 0;
+                width: 100%;
+                min-width: 300px;
+                padding: 0 2px;
                 background-color: $o-view-background-color;
                 overflow-y: auto;
                 overflow-x: hidden;
                 opacity: 1;
-                will-change: opacity;
-                -webkit-transition: opacity 0.25s ease-in-out;
-                -moz-transition: opacity 0.25s ease-in-out;
-                -o-transition: opacity 0.25s ease-in-out;
                 transition: opacity 0.25s ease-in-out;
 
                 button[data-bs-toggle="collapse"] {
@@ -48,62 +60,83 @@
                     }
                 }
 
-                table tr td .o_map_sidebar_record > div, table tr td .o_map_sidebar_group {
-                    display: block; // Required for ellipsis to work
+                // Group headers: clamp reserves space for caret icons, action
+                // buttons, and cell padding on the right side.
+                table tr td .o_map_sidebar_group {
+                    display: block;
                     white-space: nowrap;
                     overflow: hidden;
                     text-overflow: ellipsis;
-                    max-width: 250px; // Default for large screens
+                    max-width: clamp(140px, calc(25vw - 130px), 260px);
+                }
 
-                    // Responsive max-width adjustments
-                    @media (max-width: 2560px) {
-                        max-width: 220px;
-                    }
-                    @media (max-width: 1920px) {
-                        max-width: 180px;
-                    }
-                    @media (max-width: 1800px) {
-                        max-width: 140px;
+                // Record rows: the record wrapper fills all remaining flex
+                // space in the name cell (after the optional avatar sibling),
+                // so the text adapts naturally to the actual available width
+                // without a fixed pixel offset.
+                table tr td .o_map_sidebar_record {
+                    flex: 1;
+                    min-width: 0;
+                    overflow: hidden;
+
+                    > div {
+                        display: block;
+                        white-space: nowrap;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
                     }
                 }
 
                 .o_field_widget {
-                    display: block; // Required for ellipsis to work
+                    display: block;
                     white-space: nowrap;
                     overflow: hidden;
                     text-overflow: ellipsis;
-                    max-width: 100px; // Default for large screens
                 }
             }
             .toggle_right_sidenav {
                 display: block;
                 position: absolute;
                 right: 100%;  // Position relative to the sidebar width
-                top: 25%;
+                top: 45%;
                 z-index: 999;
-                -webkit-transition: right 0.1s ease-in-out;
-                -moz-transition: right 0.1s ease-in-out;
-                -o-transition: right 0.1s ease-in-out;
-                transition: right 0.1s ease-in-out;
+                // Match sidebar timing so the button tracks the edge cleanly
+                transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
                 button {
                     width: 25px;
                     height: 60px;
-                    border-left: 1.5px solid $o-view-background-color;
-                    border-top: 1.5px solid $o-view-background-color;
-                    border-bottom: 1.5px solid $o-view-background-color;
-                    border-right: 0px;
-                    border-radius: 4px 0px 0px 4px;
-                    font-size: 20px;
+                    border-left: 1px solid darken($o-view-background-color, 6%);
+                    border-top: 1px solid darken($o-view-background-color, 6%);
+                    border-bottom: 1px solid darken($o-view-background-color, 6%);
+                    border-right: 0;
+                    border-radius: 10px 0 0 10px;
+                    font-size: 16px;
                     background-color: $o-view-background-color;
                     cursor: pointer;
+                    transition: background-color 0.15s ease, color 0.15s ease;
 
+                    &:hover {
+                        background-color: darken($o-view-background-color, 6%);
+                    }
+
+                    &:active {
+                        background-color: darken($o-view-background-color, 12%);
+                    }
+
+                    // Hide the focus ring for mouse/touch; keep it for keyboard nav
                     &:focus {
                         outline: none;
+                    }
+                    &:focus-visible {
+                        outline: 2px solid $o-brand-primary;
+                        outline-offset: -2px;
                     }
 
                     &::before {
                         display: inline-block;
+                        font-family: 'FontAwesome';
+                        color: #6c757d;
                     }
                 }
             }
@@ -112,37 +145,31 @@
             // Closed state
             &.closed {
                 width: 0;
-                min-width: 0; // Override the min-width to allow full collapse
-                box-shadow: none !important; // Immediately remove shadow, no transition
+                min-width: 0;
+                box-shadow: none;
 
                 .content {
                     opacity: 0;
-                    -webkit-transition: opacity 0.15s ease-out; // Faster fade out
-                    -moz-transition: opacity 0.15s ease-out;
-                    -o-transition: opacity 0.15s ease-out;
+                    // Fade out slightly faster than the slide so content
+                    // disappears before the container fully closes
                     transition: opacity 0.15s ease-out;
                     pointer-events: none;
                 }
 
                 .toggle_right_sidenav {
-                    right: 0; // Adjust to keep button visible when closed
+                    right: 0; // Tracks the collapsing edge to stay visible
 
                     button::before {
-                        content: '\2039';
+                        content: '\f0d9';
                     }
                 }
             }
             // Open state
             &.open {
-                width: 25%;
-                max-width: 400px;
-                -webkit-box-shadow: -0.9px 0 1px 0.1px $o-view-background-color;
-                -moz-box-shadow: -0.9px 0 1px 0.1px $o-view-background-color;
-                box-shadow: -0.9px 0 1px 0.1px $o-view-background-color;
-                -webkit-transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s ease-in 0.1s; // Shadow appears with delay
-                -moz-transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s ease-in 0.1s;
-                -o-transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s ease-in 0.1s;
-                transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s ease-in 0.1s;
+                min-width: 300px;
+                box-shadow: -3px 0 6px rgba(0, 0, 0, 0.1);
+                // No transition override here — inherits the consolidated
+                // base transition (width + min-width + box-shadow all at once)
 
                 .content {
                     opacity: 1;
@@ -150,10 +177,10 @@
                 }
 
                 .toggle_right_sidenav {
-                    right: 100%; // Keep button at the edge of sidebar when open
+                    right: 100%;
 
                     button::before {
-                        content: '\203A';
+                        content: '\f0da';
                     }
                 }
             }

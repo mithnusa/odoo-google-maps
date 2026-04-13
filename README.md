@@ -11,16 +11,16 @@ Most of the implementation in this modules are inspired from the samples that yo
 | [base_google_map](/base_google_map/README.md) | 19.0.1.0.9 | Base module of Google Maps contains settings to setup Google API Key |
 | [base_google_map_add_place](/base_google_map_add_place/README.md) | 19.0.1.0.1 | Base module to add place from Google Map, can be inherited by other modules to add place from map |
 | [contacts_google_autocomplete](/contacts_google_autocomplete/README.md) | 19.0.1.0.1 | Implementation of Google Places Autocomplete on Contacts |
-| [contacts_google_map](/contacts_google_map/README.md) | 19.0.1.0.4 | Implementation of view "Google Maps" on Contacts |
+| [contacts_google_map](/contacts_google_map/README.md) | 19.0.1.0.5 | Implementation of view "Google Maps" on Contacts |
 | [contacts_google_map_add_place](/contacts_google_map_add_place/README.md) | 19.0.1.0.1 | Click on Google Map to add contact with Google Places data |
 | [crm_google_autocomplete](/crm_google_autocomplete/README.md) | 19.0.1.0.1 | Implementation of Google Places Autocomplete on CRM Leads/Opportunities |
 | [crm_google_map](/crm_google_map/README.md) | 19.0.1.0.6 | Implementation of view "Google Maps" on CRM |
 | [crm_google_map_add_place](/crm_google_map_add_place/README.md) | 19.0.1.0.0 | Click on Google Map to add CRM Lead/Opportunity with Google Places data |
 | [partner_autocomplete_with_google_autocomplete](/partner_autocomplete_with_google_autocomplete/README.md) | 19.0.1.0.3 | Implementation of Google Places Autocomplete along with existing Odoo Partner Autocomplete on Contact form |
 | [project_google_map](/project_google_map/README.md) | 19.0.1.0.1 | Implementation of view "Google Maps" on Projects |
-| [sale_google_map](/sale_google_map/README.md) | 19.0.1.0.9 | Implementation of view "Google Maps" on Sale Order |
+| [sale_google_map](/sale_google_map/README.md) | 19.0.1.0.10 | Implementation of view "Google Maps" on Sale Order |
 | [stock_google_map](/stock_google_map/README.md) | 19.0.1.0.0 | Implementation of view "Google Maps" on Inventory |
-| [web_view_google_map](/web_view_google_map/README.md) | 19.0.1.0.20 | Base module for a new view "google_map" |
+| [web_view_google_map](/web_view_google_map/README.md) | 19.0.1.0.21 | Base module for a new view "google_map" |
 | [web_view_google_map_drawing](/web_view_google_map_drawing/README.md) | 19.0.1.0.13 | Base module for sub view of "google_map" for drawing capability |
 | [web_widget_google_map](/web_widget_google_map/README.md) | 19.0.1.0.4 | Base module of Google Maps widget |
 | [web_widget_google_place_autocomplete](/web_widget_google_place_autocomplete/README.md) | 19.0.1.0.6 | Implementation of Google Places Autocomplete Element |

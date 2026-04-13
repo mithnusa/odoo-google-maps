@@ -3,6 +3,7 @@
         .o_map_right_sidebar {
             .content {
                 table tr td .o_map_sidebar_record.with_avatar {
+                    max-width: 220px; // Wide screens (>1600px) where sidebar is capped at 400px
                     @media (max-width: 1600px) {
                         max-width: 160px;
                     }

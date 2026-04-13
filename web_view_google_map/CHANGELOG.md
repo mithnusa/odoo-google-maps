@@ -1,5 +1,11 @@
 # Change Log
 
+## 19.0.1.0.21
+
+- [Improved] **Sidebar Toggle Button — Icons**: Replaced Unicode angle quotation marks (`\203A` / `\2039`) with FontAwesome glyphs — `fa-caret-right` (`\f0da`) for the open state and `fa-caret-left` (`\f0d9`) for the closed state; added `font-family: 'FontAwesome'` to the `::before` pseudo-element so the glyphs render correctly
+- [Improved] **Sidebar Toggle Button — Styling**: Reduced icon size from `20px` to `16px` and set icon color to `#6c757d` (Bootstrap `text-muted`) for a subtler appearance; adjusted button vertical position from `top: 25%` to `top: 45%` to better center it within the viewport
+- [Improved] **Sidebar Toggle Button — Border**: Changed border width from `1.5px` to `1px` with a `6%` darkened background color, and increased `border-radius` to `10px 0 0 10px` for a softer rounded edge
+
 ## 19.0.1.0.20
 
 - [Fixed] **`GoogleMapGeolocate` — OWL Lifecycle Hook**: Replaced `onMounted(this._onRendered)` with `onMounted(() => { this._onMounted(); })` and `onWillUnmount(this._cleanup)` with `onWillUnmount(() => { this._cleanup(); })` — arrow-function wrappers ensure correct `this` binding; method renamed from `_onRendered` to `_onMounted` to reflect its actual lifecycle timing
