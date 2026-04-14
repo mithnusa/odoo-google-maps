@@ -36,7 +36,7 @@
 
 **Why it matters**: Prevents the map from becoming unreadable when displaying large numbers of records spread across the same region.
 
-**How it works**: Uses the MarkerClusterer library (bundled in `base_google_map`). As the user zooms in, clusters expand into individual markers. Clustering can be disabled per view using `disable_cluster_marker="1"` in the view definition.
+**How it works**: Uses the MarkerClusterer library (bundled in `web_view_google_map`). As the user zooms in, clusters expand into individual markers. Clustering can be disabled per view using `disable_cluster_marker="1"` in the view definition.
 
 ---
 

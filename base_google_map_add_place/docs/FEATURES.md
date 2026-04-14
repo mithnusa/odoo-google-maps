@@ -78,12 +78,13 @@
 
 ---
 
-### Visual Activity Indicator
-**What it does**: Injects a button control into the map's top-right corner that signals whether map-click-to-create is currently active.
+### Visual Activity Indicator & Zoom Shortcut
 
-**Why it matters**: Gives users clear visual feedback about when clicking the map will open a form versus doing nothing.
+**What it does**: Injects a button control into the map's top-right corner that signals whether map-click-to-create is currently active, and doubles as a shortcut to zoom in.
 
-**How it works**: The button starts in a neutral grey state. On every map `idle` event (after pan/zoom settles), the component checks the current zoom level. At zoom ≥ 15 the button turns green and animates; below that threshold it reverts to grey. A tooltip explains how to activate the feature.
+**Why it matters**: Gives users clear visual feedback about when clicking the map will open a form, and provides a one-click way to reach the required zoom level without manually scrolling in.
+
+**How it works**: The button starts in a neutral grey state. On every map `idle` event (after pan/zoom settles), the component checks the current zoom level. At zoom ≥ 15 the button turns green and animates; below that threshold it reverts to grey. A tooltip explains how to activate the feature. When clicked while zoomed out, the button zooms the map to zoom 15 and pans to the nearest marker visible in the current viewport (or the map centre if no markers are visible).
 
 ---
 

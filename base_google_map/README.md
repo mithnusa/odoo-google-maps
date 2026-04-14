@@ -10,13 +10,14 @@ Adds a Google Maps configuration section to Odoo's General Settings where admini
 
 ## Key Features
 
-- **API Key & Map ID Configuration**: Store your Google Maps API key and Map ID centrally in Settings → General Settings → Google Maps
-- **Multi-Language Support**: Choose from 86 language options including regional variants (e.g., Chinese Simplified/Traditional, English AU/GB, Portuguese BR/PT)
+- **API Key Configuration**: Store your Google Maps API key centrally in Settings → General Settings → Google Maps
+- **Map ID Configuration**: Store a Google Cloud Map ID for advanced map features (visible only when `web_view_google_map` is installed)
+- **Multi-Language Support**: Choose from 84 language options including regional variants (e.g., Chinese Simplified/Traditional, English AU/GB, Portuguese BR/PT); visible only when `web_view_google_map` is installed
 - **Region Localization**: Set a region code to comply with local Google Maps display requirements
-- **Color Scheme Control**: Display maps in Light, Dark, or System (auto) color scheme
+- **Color Scheme Control**: Display maps in Light, Dark, or System (auto) color scheme; visible only when `web_view_google_map` is installed
 - **Autocomplete Language Restriction**: Optionally restrict place autocomplete results to the configured map language
 - **Country Restriction for Autocomplete**: Limit autocomplete suggestions to up to 5 countries
-- **In-Map Place Search**: Toggle Google Places search functionality within map views
+- **In-Map Place Search**: Toggle Google Places search functionality within map views; visible only when `web_view_google_map` is installed
 - **Base Map Component**: Shared OWL component providing consistent map rendering, error handling, offline detection, and accessibility support for all map views
 - **MarkerClusterer**: Bundled marker clustering library for efficiently displaying large numbers of map markers
 

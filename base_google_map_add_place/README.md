@@ -17,7 +17,7 @@ This module is a base layer — it does not activate the feature on any model by
 - **Reverse Geocoding**: Resolves map coordinates to a structured address via the Google Geocoding API when clicking empty map space
 - **Address Mapping**: Maps Google address components to Odoo partner fields (street, city, zip, state, country) with multi-country format support
 - **Duplicate Detection**: Checks for an existing record with the same Google Place ID before opening a create form, opening the existing record instead
-- **Visual Indicator**: Injects a map control in the top-right corner that turns green and animates when the feature is active (zoom ≥ 15)
+- **Visual Indicator & Zoom Shortcut**: Injects a map control in the top-right corner that turns green and animates when the feature is active (zoom ≥ 15); clicking it while zoomed out automatically zooms to zoom 15 and pans to the nearest visible marker
 - **Auto-reload**: Refreshes the map view automatically after a record is saved
 
 ## Dependencies

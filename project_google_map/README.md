@@ -13,7 +13,7 @@ Extends the standard Project app with site location support for both projects an
 ### Projects
 
 - **Map View**: Adds a "Map" view to the Projects list showing each project as a marker at its site location
-- **Status-Colored Markers**: Markers are automatically color-coded by project health status — green (on track), orange (at risk), red (off track), cyan (on hold), purple (done)
+- **Status-Colored Markers**: Markers are automatically color-coded by project health status — green (on track), orange (at risk), red (off track), cyan (on hold), purple (done), gray (no status)
 - **Site Address Field**: Adds a "Site" tab to the project form for linking a site address to the project
 - **Embedded Map**: The project form's Site tab displays a satellite map of the selected site location
 - **Quick Task Access**: A "View Tasks" button in the map marker and sidebar opens the task list for that project
