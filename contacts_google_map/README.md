@@ -43,8 +43,5 @@ Adds the `google_map` view type to Contacts so you can see all your contacts pin
 - `base_google_map`: Core API key configuration and Google Maps JavaScript API loader
 - `web_view_google_map`: Base Google Map view type (required)
 - `web_widget_google_map`: Google Maps widgets (required)
-- `contacts_google_map_extended`: Adds additional Google Places data fields to contacts
-
-## Authors
-
-- [Yopi Angi](https://www.github.com/gityopie)
+- `contacts_google_map_add_place`: Adds click-to-create records directly from the map
+- `contacts_google_autocomplete`: Adds Google Places autocomplete to the Contact form

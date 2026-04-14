@@ -1,214 +1,40 @@
-# Web View Google Maps Drawing
+# Web View Google Map Drawing
 
-This module allows you to manage GeoJSON data using Google Maps integrated with [Terra Draw library](https://terradraw.io/), [Deck.gl](https://deck.gl/), and [Turf.js](https://turfjs.org/).
-The Google Maps Drawing has been deprecated ([source](https://developers.google.com/maps/deprecations#drawing_library_deprecated_as_of_aug_8_2025)). As an alternative (suggested by Google) this module uses Terra Draw to provide drawing capabilities on Google Maps.
+## Overview
 
-<div style="display: flex; gap: 4px; justify-content: center;">
-  <img src="static/img/screenshot/geojson_views.png" alt="GeoJSON Preview" style="width: 100%; max-width: 600px; height: auto;">
-</div>
+This module extends the Google Map view with geographic shape drawing capabilities. Users can draw, edit, and store geospatial shapes directly on a Google Map inside Odoo, with automatic switching between an editable mode and a GPU-accelerated viewer based on data complexity.
 
-## Features
+Google's built-in Maps Drawing Library was deprecated in August 2025. This module uses [Terra Draw](https://terradraw.io/) as a replacement — the same alternative recommended by Google. For large or complex datasets that exceed Terra Draw's editing limits, [Deck.gl](https://deck.gl/) takes over as a GPU-accelerated read-only renderer. Geospatial measurements are handled by [Turf.js](https://turfjs.org/). All three libraries are bundled locally so the module works without external CDN dependencies.
 
-- **Drawing Tools**: Point, LineString, Polygon, Rectangle, Circle, and Freehand drawing modes
-- **GPU-Accelerated Rendering**: Deck.gl provides smooth 60fps rendering for 10k+ features
-- **Real-time Measurements**: Area, perimeter, length calculations using Turf.js
-- **GeoJSON Import/Export**: Upload and download GeoJSON files directly from the drawing canvas
-- **Undo/Redo**: Full history management for drawing operations
-- **Feature Simplification**: Reduce complex geometry for better editing performance
-- **Keyboard Shortcuts**: Efficient operation with keyboard controls
-- **3D Coordinate Support**: Automatic detection and rendering of 3D coordinates (with altitude)
-- **Smart Rendering Mode**: Automatically switches between Terra Draw and Deck.gl based on geometry complexity
+## What It Does
 
-## Keyboard Shortcuts
+Adds a `google_map_drawing` view variant and a `google_map_terra_draw` form widget. The drawing view displays records with stored GeoJSON shapes as an interactive map layer. The form widget embeds a full drawing canvas inside any record form, letting users create and edit shapes with live area measurement.
 
-| Shortcut | Action |
-|----------|--------|
-| `1` - `7` | Switch drawing modes (Select, Point, Line, Polygon, Rectangle, Circle, Freehand) |
-| `Delete` / `Backspace` | Delete selected feature |
-| `Escape` | Switch to select mode |
-| `Ctrl+Z` / `Cmd+Z` | Undo |
-| `Ctrl+Shift+Z` / `Ctrl+Y` | Redo |
-| `Ctrl+S` / `Cmd+S` | Save changes |
-| `Ctrl+E` / `Cmd+E` | Simplify selected feature |
-| `C` | Clear all features |
+## Key Features
 
-## Usage
+- **Drawing Tools**: Seven interactive drawing modes — Point, LineString, Polygon, Rectangle, Circle, Freehand, and Select — with keyboard shortcuts for every action
+- **GeoJSON Storage**: Drawn shapes are stored as GeoJSON in an Odoo field using a custom field type that supports geographic filter operators for server-side queries
+- **Drawing Shape Mixin**: A reusable base model (`google.drawing.shape`) that adds shape name, GeoJSON, area, and color fields to any model with a single inheritance declaration
+- **Smart Rendering**: Automatically switches between Terra Draw (fully editable) and Deck.gl (GPU-accelerated, read-only viewer) based on geometry complexity and dataset size
+- **Real-Time Measurements**: Area and perimeter are calculated and displayed live as shapes are drawn, in metric or imperial units
+- **Import/Export GeoJSON**: Upload `.geojson` files created in external GIS tools and download current shapes as a clean GeoJSON file
+- **Geometry Simplification**: Reduce vertex count on complex imported shapes to bring them within editing limits while preserving the overall form
+- **Undo/Redo**: Full drawing history managed per session
+- **Embedded Drawing Widget**: Embed the drawing canvas inside form views on One2many or Many2many fields using dedicated widgets
 
-### 1. `google_map_drawing` a sub-view of `google_map` view
-A new view to display geolocation data using Google Maps with drawing capabilities.
+## Dependencies
 
-How to create the view?
+- `web_view_google_map`
 
-```xml
-<!-- View -->
-<record id="view_res_partner_area_map" model="ir.ui.view">
-    <field name="name">view.res.partner.area.map</field>
-    <field name="model">res.partner.area</field>
-    <field name="arch" type="xml">
-        <google_map js_class="google_map_drawing" geojson="gshape_geojson" string="Land" color="gshape_color" sidebar_title="gshape_name" sidebar_subtitle="partner_id">
-            <field name="partner_id"/>
-            <field name="gshape_name"/>
-            <field name="gshape_area"/>
-            <field name="gshape_description"/>
-            <field name="gshape_geojson"/>
-            <field name="gshape_color"/>
-        </google_map>
-    </field>
-</record>
+## Installation
 
+1. Install the module through Odoo Apps
+2. Ensure `web_view_google_map` is installed and configured with a valid Google Maps API key
 
-<!-- Action -->
-<record id="action_partner_area_map" model="ir.actions.act_window">
-    ...
-    <field name="view_mode">kanban,list,form,google_map</field>
-    ...
-</record>
-```
+## Basic Usage
 
-Mandatory attributes:
-- `js_class`: attribute to load Google Maps Drawing, must be set with `google_map_drawing`
-- `sidebar_title`: attribute to be used on a sidebar of map, to display name of record (only support field `Char` and field `Many2one` )
-- `geojson`: attribute to be used to load geojson data from field
+Apply `js_class="google_map_drawing"` to a `<google_map>` view definition and set the `geojson` attribute to point to the GeoJSON field on the model. To embed drawing in a form view, apply the `google_map_terra_draw` widget to a JSON field.
 
-Optional attributes:
-- `sidebar_subtitle`: attribute to be used on a sidebar of map, to display secondary info that you would like to display (only support field `Char` and field `Many2one`)
-- `color`: attribute to be used to set color of shape, can use hex color (e.g., #FF0000), CSS color name (e.g., red), or field name (Integer) paired with widget="color_picker" in form view.
-- `map_type`: roadmap | satellite | hybrid | terrain (default: roadmap)
-- `gesture_handling`: auto | cooperative | greedy | none (default: auto)
-- `map_id`: to set specific Map ID configured in Google Cloud Console, configured this attribute overrides the Map ID configured in Settings > General Settings > Google Maps
+## Related Modules
 
-
-### Use `google_map` view inside `form` view
-
-For field `One2many` it is a must to use widget `google_map_drawing_one2many`
-and for field `Many2many` uses widget `google_map_drawing_many2many`
-
-Example:
-```xml
-<field name="shape_line_ids" widget="google_map_drawing_one2many" mode="google_map">
-    <google_map js_class="google_map_drawing" string="Land" sidebar_title="gshape_name" sidebar_subtitle="partner_id" color="gshape_color" geojson="gshape_geojson" map_type="hybrid" gesture_handling="cooperative">
-        <field name="partner_id" invisible="1"/>
-        <field name="gshape_name"/>
-        <field name="gshape_area"/>
-        <field name="gshape_description"/>
-        <field name="gshape_geojson"/>
-        <field name="gshape_color"/>
-    </google_map>
-</field>
-```
-
-### 2. New widget `google_map_terra_draw`
-In order to activate the drawing mode, it's a must to apply widget `google_map_terra_draw` to field `gshape_geojson` (or any fields on your own) in view `form`
-
-<div style="display: flex; gap: 4px; justify-content: center;">
-  <img src="static/img/screenshot/widget_drawing_tools.png" alt="Drawing Tools Widget" style="width: 100%; max-width: 400px; height: auto;">
-</div>
-
-Example:
-```xml
-<record id="view_res_partner_area_form" model="ir.ui.view">
-    <field name="name">view.res.partner.area.form</field>
-    <field name="model">res.partner.area</field>
-    <field name="arch" type="xml">
-        <form string="Area">
-            <sheet>
-                ...
-                <field name="gshape_geojson" widget="google_map_terra_draw" options="{'map_type_id': 'hybrid', 'default_zoom': 14, 'default_center': [-6.175664127601439, 106.82703162885998], 'field_area': 'gshape_area'}"/>
-            </sheet>
-        </form>
-    </field>
-</record>
-```
-
-Widget options:
-- `map_type_id`: roadmap | satellite | hybrid | terrain (default: roadmap)
-- `default_zoom`: default zoom level when loading the map (default: 12)
-- `default_center`: default center of the map when loading, format: [lat, lng] (default: [0, 0])
-- `field_area`: field name to store area value (in square meters) calculated from the drawn shape. This field should be of type Float.
-
-This module contains a demo module `contacts_area` that you can find in folder example, a module to demonstrate how to use the view and the widget.
-
-
-If you have difficulties implement or use the view and the widget on your custom module, please do not hesitate to open an issue.
-
-## External Libraries
-
-All libraries are bundled locally for reliability and offline capability:
-
-| Library | Purpose |
-|---------|---------|
-| [Terra Draw](https://terradraw.io/) | Drawing tools and feature editing |
-| [Terra Draw Google Maps Adapter](https://github.com/JamesLMilner/terra-draw) | Google Maps integration for Terra Draw |
-| [Deck.gl](https://deck.gl/) | GPU-accelerated rendering for large datasets |
-| [Turf.js](https://turfjs.org/) | Geospatial measurements and calculations |
-
-## Area Calculation
-
-The module uses Turf.js for accurate area calculations:
-
-- Supports both **Polygon** and **MultiPolygon** geometry types
-- Area is calculated in square meters
-- Total area is automatically computed when importing GeoJSON or saving features
-- Area values can be stored in a designated field using the `field_area` widget option
-
-## Import/Export GeoJSON
-
-Both Terra Draw and Deck.gl editors support importing and exporting GeoJSON files.
-
-### Why This Feature Exists
-
-Terra Draw has limitations that may require users to work with external tools:
-- **No support for polygons with holes** (interior rings)
-- **No support for 3D coordinates** (altitude/elevation data)
-- **Performance limits** with large datasets (3000+ features or 5000+ vertices)
-- **Limited advanced editing** capabilities compared to dedicated GIS software
-
-The Import/Export feature allows you to:
-- Create complex geometries in professional GIS tools (QGIS, ArcGIS, geojson.io) and import them
-- Export data for use in other mapping platforms or GIS applications
-- Back up your geospatial data in a standard, interoperable format
-- Share GeoJSON data with team members or external systems
-
-### Import
-- Click the **Upload** button (↑) to import a GeoJSON file
-- Supported formats: `.geojson` and `.json` files
-- Maximum file size: 5MB
-- The imported GeoJSON is validated before being loaded
-
-### Export
-- Click the **Download** button (↓) to export current features as a GeoJSON file
-- The exported file is named `geojson_export_YYYY-MM-DD.geojson`
-- Internal properties (mode, midPoint, selectionPoint, _metadata) are automatically removed from the export
-
-This functionality enables seamless data exchange with other GIS tools and platforms, overcoming Terra Draw's inherent limitations.
-
-## Rendering Modes
-
-The module automatically selects the appropriate rendering engine based on geometry complexity:
-
-| Condition | Rendering Engine | Reason |
-|-----------|------------------|--------|
-| Simple polygons without holes | Terra Draw | Full editing capabilities |
-| Polygons with holes (interior rings) | Deck.gl | Terra Draw doesn't support holes |
-| 3D coordinates (with altitude) | Deck.gl | Terra Draw doesn't support 3D |
-| Large datasets (3000+ features, 5000+ vertices, or 5000+ points) | Deck.gl | Prevents browser freezing |
-
-## Known issues and limitations
-- Terra Draw doesn't support GeoJSON with holes or interior rings. Such GeoJSON will be rendered in read-only mode using Deck.gl.
-- Terra Draw doesn't support 3D coordinates (coordinates with altitude values). Such GeoJSON will be rendered using Deck.gl.
-- Large datasets are automatically routed to Deck.gl for display. For individual complex features within Terra Draw, use the "Simplify Selected Feature" button to reduce complexity, but be aware that this may result in a loss of detail.
-- Resize the browser window may cause the map to not render properly. To fix this issue, you can refresh the browser page.
-- GeoJSON file import is limited to 5MB file size.
-
-## Performance Optimizations
-
-The module includes several performance optimizations for handling large GeoJSON datasets:
-
-- **Automatic Renderer Selection**: Datasets exceeding performance thresholds (3000+ features, 5000+ vertices, or 5000+ points) are automatically routed to Deck.gl
-- **Chunked Processing**: Large feature sets are processed in chunks of 50 features to prevent UI blocking
-- **Lightweight Change Detection**: Uses fingerprinting (geometry type + coordinate count) instead of full JSON comparison
-- **Debounced Rendering**: Rendering operations are debounced to prevent excessive re-renders
-- **GPU Acceleration**: Deck.gl leverages WebGL for smooth rendering of 10,000+ features
-
-## Authors
-- [Yopi Angi](https://www.github.com/gityopie)
+- `web_view_google_map`: Provides the base Google Map view type that this module extends

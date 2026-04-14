@@ -1,48 +1,147 @@
 # Web Widget Google Place Autocomplete
 
-The `web_widget_google_place_autocomplete` module provides a new widget implementation using Google's Places API(New) [https://developers.google.com/maps/documentation/javascript/place-autocomplete-new](https://developers.google.com/maps/documentation/javascript/place-autocomplete-new).    
-It offers enhanced autocomplete functionality with improved address mapping capabilities and configurable field mappings per country through a dedicated configuration interface.
+## Overview
 
-This widget gives you full control over how Google Places data is mapped to your Odoo model fields, allowing for a more tailored and accurate data entry experience.
+This module provides the `gplace_autocomplete_el` widget and the Google Places Mapping configuration system. It connects Google's Places API (New) to any Odoo form field, automatically populating address, geolocation, and other fields when a user selects a place from the autocomplete suggestions.
 
-## Table of Contents
+## What It Does
 
-- [Features](#features)
-- [Screenshots](#screenshots)
-- [Widget: gplace_autocomplete_el](#widget-gplace_autocomplete_el)
-  - [Usage](#usage)
-    - [Option 1: Using Mapping Code](#option-1-using-mapping-code-recommended)
-    - [Option 2: Using Mapping Mode](#option-2-using-mapping-mode)
-    - [Option 3: Disable Manual Edit](#option-3-disable-manual-edit)
-  - [Configuration Options](#configuration-options)
-  - [Street Formatting](#street-formatting)
-- [Installation & Configuration](#installation--configuration)
-- [Examples](#examples)
-- [Troubleshooting](#troubleshooting)
-- [Authors](#authors)
+Adds a configurable autocomplete widget that can be applied to any Char field in any Odoo form view. When a user types in the field, Google Places suggestions appear. Selecting one populates other fields on the record — street, city, state, zip, country, latitude, longitude, phone, website, or any other mapped field — in a single atomic write. Which fields get populated, and how, is controlled by a mapping configuration stored in Odoo.
 
-## Features
+## Key Features
 
-- **Google Places API (New)**: Leverages the latest Google Places API for improved accuracy and performance
-- **Flexible Field Mapping**: Configure custom mappings between Google Places data and Odoo fields
-- **Multiple Mapping Modes**: Support for both "places" and "address" autocomplete modes
-- **Interactive Mapping Test**: Built-in testing tool to verify your field mappings
-- **Quick Access**: Shortcut button in form views to access mapping configuration
-- **Street Format Control**: Configure street formatting per country (route + number or number + route)
-- **Read-only input mode** (`no_manual_edit`): Optionally lock the autocomplete input so users can only select from Google Places suggestions, preventing free-text edits while still auto-filling all mapped fields
+- **`gplace_autocomplete_el` Widget**: Extends the standard Char field with a Google Places autocomplete panel that opens on demand
+- **Two Autocomplete Modes**: `places` mode returns businesses and landmarks; `address` mode is restricted to street addresses and routes only
+- **Google Places Mapping Configuration**: A dedicated configuration model defines how Google Places API data maps to Odoo model fields — per model, per mode
+- **Address and Other Field Mapping**: Maps address components and non-address place data (phone, website, etc.) to any Odoo fields
+- **Geolocation Storage**: Each mapping designates which Float fields receive the selected place's latitude and longitude
+- **Country Street Format**: Controls whether addresses are formatted as "Route + Number" or "Number + Route" per country
+- **No Manual Edit Mode**: An optional `no_manual_edit` option makes the input read-only, requiring users to select from suggestions
+- **Mapping Test Tool**: Built-in test on the mapping form lets administrators verify what data will be returned before deploying
+- **Quick Access Button**: Shortcut button next to the autocomplete field opens the mapping configuration (visible to Technical Feature users)
 
-## Screenshots
+## Dependencies
 
-<div style="display: flex; gap: 4px; justify-content: center; margin-bottom: 50px;">
-  <img src="static/img/google_fields_mapping.png" alt="Google Fields Mapping" style="width: 40%; max-width: 300px; height: auto;">
-  <img src="static/img/mapping_test.png" alt="Google Places Autocomplete Mapping test" style="width: 40%; max-width: 300px; height: auto;">
-</div>
+- `base_google_map`
 
-You can also access the mapping configuration quickly via the shortcut button next to the autocomplete input field in the form view.
+## Related Modules
 
-<div style="display: flex; gap: 4px; justify-content: center;">
-  <img src="static/img/shortcut_to_access_the_mapping.png" alt="Quick access to mapping configuration" style="width: 40%; max-width: 300px; height: auto;">
-</div>
+- `base_google_map`: Provides the API key configuration and Google Maps JavaScript API loader
+- `contacts_google_autocomplete`: Applies the widget to the Contact form with a pre-configured `res.partner` mapping
+- `crm_google_autocomplete`: Applies the widget to the Lead form with a pre-configured `crm.lead` mapping
+
+---
+
+## Mapping System: How It Works
+
+The mapping system is the core of this module. It is entirely driven by configuration — no code changes are needed to adapt the widget to any model or any set of Google Places data.
+
+### Model and Mode
+
+Each mapping record targets a specific Odoo model and one autocomplete mode:
+
+- **`places` mode** — returns any Google Place: businesses, landmarks, points of interest, addresses
+- **`address` mode** — restricts suggestions to street addresses and routes only
+
+One model can have multiple mapping records with different modes (e.g. one for company name lookup in `places` mode, another for street field in `address` mode).
+
+### Address Component Mapping
+
+The **Address Mapping** section maps Google address components to Odoo fields. Each line specifies:
+
+| Setting | Options | Description |
+| --- | --- | --- |
+| **Google Address Component** | Any list of Google component types | e.g. `['route', 'street_number']`, `['locality']`, `['postal_code']` |
+| **Text Option** | `shortText` / `longText` | Whether to use the abbreviated or full form of the value (e.g. "CA" vs "California") |
+| **Handling Mode** | `direct` / `fallback` / `concat` | Controls how multiple components in the list are resolved |
+| **Separator** | Space, Comma, Hyphen, Underscore, Slash, New Line | Used when joining components in `concat` mode |
+| **Odoo Field** | Any stored, writable Char, Text, Many2one, or Many2many field | The field to write the resolved value into |
+
+**Handling modes explained:**
+
+- **Direct** — takes a single component and writes its value directly. Use for unambiguous components like `postal_code`.
+- **Fallback** — tries each component in the list in order and uses the first one that has a value. Useful for city-level fields where the component name varies by country (e.g. try `locality` first, fall back to `administrative_area_level_2`).
+- **Concatenate** — joins all available components with the configured separator. The standard use case is building a street string from `['route', 'street_number']` or `['street_number', 'route']` depending on the country's street format.
+
+**Relational field resolution** — when the target field is a `Many2one` pointing to `res.country` or `res.country.state`, the widget automatically looks up the record by name instead of writing a raw string.
+
+### Other Field Mapping
+
+The **Other Mapping** section maps any top-level Google Places API property — beyond address components — directly to an Odoo field. Each line specifies a Google Places property name and an Odoo field to receive its value.
+
+Common properties available in `places` mode:
+
+| Google Property | Typical Use |
+| --- | --- |
+| `displayName` | Business or place name |
+| `internationalPhoneNumber` | Phone number in international format |
+| `websiteURI` | Website URL |
+| `nationalPhoneNumber` | Local phone number format |
+| `formattedAddress` | Full formatted address as a single string |
+| `businessStatus` | Whether the place is open, closed, etc. |
+
+The Odoo field can be Char, Text, Many2one, Many2many, Integer, or Float — giving full flexibility to store any scalar value from the API response.
+
+### Geolocation Fields
+
+Two dedicated fields on the mapping record designate which Float fields on the target model receive the selected place's `latitude` and `longitude`. These are written in the same atomic update as all other mapped fields.
+
+### Fetch Field Control
+
+The `gplace_place_fetch_fields` and `gplace_address_fetch_fields` settings control which Google Places API data fields are requested. Limiting fetched fields to only what is needed reduces API costs. For example, an address-only mapping typically needs only `['addressComponents', 'location']`, while a business lookup may also need `['displayName', 'internationalPhoneNumber', 'websiteURI']`.
+
+### PlaceAutocompleteElement Options
+
+The `gplace_options` setting on the mapping record is passed directly to Google's `PlaceAutocompleteElement` constructor. This allows fine-grained control over suggestion filtering, for example:
+
+```python
+# Restrict to street addresses and routes only
+{'includedPrimaryTypes': ['route', 'street_address']}
+
+# Restrict suggestions to a specific country
+{'componentRestrictions': {'country': 'id'}}
+
+# Restrict to a specific region bias
+{'locationBias': {'center': {'lat': -6.2, 'lng': 106.8}, 'radius': 50000}}
+```
+
+Refer to the [Google Places Autocomplete documentation](https://developers.google.com/maps/documentation/places/web-service/place-autocomplete#supported-parameters) for the full list of available options.
+
+### Mapping Validation
+
+The system enforces consistency at save time:
+
+- A field may not appear in both the Address and Other mapping sections of the same configuration
+- `direct` handling mode requires exactly one component; `fallback` and `concat` require at least two
+- `text_option` is validated against the field type
+- Fetch fields and options are validated as proper JSON/Python literals
+
+### Built-In Test Tool
+
+Every mapping configuration form includes a live test tool that lets you verify, debug, and refine your mapping without leaving the configuration page or touching any real record.
+
+**How to use it:**
+
+1. Open (or create) a mapping record in `Settings > Technical > Google Places Mapping`
+2. Scroll to the **Test** section at the bottom of the form
+3. Type a place or address into the live autocomplete input — it uses the exact same `mode`, `options`, and `fetch fields` configured on the current record
+4. Select a suggestion from the dropdown
+5. A result dialog opens immediately, showing four sections:
+
+| Section | What it shows |
+| --- | --- |
+| **Address** | The parsed values that would be written to each address-mapped Odoo field |
+| **Other** | The parsed values for other-mapped fields (phone, website, etc.) — visible in `places` mode only |
+| **Geolocation** | The `latitude` and `longitude` values that would be stored |
+| **Google Place JSON** | The raw, complete response object returned by the Google Places API for the selected place |
+
+The **Google Place JSON** panel is especially useful for discovering which properties are available for a given place type, so you can decide what to add to your Other Field Mapping.
+
+If you make changes to the mapping configuration and want to re-run the test against the updated settings, use the **Reload** button below the autocomplete input to reinitialize the widget with the latest saved values.
+
+> **Note**: The test tool always reflects the last **saved** state of the mapping record. Save your changes before reloading the test if you want to verify the updated configuration.
+
+---
 
 ## Widget: gplace_autocomplete_el
 
@@ -123,8 +222,8 @@ By default, users can freely type in the autocomplete field. Set `no_manual_edit
 
 ### Configuration Options
 
-1. Autocomplete Options (optional)   
-The widget behavior can be customized using Google Places Autocomplete options. These options are configured in the mapping configuration and control the autocomplete element initialization.    
+1. Autocomplete Options (optional)
+The widget behavior can be customized using Google Places Autocomplete options. These options are configured in the mapping configuration and control the autocomplete element initialization.
 Please check this document [Google Places Autocomplete documentation](https://developers.google.com/maps/documentation/places/web-service/place-autocomplete#supported-parameters) for more details.
 
 **Example**: For address-only results, configure your mapping with:
@@ -132,19 +231,19 @@ Please check this document [Google Places Autocomplete documentation](https://de
 {'includedPrimaryTypes': ['route', 'street_address']}
 ```
 
-2. Fields Property (mandatory)   
-It's recommended to define the `fields` property in your mapping configuration to specify which Google Places fields to retrieve. This optimizes performance by limiting data retrieval to only necessary fields.     
-Use the fields property wisely as it affects the cost of API usage.    
-Please check this document [Place Fields documentation](https://developers.google.com/maps/documentation/javascript/place-class-data-fields) for more details.    
+2. Fields Property (mandatory)
+It's recommended to define the `fields` property in your mapping configuration to specify which Google Places fields to retrieve. This optimizes performance by limiting data retrieval to only necessary fields.
+Use the fields property wisely as it affects the cost of API usage.
+Please check this document [Place Fields documentation](https://developers.google.com/maps/documentation/javascript/place-class-data-fields) for more details.
 
-
-**Example**: To retrieve only location(geolocation) and address, configure your mapping with:
+**Example**: To retrieve only location (geolocation) and address, configure your mapping with:
 ```python
 ['location', 'addressComponents']
 ```
+
 ### Street Formatting
 
-Countries now include a "Street Format" field (`street_format`) to control how street addresses are formatted:
+Countries include a "Street Format" field (`google_street_format`) to control how street addresses are formatted:
 
 - **`route_street_number`** (default): Route name followed by street number (e.g., "Main Street 123")
 - **`street_number_route`**: Street number followed by route name (e.g., "123 Main Street")
@@ -177,8 +276,8 @@ Configure this in `Contacts > Configuration > Countries` for each country.
    - **Name**: Descriptive name for your mapping
    - **Model**: Target Odoo model (e.g., `res.partner`, `crm.lead`)
    - **Mapping Mode**: Choose `address` or `places`
-   - **Field Mappings**: Map Google Places fields to Odoo model fields.    
-      There are two sections: 
+   - **Field Mappings**: Map Google Places fields to Odoo model fields.
+      There are two sections:
       - **Address Mapping**: For general address fields
       - **Other**: For any fields outside of the address scope
 3. Use the Section test to test your mapping configuration
@@ -273,7 +372,3 @@ Add the widget to your form views using one of the methods described in the [Usa
 **Solution:**
 1. Enable "Technical Features" for your user in `Settings > Users & Companies > Users`
 2. Verify the widget is properly configured with a valid `mapping_code` or `mapping_mode`
-
-## Authors
-
-- [Yopi Angi](https://www.github.com/gityopie)

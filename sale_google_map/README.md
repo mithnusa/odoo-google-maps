@@ -4,13 +4,9 @@
 
 `sale_google_map` adds an interactive Google Maps view to the Sales application. Sales orders and quotations are grouped by customer on the map, giving sales teams a clear geographical picture of where their business is concentrated.
 
-<div style="display: flex; gap: 4px; justify-content: center;">
-  <img src="static/img/google_maps_preview.png" alt="Previews" style="width: 100%; max-width: 600px; height: auto;">
-</div>
-
 ## What It Does
 
-Adds a "Map" view button to the Quotations and Orders list. Each customer with geolocated records appears as a single marker on the map. Clicking the marker or the sidebar entry lets you open the related orders or find other nearby customers.
+Adds a "Map" view button to the Quotations, Orders, Orders to Invoice, Orders to Upsell, and Customers lists. Each customer with geolocated records appears as a single marker on the map. Clicking the marker or the sidebar entry lets you open the related orders or find other nearby customers.
 
 ## Key Features
 
@@ -44,7 +40,3 @@ Adds a "Map" view button to the Quotations and Orders list. Each customer with g
 
 - `base_google_map`: Core Google Maps API key configuration
 - `web_view_google_map`: Base map view framework used by this module
-
-## Authors
-
-- [Yopi Angi](https://www.github.com/gityopie)

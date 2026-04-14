@@ -1,23 +1,47 @@
 # CRM Google Maps
 
-The `crm_google_map` module adds Google Maps view to the CRM application for leads and opportunities. It allows you to visualize your leads and opportunities on an interactive Google Map, helping sales teams identify geographical clusters and plan territory coverage.
+## Overview
 
-<div style="display: flex; gap: 4px; justify-content: center;">
-  <img src="static/img/google_maps_view_preview.png" alt="Preview" style="width: 100%; max-width: 600px; height: auto;">
-</div>
+This module adds a Google Maps view to the CRM application, letting you visualize your leads and opportunities as markers on an interactive map. It extends the standard CRM views with map-specific fields, custom CRM markers, and geolocation tools on the lead form.
 
-## Features
-- Interactive Google Map view for CRM leads and opportunities with clustering and sidebar
-- Quick actions from the map sidebar to open lead/opportunity records
-- View leads/opportunities plotted on the map based on their addresses
-- Shift + drag to select multiple leads/opportunities directly from the map
+## What It Does
 
-## Installation & Configuration
+Adds the `google_map` view type to the Leads, Opportunities, My Activities, Pipeline, and Forecast menus in CRM. Each lead or opportunity appears as a color-coded marker showing key deal information directly on the map. The lead form also gains a Geolocation tab with an embedded map preview and tools to set or compute coordinates.
 
-1. Configure your Google Maps API key in `Settings > General Settings > Google Maps`
-2. Navigate to `CRM > Leads` or `CRM > Opportunities` and switch to the Google Map view
-3. View your leads/opportunities plotted on the map based on their addresses
-4. Maps JavaScript API must be enabled in your Google Cloud Console.
+## Key Features
 
-## Authors
-- [Yopi Angi](https://www.github.com/gityopie)
+- **Google Map View**: Adds a Map view to Leads, Opportunities, My Activities, Pipeline, and Forecast menus, alongside the existing list, kanban, and calendar views
+- **CRM Marker Cards**: Each marker displays the lead name, stage, linked contact, salesperson, expected revenue, probability, and expected closing date — visible directly on the map without opening the record
+- **Marker Color Customization**: Each lead has a configurable marker color, set via a color picker on the lead form's Geolocation tab
+- **Overlap Handling**: When multiple leads share the same address, markers are slightly offset so each remains individually clickable; an indicator icon flags shifted markers
+- **Sidebar with CRM Details**: The map sidebar lists all leads in the current view with their expected revenue and pipeline stage shown beneath each entry
+- **Automatic Geolocation from Partner**: When a contact is linked to a lead, the lead's latitude and longitude are automatically set from the partner's stored coordinates
+- **Geocode from Address**: A button on the Geolocation tab computes coordinates from the lead's address fields using Odoo's geocoding service
+- **Geolocation Tab**: Adds a dedicated tab to the lead form showing coordinates, a geocode button, a marker color picker, and an embedded map preview of the lead's location
+- **Google Map Smart Button**: A map button appears on the lead form when coordinates are set, opening the map view scoped to that single lead
+
+## Dependencies
+
+- `crm`
+- `web_view_google_map`
+- `web_widget_google_map`
+
+## Installation
+
+1. Install the module through Odoo Apps
+2. Ensure a valid Google Maps API Key is configured in Settings → General Settings → Google Maps
+3. Enable the Maps JavaScript API and Geocoding API in your Google Cloud Console
+
+## Basic Usage
+
+1. Open **CRM → Leads** or **CRM → Opportunities** and click the **Map** view button
+2. Leads with geolocation data appear as colored marker cards on the map
+3. Click any marker to highlight it and view the deal summary
+4. Open a lead's form and go to the **Geolocation** tab to set or compute coordinates and choose a marker color
+
+## Related Modules
+
+- `web_view_google_map`: Provides the core Google Map view type
+- `web_widget_google_map`: Provides the embedded map widget used on the lead form
+- `crm_google_map_add_place`: Adds click-to-create leads directly from the map
+- `crm_google_autocomplete`: Adds Google Places autocomplete to the Lead form

@@ -15,7 +15,7 @@ Extends `crm.lead` with the `google_map.add_place.mixin` and patches the CRM Goo
 - **Click Empty Map Space**: Click anywhere on the map to reverse-geocode the coordinate and open a lead form pre-filled with the resolved address
 - **CRM Field Mapping**: Place name populates `contact_name`, coordinates map to `customer_latitude` / `customer_longitude`, and all address fields are pre-filled
 - **Duplicate Detection**: If a lead with the same Google Place ID already exists, the existing record is opened instead of creating a duplicate
-- **Visual Indicator**: A map control in the top-right corner turns green when the feature is active (zoom ≥ 15)
+- **Visual Indicator & Zoom Shortcut**: A map control in the top-right corner turns green when the feature is active (zoom ≥ 15); clicking it while zoomed out automatically zooms in and pans to the nearest visible lead marker
 - **Auto-reload**: The map view reloads automatically after saving so the new lead appears on the map immediately
 
 ## Dependencies

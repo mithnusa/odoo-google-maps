@@ -1,17 +1,41 @@
 # Partner Autocomplete with Google Autocomplete
 
-The `partner_autocomplete_with_google_autocomplete` module integrates [Google Places Autocomplete Element](https://developers.google.com/maps/documentation/javascript/place-autocomplete-new) with Odoo's partner autocomplete feature. It enhances the partner creation experience by combining Odoo's standard partner autocomplete with Google Places data.
+## Overview
 
-This module extends `web_widget_google_place_autocomplete`. The widget `partner_autocomplete_with_gplace` is a drop-in replacement for the `gplace_autocomplete_el` widget, inheriting all of its functionality and options.
+This module combines Odoo's built-in partner autocomplete with Google Places autocomplete on the Contact (partner) form. It replaces the standard name field widget so users have both Odoo's company database lookup and a Google Places search available side by side.
 
-## Features
-- Enhanced partner autocomplete using Google Places API
-- Automatic population of address fields (street, city, state, zip, country) based on selected place
-- Seamless integration with Odoo's existing partner autocomplete functionality
+## What It Does
 
-## Installation & Configuration
+Automatically applies a combined widget to the `name` field on all partner form views. A toggle button (Google icon) next to the name field opens a collapsible Google Places autocomplete panel. Selecting a place fills in the partner's address fields and coordinates without replacing the Odoo partner autocomplete, which remains available on the same field.
 
-1. Configure your Google Maps API key in `Settings > General Settings > Google Maps`
-2. Use the partner autocomplete feature in forms - it will now be enhanced with Google Places data
-3. Create new partners more easily with accurate address information from Google Places
-4. Places API (New) must be enabled in your Google Cloud Console for the autocomplete functionality to work properly.
+## Key Features
+
+- **Combined Widget on Partner Name**: Replaces the `name` field widget on all `res.partner` form views automatically — no view XML changes required
+- **Google Places Toggle Panel**: A collapsible panel with a Google Places autocomplete input opens when the Google icon button is clicked, and closes after a selection is made
+- **Full Address Auto-Fill**: Selecting a place populates street, street2, city, state, zip, and country automatically
+- **Geolocation Auto-Fill**: Latitude and longitude are stored automatically from the selected place's coordinates
+- **Place Details Auto-Fill** (places mode): Also populates phone and website when a business is selected
+- **Optional Read-Only Name Field**: A `no_manual_edit` option prevents direct typing in the name field, requiring users to select from autocomplete
+- **Mapping Config Validation**: Shows a clear error in the panel if no valid mapping configuration is found, rather than silently failing
+
+## Dependencies
+
+- `partner_autocomplete`
+- `contacts_google_autocomplete`
+
+## Installation
+
+1. Install the module through Odoo Apps
+2. Ensure a valid Google Maps API Key is configured in Settings → General Settings → Google Maps
+3. Ensure the Places API (New) is enabled in your Google Cloud Console
+4. The Google Places mapping for `res.partner` must exist — it is created automatically when `contacts_google_autocomplete` is installed
+
+## Basic Usage
+
+Open any Contact form. The name field now has a Google icon toggle button beside it. Click the button to expand the Google Places autocomplete panel, type a business name or address, and select a result to auto-fill the partner details.
+
+## Related Modules
+
+- `partner_autocomplete`: Provides the base Odoo partner autocomplete widget that this module extends
+- `contacts_google_autocomplete`: Provides the Google Places mapping for `res.partner` and the `web_widget_google_place_autocomplete` dependency
+- `web_widget_google_place_autocomplete`: Provides the `GooglePlaceAutocompleteElement` component used in the panel
