@@ -1,22 +1,40 @@
 # Delivery Google Maps
 
-The `stock_google_map` module adds Google Maps view to the Inventory/Delivery application. It allows you to visualize delivery orders and stock pickings on an interactive Google Map, helping logistics teams optimize delivery routes and plan warehouse operations.
+## Overview
 
-<div style="display: flex; gap: 4px; justify-content: center;">
-  <img src="static/img/google_maps_view_preview.png" alt="Preview" style="width: 100%; max-width: 600px; height: auto;">
-</div>
+This module adds a Google Maps view to the Inventory application, allowing you to visualize delivery orders and other stock pickings on an interactive map based on delivery addresses.
 
-## Features
-- Interactive Google Map view for Delivery Orders with clustering and sidebar
-- Quick actions from the map sidebar to open delivery order records
-- View deliveries plotted on the map based on delivery addresses
-- Shift + drag to select multiple deliveries directly from the map
+## What It Does
 
-## Installation & Configuration
-1. Configure your Google Maps API key in `Settings > General Settings > Google Maps`
-2. Navigate to `Inventory > Delivery Orders` and switch to the Google Maps view
-3. View your deliveries plotted on the map based on delivery addresses
-4. Maps JavaScript API must be enabled in your Google Cloud Console.
+Adds a Map view to Delivery Orders and other stock picking lists in Inventory. Each picking appears as a teal marker at the destination partner's address. A sidebar lists all visible pickings with their reference number and delivery address.
 
-## Authors
-- [Yopi Angi](https://www.github.com/gityopie)
+## Key Features
+
+- **Map View on Picking Lists**: The Map view is available on Deliveries, Ready to Transfer, Waiting Transfer, Late Transfers, Backorders, and All Operations
+- **Address-Based Plotting**: Each picking is plotted using the coordinates of its linked delivery partner
+- **Sidebar Navigation**: A left-hand panel lists all pickings with their reference and delivery address; clicking an entry pans the map to that marker
+- **Teal Markers**: Picking markers use a teal color to distinguish deliveries from other record types on shared maps
+
+## Dependencies
+
+- `sale_stock`
+- `stock_delivery`
+- `web_view_google_map`
+
+## Installation
+
+1. Install the module through Odoo Apps
+2. Configure your Google API Key in Settings → General Settings → Google Maps
+3. Ensure partners have coordinates set (via geolocation tools in Contacts)
+
+## Basic Usage
+
+1. Open **Inventory → Delivery Orders** (or any other picking list)
+2. Click the **Map** view icon
+3. Deliveries with geolocated partners appear as teal markers
+4. Click a marker or sidebar entry to view the delivery reference and address
+
+## Related Modules
+
+- `web_view_google_map`: Provides the core Google Map view type
+- `contacts_google_map`: Adds geolocation tools to partner records so coordinates are available for plotting

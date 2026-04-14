@@ -14,20 +14,13 @@ Adds a click-to-create workflow to the Google Maps view in Contacts. When you ar
 - **Click-to-create on any location**: Clicking anywhere on the map (not just named places) reverse-geocodes the coordinate and opens a contact form pre-filled with the resolved address.
 - **Duplicate detection**: If a contact with the same Google Place ID already exists, the module opens that existing record instead of creating a duplicate.
 - **Google Place ID stored on contact**: Each contact created from a Google Place has its Place ID saved, linking the Odoo record to the exact Google Maps location.
-- **Visual activity indicator**: A map control in the top-right corner turns green when the zoom level is sufficient for click-to-create to be active.
+- **Visual activity indicator & zoom shortcut**: A map control in the top-right corner turns green when the zoom level is sufficient for click-to-create to be active; clicking it while zoomed out automatically zooms in and pans to the nearest visible contact marker.
 - **Automatic map refresh**: After a contact is saved, the map view reloads automatically and a notification appears with a direct link to open the new or updated contact.
-
-## Use Cases
-
-### Adding a new business contact on the spot
-While browsing the map, you spot a supplier's office or a prospect's location. Zoom in, click the marker, review the pre-filled form, and save — the contact is created without leaving the map.
-
-### Capturing a precise address for a location without a Google listing
-Click on a building or address that has no Google Place listing. The module reverse-geocodes the coordinate and fills in the street, city, postal code, and country automatically.
 
 ## Dependencies
 
 - `web_view_google_map`
+- `base_google_map_add_place`
 - `contacts_google_map`
 
 ## Installation
@@ -45,5 +38,6 @@ Click on a building or address that has no Google Place listing. The module reve
 
 ## Related Modules
 
-- `web_view_google_map`: Provides the core Google Map view type used by this module.
-- `contacts_google_map`: Provides the Contacts-specific Google Maps view that this module extends.
+- `base_google_map_add_place`: Provides the abstract mixin and `InMapClickAddPlace` component used by this module
+- `web_view_google_map`: Provides the core Google Map view type
+- `contacts_google_map`: Provides the Contacts-specific Google Maps view that this module extends

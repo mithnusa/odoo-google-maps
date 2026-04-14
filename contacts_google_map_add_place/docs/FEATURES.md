@@ -55,12 +55,13 @@
 
 ## Visual Indicator
 
-### Map Activity Indicator
-**What it does**: Displays a small button control in the top-right corner of the map that changes appearance based on whether click-to-create is currently active.
+### Map Activity Indicator & Zoom Shortcut
 
-**Why it matters**: Gives users immediate visual feedback so they know when zooming in further is needed before clicking.
+**What it does**: Displays a small button control in the top-right corner of the map that signals whether click-to-create is active, and doubles as a shortcut to zoom in when it is not.
 
-**How it works**: The indicator starts neutral (grey). When the map zoom level reaches or exceeds the required threshold, the button turns green and animates. The button includes a tooltip explaining the zoom requirement. The indicator is automatically removed from the map when the component is unmounted.
+**Why it matters**: Gives users immediate visual feedback so they know when zooming in further is needed, and lets them reach the required zoom level in one click rather than scrolling manually.
+
+**How it works**: The indicator starts neutral (grey). When the map zoom level reaches or exceeds the required threshold, the button turns green and animates. The button includes a tooltip explaining the zoom requirement. When clicked while zoomed out, the map zooms to the threshold level and pans to the nearest visible contact marker (or the map centre if none are in view). The indicator is automatically removed from the map when the component is unmounted.
 
 ---
 

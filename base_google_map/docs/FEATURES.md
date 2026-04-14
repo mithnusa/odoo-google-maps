@@ -16,7 +16,7 @@
 
 **Why it matters**: A Map ID is required to use advanced map features such as custom cloud-based map styles and 3D map rendering.
 
-**How it works**: Enter a Map ID obtained from the Google Cloud Console. It is applied automatically to all map views that support it.
+**How it works**: Enter a Map ID obtained from the Google Cloud Console. It is applied automatically to all map views that support it. This setting is only visible when `web_view_google_map` is installed.
 
 ---
 
@@ -25,7 +25,7 @@
 
 **Why it matters**: Ensures the map UI matches the language your users expect, including region-specific language variants.
 
-**How it works**: Choose from 86 supported languages including regional variants (e.g., Chinese Simplified, Chinese Traditional, English AU, Portuguese BR). The selected language is passed to the Google Maps API on load.
+**How it works**: Choose from 84 supported languages including regional variants (e.g., Chinese Simplified, Chinese Traditional, English AU, Portuguese BR). The selected language is passed to the Google Maps API on load. This setting is only visible when `web_view_google_map` is installed.
 
 ---
 
@@ -34,7 +34,7 @@
 
 **Why it matters**: Some countries require maps to display borders and place names according to local regulations. Setting the correct region ensures compliance.
 
-**How it works**: Available regions are derived from the selected language. The region code is passed to the Google Maps API on load.
+**How it works**: Choose from any country as the region. The region code is passed to the Google Maps API on load. Clearing the language setting also clears the region, as the two are related.
 
 ---
 
@@ -43,7 +43,7 @@
 
 **Why it matters**: Allows maps to match your Odoo interface theme, improving readability especially in dark mode environments.
 
-**How it works**: Select Light, Dark, or System in the settings. "System" automatically applies dark map styling when the user's OS is set to dark mode.
+**How it works**: Select Light, Dark, or System in the settings. "System" automatically applies dark map styling when the user's OS is set to dark mode. This setting is only visible when `web_view_google_map` is installed.
 
 ---
 
@@ -73,7 +73,7 @@
 
 **Why it matters**: Allows users to search for locations on the map without leaving the map view, improving navigation efficiency.
 
-**How it works**: Toggle "Enable in-map place search" in settings. When enabled, map views that support this feature display a search box powered by the Google Places API (New). Requires the Places API (New) to be enabled in your Google Cloud Console.
+**How it works**: Toggle "Enable in-map place search" in settings. When enabled, map views that support this feature display a search box powered by the Google Places API (New). Requires the Places API (New) to be enabled in your Google Cloud Console. This setting is only visible when `web_view_google_map` is installed.
 
 ---
 
