@@ -1,5 +1,9 @@
 # Change Log
 
+## 19.0.1.0.7
+
+- [Fixed] **Coordinate Preservation on Address Change**: Added `_delete_coordinates` override on `res.partner` that skips the coordinate-clearing logic when `is_from_google_maps` is present in the context; prevents Odoo's enterprise `_delete_coordinates` from wiping the latitude/longitude just set by the Google Maps place selection workflow; falls back gracefully to `super()._delete_coordinates()` on community edition where the method does not exist
+
 ## 19.0.1.0.6
 
 - [Improved] **Sidebar CSS Selector**: Updated SCSS selector from `.o_map_right_sidebar` to `.o_map_left_sidebar` and narrowed the dialog scope from `.o_dialog` to `.o_google_map_renderer .o_dialog`, matching the sidebar rename in `web_view_google_map` v1.0.22
