@@ -14,7 +14,7 @@
     'website': 'https://github.com/mithnusa',
     'support': 'yopiangi@gmail.com',
     'category': 'Project',
-    'version': '1.0.1',
+    'version': '1.0.2',
     'depends': [
         'project',
         'web_view_google_map',

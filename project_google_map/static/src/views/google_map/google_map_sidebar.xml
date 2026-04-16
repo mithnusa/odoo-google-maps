@@ -1,10 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates xml:space="preserve">
-    <t t-name="project_google_map.RecordItem" t-inherit="web_view_google_map.RecordItem" t-inherit-mode="primary">
-        <xpath expr="//span[@t-if='_showMarker']" position="before">
-            <button type="button" class="btn btn-link btn-sm" id="action-view-task" data-tooltip="View Tasks" t-on-click="() => props.onActionViewTask(record)">
-                <i class="fa fa-list-ul"/>
-            </button>
-        </xpath>
+    <!--
+        Extra action button rendered inside the actions <td> of the sidebar
+        record row, between the Nearby button and the Open button.
+        Injected via GoogleMapSidebarProject.recordActionsTemplate.
+    -->
+    <t t-name="project_google_map.RecordActionsTemplate">
+        <button type="button" class="btn btn-sm btn-link" id="action-view-task" data-tooltip="View Tasks" t-on-click="() => props.onActionViewTask(record)">
+            <i class="fa fa-list-ul"/>
+        </button>
     </t>
 </templates>

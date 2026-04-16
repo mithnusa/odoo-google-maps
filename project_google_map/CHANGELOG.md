@@ -1,5 +1,11 @@
 # Change Log
 
+## 1.0.2
+
+- [Improved] **Sidebar Actions Hook Migration**: Replaced `RecordItem` primary template inheritance (xpath before the marker span) with the new `recordActionsTemplate` slot from `web_view_google_map` v1.0.22; `GoogleMapSidebarProject` now sets `static recordActionsTemplate = 'project_google_map.RecordActionsTemplate'` instead of overriding `recordItemTemplate`
+- [Improved] **`RecordActionsTemplate` Template**: Rewrote the "View Tasks" button as a standalone `<t t-name="project_google_map.RecordActionsTemplate">` block; button class updated to `btn btn-sm btn-link` for consistency with the base sidebar action buttons
+- [Added] **`google_map_sidebar.scss`**: New stylesheet that widens the actions column (`td:last-child`) to `95px` for project sidebar rows, accommodating the additional "View Tasks" button without wrapping
+
 ## 1.0.1
 
 ### Added
