@@ -10,7 +10,6 @@
             max-width: 400px;
             // min-width lives only in .open / .closed so both values are always
             // explicit and the browser can interpolate instead of snapping.
-            // box-shadow is included here so it fades out smoothly on close too.
             transition:
                 width 0.3s cubic-bezier(0.4, 0, 0.2, 1),
                 min-width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -159,7 +158,6 @@
             &.closed {
                 width: 0;
                 min-width: 0;
-                // box-shadow: none;
 
                 .content {
                     opacity: 0;
@@ -180,7 +178,6 @@
             // Open state
             &.open {
                 min-width: 300px;
-                // box-shadow: 3px 0 6px rgba(0, 0, 0, 0.1);
                 border-right: var(--ControlPanel-border-bottom, #{$o-control-panel-border-bottom});
                 // No transition override here — inherits the consolidated
                 // base transition (width + min-width + box-shadow all at once)
