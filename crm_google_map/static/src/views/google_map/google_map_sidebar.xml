@@ -1,14 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates xml:space="preserve">
-    <t t-name="crm_google_map.RecordItem" t-inherit="web_view_google_map.RecordItem" t-inherit-mode="primary">
-        <xpath expr="//div[hasclass('o_map_sidebar_record')]/.." position="after">
-            <div class="d-flex align-items-center justify-content-between mt-1">
-                <div class="d-flex align-items-center text-muted">
-                    <i class="fa fa-dollar me-1"/>
-                    <Field id="'expected_revenue'" name="'expected_revenue'" record="record" readonly="true" class="'small'"/>
-                </div>
+    <!--
+        Extra content rendered below the record title in the sidebar.
+        Injected via GoogleMapSidebarCRM.recordExtraTemplate — no xpath needed.
+    -->
+    <t t-name="crm_google_map.RecordItemExtra">
+        <div class="o_crm_sidebar_extra d-flex align-items-center mt-1">
+            <div class="o_crm_sidebar_amount d-flex align-items-center">
+                <i class="fa fa-dollar text-muted me-1"/>
+                <Field id="'expected_revenue'" name="'expected_revenue'" record="record" readonly="true" class="'smaller font-monospace'"/>
+            </div>
+            <div class="o_crm_sidebar_stage">
                 <Field id="'stage_id'" name="'stage_id'" record="record" readonly="true" class="'disabled'"/>
             </div>
-        </xpath>
+        </div>
     </t>
 </templates>

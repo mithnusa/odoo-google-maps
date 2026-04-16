@@ -1,20 +1,18 @@
 .o_google_map_view {
-    .o_google_map_renderer, .o_dialog {
-        .o_map_right_sidebar {
+    .o_google_map_renderer, .o_google_map_renderer .o_dialog {
+        .o_map_left_sidebar {
             // Base styles
             position: relative;
             height: 100%;
             background-color: $o-view-background-color;
             z-index: 1;
-            width: 25%;
+            width: 18%;
             max-width: 400px;
             // min-width lives only in .open / .closed so both values are always
             // explicit and the browser can interpolate instead of snapping.
-            // box-shadow is included here so it fades out smoothly on close too.
             transition:
                 width 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-                min-width 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-                box-shadow 0.3s ease-out;
+                min-width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
             // Clips the content as the sidebar narrows without affecting the
             // toggle button, which lives outside this element.
@@ -60,30 +58,44 @@
                     }
                 }
 
-                // Group headers: clamp reserves space for caret icons, action
-                // buttons, and cell padding on the right side.
-                table tr td .o_map_sidebar_group {
-                    display: block;
-                    white-space: nowrap;
+                // Clip all table cells so content never bleeds past column edges.
+                table tr td {
                     overflow: hidden;
-                    text-overflow: ellipsis;
-                    max-width: clamp(140px, calc(25vw - 130px), 260px);
+                }
+
+                // Apply table-layout: fixed only to tables that contain no
+                // colspan cells.  This excludes the outer group-header table
+                // (whose rows use colspan="99") and avoids the 99-column bug
+                // that occurs when a colspan row is the first one the fixed-
+                // layout algorithm sees.  Record tables never use colspan, so
+                // they always get the fixed layout and the 70px actions column.
+                table:not(:has([colspan])) {
+                    table-layout: fixed;
+                    width: 100%;
+
+                    tr td:last-child {
+                        min-width: 70px; // fixed width for action buttons
+                        max-width: 100px;
+                    }
                 }
 
                 // Record rows: the record wrapper fills all remaining flex
                 // space in the name cell (after the optional avatar sibling),
                 // so the text adapts naturally to the actual available width
                 // without a fixed pixel offset.
-                table tr td .o_map_sidebar_record {
-                    flex: 1;
-                    min-width: 0;
-                    overflow: hidden;
-
-                    > div {
-                        display: block;
-                        white-space: nowrap;
+                table tr td {
+                    .o_map_sidebar_record, .o_map_sidebar_group {
+                        flex: 1;
+                        min-width: 0;
                         overflow: hidden;
-                        text-overflow: ellipsis;
+
+                        > div {
+                            display: block;
+                            white-space: nowrap;
+                            overflow: hidden;
+                            text-overflow: ellipsis;
+                            max-width: clamp(140px, calc(25vw - 150px), 260px);
+                        }
                     }
                 }
 
@@ -94,23 +106,23 @@
                     text-overflow: ellipsis;
                 }
             }
-            .toggle_right_sidenav {
+            .toggle_left_sidenav {
                 display: block;
                 position: absolute;
-                right: 100%;  // Position relative to the sidebar width
+                left: 100%;  // Position relative to the sidebar width
                 top: 45%;
                 z-index: 999;
                 // Match sidebar timing so the button tracks the edge cleanly
-                transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
                 button {
                     width: 25px;
                     height: 60px;
-                    border-left: 1px solid darken($o-view-background-color, 6%);
-                    border-top: 1px solid darken($o-view-background-color, 6%);
-                    border-bottom: 1px solid darken($o-view-background-color, 6%);
-                    border-right: 0;
-                    border-radius: 10px 0 0 10px;
+                    border-right: 1px solid darken($o-view-background-color, 8%);
+                    border-top: 1px solid darken($o-view-background-color, 8%);
+                    border-bottom: 1px solid darken($o-view-background-color, 8%);
+                    border-left: 0;
+                    border-radius: 0 10px 10px 0;
                     font-size: 16px;
                     background-color: $o-view-background-color;
                     cursor: pointer;
@@ -146,7 +158,6 @@
             &.closed {
                 width: 0;
                 min-width: 0;
-                box-shadow: none;
 
                 .content {
                     opacity: 0;
@@ -156,18 +167,18 @@
                     pointer-events: none;
                 }
 
-                .toggle_right_sidenav {
-                    right: 0; // Tracks the collapsing edge to stay visible
+                .toggle_left_sidenav {
+                    left: 0; // Tracks the collapsing edge to stay visible
 
                     button::before {
-                        content: '\f0d9';
+                        content: '\f0da';
                     }
                 }
             }
             // Open state
             &.open {
                 min-width: 300px;
-                box-shadow: -3px 0 6px rgba(0, 0, 0, 0.1);
+                border-right: var(--ControlPanel-border-bottom, #{$o-control-panel-border-bottom});
                 // No transition override here — inherits the consolidated
                 // base transition (width + min-width + box-shadow all at once)
 
@@ -176,11 +187,11 @@
                     pointer-events: auto;
                 }
 
-                .toggle_right_sidenav {
-                    right: 100%;
+                .toggle_left_sidenav {
+                    left: 100%;
 
                     button::before {
-                        content: '\f0da';
+                        content: '\f0d9';
                     }
                 }
             }
