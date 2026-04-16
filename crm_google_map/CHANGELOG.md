@@ -1,6 +1,12 @@
 <!-- markdownlint-disable MD024 -->
 # Change Log
 
+## 19.0.1.0.7
+
+- [Improved] **Sidebar Extra Content — Hook Migration**: Replaced the `RecordItem` primary template inheritance (`t-inherit-mode="primary"` with an xpath) with the new `recordExtraTemplate` hook introduced in `web_view_google_map` v1.0.22; `GoogleMapSidebarCRM` now sets `static recordExtraTemplate = 'crm_google_map.RecordItemExtra'` instead of overriding `recordItemTemplate`
+- [Improved] **`RecordItemExtra` Template**: Rewrote the extra content template as a standalone `<t t-name="crm_google_map.RecordItemExtra">` block (no xpath); restructured the amount/stage row with dedicated `o_crm_sidebar_extra`, `o_crm_sidebar_amount`, and `o_crm_sidebar_stage` CSS classes; changed `expected_revenue` field class to `'smaller font-monospace'` and added `text-muted` directly to the dollar icon
+- [Improved] **SCSS Dialog Selector**: Narrowed selector from `.o_google_map_renderer, .o_dialog` to `.o_google_map_renderer, .o_google_map_renderer .o_dialog` to avoid unintended style leakage into unrelated dialogs
+
 ## 19.0.1.0.6
 
 ### Fixed

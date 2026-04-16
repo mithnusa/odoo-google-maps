@@ -27,7 +27,7 @@ Most of the implementation is inspired by the samples in the [Google Maps JavaSc
 ### CRM
 
 - **[crm_google_autocomplete](crm_google_autocomplete/README.md)** `19.0.1.0.1` — Applies `gplace_autocomplete_el` to the Lead/Opportunity form's company name field (`places` mode) and street field (`address` mode), in both the quick-entry group and the detailed lead tab. Auto-fills address fields and CRM geolocation fields on selection.
-- **[crm_google_map](crm_google_map/README.md)** `19.0.1.0.6` — Adds a Google Map view across five CRM menus (All Leads, My Activities, Opportunities, Pipeline, Forecast). Each lead appears as a color-coded marker card with stage, contact, salesperson, revenue, probability, and closing date. The lead form gains a Geolocation tab, geocode button, color picker, and a map smart button.
+- **[crm_google_map](crm_google_map/README.md)** `19.0.1.0.7` — Adds a Google Map view across five CRM menus (All Leads, My Activities, Opportunities, Pipeline, Forecast). Each lead appears as a color-coded marker card with stage, contact, salesperson, revenue, probability, and closing date. The lead form gains a Geolocation tab, geocode button, color picker, and a map smart button.
 - **[crm_google_map_add_place](crm_google_map_add_place/README.md)** `19.0.1.0.0` — Activates click-to-create on the CRM map view. Named place clicks create a pre-filled lead with address, phone, website, coordinates, and an auto-generated opportunity name. Empty map clicks reverse-geocode the coordinate. Duplicate detection uses the Google Place ID.
 
 ### Sales
