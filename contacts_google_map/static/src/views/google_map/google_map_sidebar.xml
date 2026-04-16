@@ -6,9 +6,9 @@
         </xpath>
         <xpath expr="//div[hasclass('o_map_sidebar_record')]" position="before">
             <t t-set="avatar_url" t-value="this.getAvatarUrl(record)"/>
-            <div class="d-inline-block position-relative opacity-trigger-hover">
+            <t t-if="avatar_url">
                 <img loading="lazy" t-att-src="avatar_url" class="img img-fluid o_avatar rounded" alt="Avatar" height="24" width="24" style="height: 24px; width: 24px;"/>
-            </div>
+            </t>
         </xpath>
     </t>
 </templates>

@@ -1,6 +1,6 @@
 .o_google_map_view {
-    .o_google_map_renderer, .o_dialog {
-        .o_map_right_sidebar {
+    .o_google_map_renderer, .o_google_map_renderer .o_dialog {
+        .o_map_left_sidebar {
             .content {
                 table tr td .o_map_sidebar_record.with_avatar {
                     max-width: 220px; // Wide screens (>1600px) where sidebar is capped at 400px

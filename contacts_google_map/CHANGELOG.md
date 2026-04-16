@@ -1,5 +1,10 @@
 # Change Log
 
+## 19.0.1.0.6
+
+- [Improved] **Sidebar CSS Selector**: Updated SCSS selector from `.o_map_right_sidebar` to `.o_map_left_sidebar` and narrowed the dialog scope from `.o_dialog` to `.o_google_map_renderer .o_dialog`, matching the sidebar rename in `web_view_google_map` v1.0.22
+- [Fixed] **Avatar Rendering**: Wrapped the avatar `<img>` in `<t t-if="avatar_url">` instead of a `<div class="d-inline-block ...">` wrapper, so the image element is only rendered when an avatar URL is available; removes the empty placeholder div that was always present even for contacts without a photo
+
 ## 19.0.1.0.5
 
 - [Fixed] **Sidebar Record Name — Wide Screen Clipping**: Added `max-width: 220px` as a base rule on `.o_map_sidebar_record.with_avatar` to cover viewports wider than 1600px; without this, the name column had no width cap at that breakpoint, causing the table layout algorithm to squeeze the action buttons (map marker, Nearby, Open) off the right edge where they were hidden by `overflow-x: hidden`
