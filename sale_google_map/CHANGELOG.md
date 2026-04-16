@@ -1,6 +1,12 @@
 <!-- markdownlint-disable MD024 -->
 # Change Log
 
+## 19.0.1.0.11
+
+- [Fixed] **Avatar Wrapper**: Replaced `<div class="d-inline-block position-relative opacity-trigger-hover">` wrapper around the group avatar `<img>` with a plain `<t t-if="avatar_url">` guard, removing the always-present placeholder div when no avatar is available
+- [Improved] **Group Header Layout**: Removed `justify-content-between` from the group header flex container, leaving only `d-flex align-items-center gap-2` for a simpler, left-aligned layout
+- [Improved] **SCSS Dialog Selector**: Narrowed selector from `.o_google_map_renderer, .o_dialog` to `.o_google_map_renderer, .o_google_map_renderer .o_dialog` to avoid unintended style leakage into unrelated dialogs
+
 ## 19.0.1.0.10
 
 - [Removed] **`google_map_sidebar.scss`**: Deleted the module-specific sidebar SCSS file — the viewport-based media-query breakpoints for `.o_map_sidebar_group` max-width are now superseded by the `clamp()`-based rule added to the base `web_view_google_map` sidebar styles, making the per-module overrides redundant

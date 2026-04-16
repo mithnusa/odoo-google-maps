@@ -1,6 +1,13 @@
 <!-- markdownlint-disable MD024 -->
 # Change Log
 
+## 19.0.1.0.7
+
+- [Improved] **Sidebar Extra Content — Hook Migration**: Replaced the `RecordItem` primary template inheritance (`t-inherit-mode="primary"` with an xpath) with the new `recordExtraTemplate` hook introduced in `web_view_google_map` v1.0.22; `GoogleMapSidebarCRM` now sets `static recordExtraTemplate = 'crm_google_map.RecordItemExtra'` instead of overriding `recordItemTemplate`
+- [Improved] **`RecordItemExtra` Template**: Rewrote the extra content template as a standalone `<t t-name="crm_google_map.RecordItemExtra">` block (no xpath); restructured the amount/stage row with dedicated `o_crm_sidebar_extra`, `o_crm_sidebar_amount`, and `o_crm_sidebar_stage` CSS classes; changed `expected_revenue` field class to `'smaller font-monospace'` and added `text-muted` directly to the dollar icon
+- [Improved] **SCSS Dialog Selector**: Narrowed selector from `.o_google_map_renderer, .o_dialog` to `.o_google_map_renderer, .o_google_map_renderer .o_dialog` to avoid unintended style leakage into unrelated dialogs
+- [Added] **`google_map_sidebar.scss`**: New stylesheet for CRM sidebar extra content — constrains `.o_crm_sidebar_extra` with `overflow: hidden` and `gap: 4px`; `.o_crm_sidebar_amount` uses `flex: 0 1 auto` with ellipsis truncation; `.o_crm_sidebar_stage` takes remaining flex space (`flex: 1 1 0`) with right-aligned text and deep truncation rules on `.o_field_widget` and its children, preventing the two-row amount/stage layout from overflowing the sidebar and pushing action buttons off-screen
+
 ## 19.0.1.0.6
 
 ### Fixed

@@ -1,5 +1,20 @@
 # Change Log
 
+## 19.0.1.0.22
+
+- [Improved] **Sidebar Position — Left Side**: Moved the sidebar from the right side of the map to the left. The sidebar now renders before the map div in the DOM; renamed all CSS classes (`o_map_right_sidebar` → `o_map_left_sidebar`, `toggle_right_sidenav` → `toggle_left_sidenav`) and updated all selector references in `google_map_sidebar.scss` and `google_map_x2many_fields.scss`
+- [Improved] **Sidebar Toggle Button — Flip**: Toggle button border/radius flipped to match the new left-side position (`border-left: 0`, `border-right: 1px solid`, `border-radius: 0 10px 10px 0`); positioning changed from `right: 100%` to `left: 100%`; tooltip placement changed from `right` to `left`; open/close arrow glyphs swapped (`\f0da` ↔ `\f0d9`) to correctly indicate direction
+- [Improved] **Sidebar Width**: Default sidebar width reduced from `25%` to `18%` for a less intrusive footprint while keeping the `max-width: 400px` cap and `min-width: 300px` open-state floor
+- [Improved] **Sidebar Border**: Replaced `box-shadow` on the open state with `border-right` using the control panel border variable (`--ControlPanel-border-bottom`); removed `box-shadow` from the closed-state override (now commented out) for a cleaner edge
+- [Improved] **Sidebar Table Layout**: Applied `table-layout: fixed; width: 100%` to all record tables (those without a `colspan` cell) via `:not(:has([colspan]))`, giving the actions column a fixed `min-width: 70px` / `max-width: 100px` so action buttons never wrap or overflow
+- [Improved] **Sidebar Text Clipping**: Unified `.o_map_sidebar_record` and `.o_map_sidebar_group` overflow rules under a single `table tr td` block; added `overflow: hidden` on `td` cells directly; adjusted `max-width` clamp offset from `130px` to `150px`
+- [Improved] **Group Collapse — Table Structure**: Wrapped the collapsible group record list in a `<tr><td colspan="99">` row so it forms a valid `<table>` structure; nested record table now includes `table-striped` class
+- [Improved] **Group Count Row**: Added `d-flex align-items-center justify-content-center` to the group count container for consistent vertical alignment with the marker icon and count badge
+- [Improved] **"See More" Row**: Replaced `d-flex justify-content-center align-items-center` with `text-center` on the "see more" trigger row
+- [Added] **`recordExtraTemplate` Hook**: New `static recordExtraTemplate = 'web_view_google_map.RecordItemExtra'` property on `GoogleMapSidebar`; an empty `<t t-name="web_view_google_map.RecordItemExtra"/>` template is called inside the content `<td>` below the record title — sub-classes can override this static property to inject extra fields (e.g. amount, stage) without modifying `RecordItem`
+- [Added] **`recordActionsTemplate` Hook**: New `static recordActionsTemplate = 'web_view_google_map.RecordActionsTemplate'` property on `GoogleMapSidebar`; an empty `<t t-name="web_view_google_map.RecordActionsTemplate"/>` template is called inside the actions `<td>` between the Nearby and Open buttons — sub-classes can override this static property to inject extra action buttons (e.g. View Tasks) without modifying `RecordItem`
+- [Improved] **Checkbox Column Width**: Increased the selector checkbox column from `width: 10px` to `width: 20px` to prevent clipping of the checkbox control
+
 ## 19.0.1.0.21
 
 - [Improved] **Sidebar Toggle Button — Icons**: Replaced Unicode angle quotation marks (`\203A` / `\2039`) with FontAwesome glyphs — `fa-caret-right` (`\f0da`) for the open state and `fa-caret-left` (`\f0d9`) for the closed state; added `font-family: 'FontAwesome'` to the `::before` pseudo-element so the glyphs render correctly

@@ -8,6 +8,19 @@ export class GoogleMapSidebar extends Component {
     static listGroupOrRecordTemplate = 'web_view_google_map.ListGroupOrRecord';
     static recordItemTemplate = 'web_view_google_map.RecordItem';
     static groupItemTemplate = 'web_view_google_map.GroupItem';
+    /**
+     * Optional extra content rendered below the record title inside the
+     * content <td>.  Override in a sub-class to inject module-specific
+     * fields (e.g. amount + stage for CRM) without touching RecordItem.
+     */
+    static recordExtraTemplate = 'web_view_google_map.RecordItemExtra';
+    /**
+     * Optional extra action buttons rendered inside the actions <td>, between
+     * the Nearby and Open buttons.  Override in a sub-class to inject
+     * module-specific actions (e.g. View Tasks for project) without touching
+     * RecordItem.
+     */
+    static recordActionsTemplate = 'web_view_google_map.RecordActionsTemplate';
     static components = { CheckBox, Field };
     static props = {
         header: String,

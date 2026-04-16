@@ -3,18 +3,18 @@
     <t t-name="web_view_google_map.GoogleMapRenderer">
         <div class="o_google_map_renderer">
             <Geolocate googleMap="googleMap" t-if="state.isMapReady"/>
-            <div class="o_google_map_view" id="o_google_map_view" t-ref="map"></div>
-            <InMapSearchPlaces googleMap="googleMap" t-if="state.isMapReady"/>
-            <div t-attf-class="o_map_right_sidebar #{state.sidebarIsFolded ? 'closed': 'open'}">
+            <div t-attf-class="o_map_left_sidebar #{state.sidebarIsFolded ? 'closed': 'open'}">
                 <div class="sidebar_content_clip">
                     <div class="content">
                         <Sidebar t-props="sidebarProps" t-if="state.isMapReady"/>
                     </div>
                 </div>
-                <div class="toggle_right_sidenav">
-                    <button data-toggle="tooltip" data-placement="right" t-attf-data-tooltip="{{ state.sidebarIsFolded ? 'Expand side panel' : 'Collapse side panel' }}" t-on-click="toggleSidebar"></button>
+                <div class="toggle_left_sidenav">
+                    <button data-toggle="tooltip" data-placement="left" t-attf-data-tooltip="{{ state.sidebarIsFolded ? 'Expand side panel' : 'Collapse side panel' }}" t-on-click="toggleSidebar"></button>
                 </div>
             </div>
+            <div class="o_google_map_view" id="o_google_map_view" t-ref="map"></div>
+            <InMapSearchPlaces googleMap="googleMap" t-if="state.isMapReady"/>
         </div>
     </t>
     <t t-name="web_view_google_map.MarkerInfoWindow">

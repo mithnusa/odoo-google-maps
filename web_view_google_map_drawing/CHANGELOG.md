@@ -1,5 +1,9 @@
 # Change Log
 
+## 19.0.1.0.14
+
+- [Improved] **Sidebar CSS Selector**: Renamed `.o_map_right_sidebar` to `.o_map_left_sidebar` in both `google_map_drawing_x2many_field.scss` and `google_map_drawing_view.scss`, tracking the sidebar repositioning in `web_view_google_map` v1.0.22
+
 ## 19.0.1.0.13
 
 - [Updated] **Terra Draw**: Updated from 1.25.0 to 1.27.0
