@@ -1,0 +1,47 @@
+.o_google_map_view {
+    .o_google_map_renderer, .o_google_map_renderer .o_dialog {
+        .o_map_left_sidebar {
+            .content {
+                // CRM adds a second row inside the record td (amount + stage).
+                // Without explicit overflow constraints the row can expand the
+                // table cell wider than the sidebar and push the action-buttons
+                // column off-screen.  The rules below cap each part to its share
+                // of the available width so everything stays visible and truncates
+                // gracefully.
+                .o_crm_sidebar_extra {
+                    overflow: hidden;
+                    min-width: 0;
+                    gap: 4px;
+
+                    // Amount left side — fixed, never needs to shrink much
+                    .o_crm_sidebar_amount {
+                        flex: 0 1 auto;
+                        min-width: 0;
+                        overflow: hidden;
+                        white-space: nowrap;
+                        text-overflow: ellipsis;
+                    }
+
+                    // Stage right side — takes remaining space, truncates
+                    .o_crm_sidebar_stage {
+                        flex: 1 1 0;
+                        min-width: 0;
+                        overflow: hidden;
+                        text-align: right;
+
+                        // Field widget rendered by Odoo (span, a, div) must truncate
+                        .o_field_widget,
+                        .o_field_widget > *,
+                        > * {
+                            display: block;
+                            white-space: nowrap;
+                            overflow: hidden;
+                            text-overflow: ellipsis;
+                            max-width: 100%;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
