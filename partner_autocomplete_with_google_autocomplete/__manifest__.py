@@ -12,7 +12,7 @@
     'website': 'https://github.com/mithnusa',
     'support': 'yopiangi@gmail.com',
     'category': 'Extra Tools',
-    'version': '1.0.3',
+    'version': '1.0.4',
     'depends': ['partner_autocomplete', 'contacts_google_autocomplete'],
     'assets': {
         'web.assets_backend': [
