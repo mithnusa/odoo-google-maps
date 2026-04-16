@@ -120,7 +120,12 @@ export class PartnerAutoCompleteCharFieldWithGooglePlace extends PartnerAutoComp
             };
 
             if (Object.keys(allValues).length > 0) {
-                await this.props.record.update(allValues);
+                this.props.record.context.is_from_google_maps = true;
+                try {
+                    await this.props.record.update(allValues);
+                } finally {
+                    delete this.props.record.context.is_from_google_maps;
+                }
             }
 
             this.closeGoogleAutocomplete();

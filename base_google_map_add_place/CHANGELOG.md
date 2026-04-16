@@ -1,5 +1,9 @@
 # Change Log
 
+## 1.0.2
+
+- [Improved] **`is_from_google_maps` Context Flag**: Added `is_from_google_maps=True` to the action context in all three form-open paths in `GoogleMapAddPlaceMixin` — the existing-record open action, `action_in_map_google_place_create`, and `action_in_map_google_place_from_reverse_geocode` — so the quick-create form view and its field handlers can detect that the record was opened from the Google Maps click-to-create workflow
+
 ## 1.0.1 - 2026-04-11
 
 - **Fix OWL lifecycle hook**: Replaced `onRendered` with `onMounted` in `InMapClickAddPlace` — the map click listener and RIGHT_TOP indicator control are now registered once after the initial mount instead of after every re-render, preventing duplicate listener registration

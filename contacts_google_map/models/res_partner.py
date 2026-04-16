@@ -156,3 +156,17 @@ class ResPartner(models.Model):
             }
         )
         return action
+
+    @api.onchange('street', 'zip', 'city', 'state_id', 'country_id')
+    def _delete_coordinates(self):
+        # Odoo resets coordinates to False when the address changes.
+        # However, when we update the partner from the Google Maps view after selecting a place,
+        # it also updates these fields and would trigger this method, deleting the coordinates we just set.
+        # To prevent this, we check for a context flag that indicates the update is coming from the Google Maps workflow and skip deleting coordinates in that case.
+        if self.env.context.get('is_from_google_maps'):
+            return
+
+        # The method `_delete_coordinates` is defined in the enterprise version of res.partner,
+        # so we check if it exists before calling super to avoid errors in the community edition.
+        if hasattr(super(), '_delete_coordinates'):
+            super()._delete_coordinates()
