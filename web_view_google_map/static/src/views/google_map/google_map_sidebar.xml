@@ -4,7 +4,7 @@
         <tr t-attf-class="{{ props.allowSelectors &amp;&amp; record.selected ? 'table-info' : '' }}">
             <t t-set="_showMarker" t-value="typeof showMarker === 'boolean' ? showMarker : true" />
             <t t-if="props.allowSelectors">
-                <td style="width: 10px;">
+                <td style="width: 20px;">
                     <CheckBox disabled="!props.handleCanSelectRecord" value="record.selected" onChange.alike="() => this.selectRecord(record)"/>
                 </td>
             </t>
@@ -14,6 +14,7 @@
                         <Field id="props.title" name="props.title" record="record" readonly="true"/>
                     </div>
                 </div>
+                <t t-call="{{ constructor.recordExtraTemplate }}"/>
             </td>
             <td>
                 <div class="d-flex align-items-center justify-content-center">
@@ -23,6 +24,7 @@
                     <button type="button" class="btn btn-sm btn-link" id="action-show-nearby" data-tooltip="Nearby" t-on-click="() => props.showNearbyRecords(record)">
                         <i class="fa fa-location-arrow" />
                     </button>
+                    <t t-call="{{ constructor.recordActionsTemplate }}"/>
                     <button type="button" class="btn btn-sm btn-link" id="open-record" data-tooltip="Open" t-on-click.prevent="() => fnOpenRecord(record)">
                         <i class="fa fa-lg fa-angle-right" />
                     </button>
@@ -53,7 +55,7 @@
                             <span class="ps-1 pe-1" t-out="title" t-att-data-tooltip="title"/>
                         </div>
                     </button>
-                    <div t-if="group.group.count">
+                    <div t-if="group.group.count" class="d-flex align-items-center justify-content-center">
                         <span class="me-1">
                             <i class="fa fa-map-marker" t-attf-style="color: #{group.group.groupColor || 'red'};" />
                         </span>
@@ -64,29 +66,33 @@
                 </div>
             </td>
         </tr>
-        <div t-attf-class="collapse #{ group.group.records.length ? 'show' : '' }" t-attf-id="collapseGroup_#{ group.key }">
-            <t t-if="group.group.records.length">
-                <table class="table table-sm table-hover mb-0">
-                    <tbody>
-                        <t t-foreach="group.group.records" t-as="record" t-key="record.id">
-                            <t t-call="{{ constructor.recordItemTemplate }}">
-                                <t t-set="record" t-value="record" />
-                                <t t-set="data" t-value="record.dataView" />
-                                <t t-set="showMarker" t-value="false" />
-                            </t>
-                        </t>
-                        <tr t-if="group.group.count > group.group.records.length">
-                            <td colspan="99">
-                                <div class="d-flex justify-content-center align-items-center cursor-pointer" role="button" t-on-click.prevent="() => this.actionShowGroupRecords(group)">
-                                    <span class="me-2">see more</span>
-                                    <i class="fa fa-lg fa-angle-double-right" />
-                                </div>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </t>
-        </div>
+        <tr>
+            <td colspan="99" style="padding: 0; border: 0;">
+                <div t-attf-class="collapse #{ group.group.records.length ? 'show' : '' }" t-attf-id="collapseGroup_#{ group.key }">
+                    <t t-if="group.group.records.length">
+                        <table class="table table-sm table-hover table-striped mb-0">
+                            <tbody>
+                                <t t-foreach="group.group.records" t-as="record" t-key="record.id">
+                                    <t t-call="{{ constructor.recordItemTemplate }}">
+                                        <t t-set="record" t-value="record" />
+                                        <t t-set="data" t-value="record.dataView" />
+                                        <t t-set="showMarker" t-value="false" />
+                                    </t>
+                                </t>
+                                <tr t-if="group.group.count > group.group.records.length">
+                                    <td colspan="99">
+                                        <div class="text-center cursor-pointer" role="button" t-on-click.prevent="() => this.actionShowGroupRecords(group)">
+                                            <span class="me-2">see more</span>
+                                            <i class="fa fa-fw fa-lg fa-angle-double-right" />
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </t>
+                </div>
+            </td>
+        </tr>
     </t>
     <t t-name="web_view_google_map.ListGroupOrRecord">
         <table class="table table-sm table-hover table-striped">
@@ -119,6 +125,20 @@
             </tbody>
         </table>
     </t>
+    <!--
+        Empty slot rendered below the record title inside the content <td>.
+        Override `recordExtraTemplate` in a sub-class to inject extra fields
+        (amount, stage, etc.) without touching the RecordItem template.
+    -->
+    <t t-name="web_view_google_map.RecordItemExtra"/>
+    <!--
+        Empty slot rendered inside the actions <td>, between the Nearby button
+        and the Open button.  Override `recordActionsTemplate` in a sub-class
+        to inject extra action buttons (e.g. View Tasks) without touching the
+        RecordItem template.
+    -->
+    <t t-name="web_view_google_map.RecordActionsTemplate"/>
+
     <t t-name="web_view_google_map.GoogleMapSidebar">
         <div class="o_map_sidebar" t-ref="root">
             <div class="mt-2 mx-1">
