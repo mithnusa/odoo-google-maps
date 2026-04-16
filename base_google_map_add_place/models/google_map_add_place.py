@@ -286,6 +286,7 @@ class GoogleMapAddPlaceMixin(models.AbstractModel):
                     "views": [(False, "form")],
                     "target": "new",
                     "res_id": record_id.id,
+                    "context": dict(self.env.context, is_from_google_maps=True),
                 }
 
         values = self.default_get(self.GPLACE_USED_FIELDS)
@@ -342,7 +343,7 @@ class GoogleMapAddPlaceMixin(models.AbstractModel):
             "view_id": False,
             "views": [(False, "form")],
             "target": "new",
-            "context": dict(self.env.context, **default_values),
+            "context": dict(self.env.context, is_from_google_maps=True, **default_values),
         }
 
     @api.model
@@ -417,7 +418,7 @@ class GoogleMapAddPlaceMixin(models.AbstractModel):
             "view_id": False,
             "views": [(False, "form")],
             "target": "new",
-            "context": dict(self.env.context, **default_values),
+            "context": dict(self.env.context, is_from_google_maps=True, **default_values),
         }
 
     @api.model
