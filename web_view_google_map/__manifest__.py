@@ -14,7 +14,7 @@
     'website': 'https://github.com/mithnusa',
     'support': 'yopiangi@gmail.com',
     'category': 'Extra Tools',
-    'version': '1.0.22',
+    'version': '1.0.23',
     'depends': ['base_google_map'],
     'data': ['views/res_config_settings.xml'],
     'assets': {
