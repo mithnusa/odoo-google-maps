@@ -9,7 +9,7 @@
         possibility to see your geographical data in Google maps without
         leaving Odoo
     ''',
-    'license': 'AGPL-3',
+    'license': 'LGPL-3',
     'author': 'Yopi Angi (Mithnusa), Brian McMaster (McMaster Lawn & Pest Services)',
     'website': 'https://github.com/mithnusa',
     'support': 'yopiangi@gmail.com',

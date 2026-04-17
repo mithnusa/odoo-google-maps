@@ -20,7 +20,7 @@
         fields (street, city, zip, state, country) are pre-filled. Duplicate detection
         by Google Place ID is inherited from the base mixin.
     """,
-    "license": "AGPL-3",
+    "license": "LGPL-3",
     "author": "Yopi Angi",
     "website": "https://github.com/mithnusa",
     "support": "yopiangi@gmail.com",

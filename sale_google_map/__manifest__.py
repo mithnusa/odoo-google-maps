@@ -18,7 +18,7 @@ Key features:
 
 Requires a Google API Key configured in Settings → General Settings → Google Maps.
     """,
-    'license': 'AGPL-3',
+    'license': 'LGPL-3',
     'author': 'Yopi Angi',
     'website': 'https://github.com/mithnusa',
     'support': 'yopiangi@gmail.com',

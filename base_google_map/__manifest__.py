@@ -8,7 +8,7 @@
         Base module for Google Maps integration,
         only contain a config to setup Google API Key
     ''',
-    'license': 'AGPL-3',
+    'license': 'LGPL-3',
     'author': 'Yopi Angi',
     'website': 'https://github.com/mithnusa',
     'support': 'yopiangi@gmail.com',

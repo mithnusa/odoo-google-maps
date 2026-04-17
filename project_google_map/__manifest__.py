@@ -9,7 +9,7 @@
         lists all projects alongside the map, and a "View Tasks" button
         on each project opens the related task list directly from the map.
     ''',
-    'license': 'AGPL-3',
+    'license': 'LGPL-3',
     'author': 'Yopi Angi',
     'website': 'https://github.com/mithnusa',
     'support': 'yopiangi@gmail.com',
