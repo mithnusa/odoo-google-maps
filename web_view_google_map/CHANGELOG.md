@@ -1,5 +1,13 @@
 # Change Log
 
+## 19.0.1.0.23
+
+- [Improved] **Sidebar Table Layout — Content Cell Class**: Replaced the `table:not(:has([colspan]))` fixed-layout approach with a dedicated `o_sidebar_content_cell` CSS class. The content `<td>` in `RecordItem` and both `<td colspan="99">` cells in `GroupItem` now carry this class, making the layout target explicit rather than relying on a structural selector
+- [Improved] **Sidebar Table Layout — Auto Layout**: Switched from `table-layout: fixed` to auto layout. All tables get `width: 100%`; the `.o_sidebar_content_cell` cell uses `width: 100%` + `max-width: 0` to absorb all remaining space without forcing a minimum width from its content; its inner `.d-flex` child also gets `width: 100%; overflow: hidden` to contain long text correctly
+- [Improved] **Sidebar Action Column Sizing**: Replaced the `min-width: 70px` / `max-width: 100px` hard-coded action column bounds with `white-space: nowrap` on `tr td:last-child`, letting the column shrink naturally to its button content width in auto table layout
+- [Removed] **`table tr td { overflow: hidden }` Block**: Removed the standalone overflow rule that clipped all table cells — overflow is now controlled directly on `.o_sidebar_content_cell` and its inner `.d-flex` wrapper
+- [Removed] **`max-width: clamp(...)` on Record Title**: Removed the `max-width: clamp(140px, calc(25vw - 150px), 260px)` constraint from the record/group title text — the cell-level `max-width: 0` approach makes the viewport-relative clamp unnecessary
+
 ## 19.0.1.0.22
 
 - [Improved] **Sidebar Position — Left Side**: Moved the sidebar from the right side of the map to the left. The sidebar now renders before the map div in the DOM; renamed all CSS classes (`o_map_right_sidebar` → `o_map_left_sidebar`, `toggle_right_sidenav` → `toggle_left_sidenav`) and updated all selector references in `google_map_sidebar.scss` and `google_map_x2many_fields.scss`

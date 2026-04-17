@@ -8,7 +8,7 @@
                     <CheckBox disabled="!props.handleCanSelectRecord" value="record.selected" onChange.alike="() => this.selectRecord(record)"/>
                 </td>
             </t>
-            <td>
+            <td class="o_sidebar_content_cell">
                 <div class="d-flex gap-2 align-items-center cursor-pointer" t-on-click="() => fnPinPointInMap(record.id)">
                     <div class="o_map_sidebar_record" t-att-data-tooltip="data.other?.title">
                         <Field id="props.title" name="props.title" record="record" readonly="true"/>
@@ -34,7 +34,7 @@
     </t>
     <t t-name="web_view_google_map.GroupItem">
         <tr>
-            <td colspan="99">
+            <td class="o_sidebar_content_cell" colspan="99">
                 <div class="d-flex justify-content-between align-items-center">
                     <button 
                         t-attf-class="btn btn-link #{ group.group.records.length ? '' : 'collapsed'}"
@@ -67,7 +67,7 @@
             </td>
         </tr>
         <tr>
-            <td colspan="99" style="padding: 0; border: 0;">
+            <td class="o_sidebar_content_cell" colspan="99" style="padding: 0; border: 0;">
                 <div t-attf-class="collapse #{ group.group.records.length ? 'show' : '' }" t-attf-id="collapseGroup_#{ group.key }">
                     <t t-if="group.group.records.length">
                         <table class="table table-sm table-hover table-striped mb-0">

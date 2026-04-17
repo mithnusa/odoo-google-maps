@@ -58,31 +58,26 @@
                     }
                 }
 
-                // Clip all table cells so content never bleeds past column edges.
-                table tr td {
-                    overflow: hidden;
-                }
-
-                // Apply table-layout: fixed only to tables that contain no
-                // colspan cells.  This excludes the outer group-header table
-                // (whose rows use colspan="99") and avoids the 99-column bug
-                // that occurs when a colspan row is the first one the fixed-
-                // layout algorithm sees.  Record tables never use colspan, so
-                // they always get the fixed layout and the 70px actions column.
-                table:not(:has([colspan])) {
-                    table-layout: fixed;
+                // Table fills sidebar; action column shrinks to its buttons, content column takes the rest
+                table {
                     width: 100%;
 
                     tr td:last-child {
-                        min-width: 70px; // fixed width for action buttons
-                        max-width: 100px;
+                        white-space: nowrap; // shrinks action column to button content width
+                    }
+
+                    tr td.o_sidebar_content_cell {
+                        width: 100%; // grabs all remaining space in auto layout
+                        max-width: 0; // prevents cell from demanding minimum width from content
+                        overflow: hidden;
+
+                        > .d-flex {
+                            width: 100%;
+                            overflow: hidden;
+                        }
                     }
                 }
 
-                // Record rows: the record wrapper fills all remaining flex
-                // space in the name cell (after the optional avatar sibling),
-                // so the text adapts naturally to the actual available width
-                // without a fixed pixel offset.
                 table tr td {
                     .o_map_sidebar_record, .o_map_sidebar_group {
                         flex: 1;
@@ -94,7 +89,6 @@
                             white-space: nowrap;
                             overflow: hidden;
                             text-overflow: ellipsis;
-                            max-width: clamp(140px, calc(25vw - 150px), 260px);
                         }
                     }
                 }

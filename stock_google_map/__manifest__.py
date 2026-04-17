@@ -3,7 +3,7 @@
     'name': 'Delivery Google Maps',
     'summary': 'Show your Delivery on Google Maps',
     'description': '',
-    'license': 'AGPL-3',
+    'license': 'LGPL-3',
     'author': 'Yopi Angi',
     'website': 'https://github.com/mithnusa',
     'support': 'yopiangi@gmail.com',

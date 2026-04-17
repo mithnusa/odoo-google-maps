@@ -19,7 +19,7 @@
         pre-populates the form with the resolved address. A visual indicator in the map corner
         shows when the feature is active. After saving, the map view reloads automatically.
     """,
-    "license": "AGPL-3",
+    "license": "LGPL-3",
     "author": "Yopi Angi",
     "website": "https://github.com/mithnusa",
     "support": "yopiangi@gmail.com",
