@@ -1,5 +1,9 @@
 # Change Log
 
+## 19.0.1.0.8
+
+- [Removed] **`google_map_sidebar.scss`**: Deleted the module-level sidebar stylesheet — the `max-width` media query overrides for `.o_map_sidebar_record.with_avatar` (220px / 160px / 1600px, 140px / 1200px breakpoints) are no longer needed now that `web_view_google_map` v1.0.23 controls text clipping via the `o_sidebar_content_cell` auto table layout
+
 ## 19.0.1.0.7
 
 - [Fixed] **Coordinate Preservation on Address Change**: Added `_delete_coordinates` override on `res.partner` that skips the coordinate-clearing logic when `is_from_google_maps` is present in the context; prevents Odoo's enterprise `_delete_coordinates` from wiping the latitude/longitude just set by the Google Maps place selection workflow; falls back gracefully to `super()._delete_coordinates()` on community edition where the method does not exist
