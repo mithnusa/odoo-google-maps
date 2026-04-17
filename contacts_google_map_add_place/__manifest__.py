@@ -13,7 +13,7 @@
         the feature is active. After saving, the map view reloads automatically to reflect
         the new or updated contact.
     """,
-    "license": "AGPL-3",
+    "license": "LGPL-3",
     "author": "Yopi Angi",
     "website": "https://github.com/mithnusa",
     "support": "yopiangi@gmail.com",

@@ -8,7 +8,7 @@
         A new view 'Google Maps' added on leads or opportunities, gives you
         an ability to show the location in Google Maps
     ''',
-    'license': 'AGPL-3',
+    'license': 'LGPL-3',
     'author': 'Yopi Angi',
     'website': 'https://github.com/mithnusa',
     'support': 'yopiangi@gmail.com',

@@ -3,7 +3,7 @@
     'name': 'Partner Area (Google Maps Drawing demo implementation)',
     'version': '1.0.0',
     'author': 'Yopi Angi',
-    'license': 'AGPL-3',
+    'license': 'LGPL-3',
     'maintainer': 'Yopi Angi<yopiangi@gmail.com>',
     'support': 'yopiangi@gmail.com',
     'category': 'Hidden',
