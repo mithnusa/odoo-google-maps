@@ -1,5 +1,15 @@
 # Change Log
 
+## 19.0.1.0.15
+
+- [Updated] **Deck.gl**: Updated from 9.2.9 to 9.3.1
+- [Updated] **Terra Draw**: Updated from 1.27.0 to 1.28.8
+- [Updated] **Turf.js**: Updated from 7.3.4 to 7.3.5
+- [Fixed] **Deck.gl 9.3.1 Rendering Error**: Added `interleaved: false` to `GoogleMapsOverlay` constructor in both `GoogleMapDeckGLRenderer` and `DeckGlEditor` — resolves `TypeError: Cannot read properties of undefined (reading 'map')` thrown inside luma.gl v9's `WEBGLRenderPass` constructor during `beginRenderPass`. Root cause: deck.gl 9.x changed the `GoogleMapsOverlay` rendering internals; without an explicit `interleaved` value a code path is entered where `colorAttachments` is undefined when the render pass is set up. `interleaved: false` forces the canvas-overlay path (separate WebGL context), restoring the implicit default behaviour from 8.x
+- [Improved] **Library Cache-Busting**: Added version constants (`TERRA_DRAW_VERSION`, `TERRA_DRAW_GMAPS_ADAPTER_VERSION`, `TURF_JS_VERSION`, `DECK_GL_VERSION`) in `utils.js` and appended `?v=<version>` query strings to all `loadJS` calls — ensures browsers fetch updated bundles when a library is upgraded instead of serving a stale cached copy
+- [Improved] **DeckGlEditor Initialization Timing**: Replaced the direct `_initializeDeckGLOverlay()` call in `useEffect` with `onMapLoadedInitializeDeckGLOverlay()`, which defers overlay creation until the map fires its first `idle` event — prevents Deck.gl from attempting to render before Google Maps has completed its initial paint
+- [Improved] **Double-Init Guard**: Added an early-return check in `GoogleMapDeckGLRenderer._initializeDeckGLOverlay()` to skip re-initialization when the overlay already exists
+
 ## 19.0.1.0.14
 
 - [Improved] **Sidebar CSS Selector**: Renamed `.o_map_right_sidebar` to `.o_map_left_sidebar` in both `google_map_drawing_x2many_field.scss` and `google_map_drawing_view.scss`, tracking the sidebar repositioning in `web_view_google_map` v1.0.22

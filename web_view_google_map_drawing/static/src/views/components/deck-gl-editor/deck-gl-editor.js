@@ -56,7 +56,7 @@ export class DeckGlEditor extends Component {
         useEffect(
             (editorRef, googleMap) => {
                 if (editorRef.el && googleMap) {
-                    this._initializeDeckGLOverlay();
+                    this.onMapLoadedInitializeDeckGLOverlay();
                 }
             },
             () => [this.editorRef, this.props.googleMap],
@@ -78,7 +78,16 @@ export class DeckGlEditor extends Component {
         });
     }
 
+    onMapLoadedInitializeDeckGLOverlay() {
+        if (this.props.googleMap) {
+            google.maps.event.addListenerOnce(this.props.googleMap, 'idle', () => {
+                this._initializeDeckGLOverlay();
+            });
+        }
+    }
+
     async _initializeDeckGLOverlay() {
+        console.log('Initializing Deck.gl overlay on Google Map');
         if (!window.deck || !this.props.googleMap) {
             throw new Error('Deck.gl or Google Maps not available');
         }
@@ -90,6 +99,7 @@ export class DeckGlEditor extends Component {
 
         try {
             this.deckglOverlay = new window.deck.GoogleMapsOverlay({
+                interleaved: false,
                 layers: [],
                 controller: true,
                 onClick: (info) => this._onFeatureClick(info),
@@ -225,6 +235,7 @@ export class DeckGlEditor extends Component {
     }
 
     renderGeoJsonData(geojson) {
+        console.log('Rendering GeoJSON data in Deck.gl overlay');
         if (this.props.renderingMode !== 'deckgl') {
             console.warn('Rendering mode is not deckgl, skipping renderGeoJsonData');
             return;

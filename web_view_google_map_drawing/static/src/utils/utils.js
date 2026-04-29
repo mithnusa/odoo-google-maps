@@ -58,6 +58,11 @@ export const MEASUREMENT_CONFIG = {
     COORDINATE_PRECISION: 6, // Decimal places for coordinate display
 };
 
+const TERRA_DRAW_VERSION = '1.28.8';
+const TERRA_DRAW_GMAPS_ADAPTER_VERSION = '1.3.1';
+const TURF_JS_VERSION = '7.3.5';
+const DECK_GL_VERSION = '9.3.1';
+
 /**
  * Load Terra Draw library assets
  */
@@ -66,9 +71,9 @@ export async function loadTerraDrawAssets() {
         return;
     }
     try {
-        await loadJS('/web_view_google_map_drawing/static/lib/terra-draw/terra-draw.umd.js');
+        await loadJS('/web_view_google_map_drawing/static/lib/terra-draw/terra-draw.umd.js?v=' + TERRA_DRAW_VERSION);
         await loadJS(
-            '/web_view_google_map_drawing/static/lib/terra-draw/terra-draw-google-maps-adapter.umd.js'
+            '/web_view_google_map_drawing/static/lib/terra-draw/terra-draw-google-maps-adapter.umd.js?v=' + TERRA_DRAW_GMAPS_ADAPTER_VERSION
         );
         if (!window.terraDraw || !window.terraDrawGoogleMapsAdapter) {
             throw new Error('Terra Draw or its Google Maps adapter failed to load correctly.');
@@ -84,7 +89,7 @@ export async function loadDeckGlAssets() {
         return;
     }
     try {
-        await loadJS('/web_view_google_map_drawing/static/lib/deckgl/dist.min.js');
+        await loadJS('/web_view_google_map_drawing/static/lib/deckgl/dist.min.js?v=' + DECK_GL_VERSION);
         if (!window.deck) {
             throw new Error('Deck.gl failed to load correctly.');
         }
@@ -99,7 +104,7 @@ export async function loadTurfJSAssets() {
         return;
     }
     try {
-        await loadJS('/web_view_google_map_drawing/static/lib/turf/turf.min.js');
+        await loadJS('/web_view_google_map_drawing/static/lib/turf/turf.min.js?v=' + TURF_JS_VERSION);
         if (!window.turf) {
             throw new Error('Turf.js failed to load correctly.');
         }
