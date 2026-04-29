@@ -79,7 +79,6 @@ export class DeckGlEditor extends Component {
     }
 
     async _initializeDeckGLOverlay() {
-        console.log('Initializing Deck.gl overlay on Google Map');
         if (!window.deck || !this.props.googleMap) {
             throw new Error('Deck.gl or Google Maps not available');
         }
@@ -227,7 +226,6 @@ export class DeckGlEditor extends Component {
     }
 
     renderGeoJsonData(geojson) {
-        console.log('Rendering GeoJSON data in Deck.gl overlay');
         if (this.props.renderingMode !== 'deckgl') {
             console.warn('Rendering mode is not deckgl, skipping renderGeoJsonData');
             return;
