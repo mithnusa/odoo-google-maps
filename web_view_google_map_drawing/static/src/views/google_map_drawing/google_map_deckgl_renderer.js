@@ -1070,8 +1070,14 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
             throw new Error('Deck.gl or Google Maps not available');
         }
 
+        if (this.deckglOverlay) {
+            console.warn('Deck.gl overlay already initialized');
+            return; // Already initialized
+        }
+
         try {
             this.deckglOverlay = new window.deck.GoogleMapsOverlay({
+                interleaved: false,
                 layers: [],
                 getTooltip: ({ object }) => {
                     if (object && object.properties) {

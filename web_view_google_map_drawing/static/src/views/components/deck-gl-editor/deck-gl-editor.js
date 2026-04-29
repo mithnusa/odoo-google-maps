@@ -90,6 +90,7 @@ export class DeckGlEditor extends Component {
 
         try {
             this.deckglOverlay = new window.deck.GoogleMapsOverlay({
+                interleaved: false,
                 layers: [],
                 controller: true,
                 onClick: (info) => this._onFeatureClick(info),
