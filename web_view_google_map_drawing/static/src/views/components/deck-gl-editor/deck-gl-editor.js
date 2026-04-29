@@ -56,7 +56,7 @@ export class DeckGlEditor extends Component {
         useEffect(
             (editorRef, googleMap) => {
                 if (editorRef.el && googleMap) {
-                    this.onMapLoadedInitializeDeckGLOverlay();
+                    this._initializeDeckGLOverlay();
                 }
             },
             () => [this.editorRef, this.props.googleMap],
@@ -76,14 +76,6 @@ export class DeckGlEditor extends Component {
                 }
             }
         });
-    }
-
-    onMapLoadedInitializeDeckGLOverlay() {
-        if (this.props.googleMap) {
-            google.maps.event.addListenerOnce(this.props.googleMap, 'idle', () => {
-                this._initializeDeckGLOverlay();
-            });
-        }
     }
 
     async _initializeDeckGLOverlay() {
