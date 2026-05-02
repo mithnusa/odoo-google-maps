@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
-import math
 from ast import literal_eval
+import math
+import time
 
 from odoo import _, api, fields, models
 from odoo.fields import Domain
@@ -99,14 +100,36 @@ class ResPartner(models.Model):
 
     @api.model
     def action_cron_geolocalize(self):
-        self.search(
+        partner_ids = self.env[self._name].search(
             [
                 ("country_id", "!=", False),
                 ("partner_latitude", "=", False),
                 ("partner_longitude", "=", False),
+                "|", "|", "|",
+                ("city", "!=", False),
+                ("zip", "!=", False),
+                ("street", "!=", False),
+                ("street2", "!=", False),
             ],
-            limit=500,
-        ).geo_localize()
+            limit=80,
+        )
+        geo_provider_id = self.env["base.geocoder"]._get_provider()
+        openstreetmap_provider_id = self.env.ref(
+            "base_geolocalize.geoprovider_open_street", raise_if_not_found=False
+        )
+        if (
+            openstreetmap_provider_id
+            and geo_provider_id
+            and geo_provider_id.tech_name == openstreetmap_provider_id.tech_name
+        ):
+            # Need to add pause between partner to avoid hitting API rate limits
+            for partner in partner_ids:
+                partner.geo_localize()
+                self.env.cr.commit()  # Commit after the geolocalization to avoid long transactions
+                time.sleep(1)  # Sleep for 1 second between geolocalization calls
+        else:
+            partner_ids.geo_localize()
+
         return True
 
     def action_nearby_search(self):

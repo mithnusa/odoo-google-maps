@@ -52,8 +52,8 @@
 
 ## Automatic Geocoding Cron
 
-**What it does**: A scheduled job that automatically geocodes contacts that have a country but no latitude/longitude coordinates.
+**What it does**: A scheduled job that automatically geocodes contacts that have a country and at least one address field (city, zip, street, or street 2) but no latitude/longitude coordinates.
 
 **Why it matters**: Keeps your contacts' geolocation data up to date without manual effort, especially useful after bulk imports or when contacts are created without coordinates.
 
-**How it works**: The cron job runs daily and processes up to 500 contacts per batch that have a country set but no geolocation. It uses Odoo's built-in `geo_localize()` method from the `base_geolocalize` module. The job is installed in an **inactive** state and must be manually activated in **Settings → Technical → Scheduled Actions → Auto Geolocalize Contacts**.
+**How it works**: The cron job runs every 12 hours and is **enabled by default** after installation. Each run processes up to 80 contacts. Only contacts that have a country set and at least one of city, zip, street, or street 2 populated are queued — contacts with only a country are skipped to avoid wasted API calls. When OpenStreetMap is the active geocoding provider, each contact is processed individually with a 1-second pause between calls to respect Nominatim's rate limits. For all other providers, the batch is processed in a single call. The schedule and batch size can be adjusted in **Settings → Technical → Scheduled Actions → Contact: geolocalize**.

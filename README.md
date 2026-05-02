@@ -115,7 +115,7 @@ Abstract base for the click-to-create workflow. Provides the `google_map.add_pla
 
 ### Contacts
 
-**[contacts_google_map](contacts_google_map/README.md)** `19.0.1.0.8`
+**[contacts_google_map](contacts_google_map/README.md)** `19.0.1.0.9`
 
 Adds a Google Map view to the Contacts application with color-coded partner markers. Adds a Geolocation tab to the partner form with an embedded map, geocode button, marker color picker, nearby search, and an optional background geocoding cron job.
 
