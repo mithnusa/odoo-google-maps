@@ -1,5 +1,14 @@
 # Change Log
 
+## 19.0.1.0.9
+
+- [Improved] **Geocoding Cron — Address Filter**: Added OR filter on `city`, `zip`, `street`, and `street2` fields so only partners with at least one address component are queued for geocoding; prevents wasting API calls on contacts with only a country set
+- [Improved] **Geocoding Cron — Batch Size**: Reduced per-run limit from 500 to 80 records to stay within rate limits and reduce transaction duration
+- [Improved] **Geocoding Cron — OpenStreetMap Rate Limiting**: When the active geocoding provider is OpenStreetMap, each partner is geocoded individually with a 1-second sleep and an intermediate `cr.commit()` between calls; avoids Nominatim rate-limit rejections and prevents long-running transactions from timing out
+- [Improved] **Geocoding Cron — Default Active**: Changed `active` from `False` to `True` and wrapped the record in `<data noupdate="1">` so the cron is enabled on first install but user changes are preserved on module upgrades
+- [Improved] **Geocoding Cron — Interval**: Changed default schedule from every 1 day to every 12 hours so ungeocoded contacts are processed more frequently
+- [Removed] **Standalone Google Map Action**: Removed the `action_view_res_partner_google_map` `ir.actions.act_window` record; the map view is accessible through the standard Contacts action and the dedicated action was unused
+
 ## 19.0.1.0.8
 
 - [Removed] **`google_map_sidebar.scss`**: Deleted the module-level sidebar stylesheet — the `max-width` media query overrides for `.o_map_sidebar_record.with_avatar` (220px / 160px / 1600px, 140px / 1200px breakpoints) are no longer needed now that `web_view_google_map` v1.0.23 controls text clipping via the `o_sidebar_content_cell` auto table layout
