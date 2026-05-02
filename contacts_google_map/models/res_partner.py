@@ -125,7 +125,8 @@ class ResPartner(models.Model):
             # Need to add pause between partner to avoid hitting API rate limits
             for partner in partner_ids:
                 partner.geo_localize()
-                self.env.cr.commit()  # Commit after the geolocalization to avoid long transactions
+                if self.env.context.get("from_cron"):
+                    self.env.cr.commit()  # Commit after the geolocalization to avoid long transactions
                 time.sleep(1)  # Sleep for 1 second between geolocalization calls
         else:
             partner_ids.geo_localize()
