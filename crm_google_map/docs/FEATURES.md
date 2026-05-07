@@ -65,7 +65,17 @@
 
 **Why it matters**: Reduces manual data entry when the linked contact already has a known location.
 
-**How it works**: The `customer_latitude` and `customer_longitude` fields are computed from the linked `partner_id` coordinates.
+**How it works**: The `customer_latitude` and `customer_longitude` fields are computed from the linked `partner_id` coordinates and recompute automatically whenever the partner's own coordinates are updated.
+
+---
+
+### Automatic Background Geocoding
+
+**What it does**: A scheduled background job automatically geocodes leads that have address data but no stored coordinates.
+
+**Why it matters**: Ensures the map stays up to date without requiring manual intervention, even for leads created in bulk or imported without coordinates.
+
+**How it works**: The cron runs every 12 hours and processes up to 80 ungeolocated leads per run. It skips leads with no country or no address fields. When geocoding fails for a lead, a notification is sent to the user who triggered the job. When using OpenStreetMap, requests are spaced one second apart to respect API rate limits.
 
 ---
 
@@ -84,15 +94,6 @@
 **Why it matters**: Gives users a single place to review, update, and visualize the geographic data for each lead.
 
 **How it works**: The tab displays `customer_latitude` and `customer_longitude` fields, a `geo_localize` action button, a `color_picker` widget for `marker_color`, and an embedded `google_map` widget showing the lead's location.
-
----
-
-### Google Map Button on Lead Form
-**What it does**: A smart button labeled "Google Map" appears on the lead form when the lead has valid coordinates, and opens the map view filtered to that specific lead.
-
-**Why it matters**: Provides one-click access to see a single lead's location on the map directly from its form.
-
-**How it works**: The button is visible only when both `customer_latitude` and `customer_longitude` are set. It triggers the `action_view_crm_lead_google_map` action scoped to the current record.
 
 ---
 

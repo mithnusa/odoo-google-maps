@@ -1,6 +1,28 @@
 <!-- markdownlint-disable MD024 -->
 # Change Log
 
+## 19.0.1.0.8
+
+### Added
+
+- **Geocoding Cron Job**: New scheduled action `CRM Lead: geolocate` runs every 12 hours and automatically geocodes leads that have address data but no stored coordinates. Rate-limited to one request per second when using the OpenStreetMap provider to avoid hitting API limits. Each result is committed immediately to prevent long transactions.
+
+### Fixed
+
+- **`_get_address_format` decorator bug**: Method had an incorrect `@api.model` decorator which made `self.country_id` always resolve to an empty recordset — per-country address formats were never applied and the default format was always used. Removed the decorator so the method runs in record context.
+- **`customer_latitude`/`customer_longitude` precision**: Field precision was `digits=(6, 5)`, allowing only 1 digit before the decimal point. Coordinates above ±9.99999 were silently truncated by PostgreSQL. Changed to `digits=(10, 7)` to match Odoo's standard `partner_latitude`/`partner_longitude` fields. A column migration will run automatically on module upgrade.
+- **Incomplete `@api.depends` on `_compute_customer_geo`**: Missing `partner_id.partner_latitude` and `partner_id.partner_longitude` in the dependency list caused `customer_latitude`/`customer_longitude` to go stale when the linked partner's coordinates changed without the lead being re-saved. Added the missing dot-notation dependencies.
+
+### Improved
+
+- **Geocoding failure notification**: `geo_localize` now sends a bus danger notification listing all lead names that could not be geocoded, instead of silently ignoring failures.
+- **Sidebar stage field**: Stage field in the sidebar record card is no longer clickable (`pe-none` added to the wrapper div).
+- **Geocoding cron domain**: Rewrote the `action_cron_geolocalize` search domain using `Domain.OR` / `Domain.AND` for readability; replaced ambiguous `= False` comparisons on Float fields with explicit `= 0.0`.
+
+### Removed
+
+- **"Google Map" smart button on lead form**: Removed `action_view_crm_lead_google_map` action and the associated smart button xpath from the form view.
+
 ## 19.0.1.0.7
 
 - [Improved] **Sidebar Extra Content — Hook Migration**: Replaced the `RecordItem` primary template inheritance (`t-inherit-mode="primary"` with an xpath) with the new `recordExtraTemplate` hook introduced in `web_view_google_map` v1.0.22; `GoogleMapSidebarCRM` now sets `static recordExtraTemplate = 'crm_google_map.RecordItemExtra'` instead of overriding `recordItemTemplate`
