@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-from lxml import etree
-
 from odoo import _, api, fields, models
 from odoo.tools.view_validation import get_expression_field_names
 
@@ -28,23 +26,23 @@ class IrUiView(models.Model):
         if not att_sidebar_title:
             self._raise_view_error(_('Attribute "sidebar_title" is required on tag "google_map"'), node)
 
-        if ((att_js_class and not 'drawing' in att_js_class) or (not att_js_class)) and not att_lat and not att_lng:
+        is_drawing_view = att_js_class and 'drawing' in att_js_class
+        if not is_drawing_view and (not att_lat or not att_lng):
             self._raise_view_error(_('Missing mandatory attribute for google_map view: "lat" and "lng"'), node)
-        
-        fields_name = [child.get('name') for child in node.iterchildren(tag=etree.Element) if child.tag == 'field']
 
-        if att_lat and not att_lat in fields_name:
+        fields_name = [child.get('name') for child in node.iterchildren(tag='field')]
+
+        if att_lat and att_lat not in fields_name:
             self._raise_view_error(_('Field %(name)s assigned to attribute "lat" but the field is not loaded. All fields used in "google_map" view attribute must be loaded', name=att_lat), node)
 
-        if att_lng and not att_lng in fields_name:
+        if att_lng and att_lng not in fields_name:
             self._raise_view_error(_('Field %(name)s assigned to attribute "lng" but the field is not loaded. All fields used in "google_map" view attribute must be loaded', name=att_lng), node)
 
-        if att_sidebar_title and not att_sidebar_title in fields_name:
+        if att_sidebar_title and att_sidebar_title not in fields_name:
             self._raise_view_error(_('Field %(name)s assigned to attribute "sidebar_title" but the field is not loaded. All fields used in "google_map" view attribute must be loaded', name=att_sidebar_title), node)
-        
+
         if att_color and name_manager.model._fields.get(att_color) and att_color not in fields_name:
             self._raise_view_error(_('Field %(name)s assigned to attribute "color" but the field is not loaded. All fields used in "google_map" view attribute must be loaded', name=att_color), node)
-
 
     # The following methods are mostly copied from ir.ui.view and modified to
     # support google_map view type for x2many fields

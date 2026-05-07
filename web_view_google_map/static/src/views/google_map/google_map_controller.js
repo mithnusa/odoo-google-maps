@@ -28,8 +28,6 @@ import { DropdownItem } from '@web/core/dropdown/dropdown_item';
 import { useExportRecords, useDeleteRecords } from '@web/views/view_hook';
 import { GoogleMapSearchBar } from './google_map_search_bar';
 
-const DEFAULT_NEARBY_RADIUS = 1000; // meters
-
 import {
     Component,
     useRef,
@@ -39,6 +37,8 @@ import {
     useSubEnv,
     useEffect,
 } from '@odoo/owl';
+
+const DEFAULT_NEARBY_RADIUS = 1000; // meters
 
 export class GoogleMapController extends Component {
     static template = 'web_view_google_map.GoogleMapView';
@@ -137,7 +137,12 @@ export class GoogleMapController extends Component {
 
         useEffect(
             () => {
-                this.onSelectionChanged();
+                // useEffect callbacks must be synchronous — chain .catch() so a
+                // rejection from getResIds or the caller's onSelectionChanged prop
+                // is surfaced rather than silently swallowed.
+                this.onSelectionChanged().catch((error) => {
+                    console.error('GoogleMapController: onSelectionChanged failed:', error);
+                });
             },
             () => [this.model.root.selection.length, this.model.root.isDomainSelected]
         );
@@ -148,6 +153,10 @@ export class GoogleMapController extends Component {
         });
 
         this.searchBarToggler = useSearchBarToggler();
+
+        // Stable callback references for archiveDialogProps — avoids new closures on every getter call
+        this._onConfirmArchive = () => this.toggleArchiveState(true);
+        this._onCancelArchive = () => {};
 
         this.exportRecords = useExportRecords(this.env, this.props.context, () =>
             this.getExportableFields()
@@ -179,7 +188,7 @@ export class GoogleMapController extends Component {
      */
     async onWillSaveRecord(record) {}
 
-    async onDeleteSelectedRecords() {
+    onDeleteSelectedRecords() {
         this.deleteRecordsWithConfirmation(this.deleteConfirmationDialogProps);
     }
 
@@ -197,7 +206,7 @@ export class GoogleMapController extends Component {
 
     async afterExecuteActionButton(clickParams) {}
 
-    getSelectedResIds() {
+    async getSelectedResIds() {
         return this.model.root.getResIds(true);
     }
 
@@ -400,9 +409,7 @@ export class GoogleMapController extends Component {
                 context: context,
             };
         }
-        if (action) {
-            this.actionService.doAction(action);
-        }
+        this.actionService.doAction(action);
     }
 
     /**
@@ -517,7 +524,7 @@ export class GoogleMapController extends Component {
     _computeBoundingBox(lat, lng, radiusMeters) {
         const latDelta = radiusMeters / 111320;
         // Clamp cosine to avoid division by zero near the poles
-        const cosLat = Math.max(Math.abs(Math.cos((lat * Math.PI) / 180)), 0.0001);
+        const cosLat = Math.max(Math.cos((lat * Math.PI) / 180), 0.0001);
         const lngDelta = radiusMeters / (111320 * cosLat);
         return {
             minLat: Math.max(lat - latDelta, -90),
@@ -620,10 +627,8 @@ export class GoogleMapController extends Component {
         return {
             body: _t('Are you sure that you want to archive all the selected records?'),
             confirmLabel: _t('Archive'),
-            confirm: () => {
-                this.toggleArchiveState(true);
-            },
-            cancel: () => {},
+            confirm: this._onConfirmArchive,
+            cancel: this._onCancelArchive,
         };
     }
 
@@ -654,8 +659,10 @@ export class GoogleMapController extends Component {
             this.props.archInfo.columns
                 .filter((col) => col.type === 'field')
                 .filter((col) => !col.optional)
+                .filter((col) => !this.evalViewModifier(col.column_invisible, this.props.context))
                 .map((col) => this.props.fields[col.name])
                 .filter((field) => field.exportable !== false)
+                .filter((field) => field.type !== 'properties')
         );
     }
 

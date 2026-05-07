@@ -126,16 +126,14 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
 
         this._markerEventListeners = new Map();
         this._elementEventListeners = new Map();
-        this._markerPositionIndex = new Map();
+        this._idleCallbackHandles = new Set();
 
-        this.debounceToggleRecordSelection = debounce(this.toggleRecordSelection.bind(this), 500);
         this.debounceRenderGeolocationData = debounce(this.renderGeolocationData.bind(this), 500);
         this.debounceSelectedMarkers = debounce(this.onSelectedMarkers.bind(this), 500);
 
         useEffect(() => {
             if (this.isMapLoaded() && !this._isSidebarAction) {
                 this.debounceRenderGeolocationData();
-                this._isSidebarAction = false;
             }
         }, () => [this.state.isMapReady]);
 
@@ -160,7 +158,9 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
         });
 
         if (this.props.allowSelectors) {
-            useBus(this.uiService.bus, 'google-map-center-map', this.centerMap);
+            useBus(this.uiService.bus, 'google-map-center-map', () =>
+                this.centerMap().catch((e) => console.error('GoogleMapRenderer: centerMap failed:', e))
+            );
         }
     }
 
@@ -260,7 +260,7 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
     async renderGeolocationData() {
         if (!this.isMapLoaded()) return;
 
-        this.clearMarkers();
+        await this.clearMarkers();
 
         await this.renderMarkers();
 
@@ -402,10 +402,14 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
             length: list.isGrouped ? list.groups.length : list.records.length,
         };
 
-        if (
+        const prev = this.lastGroupsOrRecordsProps;
+        const isCacheValid =
             this.cachedGroupsOrRecords &&
-            JSON.stringify(currentProps) === JSON.stringify(this.lastGroupsOrRecordsProps)
-        ) {
+            prev &&
+            prev.isGrouped === currentProps.isGrouped &&
+            prev.length === currentProps.length &&
+            currentProps.recordsIds.every((id, i) => id === prev.recordsIds[i]);
+        if (isCacheValid) {
             return this.cachedGroupsOrRecords;
         }
 
@@ -453,13 +457,13 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
         if (!this.isMapLoaded() || !geolocation) return null;
 
         try {
-            // Create marker visual elements
-            const elementValues = this._createMarkerElementValues(other, markerColor);
-
-            // Update existing marker if it exists
+            // Update existing marker if it exists (before computing element values)
             if (this.cache.has(record.id)) {
                 return this._updateExistingMarker(record, geolocation);
             }
+
+            // Create marker visual elements
+            const elementValues = this._createMarkerElementValues(other, markerColor);
 
             // Create new marker
             const marker = await this._createNewMarker(
@@ -542,18 +546,7 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
         if (!this.isMapLoaded()) return;
 
         try {
-            if (!this.googleMapBounds.isEmpty()) {
-                this._fitMapBoundsWithLimit(this.googleMapBounds);
-            } else {
-                const { LatLngBounds } = await this.apiLoader.importLibrary('core');
-                const mapBounds = new LatLngBounds();
-                this.cache.forEach((marker) => {
-                    if (marker.map) {
-                        mapBounds.extend(marker.position);
-                    }
-                });
-                this._fitMapBoundsWithLimit(mapBounds);
-            }
+            this._fitMapBoundsWithLimit(this.googleMapBounds);
         } catch (error) {
             console.error('Error centering map:', error);
             this.notificationService.add(_t('Failed to center map. Please try again.'), {
@@ -743,6 +736,8 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
     }
 
     _handleAfterZoomAtMarker(marker) {
+        // Use Google Maps event trigger so subclasses that register a different
+        // gmp-click handler (e.g. CRM's toggleMarkerHighlight) are dispatched correctly
         google.maps.event.trigger(marker, 'gmp-click');
         const { ZOOM, TILT } = MARKER_CONFIG.VISUAL;
         this.googleMap.setTilt(TILT);
@@ -843,6 +838,10 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
         return !!this.props.list.isGrouped;
     }
 
+    get sidebarToggleTooltip() {
+        return this.state.sidebarIsFolded ? _t('Expand side panel') : _t('Collapse side panel');
+    }
+
     /**
      * Get sidebar props for the sidebar component
      */
@@ -851,7 +850,6 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
         return {
             header: viewTitle,
             title: this.props.archInfo.sidebarTitleField,
-            subTitle: this.props.archInfo.sidebarSubtitleField,
             getGroupsOrRecords: this.getGroupsOrRecords.bind(this),
             toggleGroup: this.toggleGroup.bind(this),
             renderGroupedRecordsFitBounds: this._renderGroupedRecordsFitBounds.bind(this),
@@ -945,7 +943,7 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
      * @private
      * @param {Object} marker Marker object
      */
-    async _selectMarker(marker) {
+    _selectMarker(marker) {
         if (!marker || !this.isMapLoaded()) return;
 
         if (marker._pin) {
@@ -956,9 +954,10 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
         }
 
         try {
-            // Center map on marker
             this.googleMap.panTo(marker.position);
-            this.googleMap.setZoom(14);
+            if (this.googleMap.getZoom() < 14) {
+                this.googleMap.setZoom(14);
+            }
         } catch (error) {
             console.error('Error selecting marker:', error);
         }
@@ -969,7 +968,7 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
      * @private
      * @param {Object} marker Marker object
      */
-    async _deselectMarker(marker) {
+    _deselectMarker(marker) {
         if (!marker || !this.isMapLoaded()) return;
 
         if (marker._pin) {
@@ -980,10 +979,10 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
         }
 
         try {
-            // Center map on marker
             this.googleMap.panTo(marker.position);
-            this.googleMap.setZoom(14);
-
+            if (this.googleMap.getZoom() < 14) {
+                this.googleMap.setZoom(14);
+            }
         } catch (error) {
             console.error('Error deselecting marker:', error);
         }
@@ -996,32 +995,19 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
      * @param {boolean} shouldSelect Whether to select or deselect
      * @returns {Promise} Promise resolving when complete
      */
-    _processSelectionInBatches(records, shouldSelect) {
+    async _processSelectionInBatches(records, shouldSelect) {
         const { SELECTION_SIZE } = MARKER_CONFIG.BATCH;
-        const totalRecords = records.length;
         let processedCount = 0;
 
-        return new Promise((resolve, reject) => {
-            const processBatch = async () => {
-                try {
-                    const batch = this._getBatchSlice(records, processedCount, SELECTION_SIZE);
-                    await this._processBatchRecords(batch, shouldSelect);
-                    
-                    processedCount += batch.length;
-
-                    if (processedCount < totalRecords) {
-                        setTimeout(processBatch, 0);
-                    } else {
-                        resolve();
-                    }
-                } catch (error) {
-                    console.error('Error in batch selection processing:', error);
-                    reject(error);
-                }
-            };
-
-            processBatch();
-        });
+        while (processedCount < records.length) {
+            const batch = this._getBatchSlice(records, processedCount, SELECTION_SIZE);
+            await this._processBatchRecords(batch, shouldSelect);
+            processedCount += batch.length;
+            // Yield to the browser between batches so UI stays responsive
+            if (processedCount < records.length) {
+                await new Promise((resolve) => setTimeout(resolve, 0));
+            }
+        }
     }
 
     /**
@@ -1159,7 +1145,11 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
      */
     _scheduleNextBatch(callback, timeout) {
         if (window.requestIdleCallback) {
-            window.requestIdleCallback(callback);
+            const handle = window.requestIdleCallback(() => {
+                this._idleCallbackHandles.delete(handle);
+                callback();
+            });
+            this._idleCallbackHandles.add(handle);
         } else {
             setTimeout(callback, timeout);
         }
@@ -1308,8 +1298,9 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
      * @returns {Object} Updated marker
      */
     _updateExistingMarker(record, geolocation) {
+        // Invalidate cached dataView so stale coordinates are not returned after geocoding updates
+        this.cacheRecordDataView.delete(record.id);
         const marker = this.cache.get(record.id);
-
 
         // Add to map if not already present
         if (!marker.map) {
@@ -1680,7 +1671,6 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
      * @private
      */
     _invalidateMarkerPositionIndex() {
-        this._markerPositionIndex.clear();
         if (this.markerInfoWindow) {
             this.markerInfoWindow.close();
         }
@@ -1736,14 +1726,14 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
 
             if (!divContent) return null;
 
-            const openButton = divContent.querySelector('#btn-open_form');
+            const openButton = divContent.querySelector('[data-role="btn-open_form"]');
             if (openButton) {
                 const eventHandler = this.props.showRecord.bind(this, record);
                 openButton.addEventListener('click', eventHandler);
                 this._storeElementEventListener(openButton, 'click', eventHandler);
             }
 
-            const nearbyButton = divContent.querySelector('#btn-show_nearby');
+            const nearbyButton = divContent.querySelector('[data-role="btn-show_nearby"]');
             if (nearbyButton) {
                 const eventHandler = this.searchNearbyRecords.bind(this, record);
                 nearbyButton.addEventListener('click', eventHandler);
@@ -1785,6 +1775,14 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
     _cleanUp() {
         super._cleanUp();
         this._terminateAnyZoomOperations();
+
+        // Cancel any pending idle callbacks to prevent post-destroy access
+        if (window.cancelIdleCallback) {
+            for (const handle of this._idleCallbackHandles) {
+                window.cancelIdleCallback(handle);
+            }
+        }
+        this._idleCallbackHandles.clear();
 
         // Remove all element event listeners
         for (const [element, ] of this._elementEventListeners) {

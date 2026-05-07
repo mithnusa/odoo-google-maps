@@ -48,7 +48,8 @@ export class GoogleMapGeolocate extends Component {
      * Get current user location using browser's geolocation API
      * @returns {Promise<void>}
      */
-    async geolocation() {
+    async geolocation(ev) {
+        ev.preventDefault();
         try {
             if (!navigator.geolocation) {
                 this.notificationService.add(_t('Geolocation is not supported by your browser.'), { type: 'warning' });

@@ -198,17 +198,22 @@ export function parseRecord(record, viewConfig = {}, isGrouped = false) {
 
         if (otherFields.__geoColor) {
             const color = record.data[otherFields.__geoColor];
-            if (typeof color === 'string' || (!color && typeof color !== 'number')) {
-                try {
-                    other['__geoColor'] = normalizeColor(color);
-                } catch (error) {
-                    console.warn('Failed to normalize color, using default color.', error);
-                    other['__geoColor'] = DEFAULT_COLOR;
+            if (color) {
+                if (typeof color === 'string' || (!color && typeof color !== 'number')) {
+                    try {
+                        other['__geoColor'] = normalizeColor(color);
+                    } catch (error) {
+                        console.warn('Failed to normalize color, using default color.', error);
+                        other['__geoColor'] = DEFAULT_COLOR;
+                    }
+                } else if (typeof color === 'number') {
+                    other['__geoColor'] = processColor(color);
                 }
             } else {
-                other['__geoColor'] = processColor(color);
+                other['__geoColor'] = processColor(otherFields.__geoColor);
             }
-        } else {
+        }
+        if (!other['__geoColor']) {
             other['__geoColor'] = DEFAULT_COLOR;
         }
     }
@@ -277,7 +282,7 @@ export function normalizeColor(color) {
     return DEFAULT_COLOR;
 }
 
-export function generateColor() {
+export function generateColor(seed = null) {
     const colors = [
         '#CC0000', // – Red
         '#007A00', // – Lime (darkened)
@@ -300,6 +305,15 @@ export function generateColor() {
         '#2F4F4F', // – Dark Slate Gray
         '#B8860B', // – Gold (darkened to Dark Goldenrod)
     ];
+    if (seed !== null && seed !== undefined) {
+        const str = String(seed);
+        let hash = 0;
+        for (let i = 0; i < str.length; i++) {
+            hash = (hash << 5) - hash + str.charCodeAt(i);
+            hash |= 0; // convert to 32-bit integer
+        }
+        return colors[Math.abs(hash) % colors.length];
+    }
     return colors[Math.floor(Math.random() * colors.length)];
 }
 
