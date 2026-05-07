@@ -25,7 +25,6 @@ export class BaseGoogleMapComponent extends Component {
 
         // Core properties
         this.googleMap = null;
-        this.mapEventListeners = new Map();
         this.resizeObserver = null;
         this.loadTimeout = null;
         this._isComponentDestroyed = false;
@@ -377,9 +376,6 @@ export class BaseGoogleMapComponent extends Component {
             this.loadTimeout = null;
         }
 
-        // Clear tracked listener references — clearInstanceListeners below handles actual removal
-        this.mapEventListeners.clear();
-
         // Clean up resize observer
         if (this.resizeObserver) {
             this.resizeObserver.disconnect();
@@ -663,113 +659,6 @@ export class BaseGoogleMapComponent extends Component {
         });
 
         this.resizeObserver.observe(mapEl);
-    }
-
-    setupMapEventListeners(events, map = null) {
-        const mapInstance = map || this.googleMap;
-
-        if (!mapInstance) {
-            console.warn('Cannot setup event listeners: Map instance not available');
-            return;
-        }
-
-        if (!Array.isArray(events) || events.length === 0) {
-            console.warn('setupMapEventListeners: events must be a non-empty array');
-            return;
-        }
-
-        events.forEach((eventName) => {
-            // Skip if already listening to this event
-            if (this.mapEventListeners.has(eventName)) {
-                console.warn(`Already listening to event: ${eventName}`);
-                return;
-            }
-
-            const listener = mapInstance.addListener(eventName, () => {
-                // Call hook if implemented by child classes
-                if (typeof this.onMapEvent === 'function') {
-                    this.onMapEvent(eventName, mapInstance);
-                }
-            });
-
-            this.mapEventListeners.set(eventName, listener);
-        });
-    }
-
-    /**
-     * Add a single event listener to the map
-     * @protected
-     * @param {string} eventName - Name of the event to listen for
-     * @param {Function} [callback] - Custom callback (uses onMapEvent if not provided)
-     * @param {google.maps.Map} [map] - Map instance (uses this.googleMap if not provided)
-     * @returns {boolean} True if listener was added, false otherwise
-     */
-    addMapEventListener(eventName, callback = null, map = null) {
-        const mapInstance = map || this.googleMap;
-
-        if (!mapInstance) {
-            console.warn('Cannot add event listener: Map instance not available');
-            return false;
-        }
-
-        if (this.mapEventListeners.has(eventName)) {
-            console.warn(`Already listening to event: ${eventName}`);
-            return false;
-        }
-
-        const handler =
-            callback ||
-            ((eventName, map) => {
-                if (typeof this.onMapEvent === 'function') {
-                    this.onMapEvent(eventName, map);
-                }
-            });
-
-        const listener = mapInstance.addListener(eventName, () => {
-            handler(eventName, mapInstance);
-        });
-
-        this.mapEventListeners.set(eventName, listener);
-        return true;
-    }
-
-    /**
-     * Remove a specific event listener
-     * @protected
-     * @param {string} eventName - Name of the event to stop listening for
-     * @returns {boolean} True if listener was removed, false if not found
-     */
-    removeMapEventListener(eventName) {
-        const listener = this.mapEventListeners.get(eventName);
-        if (listener) {
-            google.maps.event.removeListener(listener);
-            this.mapEventListeners.delete(eventName);
-            return true;
-        }
-        return false;
-    }
-
-    /**
-     * Called when map events occur
-     * Override in child classes to handle map events
-     * @protected
-     * @param {string} eventName - The name of the map event
-     * @param {google.maps.Map} map - The map instance
-     * @example
-     * onMapEvent(eventName, map) {
-     *     switch(eventName) {
-     *         case 'bounds_changed':
-     *             this.loadDataInBounds(map.getBounds());
-     *             break;
-     *         case 'zoom_changed':
-     *             this.adjustDetailLevel(map.getZoom());
-     *             break;
-     *     }
-     * }
-     */
-    onMapEvent(eventName, map) {
-        // Override in child classes if needed
-        // This is an optional hook for child classes
     }
 
     // === NETWORK AND OFFLINE METHODS ===
