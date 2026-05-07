@@ -1,6 +1,13 @@
 <!-- markdownlint-disable MD024 -->
 # Change Log
 
+## 19.0.1.0.12
+
+### Fixed
+
+- **`GroupItem` XPath — Collapse Div Selector**: The base template switched the collapsible group div from `t-attf-class="collapse ..."` to `t-att-class="{ 'collapse': true, ... }"` (object binding). The `contains(@t-attf-class, 'collapse')` XPath no longer matched; updated to `contains(@t-attf-id, 'collapseGroup_')` which targets the stable `t-attf-id` attribute
+- **`GroupItem` XPath — Collapse Button Selector**: Similarly, the collapse button's class moved from a `t-attf-class` string interpolation to `t-att-class`; replaced `contains(@t-attf-class, 'collapsed')` with `@data-bs-toggle='collapse'` for a more stable, semantic selector that is unaffected by class binding style
+
 ## 19.0.1.0.11
 
 - [Fixed] **Avatar Wrapper**: Replaced `<div class="d-inline-block position-relative opacity-trigger-hover">` wrapper around the group avatar `<img>` with a plain `<t t-if="avatar_url">` guard, removing the always-present placeholder div when no avatar is available
