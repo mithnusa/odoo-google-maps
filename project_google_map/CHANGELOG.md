@@ -1,5 +1,13 @@
 # Change Log
 
+## 1.0.3
+
+### Fixed
+
+- **`MarkerInfoWindow` XPath — Button Selector**: Updated XPath from `//button[@id='btn-open_form']` to `//button[@data-role='btn-open_form']` tracking the ID → `data-role` change in `web_view_google_map` v1.0.24
+- **"View Tasks" Button — `id` → `data-role`**: Replaced `id="btn-view_tasks"` with `data-role="btn-view_tasks"` on the button element, avoiding duplicate-ID issues when multiple info windows are open
+- **`_createInfoWindowContent` — Button Selector**: Updated `content.querySelector('#btn-view_tasks')` to `content.querySelector('[data-role="btn-view_tasks"]')` to match the new attribute
+
 ## 1.0.2
 
 - [Improved] **Sidebar Actions Hook Migration**: Replaced `RecordItem` primary template inheritance (xpath before the marker span) with the new `recordActionsTemplate` slot from `web_view_google_map` v1.0.22; `GoogleMapSidebarProject` now sets `static recordActionsTemplate = 'project_google_map.RecordActionsTemplate'` instead of overriding `recordItemTemplate`

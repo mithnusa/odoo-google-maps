@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates xml:space="preserve">
     <t t-name="project_google_map.MarkerInfoWindow" t-inherit="web_view_google_map.MarkerInfoWindow" t-inherit-mode="primary">
-        <xpath expr="//button[@id='btn-open_form']" position="after">
-            <button type="button" class="btn btn-sm btn-outline-dark" id="btn-view_tasks" data-tooltip="View Tasks">
+        <xpath expr="//button[@data-role='btn-open_form']" position="after">
+            <button type="button" class="btn btn-sm btn-outline-dark" data-role="btn-view_tasks" data-tooltip="View Tasks">
                 <i class="fa fa-fw fa-list-ul"/>
             </button>
         </xpath>
