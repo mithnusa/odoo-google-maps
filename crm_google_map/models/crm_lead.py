@@ -2,8 +2,9 @@ from collections import defaultdict
 import time
 
 from odoo import _, api, fields, models
-from odoo.addons.base.models.res_partner import ADDRESS_FIELDS
 from odoo.fields import Domain
+from odoo.addons.base.models.res_partner import ADDRESS_FIELDS
+from odoo.addons.crm.models.crm_lead import PARTNER_ADDRESS_FIELDS_TO_SYNC
 
 
 class CrmLead(models.Model):
@@ -26,12 +27,23 @@ class CrmLead(models.Model):
             or self._get_default_address_format()
         )
 
-    @api.depends('partner_id', 'partner_id.partner_latitude', 'partner_id.partner_longitude')
+    @api.depends('partner_id', 'street', 'street2', 'city', 'zip', 'state_id', 'country_id')
     def _compute_customer_geo(self):
         for lead in self:
-            if lead.partner_id:
-                lead.customer_latitude = lead.partner_id.partner_latitude
-                lead.customer_longitude = lead.partner_id.partner_longitude
+            partner = lead.partner_id
+            if not partner:
+                lead.customer_latitude = 0.0
+                lead.customer_longitude = 0.0
+                continue
+            # Use the partner's coordinates only when the lead's address still
+            # matches the partner's — i.e. it was auto-synced and not manually
+            # overridden.  This mirrors the "all or none" guard in
+            # _prepare_address_values_from_partner from the base crm module.
+            # When the addresses diverge the lead must be re-geocoded against
+            # its own address, so we reset to 0.0 so the cron picks it up.
+            if all(lead[f] == partner[f] for f in PARTNER_ADDRESS_FIELDS_TO_SYNC):
+                lead.customer_latitude = partner.partner_latitude
+                lead.customer_longitude = partner.partner_longitude
             else:
                 lead.customer_latitude = 0.0
                 lead.customer_longitude = 0.0
