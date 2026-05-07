@@ -19,27 +19,12 @@
             </google_map>
         </field>
     </record>
-    <record id="action_view_crm_lead_google_map" model="ir.actions.act_window">
-        <field name="name">Google Map</field>
-        <field name="res_model">crm.lead</field>
-        <field name="view_mode">google_map</field>
-        <field name="view_id" ref="view_crm_lead_google_map"/>
-        <field name="domain">[('id', '=', active_id)]</field>
-        <field name="target">current</field>
-    </record>
     <record id="crm_lead_view_form_inherit_crm_google_map" model="ir.ui.view">
         <field name="name">crm.lead.view.form.inherit.crm.google.map</field>
         <field name="model">crm.lead</field>
         <field name="inherit_id" ref="crm.crm_lead_view_form"/>
         <field name="priority">1000</field>
         <field name="arch" type="xml">
-            <xpath expr="//div[@name='button_box']" position="inside">
-                <button name="%(crm_google_map.action_view_crm_lead_google_map)d"
-                    type="action"
-                    class="oe_stat_button"
-                    icon="fa-map-marker" string="Google Map"
-                    invisible="not customer_latitude or not customer_longitude"/>
-            </xpath>
             <xpath expr="//notebook" position="inside">
                 <page string="Geolocation" name="geo_location">
                     <group>

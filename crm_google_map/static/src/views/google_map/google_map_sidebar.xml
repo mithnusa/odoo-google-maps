@@ -10,7 +10,7 @@
                 <i class="fa fa-dollar text-muted me-1"/>
                 <Field id="'expected_revenue'" name="'expected_revenue'" record="record" readonly="true" class="'smaller font-monospace'"/>
             </div>
-            <div class="o_crm_sidebar_stage">
+            <div class="o_crm_sidebar_stage pe-none">
                 <Field id="'stage_id'" name="'stage_id'" record="record" readonly="true" class="'disabled'"/>
             </div>
         </div>
