@@ -155,10 +155,9 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
                 await loadDeckGlAssets();
                 await loadTurfJSAssets();
                 this.state.isAssetsLoaded = true;
-            } catch (error) {
-                console.error(error);
+            } catch {
                 this.notificationService.add(
-                    _t('Failed to load Deck.gl assets. Please check javascript console for more information'),
+                    _t('Failed to load Deck.gl assets. Please refresh the page and try again.'),
                     { type: 'danger', title: _t('Error'), }
                 );
             }
@@ -168,7 +167,6 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
             (isMapLoaded) => {
                 if (isMapLoaded && !this._isSidebarAction) {
                     this.debounceRenderGeolocationData();
-                    this._isSidebarAction = false;
                 }
             }, () => {
                 return [this.isMapLoaded()]
@@ -276,6 +274,10 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
 
         this.featuresByRecordId.clear();
         this.measurementCache.clear();
+
+        // Invalidate groups/records cache so the next render reads fresh record data
+        this.cachedGroupsOrRecords = null;
+        this.lastGroupsOrRecordsProps = null;
     }
 
     /**
@@ -326,8 +328,8 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
             try {
                 const batch = group.records.map(record => ({ record }));
                 this._processBatch(batch, group.groupColor);
-            } catch (error) {
-                console.error('Failed to load group records:', error);
+            } catch {
+                // skip group if records fail to process
             }
         }
     }
@@ -373,12 +375,12 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
                 color: featureColor,
                 fillColor,
                 strokeColor,
-                odooId: recordValues.id,
+                odooId: recordValues.resId,
                 odooResId: recordValues.resId,
             };
 
             const features = geoJson.features;
-            const recordId = record.id;
+            const recordId = record.resId;
 
             // Initialize the record's feature set if not exists
             if (!this.featuresByRecordId.has(recordId)) {
@@ -408,8 +410,8 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
                 recordFeatureIds.add(featureId);
             }
 
-        } catch (error) {
-            console.error('Error processing record GeoJSON:', error);
+        } catch {
+            // skip record if GeoJSON cannot be processed
         }
     }
 
@@ -503,14 +505,14 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
             for (const { group } of datas) {
                 for (const record of group.records) {
                     if (record.selected) {
-                        recordsSelected.add(record.id);
+                        recordsSelected.add(record.resId);
                     }
                 }
             }
         } else {
             for (const { record } of datas) {
                 if (record.selected) {
-                    recordsSelected.add(record.id);
+                    recordsSelected.add(record.resId);
                 }
             }
         }
@@ -546,10 +548,9 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
                     });
                     break;
                 case 'MultiPoint':
-                    pointData.push({
-                        ...feature,
-                        position: feature.geometry.coordinates[0]
-                    });
+                    for (const coord of feature.geometry.coordinates) {
+                        pointData.push({ ...feature, position: coord });
+                    }
                     break;
             }
         }
@@ -648,10 +649,10 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
 
         if (hasSelection) {
             // Center only on selected records' features
-            const selectedRecordIds = new Set(selectedRecords.map(r => r.id));
+            const selectedRecordIds = new Set(selectedRecords.map(r => r.resId));
 
             for (const feature of this.geoJsonData.values()) {
-                const recordId = feature.properties?.odoo?.id;
+                const recordId = feature.properties?.odooId;
                 if (recordId && selectedRecordIds.has(recordId)) {
                     const b = feature.bounds;
                     if (b.minY < minLat) minLat = b.minY;
@@ -760,36 +761,37 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
 
         const unit = MEASUREMENT_CONFIG.UNITS.METRIC; // Default to metric
         const measurements = {};
-        let area = 0;
-        let totalArea = 0;
         let displayArea = '';
         let displayTotalArea = '';
 
-        try {
-            area = window.turf.area(feature);
-            totalArea = area; // Start with the feature's own area
-            displayArea = formatAreaMeasurement(area, user.context.lang, 2, unit);
-        } catch (error) {
-            console.error('Error calculating area with Turf.js:', error);
-        }
-
-        if (hasRelatedPolygons) {
-            for (const relFeature of relatedFeatures) {
-                try {
-                    totalArea += window.turf.area(relFeature);
-                } catch (error) {
-                    console.error('Error calculating related feature area:', error);
+        // Only compute area for polygon types — avoids unnecessary Turf.js calls for points/lines
+        if (type === 'Polygon' || type === 'MultiPolygon') {
+            let area = 0;
+            let totalArea = 0;
+            try {
+                area = window.turf.area(feature);
+                totalArea = area;
+                displayArea = formatAreaMeasurement(area, user.context.lang, 2, unit);
+            } catch {
+                // area calculation failed, display will be empty
+            }
+            if (hasRelatedPolygons) {
+                for (const relFeature of relatedFeatures) {
+                    try {
+                        totalArea += window.turf.area(relFeature);
+                    } catch {
+                        // skip features that cannot be measured
+                    }
                 }
             }
-        }
-
-        if (totalArea > 0 && totalArea !== area) {
-            displayTotalArea = formatAreaMeasurement(totalArea, user.context.lang, 2, unit);
+            if (totalArea > 0 && totalArea !== area) {
+                displayTotalArea = formatAreaMeasurement(totalArea, user.context.lang, 2, unit);
+            }
         }
 
         try {
             switch (type) {
-                case 'Point':
+                case 'Point': {
                     measurements.type = 'Point';
                     const lat = coordinates[1];
                     const lng = coordinates[0];
@@ -802,8 +804,9 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
                     )}°${lngDir}`;
                     measurements.display_name = [{ title: _t('Point'), value: measurements.coordinates }];
                     break;
+                }
                 case 'LineString':
-                case 'MultiLineString':
+                case 'MultiLineString': {
                     const length = window.turf.length(feature, { units: 'kilometers' });
                     measurements.type = 'Line';
                     measurements.length = formatLengthMeasurement(length, user.context.lang, 2, unit);
@@ -813,14 +816,15 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
                         { title: _t('Points'), value: measurements.points },
                     ];
                     break;
-                case 'Polygon':
+                }
+                case 'Polygon': {
                     const polygonCoords = coordinates[0]; // Outer ring
                     const lines = window.turf.lineString(polygonCoords);
-                    let perimeter = window.turf.length(lines, { units: 'kilometers' });
+                    const perimeter = window.turf.length(lines, { units: 'kilometers' });
                     measurements.type = 'Polygon';
                     measurements.area = displayArea;
                     measurements.perimeter = formatLengthMeasurement(perimeter, user.context.lang, 2, unit);
-                    measurements.points = formatPointCount(polygonCoords.length - 1); // Subtract 1 for closed polygon
+                    measurements.points = formatPointCount(polygonCoords.length - 1);
                     measurements.display_name = [
                         { title: _t('Area'), value: measurements.area },
                         { title: _t('Perimeter'), value: measurements.perimeter },
@@ -830,6 +834,7 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
                         measurements.display_name.splice(1, 0, { title: _t('Total Area'), value: displayTotalArea });
                     }
                     break;
+                }
                 case 'MultiPolygon': {
                     let totalPerimeter = 0;
                     let totalPoints = 0;
@@ -837,7 +842,7 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
                         const polyCoords = polygon[0]; // Outer ring
                         const polyLines = window.turf.lineString(polyCoords);
                         totalPerimeter += window.turf.length(polyLines, { units: 'kilometers' });
-                        totalPoints += polyCoords.length - 1; // Subtract 1 for closed polygon
+                        totalPoints += polyCoords.length - 1;
                     }
                     measurements.type = 'MultiPolygon';
                     measurements.area = displayArea;
@@ -857,8 +862,7 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
                     measurements.type = type;
                     measurements.display_name = _t('Measurements not available for this geometry type');
             }
-        } catch (error) {
-            console.error('Error calculating measurement:', error);
+        } catch {
             measurements.error = _t('Error calculating measurements');
         }
 
@@ -901,7 +905,7 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
      */
     _findRecordByFeature(feature) {
         const odooId = feature.properties.odooId;
-        return this.props.list.records.find(r => r.id === odooId);
+        return this.props.list.records.find(r => r.resId === odooId);
     }
 
     /**
@@ -931,15 +935,7 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
             this.lastGroupsOrRecordsProps.isGrouped === isGrouped &&
             this.lastGroupsOrRecordsProps.length === currentLength
         ) {
-            // Quick check: compare first and last IDs to detect changes
-            const items = isGrouped ? list.groups : list.records;
-            const lastIds = this.lastGroupsOrRecordsProps.firstLastIds;
-            if (
-                currentLength === 0 ||
-                (items[0].id === lastIds[0] && items[currentLength - 1].id === lastIds[1])
-            ) {
-                return this.cachedGroupsOrRecords;
-            }
+            return this.cachedGroupsOrRecords;
         }
 
         // Build result
@@ -955,12 +951,10 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
             result = list.records.map(record => ({ record, key: record.id }));
         }
 
-        // Cache the result with lightweight comparison data
-        const items = isGrouped ? list.groups : list.records;
+        // Cache the result
         this.lastGroupsOrRecordsProps = {
             isGrouped,
             length: currentLength,
-            firstLastIds: currentLength > 0 ? [items[0].id, items[currentLength - 1].id] : [null, null],
         };
         this.cachedGroupsOrRecords = result;
         return result;
@@ -986,7 +980,8 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
         await super.onMapReady(map);
 
         if (!this.markerInfoWindow) {
-            this.markerInfoWindow = new google.maps.InfoWindow({ disableAutoPan: true });
+            const { InfoWindow } = await this.apiLoader.importLibrary('maps');
+            this.markerInfoWindow = new InfoWindow({ disableAutoPan: true });
         }
 
         await this._initializeDeckGLOverlay();
@@ -1071,8 +1066,7 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
         }
 
         if (this.deckglOverlay) {
-            console.warn('Deck.gl overlay already initialized');
-            return; // Already initialized
+            return;
         }
 
         try {
@@ -1112,8 +1106,7 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
             // Initial data load
             this.debounceRenderGeolocationData();
 
-        } catch (error) {
-            console.error('Failed to initialize Deck.gl overlay:', error);
+        } catch {
             this.notificationService.add(
                 _t('Failed to initialize high-performance renderer. Please refresh the page.'),
                 { type: 'danger' }
@@ -1142,8 +1135,7 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
                 this._storeElementEventListener(openButton, 'click', clickHandler);
             }
             return divContent;
-        } catch (error) {
-            console.error('Error creating info window content:', error);
+        } catch {
             return null;
         }
     }
@@ -1154,7 +1146,7 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
      */
     _generateInfoWindowHtml(record) {
         const values = this._prepareInfoWindowValues(record);
-        values.recordId = record.id;
+        values.recordId = record.resId;
         return renderToString(this.constructor.templateInfoWindow, values);
     }
 
@@ -1168,8 +1160,11 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
         if (!this._elementEventListeners.has(element)) {
             this._elementEventListeners.set(element, new Map());
         }
-
-        this._elementEventListeners.get(element).set(eventType, listener);
+        const elementListeners = this._elementEventListeners.get(element);
+        if (elementListeners.has(eventType)) {
+            element.removeEventListener(eventType, elementListeners.get(eventType));
+        }
+        elementListeners.set(eventType, listener);
     }
 
     /**
@@ -1219,7 +1214,7 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
                 values.subTitle = other.subTitle;
             } else if (Array.isArray(other.subTitle)) {
                 values.subTitle = other.subTitle.join(' ');
-            } else if (typeof other.subTitle === 'object') {
+            } else if (other.subTitle && typeof other.subTitle === 'object') {
                 values.subTitle = other.subTitle.display_name || Object.values(other.subTitle).join(' ');
             }
         } else {
@@ -1241,7 +1236,6 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
         return {
             header: viewTitle,
             title: this.props.archInfo.sidebarTitleField,
-            subTitle: this.props.archInfo.sidebarSubtitleField,
             getGroupsOrRecords: this.getGroupsOrRecords.bind(this),
             toggleGroup: this.toggleGroup.bind(this),
             renderGroupedRecordsFitBounds: this._renderGroupedRecordsFitBounds.bind(this),
@@ -1283,12 +1277,10 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
     async pointInMap(recordId, showInfoWindow = true) {
         if (!this.isMapLoaded() || !recordId) return;
         try {
-            const features = [];
-            this.geoJsonData.forEach((feature) => {
-                if (feature.properties.odooId === recordId) {
-                    features.push(feature);
-                }
-            });
+            const featureIds = this.featuresByRecordId.get(recordId);
+            const features = featureIds
+                ? [...featureIds].map(id => this.geoJsonData.get(id)).filter(Boolean)
+                : [];
 
             if (features.length > 0) {
                 const { LatLngBounds } = await this.apiLoader.importLibrary('core');
@@ -1309,8 +1301,7 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
                     this.handleFeatureClickManually(features[0]);
                 }
             }
-        } catch (error) {
-            console.error('Error centering map on record:', error);
+        } catch {
             this.notificationService.add(
                 _t('Failed to center map on the selected record. Please try again.'),
                 { type: 'warning' }
@@ -1351,20 +1342,24 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
             }
 
             // Update feature selection state immediately
-            const recordId = record.id;
+            const recordId = record.resId;
             const isSelected = record.selected;
 
-            // Update selectedFeatureIds for this record
-            this.geoJsonData.forEach((feature) => {
-                if (feature.properties?.odoo?.id === recordId) {
-                    feature.selected = isSelected;
-                    if (isSelected) {
-                        this.selectedFeatureIds.add(feature.id);
-                    } else {
-                        this.selectedFeatureIds.delete(feature.id);
+            // Update selectedFeatureIds for this record via O(1) index
+            const featureIds = this.featuresByRecordId.get(recordId);
+            if (featureIds) {
+                for (const featureId of featureIds) {
+                    const feature = this.geoJsonData.get(featureId);
+                    if (feature) {
+                        feature.selected = isSelected;
+                        if (isSelected) {
+                            this.selectedFeatureIds.add(featureId);
+                        } else {
+                            this.selectedFeatureIds.delete(featureId);
+                        }
                     }
                 }
-            });
+            }
 
             // Update layers immediately without debouncing
             this._updateDeckGLLayers();
@@ -1373,8 +1368,8 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
             if (centerMap && isSelected) {
                 await this.pointInMap(recordId, true);
             }
-        } catch (error) {
-            console.error('Error toggling record selection:', error);
+        } catch {
+            // selection update failed
         }
     }
     /**
@@ -1430,7 +1425,7 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
     _updateShapeSelectionState(record, pointInMap = true) {
         // Center map if requested
         if (pointInMap && record.selected) {
-            this.pointInMap(record.id, true);
+            this.pointInMap(record.resId, true);
         }
     }
 
@@ -1447,28 +1442,32 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
         const totalRecords = records.length;
         let processedCount = 0;
 
-        return new Promise((resolve) => {
+        return new Promise((resolve, reject) => {
             const processBatch = async () => {
-                const batch = records.slice(
-                    processedCount,
-                    Math.min(processedCount + batchSize, totalRecords)
-                );
+                try {
+                    const batch = records.slice(
+                        processedCount,
+                        Math.min(processedCount + batchSize, totalRecords)
+                    );
 
-                const batchPromises = batch.map((record) =>
-                    record.toggleSelection(shouldSelect).then(() => {
-                        this._updateShapeSelectionState(record, false);
-                    })
-                );
+                    const batchPromises = batch.map((record) =>
+                        record.toggleSelection(shouldSelect).then(() => {
+                            this._updateShapeSelectionState(record, false);
+                        })
+                    );
 
-                await Promise.all(batchPromises);
+                    await Promise.all(batchPromises);
 
-                processedCount += batch.length;
+                    processedCount += batch.length;
 
-                if (processedCount < totalRecords) {
-                    // Continue with next batch after a small delay
-                    setTimeout(processBatch, 0);
-                } else {
-                    resolve();
+                    if (processedCount < totalRecords) {
+                        // Continue with next batch after a small delay
+                        setTimeout(processBatch, 0);
+                    } else {
+                        resolve();
+                    }
+                } catch (error) {
+                    reject(error);
                 }
             };
 
@@ -1492,12 +1491,14 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
 
         for (const { group } of groupRecords) {
             for (const record of group.list.records) {
-                const _id = record.id.toString() + '-';
-                this.geoJsonData.forEach((feature) => {
-                    if (feature.id.startsWith(_id)) {
-                        deletedFeatureIds.add(feature.id);
+                const recordId = record.resId;
+                const featureIds = this.featuresByRecordId.get(recordId);
+                if (featureIds) {
+                    for (const featureId of featureIds) {
+                        deletedFeatureIds.add(featureId);
                     }
-                });
+                    this.featuresByRecordId.delete(recordId);
+                }
             }
         }
 
@@ -1557,21 +1558,15 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
                 this.deckglOverlay.setMap(null);
                 // Finalize to clean up WebGL resources
                 this.deckglOverlay.finalize();
-            } catch (error) {
-                console.warn('Error cleaning up DeckGL overlay:', error);
+            } catch {
+                // overlay may already be detached
             } finally {
                 this.deckglOverlay = null;
             }
         }
 
         // Clear data structures and reset features
-        this.cacheRecordDataView.clear();
-        this.geoJsonData.clear();
-
-
-        this.selectedFeatureIds.clear();
-
-        this.measurementCache.clear();
+        this._clearRenderingData();
 
         // Clean up bounds
         this.latLngBounds = null;
@@ -1593,7 +1588,7 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
             throw new Error('geoJsonField is required in view attributes for GoogleMapDeckGLRenderer');
         }
 
-        if (this.props.list.fieldNames.indexOf(this.props.viewAttrs?.geoJsonField) === -1) {
+        if (!this.props.list.fieldNames.includes(this.props.viewAttrs.geoJsonField)) {
             throw new Error(`GeoJSON field "${this.props.viewAttrs.geoJsonField}" not found in list view fields.`);
         }
     }

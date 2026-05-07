@@ -4,7 +4,7 @@
         <xpath expr="//i[hasclass('fa fa-map-marker')]" position="attributes">
             <attribute name="class" remove="fa-map-marker" add="fa-circle" separator=" "/>
         </xpath>
-        <xpath expr="//button[@id='action-show-nearby']" position="replace"/>
+        <xpath expr="//button[@data-role='action-show-nearby']" position="replace"/>
     </t>
     <t t-name="web_view_google_map_drawing.GroupItem" t-inherit="web_view_google_map.GroupItem" t-inherit-mode="primary">
         <xpath expr="//i[hasclass('fa fa-map-marker')]" position="attributes">

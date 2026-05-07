@@ -7,7 +7,7 @@ domain operators for efficient JSON field querying in the web_view_google_map_dr
 """
 import json
 
-from odoo import fields
+from odoo import _, fields
 from odoo.tools import SQL
 from odoo.orm.domains import CONDITION_OPERATORS, operator_optimization, DomainCondition
 from odoo.tools.misc import OrderedSet
@@ -46,21 +46,23 @@ class SearchableJson(fields.Json):
         if operator in ('in', 'not in'):
             conditions = []
             for v in value:
-                if hasattr(v, '_json_contains_marker'):  # JsonContainsValue wrapper
+                if isinstance(v, JsonContainsValue):
                     # This is a containment check - use PostgreSQL @> operator
                     original_value = v.value
                     try:
                         json_value = json.dumps(original_value)
                     except (TypeError, ValueError) as e:
-                        raise ValueError(f"Cannot serialize JSON value for containment check: {e}") from e
+                        raise ValueError(
+                            _("Cannot serialize JSON value for containment check: %s") % e
+                        ) from e
 
                     if operator == 'in':
                         # json_contains: field contains the value
                         conditions.append(SQL("%s @> %s::jsonb", sql_field, json_value))
                     else:
-                        # json_not_contains: field does NOT contain the value
-                        conditions.append(SQL("NOT (%s @> %s::jsonb)", sql_field, json_value))
-                elif hasattr(v, '_json_marker'):  # JsonValue wrapper
+                        # json_not_contains: include NULL rows (NULL @> value = NULL, not FALSE)
+                        conditions.append(SQL("(%s IS NULL OR NOT (%s @> %s::jsonb))", sql_field, sql_field, json_value))
+                elif isinstance(v, JsonValue):
                     # This is a JSON equality check
                     original_value = v.value
                     # Use compact JSON with sorted keys for consistent comparison
@@ -68,7 +70,9 @@ class SearchableJson(fields.Json):
                     try:
                         json_value = json.dumps(original_value, sort_keys=True, separators=(',', ':'))
                     except (TypeError, ValueError) as e:
-                        raise ValueError(f"Cannot serialize JSON value for comparison: {e}") from e
+                        raise ValueError(
+                            _("Cannot serialize JSON value for comparison: %s") % e
+                        ) from e
 
                     if operator == 'in':
                         conditions.append(SQL("%s = %s", sql_field, json_value))
@@ -80,12 +84,15 @@ class SearchableJson(fields.Json):
                     try:
                         json_str = json.dumps(v)
                     except (TypeError, ValueError) as e:
-                        raise ValueError(f"Cannot serialize value for comparison: {e}") from e
+                        raise ValueError(
+                            _("Cannot serialize value for comparison: %s") % e
+                        ) from e
 
                     if operator == 'in':
                         conditions.append(SQL("%s = %s", sql_field, json_str))
                     else:
-                        conditions.append(SQL("%s != %s", sql_field, json_str))
+                        # Use IS NULL to include NULL fields in 'not equal' results
+                        conditions.append(SQL("(%s IS NULL OR %s != %s)", sql_field, sql_field, json_str))
 
             if not conditions:
                 return SQL("FALSE") if operator == 'in' else SQL("TRUE")
@@ -95,7 +102,12 @@ class SearchableJson(fields.Json):
             else:
                 return SQL("(%s)", SQL(" AND ".join(["%s"] * len(conditions)), *conditions))
 
-        # Fall back to parent for any other operators
+        # Guard: custom operators must always be optimized to 'in'/'not in' before reaching
+        # this method. If one arrives here it means it was applied to a non-SearchableJson field.
+        if operator in ('json_eq', 'json_ne', 'json_contains', 'json_not_contains'):
+            raise ValueError(
+                _("Operator '%s' is only supported on SearchableJson fields.") % operator
+            )
         return super()._condition_to_sql(field_expr, operator, value, model, alias, query)
 
 
@@ -131,7 +143,9 @@ class JsonValue:
         try:
             self._hash = hash(json.dumps(value, sort_keys=True, separators=(',', ':')))
         except (TypeError, ValueError) as e:
-            raise ValueError(f"Cannot create JsonValue from non-serializable value: {e}") from e
+            raise ValueError(
+                _("Cannot create JsonValue from non-serializable value: %s") % e
+            ) from e
 
     def __hash__(self):
         return self._hash
@@ -140,6 +154,9 @@ class JsonValue:
         if not isinstance(other, JsonValue):
             return False
         return self.value == other.value
+
+    def __repr__(self):
+        return f"JsonValue({self.value!r})"
 
 
 class JsonContainsValue:
@@ -161,7 +178,9 @@ class JsonContainsValue:
         try:
             self._hash = hash(json.dumps(value, sort_keys=True, separators=(',', ':')))
         except (TypeError, ValueError) as e:
-            raise ValueError(f"Cannot create JsonContainsValue from non-serializable value: {e}") from e
+            raise ValueError(
+                _("Cannot create JsonContainsValue from non-serializable value: %s") % e
+            ) from e
 
     def __hash__(self):
         return self._hash
@@ -170,6 +189,9 @@ class JsonContainsValue:
         if not isinstance(other, JsonContainsValue):
             return False
         return self.value == other.value
+
+    def __repr__(self):
+        return f"JsonContainsValue({self.value!r})"
 
 
 # Convert our custom operators to standard 'in'/'not in' with wrapped values

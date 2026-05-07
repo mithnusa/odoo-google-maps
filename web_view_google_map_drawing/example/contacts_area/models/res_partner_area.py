@@ -1,5 +1,6 @@
 # -*- encoding: utf-8 -*-
 from odoo import fields, models
+from odoo.tools.sql import create_index
 
 
 class ResPartnerArea(models.Model):
@@ -16,6 +17,17 @@ class ResPartnerArea(models.Model):
         ondelete='cascade',
         string='Contact',
     )
+
+    def _auto_init(self):
+        res = super()._auto_init()
+        create_index(
+            self.env.cr,
+            'res_partner_area_gshape_geojson_gin',
+            self._table,
+            ['gshape_geojson'],
+            method='gin',
+        )
+        return res
 
 
 class ResPartner(models.Model):

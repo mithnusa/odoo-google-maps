@@ -11,7 +11,7 @@ import {
     onWillUpdateProps,
 } from '@odoo/owl';
 import { hexToRgba, generateColor } from '@web_view_google_map/views/google_map/utils';
-import { loadDeckGlAssets, validateGeoJson, calculateFeaturesTotalArea, hasGeoJsonChanged } from '../../../utils/utils';
+import { loadDeckGlAssets, loadTurfJSAssets, validateGeoJson, calculateFeaturesTotalArea, hasGeoJsonChanged } from '../../../utils/utils';
 import { DECKGL_CONFIG, STROKE_CONFIG } from '../../../utils/map_config';
 import { UploadGeoJsonFileDialog } from '../upload_geojson_dialog/upload_geojson_dialog';
 
@@ -24,6 +24,7 @@ export class DeckGlEditor extends Component {
         googleMap: Object,
         dataGeoJson: { type: Object, optional: true },
         saveFeatures: Function,
+        saveFeaturesTotalArea: Function,
         record: Object,
         onSelectionChange: { type: Function, optional: true }, // Callback for selection changes
     };
@@ -51,6 +52,7 @@ export class DeckGlEditor extends Component {
 
         onWillStart(async () => {
             await loadDeckGlAssets();
+            await loadTurfJSAssets();
         });
 
         useEffect(
@@ -500,6 +502,28 @@ export class DeckGlEditor extends Component {
         } catch (error) {
             console.error('Error exporting GeoJSON:', error);
             this.notificationService.add(_t('Failed to export GeoJSON file.'), { type: 'danger' });
+        }
+    }
+
+    onClickCalculateArea() {
+        // get all features rendered in the deck.gl layer
+        // filter to only features types that can have an area (Polygon, MultiPolygon)
+        const features = this.props.dataGeoJson?.features || [];
+        if (features.length === 0) {
+            this.notificationService.add(_t('No features available to calculate area.'), { type: 'warning' });
+            return;
+        }
+
+        try {
+            const features = this.props.dataGeoJson.features.filter(f => ['Polygon', 'MultiPolygon'].includes(f.geometry.type));
+            if (features.length === 0) {
+                this.notificationService.add(_t('No polygon features available to calculate area.'), { type: 'warning' });
+                return;
+            }
+            const totalArea = calculateFeaturesTotalArea(features);
+            this.props.saveFeaturesTotalArea(totalArea);
+        } catch {
+            this.notificationService.add(_t('Failed to calculate area.'), { type: 'danger' });
         }
     }
 

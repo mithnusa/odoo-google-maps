@@ -1,5 +1,50 @@
 # Change Log
 
+## 19.0.1.0.16
+
+### Added
+
+- **Calculate Area Button in Deck.gl Editor**: New toolbar button (calculator icon) that calculates the total area of all Polygon/MultiPolygon features and saves it to the record's area field via the new `saveFeaturesTotalArea` prop
+- **`handleSaveFeatureTotalArea()` in `GoogleMapTerraDrawField`**: New method that receives a calculated total area and writes it to the `fieldArea` field on the current record, wired up to all three `DeckGlEditor` usages via `saveFeaturesTotalArea.bind`
+- **GIN Index on `gshape_geojson` (contacts_area example)**: `ResPartnerArea._auto_init()` now creates a `gin` index on `gshape_geojson` using `create_index`, making `json_contains` / `json_not_contains` searches performant at scale
+- **Integration Tests for `SearchableJson` (contacts_area example)**: New `tests/test_searchable_json_integration.py` with 7 end-to-end `TransactionCase` tests covering all four custom operators (`json_eq`, `json_ne`, `json_contains`, `json_not_contains`) against `res.partner.area`
+
+### Fixed
+
+- **`record.id` → `record.resId` Throughout Deck.gl Renderer**: Multiple places in `google_map_deckgl_renderer.js` used `record.id` (OWL component id) instead of `record.resId` (database ID), causing feature-to-record associations to be keyed on the wrong value. Fixed in `_processRecordGeoJSON`, `_buildRecordsSelected`, `toggleRecordSelection`, `deleteGroupRecords`, `_updateShapeSelectionState`, `_generateInfoWindowHtml`, `_findRecordByFeature`, and `pointInMap`
+- **`feature.properties?.odoo?.id` → `feature.properties?.odooId`**: Feature property access in `centerMap()` was reading from a non-existent nested `odoo.id` path; corrected to `odooId` which is the property actually written during feature creation
+- **`MultiPoint` Rendering**: Was only pushing `coordinates[0]` (the first point) for `MultiPoint` geometries; now iterates all coordinates so every point in the collection is rendered
+- **`json_not_contains` / `json_ne` — NULL Rows Excluded**: `NOT (field @> value)` and `field != value` evaluate to `NULL` when the column is `NULL`, silently excluding records with no GeoJSON. Fixed to `(field IS NULL OR NOT (field @> value))` and `(field IS NULL OR field != value)` so NULL rows are included in negation results
+- **`isinstance` Replaces `hasattr` Marker Checks**: Type dispatch in `_condition_to_sql` used `hasattr(v, '_json_contains_marker')` / `hasattr(v, '_json_marker')`; replaced with `isinstance(v, JsonContainsValue)` / `isinstance(v, JsonValue)` for reliable type checking
+- **`_storeElementEventListener()` — Duplicate Listener Leak**: If the same event type was registered twice on the same element, the old listener was never removed before the new one was stored. Added a guard that calls `removeEventListener` on the existing listener before replacing it
+- **`google.maps.InfoWindow` — Direct Constructor**: `new google.maps.InfoWindow()` accessed the global namespace directly before the `maps` library was guaranteed to be loaded. Replaced with `const { InfoWindow } = await this.apiLoader.importLibrary('maps')` for correct async initialization
+- **`_processSelectionInBatches()` — Unhandled Rejection**: The batch processing `Promise` had no `reject` path; errors inside `processBatch` were silently swallowed. Added try/catch with `reject(error)`
+- **`geojson_upload_wizard_views.xml` — File Type Filter**: The file upload field had no `accepted_file_extensions` option, allowing any file to be selected. Added `options="{'accepted_file_extensions': '.geojson,.json,application/geo+json,application/json'}"` to restrict to GeoJSON files
+
+### Improved
+
+- **Area Calculation Gated on Geometry Type**: Turf.js `area()` calls are now skipped for `Point`, `MultiPoint`, `LineString`, and `MultiLineString` geometries — only `Polygon` and `MultiPolygon` trigger area computation, avoiding unnecessary library calls and `displayArea` / `displayTotalArea` noise
+- **`_clearRenderingData()` Invalidates Groups/Records Cache**: Added `cachedGroupsOrRecords = null` and `lastGroupsOrRecordsProps = null` resets so the next render after a data clear always rebuilds from fresh record data
+- **`pointInMap()` — O(1) Feature Lookup**: Replaced a full `geoJsonData.forEach` scan with `featuresByRecordId.get(recordId)` index lookup, reducing time complexity from O(n) to O(1)
+- **`toggleRecordSelection()` — O(1) Feature Lookup**: Same replacement as `pointInMap()` — uses `featuresByRecordId` index instead of scanning all features
+- **`deleteGroupRecords()` — O(1) Cleanup via Index**: Replaced the `geoJsonData.forEach` + string-prefix scan with `featuresByRecordId.get(recordId)` + `featuresByRecordId.delete(recordId)` for correct and efficient feature removal
+- **`getGroupsOrRecords()` Cache Key Simplified**: Removed the `firstLastIds` first/last ID comparison from the cache key — the `isGrouped + length` check is sufficient and avoids edge cases where IDs can shift without a length change
+- **Switch Case Lexical Scoping**: Added `{}` blocks around `Point`, `LineString`/`MultiLineString`, and `Polygon` cases in the measurements switch to prevent `let` re-declaration errors between cases
+- **Error Messages Translated**: All `ValueError` messages in `fields.py` now use `_()` for translation via the standard Odoo i18n pattern
+- **Guard for Misapplied Custom Operators**: Added an explicit `ValueError` with a translated message when `json_eq`, `json_ne`, `json_contains`, or `json_not_contains` reaches the `super()` fallback in `_condition_to_sql`, meaning they were applied to a non-`SearchableJson` field
+- **`gshape_name` Default Value**: Set `default=lambda self: _('New Shape')` on `gshape_name` in `GoogleDrawingShape` mixin so new records always have a meaningful translated name
+- **`__repr__` on Wrapper Classes**: Added `__repr__` to both `JsonValue` and `JsonContainsValue` for readable debug output
+- **`loadTurfJSAssets` in Deck.gl Editor**: `DeckGlEditor.onWillStart` now also awaits `loadTurfJSAssets()` so Turf.js is guaranteed available before any area calculation is attempted
+- **Sidebar XPath Updated for `data-role`**: `google_map_drawing_sidebar.xml` selector updated from `//button[@id='action-show-nearby']` to `//button[@data-role='action-show-nearby']`, tracking the ID → `data-role` change in `web_view_google_map` v1.0.24
+- **`mapDomain` Memoized in Drawing Model**: `GoogleMapDrawingModel.mapDomain` now uses the same `_mapDomainCache` pattern as the base model, avoiding repeated domain construction on every access
+- **Removed Redundant `_isSidebarAction = false` Reset**: Removed the redundant state reset inside the `useEffect` dependency callback in `google_map_deckgl_renderer.js`
+- **Console Noise Reduction**: Replaced `console.error(error)` / `console.warn(...)` patterns with silent `catch {}` blocks (or user-facing notifications) throughout the Deck.gl renderer — expected operational errors no longer pollute the browser console
+
+### Removed / Refactored Tests
+
+- **`TestSearchableJsonIntegration` Moved to contacts_area**: Integration tests that require a real database and the `contacts_area` module installed have been moved to `example/contacts_area/tests/test_searchable_json_integration.py`. `test_field_json_searchable.py` now contains only unit tests that can run without an installed example module
+- **`TestJsonContainsValue` Reordered**: Moved from after `TestSearchableJsonField` to before `TestDomainOptimization` for more logical test file structure
+
 ## 19.0.1.0.15
 
 - [Updated] **Deck.gl**: Updated from 9.2.9 to 9.3.1
