@@ -1,5 +1,34 @@
 # Change Log
 
+## 19.0.1.0.10
+
+### Fixed
+
+- **`updateLoaderState()` — Wrong State Key**: Fixed bug where `values.status = status` was written instead of `values.loaderStatus = status`, leaving `loaderStatus` never updated via this path
+- **`handleOnStateChange()` — Wrong Property Check**: Fixed check from `state.hasOwnProperty('status')` to `state.hasOwnProperty('loaderStatus')` and updated the assignment accordingly — the old check never matched, so loader status changes from external callers were silently ignored
+- **`isCurrentlyLoading()` / `hasError()` — Non-reactive Read**: Both methods were reading from plain instance properties (`this.isLoading`, `this.isError`) instead of reactive state (`this.state.isLoading`, `this.state.isError`), so callers never saw live values
+- **`_updateA11yForError()` — Invalid `aria-describedby`**: Previously set `aria-describedby` to the raw error message string; spec requires an element ID. Now creates (or reuses) a `data-role="gmap-error-msg"` element, writes the error text into it, and points `aria-describedby` at its `id`
+- **`_setupAccessibility()` — Duplicate Help Text on Retry**: Added an idempotency guard using `data-role="gmap-hint"` so the screen-reader hint element is only appended once, even when `_setupAccessibility` is called again during a map reload
+- **`fetchSettingsWithRetry` / `_initImportLibraryWithRetry` — Off-by-One Retry**: Loops used `attempt <= MAX_RETRY_ATTEMPTS` (one extra iteration). Changed to `attempt < MAX_RETRY_ATTEMPTS` so the actual number of attempts matches the constant
+- **`_setupNetworkDetection()` — Plain Instance Properties**: `this.isOffline` and `this.isError` were plain properties, not reactive state — component re-renders did not pick up network-status changes. Moved to `this.state.isOffline` / `this.state.isError`
+
+### Improved
+
+- **`setup()` — State Declared Before Services**: `this.state = useState(...)` is now the first statement in `setup()`, ensuring all subsequent hooks and service injections can safely reference `this.state`
+- **`state.isOffline` Initial Value**: Changed initial value from `null` to `false` to reflect the correct default (assume online until proven otherwise)
+- **`_initMap()` — Simplified Library Loading**: Removed the redundant per-call timeout race inside `_initMap()`; timeout is already handled by `_onMounted`'s `loadTimeout`. Destructuring simplified to only capture `{ ColorScheme }` from the `core` library
+- **`_cleanUp()` — Listener Cleanup Delegation**: Replaced the manual `forEach` + `removeListener` loop with a single `mapEventListeners.clear()`, delegating actual event removal to the existing `clearInstanceListeners()` call that follows
+- **`_validateAndPrepareSettings()` — Removed Unconditional Default Override**: Removed the hard-coded `center: {lat:0, lng:0}` / `zoom: 2` fallback that silently overrode any configured defaults; settings are now returned as-is
+- **`_notifyStateChange()` — Typed Signature**: Method now accepts a `changes` object parameter and is documented as `@protected` to signal it is an override point for subclasses
+- **`handleLoadError()` — Case-Insensitive Timeout Detection**: Message matching for timeout/network errors is now `.toLowerCase().includes(...)` to catch mixed-case variants; timeout is also detected via `error.type === LOADER_ERROR_TYPES.TIMEOUT`
+- **`GoogleMapsAPILoader` — Removed Unused Static Properties**: Removed `scriptLoaded` and `retryCount` static properties which were never read after their write sites
+- **API Key Validation — Stronger Length Guard**: Minimum accepted key length raised from 10 to 30 characters to reject obviously invalid short strings early
+- **`_initImportLibrary` — Timeout Cancel Flag**: Added a `cancelled` boolean to prevent the `checkReady` polling interval from running after the timeout promise has already rejected
+- **`fetchSettingsWithRetry` — Immutable Cache**: Added `Object.freeze(settingsCache)` after a successful fetch to prevent accidental mutation downstream
+- **Library Cache Elevated to Module Scope**: `loadedLibraries` Map promoted from a per-hook-instance variable to a module-level `libraryCache`, so repeated `importLibrary()` calls across different hook instances return the same cached result without re-awaiting
+- **`useGoogleMapsAPILoader` — Simplified Lifecycle**: Removed the `setLoadingStatus` internal callback and the `onWillUnmount` listener cleanup (no longer needed now that the loader does not track per-instance listeners). `removeListener` is kept as a no-op for backward compatibility
+- **Console Noise Reduction**: Retry warnings in `_initImportLibraryWithRetry` and `fetchSettingsWithRetry` are now gated behind `GoogleMapsAPILoader.isDebugMode`; removed stray `console.log('Retrying map load...')` from `_retryMapLoad()`
+
 ## 19.0.1.0.9
 
 ### Improved

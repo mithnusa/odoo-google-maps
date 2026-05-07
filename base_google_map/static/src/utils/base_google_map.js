@@ -35,6 +35,15 @@ export class BaseGoogleMapComponent extends Component {
             this._destroyResolve = resolve;
         });
 
+        // Map State — declared first so all hooks below can safely reference this.state
+        this.state = useState({
+            isMapReady: null,
+            loaderStatus: LOADER_STATUS.NOT_LOADED,
+            isLoading: null,
+            isOffline: false,
+            isError: false,
+        });
+
         // Services
         this.notificationService = useService('notification');
         this.uiService = useService('ui');
@@ -55,14 +64,6 @@ export class BaseGoogleMapComponent extends Component {
             },
             () => [this.mapDivElement(), this.state.loaderStatus],
         );
-
-        // Map State
-        this.state = useState({
-            isMapReady: null,
-            loaderStatus: LOADER_STATUS.NOT_LOADED,
-            isLoading: null,
-            isOffline: null,
-        });
 
         // Network status detection
         this._setupNetworkDetection();
@@ -103,7 +104,7 @@ export class BaseGoogleMapComponent extends Component {
         const isMapReady = this.isMapLoaded();
         const values = { isMapReady };
         if (status) {
-            values.status = status;
+            values.loaderStatus = status;
             values.isError = [
                 LOADER_STATUS.FAILED,
                 LOADER_STATUS.AUTH_FAILURE,
@@ -120,8 +121,8 @@ export class BaseGoogleMapComponent extends Component {
     handleOnStateChange(state) {
         // Override in child classes if needed
         // This is an optional hook for child classes
-        if (state.hasOwnProperty('status')) {
-            this.state.loaderStatus = state.status;
+        if (state.hasOwnProperty('loaderStatus')) {
+            this.state.loaderStatus = state.loaderStatus;
         }
         if (state.hasOwnProperty('isMapReady')) {
             this.state.isMapReady = state.isMapReady;
@@ -156,19 +157,10 @@ export class BaseGoogleMapComponent extends Component {
             // Validate and prepare settings
             const settings = this._validateAndPrepareSettings();
 
-            // Load required libraries with timeout
-            const librariesPromise = Promise.all([
+            // Load required libraries — overall timeout is handled by _onMounted's loadTimeout
+            const [, { ColorScheme }] = await Promise.all([
                 this.apiLoader.importLibrary('maps'),
                 this.apiLoader.importLibrary('core'),
-            ]);
-
-            const timeoutPromise = new Promise((_, reject) => {
-                setTimeout(() => reject(new Error('Map initialization timeout')), MAP_LOAD_TIMEOUT);
-            });
-
-            const [{ Map }, { ColorScheme }] = await Promise.race([
-                librariesPromise,
-                timeoutPromise,
             ]);
 
             // Prepare map options with validation
@@ -385,13 +377,8 @@ export class BaseGoogleMapComponent extends Component {
             this.loadTimeout = null;
         }
 
-        // Clean up map event listeners
-        if (this.mapEventListeners.size > 0) {
-            this.mapEventListeners.forEach((listener) => {
-                google.maps.event.removeListener(listener);
-            });
-            this.mapEventListeners.clear();
-        }
+        // Clear tracked listener references — clearInstanceListeners below handles actual removal
+        this.mapEventListeners.clear();
 
         // Clean up resize observer
         if (this.resizeObserver) {
@@ -428,7 +415,7 @@ export class BaseGoogleMapComponent extends Component {
      * @returns {boolean} True if loading
      */
     isCurrentlyLoading() {
-        return this.isLoading;
+        return this.state.isLoading;
     }
 
     /**
@@ -436,7 +423,7 @@ export class BaseGoogleMapComponent extends Component {
      * @returns {boolean} True if there's an error
      */
     hasError() {
-        return this.isError;
+        return this.state.isError;
     }
 
     /**
@@ -495,11 +482,7 @@ export class BaseGoogleMapComponent extends Component {
             );
         }
 
-        return {
-            ...settings,
-            center: this._validateCoordinates({ lat: 0, lng: 0 }),
-            zoom: this._validateZoom(2),
-        };
+        return settings;
     }
 
     // === ERROR HANDLING METHODS ===
@@ -622,11 +605,14 @@ export class BaseGoogleMapComponent extends Component {
         mapEl.setAttribute('role', 'application');
         mapEl.setAttribute('aria-label', A11Y_LABELS.MAP_CONTAINER);
 
-        // Add keyboard navigation hints
-        const helpText = document.createElement('div');
-        helpText.className = 'sr-only';
-        helpText.textContent = _t('Use arrow keys to pan, plus/minus to zoom');
-        mapEl.appendChild(helpText);
+        // Guard: only append once — _setupAccessibility can be called again on retry
+        if (!mapEl.querySelector('[data-role="gmap-hint"]')) {
+            const helpText = document.createElement('div');
+            helpText.setAttribute('data-role', 'gmap-hint');
+            helpText.className = 'sr-only';
+            helpText.textContent = _t('Use arrow keys to pan, plus/minus to zoom');
+            mapEl.appendChild(helpText);
+        }
     }
 
     /**
@@ -636,10 +622,21 @@ export class BaseGoogleMapComponent extends Component {
     _updateA11yForError() {
         try {
             const mapEl = this.mapDivElement();
-            if (mapEl) {
-                mapEl.setAttribute('aria-live', 'assertive');
-                mapEl.setAttribute('aria-describedby', this.errorMessage);
+            if (!mapEl) return;
+
+            mapEl.setAttribute('aria-live', 'assertive');
+
+            // aria-describedby must reference an element ID, not raw text
+            let errorEl = mapEl.querySelector('[data-role="gmap-error-msg"]');
+            if (!errorEl) {
+                errorEl = document.createElement('div');
+                errorEl.id = 'gmap-error-msg';
+                errorEl.setAttribute('data-role', 'gmap-error-msg');
+                errorEl.className = 'sr-only';
+                mapEl.appendChild(errorEl);
             }
+            errorEl.textContent = this.errorMessage;
+            mapEl.setAttribute('aria-describedby', errorEl.id);
         } catch (e) {
             // Ignore if mapDivElement throws (component may be destroyed)
         }
@@ -783,25 +780,23 @@ export class BaseGoogleMapComponent extends Component {
      */
     _setupNetworkDetection() {
         this._onOnline = () => {
-            this.isOffline = false;
-            if (this.isError && !this.isMapLoaded()) {
+            this.state.isOffline = false;
+            if (this.state.isError && !this.isMapLoaded()) {
                 this._retryMapLoad();
             }
-            // Notify state change
-            this._notifyStateChange();
+            this._notifyStateChange({ isOffline: false });
         };
 
         this._onOffline = () => {
-            this.isOffline = true;
-            // Notify state change
-            this._notifyStateChange();
+            this.state.isOffline = true;
+            this._notifyStateChange({ isOffline: true });
         };
 
         window.addEventListener('online', this._onOnline);
         window.addEventListener('offline', this._onOffline);
 
         // Initial state
-        this.isOffline = !navigator.onLine;
+        this.state.isOffline = !navigator.onLine;
     }
 
     /**
@@ -838,10 +833,12 @@ export class BaseGoogleMapComponent extends Component {
     }
 
     /**
-     * Notify state change to child components
-     * @private
+     * Notify network state change. Override in child classes to react.
+     * @protected
+     * @param {Object} changes - The properties that changed
+     * @param {boolean} changes.isOffline - Whether the device is currently offline
      */
-    _notifyStateChange() {}
+    _notifyStateChange(changes = {}) {}
 
     /**
      * Get map restrictions for security
@@ -858,7 +855,6 @@ export class BaseGoogleMapComponent extends Component {
      * @private
      */
     async _retryMapLoad() {
-        console.log('Retrying map load...');
         this.errorMessage = '';
         // reset state
         this.handleOnStateChange({
