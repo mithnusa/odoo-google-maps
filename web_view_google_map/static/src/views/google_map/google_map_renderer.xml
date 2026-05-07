@@ -32,19 +32,19 @@
                         <t t-esc="subTitle"/>
                     </div>
                     <div class="pt-3 d-flex text-nowrap gap-1">
-                        <button type="button" t-att-data-id="recordId" class="btn btn-sm btn-outline-dark" data-role="btn-open_form" data-tooltip="Open">
+                        <button type="button" tabindex="-1" t-att-data-id="recordId" class="btn btn-sm btn-outline-dark" data-role="btn-open_form" data-tooltip="Open">
                             <i class="fa fa-angle-right fa-lg" aria-hidden="true"/>
                             <span class="visually-hidden">Open</span>
                         </button>
-                        <button type="button" class="btn btn-sm btn-outline-dark" data-role="btn-show_nearby" data-tooltip="Show nearby records">
+                        <button type="button" tabindex="-1" class="btn btn-sm btn-outline-dark" data-role="btn-show_nearby" data-tooltip="Show nearby records">
                             <i class="fa fa-location-arrow" aria-hidden="true"/>
                             <span class="visually-hidden">Nearby</span>
                         </button>
-                        <a t-attf-href="https://www.google.com/maps/dir/?api=1&amp;destination={{ destination }}" target="_blank" class="btn btn-sm btn-outline-dark" data-tooltip="Navigate to this location">
+                        <a tabindex="-1" t-attf-href="https://www.google.com/maps/dir/?api=1&amp;destination={{ destination }}" target="_blank" class="btn btn-sm btn-outline-dark" data-tooltip="Navigate to this location">
                             <i class="fa fa-map-signs" aria-hidden="true"/>
                             <span class="visually-hidden">Navigate to</span>
                         </a>
-                        <a t-attf-href="https://www.google.com/maps/search/?api=1&amp;query={{ destination }}" target="_blank" class="btn btn-sm btn-outline-dark" data-tooltip="View on Google Maps website">
+                        <a tabindex="-1" t-attf-href="https://www.google.com/maps/search/?api=1&amp;query={{ destination }}" target="_blank" class="btn btn-sm btn-outline-dark" data-tooltip="View on Google Maps website">
                             <i class="fa fa-external-link" aria-hidden="true"/>
                             <span class="visually-hidden">Open Google Maps</span>
                         </a>

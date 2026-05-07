@@ -31,12 +31,11 @@ export function getHexColorPicker(index) {
  * Format a number with thousand separators for better readability
  * @param {number} num - The number to format
  * @param {number} decimals - Number of decimal places
- * @returns {string} Formatted number with commas
+ * @returns {string} Formatted number with commas, or empty string if num is not finite
  */
 export function formatNumber(num, decimals = 2, locale = 'en-US') {
     if (!Number.isFinite(num)) {
-        console.warn('Invalid number provided for formatting:', num);
-        return num;
+        return '';
     }
 
     const toLocale = locale ? locale.replace('_', '-') : (navigator.language || 'en-US');
@@ -53,29 +52,15 @@ export function formatNumber(num, decimals = 2, locale = 'en-US') {
     }
 }
 
-export function parseMarkersColor(colors) {
-    if (!colors) {
-        return false;
-    }
-    let pair;
-    let color;
-    let expr;
-    return _(colors.split(';'))
-        .chain()
-        .compact()
-        .map(function (color_pair) {
-            pair = color_pair.split(':');
-            color = pair[0];
-            expr = pair[1];
-            return [color, py.parse(py.tokenize(expr)), expr];
-        })
-        .value();
-}
-
+/**
+ * Extract the current action ID from the browser URL hash.
+ * Browser-only: relies on window.location — not safe to call in SSR or tests.
+ * @returns {number|null} The action ID, or null if not present or not a number
+ */
 export function getCurrentActionId() {
-    let url = new URL(window.location.href);
-    let hashParams = new URLSearchParams(url.hash.slice(1));
-    let actionId = parseInt(hashParams.get('action'));
+    const url = new URL(window.location.href);
+    const hashParams = new URLSearchParams(url.hash.slice(1));
+    const actionId = parseInt(hashParams.get('action'));
     return isNaN(actionId) ? null : actionId;
 }
 
@@ -103,11 +88,13 @@ export function processColor(color) {
 }
 
 /**
- * Convert hex color to RGBA array
- * @param {*} hex 
- * @param {*} alpha 
- * @param {*} defaultColor 
- * @returns 
+ * Convert hex color to RGBA array.
+ * Note: the alpha channel in the returned array is scaled to 0–255 (not 0–1),
+ * matching the convention expected by deck.gl and similar libraries.
+ * @param {string} hex - Hex color string (e.g. '#FF0000')
+ * @param {number} alpha - Opacity in 0–1 range (converted to 0–255 in output)
+ * @param {number[]} defaultColor - Fallback RGBA array [r, g, b, a] with a in 0–255
+ * @returns {number[]} RGBA array where each component is 0–255
  */
 export function hexToRgba(hex, alpha = 1.0, defaultColor = DEFAULT_COLOR_RGBA) {
     const fallback = defaultColor || DEFAULT_COLOR_RGBA;
@@ -139,12 +126,13 @@ export function parseRecord(record, viewConfig = {}, isGrouped = false) {
             case 'many2one':
                 value = (record.data[fieldName] || {}).display_name || '';
                 break;
-            case 'selection':
-                let selection = record.fields[fieldName].selection.find(
+            case 'selection': {
+                const selection = record.fields[fieldName].selection.find(
                     (s) => s[0] === record.data[fieldName]
                 );
                 value = selection ? selection[1] : '';
                 break;
+            }
             case 'char':
             case 'text':
             case 'datetime':
@@ -177,20 +165,16 @@ export function parseRecord(record, viewConfig = {}, isGrouped = false) {
         otherFields.title = 'display_name';
     }
 
-    if (isGrouped) {
-        other['__geoColor'] = '#' + Math.floor(Math.random() * 16777215).toString(16);
-    }
-
     if (record.data) {
         if (lat && lng) {
             const latitude = getFieldValue(lat);
             const longitude = getFieldValue(lng);
-            if (latitude !== 0.0 && longitude !== 0.0) {
+            if (latitude && longitude) {
                 geolocation = { lat: latitude, lng: longitude };
             }
         }
 
-        Array.from(Object.keys(otherFields)).forEach((config) => {
+        Object.keys(otherFields).forEach((config) => {
             const fieldName = otherFields[config];
             const val = getFieldValue(fieldName);
             other[config] = val;
@@ -198,7 +182,7 @@ export function parseRecord(record, viewConfig = {}, isGrouped = false) {
 
         if (otherFields.__geoColor) {
             const color = record.data[otherFields.__geoColor];
-            if (color) {
+            if (color !== undefined && color !== null) {
                 if (typeof color === 'string' || (!color && typeof color !== 'number')) {
                     try {
                         other['__geoColor'] = normalizeColor(color);
@@ -223,7 +207,7 @@ export function parseRecord(record, viewConfig = {}, isGrouped = false) {
 
 export function getRecordDataView(record, viewAttrs) {
     let dataView = record.dataView || {};
-    if (Object.values(dataView?.other || {}).filter(val => !!val).length <= 0) {
+    if (Object.values(dataView?.other || {}).filter(val => val !== null && val !== undefined && val !== '').length <= 0) {
         dataView = parseRecord(record, viewAttrs);
     }
     return dataView;
@@ -252,7 +236,12 @@ export function normalizeColor(color) {
         return upper;
     }
 
-    // Use the browser's color parser via a temporary element
+    // Use the browser's color parser via a temporary element (requires a live DOM)
+    if (!document?.body) {
+        _normalizeColorCache.set(color, DEFAULT_COLOR);
+        return DEFAULT_COLOR;
+    }
+
     const tempElement = document.createElement('div');
     tempElement.style.color = color;
     document.body.appendChild(tempElement);
@@ -303,7 +292,7 @@ export function generateColor(seed = null) {
         '#DC143C', // – Crimson
         '#2E8B8B', // – Turquoise (darkened)
         '#2F4F4F', // – Dark Slate Gray
-        '#B8860B', // – Gold (darkened to Dark Goldenrod)
+        '#556B2F', // – Dark Olive Green
     ];
     if (seed !== null && seed !== undefined) {
         const str = String(seed);
@@ -438,11 +427,7 @@ export function lightenColor(color, amount = 50, opacity = null) {
 
 
 export function generateUUID() {
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-        const r = (Math.random() * 16) | 0;
-        const v = c === 'x' ? r : (r & 0x3) | 0x8;
-        return v.toString(16);
-    });
+    return crypto.randomUUID();
 }
 
 // Constants for AdvancedMarkerBoxSelector
@@ -490,7 +475,7 @@ export class AdvancedMarkerBoxSelector {
         this.startLatLng = null;
         this.selectionDiv = null;
         this.selectedMarkers = new Set();
-        this.allMarkers = [];
+        this.allMarkers = new Set();
         this.onSelectionChange = null;
         this.selectionEnabled = false;
 
@@ -542,7 +527,6 @@ export class AdvancedMarkerBoxSelector {
         this.instructionDiv.textContent = _t('Selection Mode Active - Click and drag to select markers');
 
         // Append selection box to map div directly for proper positioning
-        mapDiv.style.position = 'relative'; // Ensure map div is positioned
         mapDiv.appendChild(this.selectionDiv);
 
         // Append instruction to body or map container
@@ -971,24 +955,21 @@ export class AdvancedMarkerBoxSelector {
     }
 
     /**
-     * Adds a marker to the tracking list
+     * Adds a marker to the tracking set
      * @param {google.maps.marker.AdvancedMarkerElement} marker - The marker to track
      */
     addMarker(marker) {
-        if (marker && !this.allMarkers.includes(marker)) {
-            this.allMarkers.push(marker);
+        if (marker) {
+            this.allMarkers.add(marker);
         }
     }
 
     /**
-     * Removes a marker from the tracking list
+     * Removes a marker from the tracking set
      * @param {google.maps.marker.AdvancedMarkerElement} marker - The marker to remove
      */
     removeMarker(marker) {
-        const index = this.allMarkers.indexOf(marker);
-        if (index > -1) {
-            this.allMarkers.splice(index, 1);
-        }
+        this.allMarkers.delete(marker);
 
         // Also remove from selected markers if present
         if (this.selectedMarkers.has(marker)) {
@@ -1000,10 +981,10 @@ export class AdvancedMarkerBoxSelector {
     }
 
     /**
-     * Removes all markers from the tracking list
+     * Removes all markers from the tracking set
      */
     clearMarkers() {
-        this.allMarkers = [];
+        this.allMarkers = new Set();
         this.clearSelection();
     }
 
@@ -1023,7 +1004,7 @@ export class AdvancedMarkerBoxSelector {
         this.clearSelection(true);
 
         markers.forEach((marker) => {
-            if (this.allMarkers.includes(marker)) {
+            if (this.allMarkers.has(marker)) {
                 this.selectedMarkers.add(marker);
                 this.highlightMarker(marker, true);
             }
@@ -1039,7 +1020,7 @@ export class AdvancedMarkerBoxSelector {
      * @param {google.maps.marker.AdvancedMarkerElement} marker - Marker to toggle
      */
     toggleMarkerSelection(marker) {
-        if (!this.allMarkers.includes(marker)) return;
+        if (!this.allMarkers.has(marker)) return;
 
         if (this.selectedMarkers.has(marker)) {
             this.selectedMarkers.delete(marker);
@@ -1086,7 +1067,7 @@ export class AdvancedMarkerBoxSelector {
 
         // Clear references
         this.selectedMarkers.clear();
-        this.allMarkers = [];
+        this.allMarkers = new Set();
         this.map = null;
     }
 }

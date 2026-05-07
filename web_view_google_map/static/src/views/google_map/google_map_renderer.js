@@ -458,7 +458,7 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
 
         try {
             // Update existing marker if it exists (before computing element values)
-            if (this.cache.has(record.id)) {
+            if (this.cache.has(record.resId)) {
                 return this._updateExistingMarker(record, geolocation);
             }
 
@@ -568,10 +568,10 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
 
         for (const { group } of groupRecords) {
             for (const record of group.list.records) {
-                const marker = this.cache.get(record.id);
+                const marker = this.cache.get(record.resId);
                 if (marker) {
-                    this._cleanUpMarker(record.id, marker);
-                    this.cache.delete(record.id);
+                    this._cleanUpMarker(record.resId, marker);
+                    this.cache.delete(record.resId);
                 }
             }
         }
@@ -583,7 +583,7 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
      * If the marker is within a cluster, automatically breaks apart the cluster
      * through progressive zooming to reveal the individual marker.
      *
-     * @param {string|number} recordId - ID of the record to focus on
+     * @param {string|number} recordId - resId of the record to focus on
      */
     pointInMap(recordId) {
         const marker = this.cache.get(recordId);
@@ -907,12 +907,12 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
      * @returns Object Data view for the record
      */
     getRecordDataView(record) {
-        if (this.cacheRecordDataView.has(record.id)) {
-            const cachedDataView = this.cacheRecordDataView.get(record.id);
+        if (this.cacheRecordDataView.has(record.resId)) {
+            const cachedDataView = this.cacheRecordDataView.get(record.resId);
             return cachedDataView;
         }
         const dataView = getRecordDataView(record, this.props.viewAttrs || {});
-        this.cacheRecordDataView.set(record.id, dataView);
+        this.cacheRecordDataView.set(record.resId, dataView);
         return dataView;
     }
 
@@ -1299,8 +1299,8 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
      */
     _updateExistingMarker(record, geolocation) {
         // Invalidate cached dataView so stale coordinates are not returned after geocoding updates
-        this.cacheRecordDataView.delete(record.id);
-        const marker = this.cache.get(record.id);
+        this.cacheRecordDataView.delete(record.resId);
+        const marker = this.cache.get(record.resId);
 
         // Add to map if not already present
         if (!marker.map) {
@@ -1393,7 +1393,7 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
         record._marker = marker;
         
         // Store in cache
-        this.cache.set(record.id, marker);
+        this.cache.set(record.resId, marker);
     }
 
     /**
@@ -1407,7 +1407,7 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
             'gmp-click',
             this._handleMarkerClick.bind(this, marker)
         );
-        this._storeMarkerEventListener(record.id, 'gmp-click', clickListener);
+        this._storeMarkerEventListener(record.resId, 'gmp-click', clickListener);
     }
 
     /**
@@ -1755,7 +1755,7 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
      */
     _generateInfoWindowHtml(record, isShifted = false) {
         const values = this.prepareInfoWindowValues(record);
-        values.recordId = record.id;
+        values.recordId = record.resId;
         return renderToString(this.constructor.templateInfoWindow, { ...values, isShifted });
     }
 
@@ -1766,9 +1766,9 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
      */
     _updateMarkerSelectionState(record) {
         if (record.selected) {
-            this._selectMarker(this.cache.get(record.id));
+            this._selectMarker(this.cache.get(record.resId));
         } else {
-            this._deselectMarker(this.cache.get(record.id));
+            this._deselectMarker(this.cache.get(record.resId));
         }
     }
 

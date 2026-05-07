@@ -181,7 +181,7 @@ export class GoogleMapRendererCRM extends GoogleMapRenderer {
         const clickListener = advMarkerElement.addListener('gmp-click', () => {
             this.toggleMarkerHighlight(advMarkerElement);
         });
-        this._storeMarkerEventListener(record.id, 'gmp-click', clickListener);
+        this._storeMarkerEventListener(record.resId, 'gmp-click', clickListener);
         return advMarkerElement;
     }
 
@@ -233,7 +233,7 @@ export class GoogleMapRendererCRM extends GoogleMapRenderer {
         record._marker = marker;
 
         // Store in cache
-        this.cache.set(record.id, marker);
+        this.cache.set(record.resId, marker);
     }
 
     /**
