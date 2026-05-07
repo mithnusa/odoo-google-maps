@@ -524,7 +524,7 @@ export class GoogleMapController extends Component {
     _computeBoundingBox(lat, lng, radiusMeters) {
         const latDelta = radiusMeters / 111320;
         // Clamp cosine to avoid division by zero near the poles
-        const cosLat = Math.max(Math.cos((lat * Math.PI) / 180), 0.0001);
+        const cosLat = Math.max(Math.abs(Math.cos((lat * Math.PI) / 180)), 0.0001);
         const lngDelta = radiusMeters / (111320 * cosLat);
         return {
             minLat: Math.max(lat - latDelta, -90),

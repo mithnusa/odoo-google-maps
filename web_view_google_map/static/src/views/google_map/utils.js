@@ -88,13 +88,22 @@ export function processColor(color) {
 }
 
 /**
- * Convert hex color to RGBA array.
- * Note: the alpha channel in the returned array is scaled to 0–255 (not 0–1),
- * matching the convention expected by deck.gl and similar libraries.
- * @param {string} hex - Hex color string (e.g. '#FF0000')
- * @param {number} alpha - Opacity in 0–1 range (converted to 0–255 in output)
- * @param {number[]} defaultColor - Fallback RGBA array [r, g, b, a] with a in 0–255
- * @returns {number[]} RGBA array where each component is 0–255
+ * Convert a 6-digit hex color string to an RGBA array with components in the 0–255 range.
+ *
+ * The alpha channel follows the 0–255 convention used by deck.gl / WebGL, NOT the 0–1
+ * CSS convention. Pass `alpha` in 0–1 and the function multiplies it by 255 internally:
+ *   hexToRgba('#FF0000', 0.5) → [255, 0, 0, 128]
+ *
+ * Returns `defaultColor` when:
+ *   - `hex` is falsy or not a string
+ *   - `hex` is not a valid 6-digit hex color (3-digit shorthand is NOT supported)
+ *
+ * `alpha` is silently clamped to [0, 1] if out of range.
+ *
+ * @param {string} hex - 6-digit hex color, with or without leading '#' (e.g. '#FF0000' or 'FF0000')
+ * @param {number} [alpha=1.0] - Opacity in the 0–1 range
+ * @param {number[]} [defaultColor=DEFAULT_COLOR_RGBA] - Fallback [r, g, b, a] array (a in 0–255)
+ * @returns {number[]} [r, g, b, a] array where every component is an integer in 0–255
  */
 export function hexToRgba(hex, alpha = 1.0, defaultColor = DEFAULT_COLOR_RGBA) {
     const fallback = defaultColor || DEFAULT_COLOR_RGBA;
@@ -169,7 +178,7 @@ export function parseRecord(record, viewConfig = {}, isGrouped = false) {
         if (lat && lng) {
             const latitude = getFieldValue(lat);
             const longitude = getFieldValue(lng);
-            if (latitude && longitude) {
+            if (Number.isFinite(latitude) && Number.isFinite(longitude)) {
                 geolocation = { lat: latitude, lng: longitude };
             }
         }
