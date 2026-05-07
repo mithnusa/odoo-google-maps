@@ -87,7 +87,7 @@ graph LR
 
 ### Infrastructure
 
-**[base_google_map](base_google_map/README.md)** `19.0.1.0.9`
+**[base_google_map](base_google_map/README.md)** `19.0.1.0.10`
 
 Root configuration module. Adds a Google Maps section to General Settings for API Key, Map ID, language, region, color scheme, and nearby search radius. Provides the shared `useGoogleMapsAPILoader` JavaScript API loader used by every other module in this suite.
 
@@ -226,12 +226,13 @@ Dependencies are resolved automatically — installing any module will install i
 - **Google API Key** — from [Google Cloud Console](https://console.cloud.google.com/)
 - **Map ID** — required for `AdvancedMarkerElement` and cloud-based styling
 
-All Terra Draw and Deck.gl libraries used by `web_view_google_map_drawing` are bundled locally — no CDN requests are made to load them.
+All Terra Draw, Deck.gl and Turf.js libraries used by `web_view_google_map_drawing` are bundled locally — no CDN requests are made to load them.
 
 | Library | Purpose |
 | --- | --- |
 | Terra Draw | Geographic shape drawing (polygon, rectangle, freehand) |
 | Deck.gl | GPU-accelerated rendering for large GeoJSON datasets |
+| Turf.js | Geospatial analysis and geometry operations (point-in-polygon, distance) |
 
 An internet connection is required at runtime. Map tiles, geocoding, and places data are served by Google services and require a valid API key on every request.
 

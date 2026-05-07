@@ -100,9 +100,7 @@ export class GoogleMapsAPILoader {
     static loadingStatus = LOADER_STATUS.NOT_LOADED;
     static serializedApiParams = null;
     static listeners = [];
-    static scriptLoaded = false;
     static loadPromise = null;
-    static retryCount = 0;
     static _notifyTimeout = null;
     static isDebugMode = false;
 
@@ -151,7 +149,7 @@ export class GoogleMapsAPILoader {
         }
         
         // Validate API key format
-        if (typeof params.key !== 'string' || params.key.length < 10) {
+        if (typeof params.key !== 'string' || params.key.length < 30) {
             throw new Error('Invalid API key format');
         }
     }
@@ -187,7 +185,6 @@ export class GoogleMapsAPILoader {
                 
                 this.loadingStatus = LOADER_STATUS.LOADED;
                 this.notifyLoadingStatusListeners();
-                this.retryCount = 0;
             } else {
                 this.loadingStatus = LOADER_STATUS.LOADED;
                 this.notifyLoadingStatusListeners();
@@ -217,7 +214,9 @@ export class GoogleMapsAPILoader {
         const errorMessage = error?.message || '';
         if (error?.type === LOADER_ERROR_TYPES.AUTH || error?.name === 'AuthError') {
             this.loadingStatus = LOADER_STATUS.AUTH_FAILURE;
-        } else if (errorMessage.includes('timeout') || errorMessage.includes('network')) {
+        } else if (errorMessage.toLowerCase().includes('timeout') || error?.type === LOADER_ERROR_TYPES.TIMEOUT) {
+            this.loadingStatus = LOADER_STATUS.TIMEOUT;
+        } else if (errorMessage.toLowerCase().includes('network')) {
             this.loadingStatus = LOADER_STATUS.NETWORK_ERROR;
         } else {
             this.loadingStatus = LOADER_STATUS.FAILED;
@@ -308,17 +307,18 @@ export class GoogleMapsAPILoader {
      * @param {Object} params - API parameters
      */
     static async _initImportLibraryWithRetry(params) {
-        for (let attempt = 0; attempt <= MAX_RETRY_ATTEMPTS; attempt++) {
+        for (let attempt = 0; attempt < MAX_RETRY_ATTEMPTS; attempt++) {
             try {
                 await this._initImportLibrary(params);
                 return;
             } catch (error) {
-                if (attempt === MAX_RETRY_ATTEMPTS) {
+                if (attempt === MAX_RETRY_ATTEMPTS - 1) {
                     throw error;
                 }
-                
-                const delay = Math.pow(2, attempt) * 1000; // Exponential backoff
-                console.warn(`Google Maps API load attempt ${attempt + 1} failed, retrying in ${delay}ms...`);
+                const delay = Math.pow(2, attempt) * 1000;
+                if (this.isDebugMode) {
+                    console.warn(`Google Maps API load attempt ${attempt + 1} failed, retrying in ${delay}ms...`);
+                }
                 await new Promise(resolve => setTimeout(resolve, delay));
             }
         }
@@ -337,15 +337,19 @@ export class GoogleMapsAPILoader {
             delete settings.status;
             delete settings.theme;
             
-            // Add timeout to script loading
+            let cancelled = false;
+
             const timeoutPromise = new Promise((_, reject) => {
-                setTimeout(() => reject(new Error('Script loading timeout')), NETWORK_TIMEOUT);
+                setTimeout(() => {
+                    cancelled = true;
+                    reject(new Error('Script loading timeout'));
+                }, NETWORK_TIMEOUT);
             });
-            
+
             const loadPromise = new Promise((resolve) => {
                 this.loadGoogle(settings);
-                // Wait for the script to be ready
                 const checkReady = () => {
+                    if (cancelled) return;
                     if (window.google?.maps?.importLibrary) {
                         resolve();
                     } else {
@@ -494,6 +498,9 @@ const settingsCache = {};
 const loaderState = { status: LOADER_STATUS.NOT_LOADED };
 // Promise cache to prevent concurrent duplicate fetch requests
 let fetchPromise = null;
+// Shared library cache across all hook instances — google.maps.importLibrary handles its own
+// internal caching, but this avoids redundant awaits in the same session
+const libraryCache = new Map();
 
 /**
  * Internal function that fetches Google Maps settings from the Odoo backend with retry logic.
@@ -517,7 +524,7 @@ let fetchPromise = null;
  * // Returns: { key: 'AIza...', region: 'US', ... }
  */
 async function fetchSettingsWithRetry() {
-    for (let attempt = 0; attempt <= MAX_RETRY_ATTEMPTS; attempt++) {
+    for (let attempt = 0; attempt < MAX_RETRY_ATTEMPTS; attempt++) {
         try {
             const timeoutPromise = new Promise((_, reject) => {
                 setTimeout(() => reject(new Error('Settings fetch timeout')), NETWORK_TIMEOUT);
@@ -530,26 +537,25 @@ async function fetchSettingsWithRetry() {
                 const values = prepareSettingValues(data);
                 Object.assign(settingsCache, values);
 
-                // Validate that we have the critical API key
                 if (!settingsCache.key) {
                     throw new Error('Google Maps API key is missing from settings');
                 }
 
+                Object.freeze(settingsCache);
                 return settingsCache;
             }
 
             throw new Error('No data received from settings endpoint');
         } catch (error) {
-            // If this is the last attempt, throw the error
-            if (attempt === MAX_RETRY_ATTEMPTS) {
+            if (attempt === MAX_RETRY_ATTEMPTS - 1) {
                 console.error('Failed to fetch Google Maps settings after all retries:', error);
-                loaderState.status = LOADER_STATUS.FAILED;
                 throw error;
             }
 
-            // Otherwise, log and retry with exponential backoff
-            const delay = Math.pow(2, attempt) * 1000; // 1s, 2s, 4s
-            console.warn(`Settings fetch attempt ${attempt + 1} failed, retrying in ${delay}ms...`, error.message);
+            const delay = Math.pow(2, attempt) * 1000;
+            if (GoogleMapsAPILoader.isDebugMode) {
+                console.warn(`Settings fetch attempt ${attempt + 1} failed, retrying in ${delay}ms...`, error.message);
+            }
             await new Promise(resolve => setTimeout(resolve, delay));
         }
     }
@@ -655,7 +661,6 @@ export const useGoogleMapsAPILoader = (
     onLoad = () => {},
     onError = () => {}
 ) => {
-    const loadedLibraries = new Map();
 
     /**
      * Imports a Google Maps JavaScript API library with caching and timeout protection.
@@ -696,8 +701,8 @@ export const useGoogleMapsAPILoader = (
         }
 
         // Return cached library if available
-        if (loadedLibraries.has(name)) {
-            return loadedLibraries.get(name);
+        if (libraryCache.has(name)) {
+            return libraryCache.get(name);
         }
 
         if (window.google?.maps?.importLibrary === undefined) {
@@ -713,7 +718,7 @@ export const useGoogleMapsAPILoader = (
             const loadPromise = window.google.maps.importLibrary(name);
             const res = await Promise.race([loadPromise, timeoutPromise]);
             
-            loadedLibraries.set(name, res);
+            libraryCache.set(name, res);
             return res;
         } catch (error) {
             console.error(`Failed to load library ${name}: ${error.message}`);
@@ -721,20 +726,12 @@ export const useGoogleMapsAPILoader = (
         }
     }
 
-    /**
-     * Internal callback to update the loader state status.
-     * Called by GoogleMapsAPILoader when loading status changes.
-     * @private
-     */
-    const setLoadingStatus = (status) => {
-        loaderState.status = status;
-    };
-
     // Automatically load Google Maps API when component mounts
     onWillStart(async () => {
         try {
             await fetchSettings();
-            await GoogleMapsAPILoader.load(settingsCache, setLoadingStatus);
+            await GoogleMapsAPILoader.load(settingsCache);
+            loaderState.status = LOADER_STATUS.LOADED;
             if (typeof onLoad === 'function') {
                 onLoad();
             }
@@ -743,23 +740,13 @@ export const useGoogleMapsAPILoader = (
             if (typeof onError === 'function') {
                 onError(error);
             } else {
-                console.error(' Failed to load the Google Maps JavaScript API: ', error);
+                console.error('Failed to load the Google Maps JavaScript API:', error);
             }
         }
     });
 
-    /**
-     * Removes the status change listener from GoogleMapsAPILoader.
-     * Useful for manual cleanup if needed before component unmount.
-     */
-    const removeListener = () => {
-        GoogleMapsAPILoader.removeListener(setLoadingStatus);
-    };
-
-    // Automatically cleanup when component unmounts
-    onWillUnmount(() => {
-        removeListener();
-    });
+    // no-op: kept for backward compatibility with consumers that call removeListener()
+    const removeListener = () => {};
 
     /**
      * Returns a copy of the current Google Maps API settings.
