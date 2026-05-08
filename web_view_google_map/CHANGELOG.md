@@ -1,5 +1,48 @@
 # Change Log
 
+## 19.0.1.0.24
+
+### Fixed
+
+- **`ir_ui_view.py` — Lat/Lng Validation Logic**: The condition `not att_lat and not att_lng` required both attributes to be absent before raising an error; changed to `not att_lat or not att_lng` so either missing attribute triggers the validation error, as intended
+- **`ir_ui_view.py` — `node.iterchildren` Tag Filter**: `tag=etree.Element` passed the class itself as a tag filter, matching nothing correctly; replaced with `tag='field'` string literal for proper child filtering. Removed the now-unnecessary `from lxml import etree` import
+- **`geolocate.js` — Missing `ev.preventDefault()`**: `geolocation()` handler did not call `ev.preventDefault()`, allowing the default browser action to fire alongside the geolocation request; added `ev` parameter and `ev.preventDefault()` call
+- **`google_map_sidebar.xml` — `record.id` vs `record.resId`**: `fnPinPointInMap` was called with `record.id` (OWL component id) instead of `record.resId` (database ID), causing the wrong record to be pinpointed on the map
+- **`_selectMarker()` / `_deselectMarker()` — Forced Zoom Override**: Both methods always called `setZoom(14)`, overriding the user's current zoom level even when already zoomed in further; zoom is now only applied when the current level is below 14
+- **`onGroupBySelected()` — Brief Double-Group State**: Previous implementation called `super.onGroupBySelected()` first, then checked the count — leaving a window where two groups were briefly active. Now validates before calling super, blocking activation entirely if another group is already active
+- **`mapDomain` — `0.0` Excluded as Null**: `0.0` was listed in `nullValues` alongside `null` and `false`, which incorrectly excluded records located exactly on the equator or prime meridian. Removed `0.0` from the null exclusion list
+- **`parseRecord()` — Color Processing for Falsy/Zero Values**: Color logic incorrectly called `processColor(color)` when `color` was `0` (a valid integer color index), and fell back to `processColor(otherFields.__geoColor)` (the field name string) when color was absent. Added explicit `if (color)` guard and a separate `typeof color === 'number'` branch
+- **`_updateExistingMarker()` — Stale Cached `dataView`**: The `cacheRecordDataView` entry for an updated record was not invalidated, causing the cached (pre-update) coordinates to be returned on subsequent reads; added `cacheRecordDataView.delete(record.resId)` before updating
+- **`GoogleMapRecord.dataView` — Monkey-Patch Removed**: `dataView` was defined via `patch(Record.prototype, ...)` which applied globally to all `Record` instances; replaced with a proper override directly on `GoogleMapRecord` class, scoping the behavior correctly
+
+### Improved
+
+- **`generateColor()` — Deterministic Seed-Based Hash**: Accepts an optional `seed` parameter; when provided, derives a stable color via a djb2-style hash so the same group value always produces the same color across reloads. Falls back to random when seed is absent
+- **`GoogleMapGroup` — Stable Group Colors**: Group color is now derived from the group value (`colorSeed`) via the seeded `generateColor()` call, replacing the previous random assignment that changed on every reload
+- **`GoogleMapDynamicGroupList` — `defaultGroupBy` Initialized in `setup()`**: Moved `defaultGroupBy` initialization from inside the `groupBy` getter (lazy, repeated side-effect) to `setup()`, so it runs exactly once and the getter is a pure read
+- **`mapDomain` — Memoized Computation**: Added `_mapDomainCache` to store the computed domain after first access; subsequent reads return the cached value without recomputing field lookups
+- **`_processSelectionInBatches()` — Async/While Refactor**: Replaced the `new Promise` + recursive `setTimeout` callback pattern with a straightforward `async/while` loop, yielding between batches via `await new Promise(resolve => setTimeout(resolve, 0))`
+- **`useEffect` — Async Error Surfaced**: `onSelectionChanged()` call inside `useEffect` is now chained with `.catch()` so rejections are logged rather than silently swallowed (OWL `useEffect` callbacks must be synchronous)
+- **`useBus` `google-map-center-map` — Error Handling**: Wrapped `centerMap()` in an arrow function with `.catch()` to log errors from async bus handler
+- **`getGroupsOrRecords()` Cache Check**: Replaced `JSON.stringify` equality check with direct per-field comparison (`isGrouped`, `length`, and per-id `recordsIds.every(...)`) to avoid serialization overhead on every render
+- **`archiveDialogProps` — Stable Callback References**: `confirm` and `cancel` callbacks are now stored as `_onConfirmArchive` / `_onCancelArchive` properties during `setup()` rather than creating new closures on every getter invocation
+- **`getExportableFields()` — Respects `column_invisible` and `properties`**: Added two additional filter passes — one evaluating `column_invisible` modifiers against the current context and one excluding `properties`-type fields — matching the behavior of standard list view export
+- **`_renderMarkerForRecord()` — Cache Check Before Element Creation**: Moved the `cache.has(record.resId)` early-return check before `_createMarkerElementValues()`, avoiding unnecessary DOM element creation for markers that will be updated rather than created
+- **`_scheduleNextBatch()` — Idle Callback Tracking**: Idle callback handles are now stored in `_idleCallbackHandles` Set and cancelled in `_cleanUp()` via `window.cancelIdleCallback`, preventing post-destroy callbacks from accessing a torn-down component
+- **`handleGroupCollapse()` — Cleaned Up Logic**: Extracted common `getGroupsOrRecords().filter(...)` call; both the expand and collapse branches now `await` their respective props calls for correct async sequencing
+- **`geolocationInfoTooltip` / `getGroupTitle()` Getters**: Tooltip text and group header label are now returned from getter methods, making them translatable via `_t()` rather than being hardcoded strings in the template
+- **XML — `t-att-class` Object Syntax**: Replaced `t-attf-class` string interpolation with `t-att-class` object bindings throughout `google_map_renderer.xml` and `google_map_sidebar.xml` for cleaner conditional class handling
+- **XML — `data-role` Replaces Element IDs**: InfoWindow and sidebar action buttons now use `data-role` attributes instead of `id` attributes for event delegation, avoiding duplicate-ID issues when multiple info windows or sidebars are present on the page
+- **XML — `aria-hidden="true"` on Decorative Icons**: Added `aria-hidden="true"` to all purely decorative `<i class="fa ...">` icon elements across renderer and sidebar templates to reduce screen reader noise
+
+### Removed
+
+- **`subTitle` Prop from Sidebar**: Removed the `subTitle` string prop from `GoogleMapSidebar` props definition and its passing in `sidebarProps`
+- **`lxml.etree` Import**: Removed unused `etree` import from `ir_ui_view.py` following the `iterchildren` fix
+- **`patch` Import from `google_map_model.js`**: Removed unused `@web/core/utils/patch` import after replacing the monkey-patch with a proper class override
+- **`debounceToggleRecordSelection`**: Removed unused debounced wrapper that was never called
+- **`_markerPositionIndex` Map**: Removed the unused position-index Map; the corresponding `.clear()` call in `_invalidateMarkerPositionIndex()` was also removed
+
 ## 19.0.1.0.23
 
 - [Improved] **Sidebar Table Layout — Content Cell Class**: Replaced the `table:not(:has([colspan]))` fixed-layout approach with a dedicated `o_sidebar_content_cell` CSS class. The content `<td>` in `RecordItem` and both `<td colspan="99">` cells in `GroupItem` now carry this class, making the layout target explicit rather than relying on a structural selector

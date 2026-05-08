@@ -25,7 +25,6 @@ export class GoogleMapSidebar extends Component {
     static props = {
         header: String,
         title: { type: String, optional: true },
-        subTitle: String,
         getGroupsOrRecords: Function,
         toggleGroup: Function,
         renderGroupedRecordsFitBounds: Function,
@@ -46,6 +45,19 @@ export class GoogleMapSidebar extends Component {
         return this.props.getGroupsOrRecords();
     }
 
+    get geolocationInfoTooltip() {
+        return _t('Only records with geolocation data set are displayed');
+    }
+
+    /**
+     * Returns the translated display label for a group header, including its record count.
+     * Used in the GroupItem template to avoid untranslated JS string literals.
+     */
+    getGroupTitle(group) {
+        const displayName = group.group.displayName || _t('None');
+        return `${displayName} (${group.group.count})`;
+    }
+
     /**
      * Center the map based on the group records
      * @param {*} ev
@@ -56,17 +68,17 @@ export class GoogleMapSidebar extends Component {
         if (!group) return;
 
         const isExpanding = !ev.currentTarget?.classList.contains('collapsed');
+
+        if (isExpanding && group.records.length === 0) {
+            await this.props.toggleGroup(group);
+        }
+
+        const groupDatas = this.props.getGroupsOrRecords().filter((data) => data.key === groupKey);
+
         if (isExpanding) {
-            if (group.records.length === 0) {
-                await this.props.toggleGroup(group);
-            }
-            const datas = this.props.getGroupsOrRecords();
-            const groupDatas = datas.filter((data) => data.key === groupKey);
-            this.props.renderGroupedRecordsFitBounds(groupDatas);
+            await this.props.renderGroupedRecordsFitBounds(groupDatas);
         } else {
-            const datas = this.props.getGroupsOrRecords();
-            const groupDatas = datas.filter((data) => data.key === groupKey);
-            this.props.deleteGroupRecords(groupDatas);
+            await this.props.deleteGroupRecords(groupDatas);
         }
     }
 

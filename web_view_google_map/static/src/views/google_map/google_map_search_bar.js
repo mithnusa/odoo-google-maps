@@ -14,23 +14,22 @@ export class GoogleMapSearchBarMenu extends SearchBarMenu {
 
     /**
      * @override
+     * Blocks activation of a second group-by before the search model is updated,
+     * keeping the map view's single-group constraint enforced at the UI layer.
      */
-    onGroupBySelected() {
-        super.onGroupBySelected(...arguments);
-        let number_of_active_groups = 0;
-        this.groupByItems.forEach((value) => {
-            if (value.isActive) {
-                number_of_active_groups++;
-            }
-        });
-        if (number_of_active_groups > 1) {
-            this.notificationService.add(_t('You can only have one active group at a time.'), {
-                type: 'warning',
-            });
+    onGroupBySelected(item) {
+        if (!item.isActive && this.groupByItems.some((v) => v.isActive)) {
+            this.notificationService.add(
+                _t('You can only have one active group at a time.'),
+                { type: 'warning' }
+            );
+            return;
         }
+        super.onGroupBySelected(item);
     }
 }
 
+/** Replaces the default SearchBarMenu with GoogleMapSearchBarMenu to enforce single group-by. */
 export class GoogleMapSearchBar extends SearchBar {
     static components = {
         ...SearchBar.components,

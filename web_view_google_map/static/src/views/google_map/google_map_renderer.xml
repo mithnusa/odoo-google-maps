@@ -3,46 +3,49 @@
     <t t-name="web_view_google_map.GoogleMapRenderer">
         <div class="o_google_map_renderer">
             <Geolocate googleMap="googleMap" t-if="state.isMapReady"/>
-            <div t-attf-class="o_map_left_sidebar #{state.sidebarIsFolded ? 'closed': 'open'}">
+            <div t-att-class="{ 'o_map_left_sidebar': true, closed: state.sidebarIsFolded, open: !state.sidebarIsFolded }">
                 <div class="sidebar_content_clip">
                     <div class="content">
                         <Sidebar t-props="sidebarProps" t-if="state.isMapReady"/>
                     </div>
                 </div>
                 <div class="toggle_left_sidenav">
-                    <button data-toggle="tooltip" data-placement="left" t-attf-data-tooltip="{{ state.sidebarIsFolded ? 'Expand side panel' : 'Collapse side panel' }}" t-on-click="toggleSidebar"></button>
+                    <button
+                        t-att-data-tooltip="sidebarToggleTooltip"
+                        t-on-click="toggleSidebar"
+                    />
                 </div>
             </div>
-            <div class="o_google_map_view" id="o_google_map_view" t-ref="map"></div>
+            <div class="o_google_map_view" t-ref="map"/>
             <InMapSearchPlaces googleMap="googleMap" t-if="state.isMapReady"/>
         </div>
     </t>
     <t t-name="web_view_google_map.MarkerInfoWindow">
         <div class="infoWindow">
-            <article role="link" class="o_kanban_record d-flex flex-grow-1 flex-md-shrink-1 flex-shrink-0 flex-row border-0">
+            <article class="o_kanban_record d-flex flex-grow-1 flex-md-shrink-1 flex-shrink-0 flex-row border-0">
                 <main class="ps-2">
                     <h4>
-                        <span t-esc="title"/>
-                        <i t-if="isShifted" class="fa fa-info-circle ms-1 text-info" data-tooltip="This marker has been adjusted slightly so it doesn't overlap with others. The line points to its original location."></i>
+                        <t t-esc="title"/>
+                        <i t-if="isShifted" class="fa fa-info-circle ms-1 text-info" aria-hidden="true" data-tooltip="This marker has been adjusted slightly so it doesn't overlap with others. The line points to its original location."/>
                     </h4>
                     <div>
                         <t t-esc="subTitle"/>
                     </div>
                     <div class="pt-3 d-flex text-nowrap gap-1">
-                        <button type="button" t-att-data-id="recordId" class="btn btn-sm btn-outline-dark" id="btn-open_form" data-tooltip="Open" tabindex="-1">
-                            <i class="fa fa-angle-right fa-lg"></i>
+                        <button type="button" tabindex="-1" t-att-data-id="recordId" class="btn btn-sm btn-outline-dark" data-role="btn-open_form" data-tooltip="Open">
+                            <i class="fa fa-angle-right fa-lg" aria-hidden="true"/>
                             <span class="visually-hidden">Open</span>
                         </button>
-                        <button type="button" class="btn btn-sm btn-outline-dark" id="btn-show_nearby" data-tooltip="Show nearby records" tabindex="-1">
-                            <i class="fa fa-location-arrow"></i>
+                        <button type="button" tabindex="-1" class="btn btn-sm btn-outline-dark" data-role="btn-show_nearby" data-tooltip="Show nearby records">
+                            <i class="fa fa-location-arrow" aria-hidden="true"/>
                             <span class="visually-hidden">Nearby</span>
                         </button>
-                        <a t-attf-href="https://www.google.com/maps/dir/?api=1&amp;destination={{ destination }}" target="_blank" tabindex="-1" class="btn btn-sm btn-outline-dark" id="btn-navigate_to" data-tooltip="Navigate to this location">
-                            <i class="fa fa-map-signs"></i>
+                        <a tabindex="-1" t-attf-href="https://www.google.com/maps/dir/?api=1&amp;destination={{ destination }}" target="_blank" class="btn btn-sm btn-outline-dark" data-tooltip="Navigate to this location">
+                            <i class="fa fa-map-signs" aria-hidden="true"/>
                             <span class="visually-hidden">Navigate to</span>
                         </a>
-                        <a t-attf-href="https://www.google.com/maps/search/?api=1&amp;query={{ destination }}" target="_blank" tabindex="-1" class="btn btn-sm btn-outline-dark" id="btn-view-on-googlemaps" data-tooltip="View on Google Maps website">
-                            <i class="fa fa-external-link"></i>
+                        <a tabindex="-1" t-attf-href="https://www.google.com/maps/search/?api=1&amp;query={{ destination }}" target="_blank" class="btn btn-sm btn-outline-dark" data-tooltip="View on Google Maps website">
+                            <i class="fa fa-external-link" aria-hidden="true"/>
                             <span class="visually-hidden">Open Google Maps</span>
                         </a>
                     </div>
