@@ -5,8 +5,8 @@
 
 ### Fixed
 
-- **`GroupItem` XPath — Collapse Div Selector**: The base template switched the collapsible group div from `t-attf-class="collapse ..."` to `t-att-class="{ 'collapse': true, ... }"` (object binding). The `contains(@t-attf-class, 'collapse')` XPath no longer matched; updated to `contains(@t-attf-id, 'collapseGroup_')` which targets the stable `t-attf-id` attribute
-- **`GroupItem` XPath — Collapse Button Selector**: Similarly, the collapse button's class moved from a `t-attf-class` string interpolation to `t-att-class`; replaced `contains(@t-attf-class, 'collapsed')` with `@data-bs-toggle='collapse'` for a more stable, semantic selector that is unaffected by class binding style
+- **`GroupItem` XPath — Collapse Div Selector**: Replaced the brittle `contains(@t-attf-class, 'collapse')` XPath with `contains(@t-attf-id, 'collapseGroup_')`, targeting the stable `t-attf-id` used by the collapsible group div instead of relying on class-attribute matching
+- **`GroupItem` XPath — Collapse Button Selector**: Replaced `contains(@t-attf-class, 'collapsed')` with `@data-bs-toggle='collapse'`, using a more stable, semantic selector for the collapse button that does not depend on how classes are constructed
 
 ## 19.0.1.0.11
 
