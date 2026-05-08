@@ -1594,12 +1594,12 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
     }
 
     getRecordDataView(record) {
-        if (this.cacheRecordDataView.has(record.id)) {
-            const cachedDataView = this.cacheRecordDataView.get(record.id);
+        if (this.cacheRecordDataView.has(record.resId)) {
+            const cachedDataView = this.cacheRecordDataView.get(record.resId);
             return cachedDataView;
         }
         const dataView = getRecordDataView(record, this.props.viewAttrs);
-        this.cacheRecordDataView.set(record.id, dataView);
+        this.cacheRecordDataView.set(record.resId, dataView);
         return dataView;
     }
 }

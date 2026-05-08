@@ -515,12 +515,12 @@ export class DeckGlEditor extends Component {
         }
 
         try {
-            const features = this.props.dataGeoJson.features.filter(f => ['Polygon', 'MultiPolygon'].includes(f.geometry.type));
-            if (features.length === 0) {
+            const polygonFeatures = this.props.dataGeoJson.features.filter(f => ['Polygon', 'MultiPolygon'].includes(f.geometry.type));
+            if (polygonFeatures.length === 0) {
                 this.notificationService.add(_t('No polygon features available to calculate area.'), { type: 'warning' });
                 return;
             }
-            const totalArea = calculateFeaturesTotalArea(features);
+            const totalArea = calculateFeaturesTotalArea(polygonFeatures);
             this.props.saveFeaturesTotalArea(totalArea);
         } catch {
             this.notificationService.add(_t('Failed to calculate area.'), { type: 'danger' });

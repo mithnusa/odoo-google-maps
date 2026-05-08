@@ -19,7 +19,7 @@
                 </button>
                 <button id="calculate-area-button"
                         class="mode-button"
-                        data-tooltip="Calculate Area of Selected Feature"
+                        data-tooltip="Calculate Area"
                         t-on-click.prevent="onClickCalculateArea">
                     <span class="fa fa-calculator fa-lg"></span>
                 </button>
