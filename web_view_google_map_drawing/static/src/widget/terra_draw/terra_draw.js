@@ -143,6 +143,16 @@ export class GoogleMapTerraDrawField extends BaseGoogleMapComponent {
         }
     }
 
+    async handleSaveFeatureTotalArea(totalArea) {
+        if (this.props.fieldArea && this.props.record.fields[this.props.fieldArea] !== undefined) {
+            try {
+                await this.props.record.update({ [this.props.fieldArea]: totalArea });
+            } catch {
+                this.notificationService.add(_t('Failed to save area calculation'), { type: 'danger' });
+            }
+        }
+    }
+
     /**
      * @override
      * @returns {google.maps.MapOptions} Map options for Google Maps instance

@@ -6,13 +6,17 @@ export class GoogleMapDrawingModel extends GoogleMapModel {
      * @override
      */
     get mapDomain() {
+        if (this._mapDomainCache !== undefined) {
+            return this._mapDomainCache;
+        }
+        let result = [];
         if (
             this.viewConfig &&
             this.viewConfig.geoJsonField &&
             this.config.fields[this.viewConfig.geoJsonField] &&
             this.config.fields[this.viewConfig.geoJsonField].searchable
         ) {
-            return Domain.and([
+            result = Domain.and([
                 [[this.viewConfig.geoJsonField, '!=', null]],
                 [
                     [
@@ -23,6 +27,7 @@ export class GoogleMapDrawingModel extends GoogleMapModel {
                 ],
             ]).toList({}); // Filter out null and empty FeatureCollection
         }
-        return [];
+        this._mapDomainCache = result;
+        return result;
     }
 }
