@@ -17,7 +17,7 @@ export class GoogleMapRendererProject extends GoogleMapRenderer {
     _createInfoWindowContent(record, isShifted = false) {
         const content = super._createInfoWindowContent(record, isShifted);
         if (content) {
-            const viewTaskButton = content.querySelector('#btn-view_tasks');
+            const viewTaskButton = content.querySelector('[data-role="btn-view_tasks"]');
             if (viewTaskButton && Number.isFinite(record.resId)) {
                 const eventHandler = this._actionViewTasks.bind(this, record);
                 viewTaskButton.addEventListener('click', eventHandler);
