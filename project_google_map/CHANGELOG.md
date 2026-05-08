@@ -4,9 +4,9 @@
 
 ### Fixed
 
-- **`MarkerInfoWindow` XPath — Button Selector**: Updated XPath from `//button[@id='btn-open_form']` to `//button[@data-role='btn-open_form']` tracking the ID → `data-role` change in `web_view_google_map` v1.0.24
-- **"View Tasks" Button — `id` → `data-role`**: Replaced `id="btn-view_tasks"` with `data-role="btn-view_tasks"` on the button element, avoiding duplicate-ID issues when multiple info windows are open
-- **`_createInfoWindowContent` — Button Selector**: Updated `content.querySelector('#btn-view_tasks')` to `content.querySelector('[data-role="btn-view_tasks"]')` to match the new attribute
+- **`MarkerInfoWindow` XPath — Button Selector**: Updated XPath from `//button[@id='btn-open_form']` to `//button[@data-role='btn-open_form']` to align with the upstream ID → `data-role` selector change adopted by `web_view_google_map`
+- **"View Tasks" Button — `id` → `data-role`**: Replaced `id="btn-view_tasks"` with `data-role="btn-view_tasks"` on the button element for consistency with the updated selector convention
+- **`_createInfoWindowContent` — Button Selector**: Updated `content.querySelector('#btn-view_tasks')` to `content.querySelector('[data-role="btn-view_tasks"]')` to match the button attribute change
 
 ## 1.0.2
 
