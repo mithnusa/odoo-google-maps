@@ -16,7 +16,7 @@
                         
                         <group>
                             <group name="file_upload">
-                                <field name="geojson_file" filename="filename" required="1"/>
+                                <field name="geojson_file" filename="filename" required="1" options="{'accepted_file_extensions': '.geojson,.json,application/geo+json,application/json'}"/>
                                 <field name="filename" invisible="1"/>
                                 <field name="target_model" readonly="1"/>
                             </group>

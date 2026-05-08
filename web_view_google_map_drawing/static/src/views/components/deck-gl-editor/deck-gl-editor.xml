@@ -17,6 +17,12 @@
                         t-att-disabled="!hasDataToExport">
                     <span class="fa fa-download fa-lg"></span>
                 </button>
+                <button id="calculate-area-button"
+                        class="mode-button"
+                        data-tooltip="Calculate Area"
+                        t-on-click.prevent="onClickCalculateArea">
+                    <span class="fa fa-calculator fa-lg"></span>
+                </button>
             </t>
         </div>
     </div>

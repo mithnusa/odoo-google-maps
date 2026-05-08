@@ -8,7 +8,6 @@ This module tests the custom JSON field implementation including:
 - Custom operators: json_eq, json_ne, json_contains, json_not_contains
 - Domain optimization functionality (conversion to standard 'in'/'not in' operators)
 - SQL generation for PostgreSQL JSONB operations (@> operator)
-- Integration tests with actual database records
 - Error handling for edge cases
 
 Test Structure:
@@ -16,8 +15,11 @@ Test Structure:
 2. TestJsonContainsValue - Tests for JsonContainsValue wrapper class
 3. TestDomainOptimization - Tests for domain optimization functions
 4. TestSearchableJsonField - Tests for SQL generation
-5. TestSearchableJsonIntegration - Integration tests with actual database (requires res.partner.geojson model)
-6. TestEdgeCases - Edge cases and error handling
+5. TestEdgeCases - Edge cases and error handling
+
+Integration tests (end-to-end ORM search against a real JSONB column) live in:
+  web_view_google_map_drawing/example/contacts_area/tests/test_searchable_json_integration.py
+They require the contacts_area module to be installed.
 """
 from unittest.mock import Mock
 
@@ -114,6 +116,45 @@ class TestJsonValue(TransactionCase):
             JsonValue({"date": datetime.now()})
 
         self.assertIn("Cannot create JsonValue", str(context.exception))
+
+
+class TestJsonContainsValue(TransactionCase):
+    """Test suite for JsonContainsValue wrapper class."""
+
+    def test_json_contains_value_basic_creation(self):
+        """Test basic JsonContainsValue creation with dict."""
+        value = {"type": "Point", "coordinates": [0, 0]}
+        json_val = JsonContainsValue(value)
+
+        self.assertEqual(json_val.value, value)
+        self.assertTrue(json_val._json_contains_marker)
+        self.assertIsInstance(json_val._hash, int)
+
+    def test_json_contains_value_hash_consistency(self):
+        """Test that identical JSON structures produce the same hash."""
+        val1 = JsonContainsValue({"type": "Point", "coordinates": [0, 0]})
+        val2 = JsonContainsValue({"type": "Point", "coordinates": [0, 0]})
+
+        self.assertEqual(hash(val1), hash(val2))
+
+    def test_json_contains_value_equality(self):
+        """Test JsonContainsValue equality comparison."""
+        val1 = JsonContainsValue({"type": "Point"})
+        val2 = JsonContainsValue({"type": "Point"})
+        val3 = JsonContainsValue({"type": "Polygon"})
+
+        self.assertEqual(val1, val2)
+        self.assertNotEqual(val1, val3)
+
+    def test_json_contains_value_in_set(self):
+        """Test that JsonContainsValue can be used in sets."""
+        val1 = JsonContainsValue({"type": "Point"})
+        val2 = JsonContainsValue({"type": "Point"})
+        val3 = JsonContainsValue({"type": "Polygon"})
+
+        value_set = {val1, val2, val3}
+        # Should only have 2 elements (val1 and val2 are equal)
+        self.assertEqual(len(value_set), 2)
 
 
 class TestDomainOptimization(TransactionCase):
@@ -320,265 +361,6 @@ class TestSearchableJsonField(TransactionCase):
         )
 
         self.assertIsInstance(result, SQL)
-
-
-class TestJsonContainsValue(TransactionCase):
-    """Test suite for JsonContainsValue wrapper class."""
-
-    def test_json_contains_value_basic_creation(self):
-        """Test basic JsonContainsValue creation with dict."""
-        value = {"type": "Point", "coordinates": [0, 0]}
-        json_val = JsonContainsValue(value)
-
-        self.assertEqual(json_val.value, value)
-        self.assertTrue(json_val._json_contains_marker)
-        self.assertIsInstance(json_val._hash, int)
-
-    def test_json_contains_value_hash_consistency(self):
-        """Test that identical JSON structures produce the same hash."""
-        val1 = JsonContainsValue({"type": "Point", "coordinates": [0, 0]})
-        val2 = JsonContainsValue({"type": "Point", "coordinates": [0, 0]})
-
-        self.assertEqual(hash(val1), hash(val2))
-
-    def test_json_contains_value_equality(self):
-        """Test JsonContainsValue equality comparison."""
-        val1 = JsonContainsValue({"type": "Point"})
-        val2 = JsonContainsValue({"type": "Point"})
-        val3 = JsonContainsValue({"type": "Polygon"})
-
-        self.assertEqual(val1, val2)
-        self.assertNotEqual(val1, val3)
-
-    def test_json_contains_value_in_set(self):
-        """Test that JsonContainsValue can be used in sets."""
-        val1 = JsonContainsValue({"type": "Point"})
-        val2 = JsonContainsValue({"type": "Point"})
-        val3 = JsonContainsValue({"type": "Polygon"})
-
-        value_set = {val1, val2, val3}
-        # Should only have 2 elements (val1 and val2 are equal)
-        self.assertEqual(len(value_set), 2)
-
-
-class TestSearchableJsonIntegration(TransactionCase):
-    """Integration tests for SearchableJson field with actual model."""
-
-    @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
-        # Check if the example model exists
-        try:
-            cls.test_model = cls.env['res.partner.geojson']
-            cls.model_available = True
-        except KeyError:
-            cls.model_available = False
-
-    def setUp(self):
-        super().setUp()
-        if not self.model_available:
-            self.skipTest("res.partner.geojson model not available")
-
-    def test_create_and_search_feature_collection(self):
-        """Test creating a record with FeatureCollection and searching for it."""
-        # Create a test record with FeatureCollection
-        feature_collection = {
-            "type": "FeatureCollection",
-            "features": [
-                {
-                    "type": "Feature",
-                    "geometry": {
-                        "type": "Point",
-                        "coordinates": [106.45, -6.36]
-                    },
-                    "properties": {}
-                }
-            ]
-        }
-
-        record = self.test_model.create({
-            'name': 'Test FeatureCollection',
-            'geojson': feature_collection,
-        })
-
-        # Search for FeatureCollection type (top-level)
-        results = self.test_model.search([
-            ('geojson', 'json_contains', {'type': 'FeatureCollection'})
-        ])
-
-        self.assertIn(record, results)
-
-    def test_search_exact_match(self):
-        """Test exact match search with json_eq operator."""
-        simple_geojson = {
-            "type": "Point",
-            "coordinates": [106.45, -6.36]
-        }
-
-        record = self.test_model.create({
-            'name': 'Test Point',
-            'geojson': simple_geojson,
-        })
-
-        # Exact match should find it
-        results = self.test_model.search([
-            ('geojson', 'json_eq', simple_geojson)
-        ])
-
-        self.assertIn(record, results)
-
-    def test_search_not_contains(self):
-        """Test json_not_contains operator."""
-        polygon_collection = {
-            "type": "FeatureCollection",
-            "features": [
-                {
-                    "type": "Feature",
-                    "geometry": {
-                        "type": "Polygon",
-                        "coordinates": [[[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]]
-                    },
-                    "properties": {}
-                }
-            ]
-        }
-
-        record = self.test_model.create({
-            'name': 'Test Polygon',
-            'geojson': polygon_collection,
-        })
-
-        # Search for records NOT containing Point type
-        results = self.test_model.search([
-            ('geojson', 'json_not_contains', {'type': 'Point'})
-        ])
-
-        # Should include polygon record (doesn't have top-level type: Point)
-        self.assertIn(record, results)
-
-    def test_complex_feature_collection_search(self):
-        """Test searching within FeatureCollection with multiple features."""
-        multi_feature = {
-            "type": "FeatureCollection",
-            "features": [
-                {
-                    "type": "Feature",
-                    "geometry": {"type": "Point", "coordinates": [106.45, -6.36]},
-                    "properties": {"name": "Point 1"}
-                },
-                {
-                    "type": "Feature",
-                    "geometry": {"type": "Point", "coordinates": [106.46, -6.37]},
-                    "properties": {"name": "Point 2"}
-                },
-                {
-                    "type": "Feature",
-                    "geometry": {"type": "LineString", "coordinates": [[106.45, -6.36], [106.46, -6.37]]},
-                    "properties": {"name": "Line 1"}
-                }
-            ]
-        }
-
-        record = self.test_model.create({
-            'name': 'Multi-Feature Collection',
-            'geojson': multi_feature,
-        })
-
-        # Search for FeatureCollection
-        results = self.test_model.search([
-            ('geojson', 'json_contains', {'type': 'FeatureCollection'})
-        ])
-
-        self.assertIn(record, results)
-
-    def test_multiple_records_filtering(self):
-        """Test filtering across multiple records with different GeoJSON types."""
-        # Create records with different GeoJSON structures
-        point_record = self.test_model.create({
-            'name': 'Simple Point',
-            'geojson': {"type": "Point", "coordinates": [0, 0]},
-        })
-
-        polygon_record = self.test_model.create({
-            'name': 'Simple Polygon',
-            'geojson': {"type": "Polygon", "coordinates": [[[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]]},
-        })
-
-        collection_record = self.test_model.create({
-            'name': 'Feature Collection',
-            'geojson': {
-                "type": "FeatureCollection",
-                "features": []
-            },
-        })
-
-        # Search for Point type
-        point_results = self.test_model.search([
-            ('geojson', 'json_contains', {'type': 'Point'})
-        ])
-        self.assertIn(point_record, point_results)
-        self.assertNotIn(collection_record, point_results)
-
-        # Search for Polygon type
-        polygon_results = self.test_model.search([
-            ('geojson', 'json_contains', {'type': 'Polygon'})
-        ])
-        self.assertIn(polygon_record, polygon_results)
-        self.assertNotIn(point_record, polygon_results)
-
-        # Search for FeatureCollection type
-        collection_results = self.test_model.search([
-            ('geojson', 'json_contains', {'type': 'FeatureCollection'})
-        ])
-        self.assertIn(collection_record, collection_results)
-        self.assertNotIn(point_record, collection_results)
-
-    def test_nested_structure_containment(self):
-        """Test containment check with nested structures."""
-        nested_geojson = {
-            "type": "FeatureCollection",
-            "features": [
-                {
-                    "type": "Feature",
-                    "geometry": {"type": "Point", "coordinates": [106.45, -6.36]},
-                    "properties": {"category": "landmark"}
-                }
-            ]
-        }
-
-        record = self.test_model.create({
-            'name': 'Nested Structure',
-            'geojson': nested_geojson,
-        })
-
-        # This should work - checks for nested structure
-        results = self.test_model.search([
-            ('geojson', 'json_contains', {
-                'features': [{'properties': {'category': 'landmark'}}]
-            })
-        ])
-
-        self.assertIn(record, results)
-
-    def test_json_ne_operator(self):
-        """Test json_ne (not equal) operator."""
-        point1 = self.test_model.create({
-            'name': 'Point 1',
-            'geojson': {"type": "Point", "coordinates": [0, 0]},
-        })
-
-        point2 = self.test_model.create({
-            'name': 'Point 2',
-            'geojson': {"type": "Point", "coordinates": [1, 1]},
-        })
-
-        # Search for records NOT equal to specific point
-        results = self.test_model.search([
-            ('geojson', 'json_ne', {"type": "Point", "coordinates": [0, 0]})
-        ])
-
-        self.assertNotIn(point1, results)
-        self.assertIn(point2, results)
 
 
 class TestEdgeCases(TransactionCase):
