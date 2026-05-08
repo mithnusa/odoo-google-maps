@@ -3,7 +3,6 @@ import { DynamicGroupList } from '@web/model/relational_model/dynamic_group_list
 import { Group } from '@web/model/relational_model/group';
 import { Record } from '@web/model/relational_model/record';
 import { Domain } from '@web/core/domain';
-import { patch } from '@web/core/utils/patch';
 import { parseRecord, generateColor } from './utils';
 import { gMapViewAttrsContextManager } from '../../helpers/view_attrs_context_manager';
 
@@ -14,7 +13,9 @@ export class GoogleMapGroup extends Group {
      */
     setup() {
         super.setup(...arguments);
-        this.groupColor = generateColor();
+        // Derive color from group value so it stays stable across reloads
+        const colorSeed = Array.isArray(this.value) ? this.value[0] : this.value;
+        this.groupColor = generateColor(colorSeed);
     }
 
     get groupByLabel() {
@@ -40,19 +41,21 @@ export class GoogleMapDynamicGroupList extends DynamicGroupList {
     /**
      * Override
      */
+    setup() {
+        super.setup(...arguments);
+        // Initialize defaultGroupBy once during setup instead of lazily inside the getter
+        if (!this.model.defaultGroupBy && this.config.groupBy?.length) {
+            this.model.defaultGroupBy = this.config.groupBy.slice(0, 1);
+        }
+    }
+
     get groupBy() {
         const defaultGroupBy = this.model.defaultGroupBy;
-        let groupBy_ = this.config.groupBy;
         if (defaultGroupBy) {
-            groupBy_ = Array.isArray(defaultGroupBy) ? defaultGroupBy : [defaultGroupBy];
-        } else if (this.config.groupBy) {
-            // only one groupBy is allowed
-            groupBy_ = this.config.groupBy.slice(0, 1);
-            if (!this.model.defaultGroupBy) {
-                this.model.defaultGroupBy = groupBy_;
-            }
+            return Array.isArray(defaultGroupBy) ? defaultGroupBy : [defaultGroupBy];
         }
-        return groupBy_;
+        // only one groupBy is allowed
+        return this.config.groupBy ? this.config.groupBy.slice(0, 1) : this.config.groupBy;
     }
 }
 
@@ -86,6 +89,10 @@ export class GoogleMapModel extends RelationalModel {
      * @returns {Array} domain for map
      */
     get mapDomain() {
+        if (this._mapDomainCache !== undefined) {
+            return this._mapDomainCache;
+        }
+        let result = [];
         if (
             this.viewConfig &&
             this.viewConfig.lat &&
@@ -95,39 +102,33 @@ export class GoogleMapModel extends RelationalModel {
             this.config.fields[this.viewConfig.lat].searchable &&
             this.config.fields[this.viewConfig.lng].searchable
         ) {
-            const nullValues = [null, false, 0.0];
+            // Exclude null/false only — 0.0 is a valid coordinate (equator/prime meridian)
+            const nullValues = [null, false];
             let latDomain = [[this.viewConfig.lat, 'not in', nullValues]];
             let lngDomain = [[this.viewConfig.lng, 'not in', nullValues]];
 
             if (this.config.fields[this.viewConfig.lat].related) {
-                const [related_source, _related_field] =
-                    this.config.fields[this.viewConfig.lat].related.split('.');
+                const related_source = this.config.fields[this.viewConfig.lat].related.split('.')[0];
                 latDomain = Domain.and([latDomain, [[related_source, 'not in', nullValues]]]).toList({});
             }
             if (this.config.fields[this.viewConfig.lng].related) {
-                const [related_source, _related_field] =
-                    this.config.fields[this.viewConfig.lng].related.split('.');
+                const related_source = this.config.fields[this.viewConfig.lng].related.split('.')[0];
                 lngDomain = Domain.and([lngDomain, [[related_source, 'not in', nullValues]]]).toList({});
             }
-            return Domain.and([latDomain, lngDomain]).toList({});
+            result = Domain.and([latDomain, lngDomain]).toList({});
         }
-        return [];
+        this._mapDomainCache = result;
+        return result;
     }
 }
 
 export class GoogleMapRecord extends Record {
     get dataView() {
-        return parseRecord(this, this.model.viewConfig);
-    }
-}
-
-patch(Record.prototype, {
-    get dataView() {
         const viewAttrsCtx = gMapViewAttrsContextManager.getAll();
         const viewAttrs = this.model.viewConfig || viewAttrsCtx || {};
         return parseRecord(this, viewAttrs);
-    },
-});
+    }
+}
 
 GoogleMapModel.Group = GoogleMapGroup;
 GoogleMapModel.DynamicGroupList = GoogleMapDynamicGroupList;

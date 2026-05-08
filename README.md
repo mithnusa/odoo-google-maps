@@ -91,7 +91,7 @@ graph LR
 
 Root configuration module. Adds a Google Maps section to General Settings for API Key, Map ID, language, region, color scheme, and nearby search radius. Provides the shared `useGoogleMapsAPILoader` JavaScript API loader used by every other module in this suite.
 
-**[web_view_google_map](web_view_google_map/README.md)** `19.0.1.0.23`
+**[web_view_google_map](web_view_google_map/README.md)** `19.0.1.0.24`
 
 Registers `google_map` as a valid Odoo view type. Provides the full map view stack — controller, model, renderer, sidebar, and search bar — with marker clustering, overlap handling, multi-selection box select, nearby records search, in-map place search, geolocation button, grouped markers, and dark mode support.
 

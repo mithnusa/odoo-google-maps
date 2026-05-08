@@ -6,7 +6,7 @@
     <t t-name="web_view_google_map.GeolocateBtn">
         <div id="custom-control-geolocate" class="button-geolocate-user">
             <div class="button_geolocate_user">
-                <button class="btn btn-sm btn-light rounded-5 shadow-sm" type="button" data-tooltip="Get Current location" aria-label="Get Current location" t-on-click="geolocateUser">
+                <button class="btn btn-sm btn-light rounded-5 shadow-sm" type="button" data-tooltip="Get Current location" aria-label="Get Current location">
                     <i class="fa fa-location-arrow fa-2x text-700"></i>
                 </button>
             </div>
