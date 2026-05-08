@@ -151,7 +151,7 @@ Applies `gplace_autocomplete_el` to the Lead/Opportunity form's company name fie
 
 ### Sales
 
-**[sale_google_map](sale_google_map/README.md)** `19.0.1.0.11`
+**[sale_google_map](sale_google_map/README.md)** `19.0.1.0.12`
 
 Adds a Google Map view to Quotations, Orders, Orders to Invoice, Orders to Upsell, and Customers in Sales. Groups records by customer — one marker per customer — showing avatar, name, order count, and aggregated order total. Enforces grouping and auto-loads all groups on open.
 
