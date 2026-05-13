@@ -46,7 +46,7 @@ class SearchableJson(fields.Json):
         if operator in ('in', 'not in'):
             conditions = []
             for v in value:
-                if isinstance(v, JsonContainsValue):
+                if getattr(v, '_json_contains_marker', False):
                     # This is a containment check - use PostgreSQL @> operator
                     original_value = v.value
                     try:
@@ -62,7 +62,7 @@ class SearchableJson(fields.Json):
                     else:
                         # json_not_contains: include NULL rows (NULL @> value = NULL, not FALSE)
                         conditions.append(SQL("(%s IS NULL OR NOT (%s @> %s::jsonb))", sql_field, sql_field, json_value))
-                elif isinstance(v, JsonValue):
+                elif getattr(v, '_json_marker', False):
                     # This is a JSON equality check
                     original_value = v.value
                     # Use compact JSON with sorted keys for consistent comparison
