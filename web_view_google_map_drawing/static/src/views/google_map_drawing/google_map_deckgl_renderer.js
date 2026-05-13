@@ -109,6 +109,7 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
         this.actionService = useService('action');
 
         this._isSidebarAction = false;
+        this._isDestroyed = false;
 
         this.state = useState({
             ...this.state,
@@ -147,29 +148,38 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
 
         useSubEnv({
             apiLoader: this.apiLoader,
-            isMapLoaded: this.isMapLoaded.bind(this),
+            isMapLoaded: this.isMapAndAssetsLoaded.bind(this),
         });
 
-        onWillStart(async () => {
-            try {
-                await loadDeckGlAssets();
-                await loadTurfJSAssets();
+        onWillStart(() => {
+            if (window.deck && window.turf) {
                 this.state.isAssetsLoaded = true;
-            } catch {
-                this.notificationService.add(
-                    _t('Failed to load Deck.gl assets. Please refresh the page and try again.'),
-                    { type: 'danger', title: _t('Error'), }
-                );
+                return;
             }
+            Promise.all([loadDeckGlAssets(), loadTurfJSAssets()])
+                .then(() => {
+                    if (this._isDestroyed) return;
+                    if (window.deck && window.turf) {
+                        this.state.isAssetsLoaded = true;
+                    }
+                })
+                .catch(() => {
+                    if (this._isDestroyed) return;
+                    this.notificationService.add(
+                        _t('Failed to load Deck.gl assets. Please refresh the page and try again.'),
+                        { type: 'danger', title: _t('Error'), }
+                    );
+                });
         });
 
         useEffect(
-            (isMapLoaded) => {
-                if (isMapLoaded && !this._isSidebarAction) {
+            (isMapAndAssetsLoaded) => {
+                if (isMapAndAssetsLoaded && !this._isSidebarAction) {
+                    this._initializeDeckGLOverlay();
                     this.debounceRenderGeolocationData();
                 }
             }, () => {
-                return [this.isMapLoaded()]
+                return [this.isMapAndAssetsLoaded()]
             }
         );
 
@@ -189,8 +199,34 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
 
     }
 
-    isMapLoaded() {
-        return super.isMapLoaded() && this.state.isAssetsLoaded && !!this.deckglOverlay;
+    /**
+     * Check if Google Maps is ready and Deck.gl assets are loaded.
+     *
+     * Extends the base class map-ready check with the Deck.gl asset requirement.
+     * Use this as the guard for data operations and child-component readiness.
+     * Does NOT require the overlay to be initialized — use `isRendererReady()`
+     * when `deckglOverlay` itself must be present.
+     *
+     * @returns {boolean} True when Google Maps is initialized and Deck.gl assets are available
+     */
+    isMapAndAssetsLoaded() {
+        return super.isMapLoaded() && this.state.isAssetsLoaded;
+    }
+
+    /**
+     * Check if the full Deck.gl rendering pipeline is ready.
+     *
+     * Requires Google Maps ready, Deck.gl assets loaded, AND the
+     * `GoogleMapsOverlay` instance initialized. Use this as the guard for
+     * any operation that calls `deckglOverlay.setProps()` or reads overlay state.
+     *
+     * For map navigation and data retrieval that do not interact with the overlay,
+     * use `isMapLoaded()` or `isMapAndAssetsLoaded()` instead.
+     *
+     * @returns {boolean} True when all three pipeline stages are ready
+     */
+    isRendererReady() {
+        return this.isMapAndAssetsLoaded() && !!this.deckglOverlay;
     }
 
     /**
@@ -203,7 +239,7 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
      * @param {boolean} nextProps.list.isGrouped - Whether the next state is grouped
      */
     onWillUpdatePropsRenderFeatures(nextProps) {
-        if (!this.isMapLoaded()) return;
+        if (!this.isRendererReady()) return;
 
         const nextIsGrouped = !!nextProps.list.isGrouped;
         const currentIsGrouped = !!this.props.list.isGrouped;
@@ -496,7 +532,7 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
      * @private
      */
     _updateDeckGLLayers() {
-        if (!this.isMapLoaded()) return;
+        if (!this.isRendererReady()) return;
 
         // Build selected records set efficiently
         const recordsSelected = new Set();
@@ -912,9 +948,9 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
      * Get groups or records data with caching optimization
      *
      * Retrieves and caches the current list data (groups or records) to avoid
-     * unnecessary recalculations. Uses efficient first/last ID comparison to
-     * detect changes (avoiding JSON.stringify overhead) and only rebuilds the
-     * data structure when the underlying list changes.
+     * unnecessary recalculations. Uses list length to detect changes
+     * (avoiding JSON.stringify overhead) and only rebuilds the data structure
+     * when the underlying list changes.
      *
      * For grouped lists, sorts groups to handle null values appropriately.
      * For ungrouped lists, maps records directly with their IDs as keys.
@@ -922,7 +958,7 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
      * @returns {Array} Array of group or record data objects with keys
      */
     getGroupsOrRecords() {
-        if (!this.isMapLoaded()) return [];
+        if (!this.isMapAndAssetsLoaded()) return [];
         const { list } = this.props;
 
         // Check cache validity using efficient comparison (avoid JSON.stringify)
@@ -983,8 +1019,6 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
             const { InfoWindow } = await this.apiLoader.importLibrary('maps');
             this.markerInfoWindow = new InfoWindow({ disableAutoPan: true });
         }
-
-        await this._initializeDeckGLOverlay();
 
         // Note: bounds_changed/zoom_changed listeners removed
         // Deck.gl handles viewport rendering automatically at the GPU level
@@ -1058,14 +1092,9 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
      * with interactive capabilities like tooltips and selection.
      *
      * @private
-     * @throws {Error} If Deck.gl or Google Maps are not available
      */
-    async _initializeDeckGLOverlay() {
-        if (!window.deck || !this.googleMap) {
-            throw new Error('Deck.gl or Google Maps not available');
-        }
-
-        if (this.deckglOverlay) {
+    _initializeDeckGLOverlay() {
+        if (!window.deck || !this.googleMap || this.deckglOverlay) {
             return;
         }
 
@@ -1102,10 +1131,6 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
             });
 
             this.deckglOverlay.setMap(this.googleMap);
-
-            // Initial data load
-            this.debounceRenderGeolocationData();
-
         } catch {
             this.notificationService.add(
                 _t('Failed to initialize high-performance renderer. Please refresh the page.'),
@@ -1272,6 +1297,7 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
      * on a record entry to highlight it on the map.
      *
      * @param {string|number} recordId - Record ID to center on and select
+     * @param {boolean} [showInfoWindow=true] - Whether to open the info window for the first feature
      * @returns {Promise<void>} Promise that resolves when operation completes
      */
     async pointInMap(recordId, showInfoWindow = true) {
@@ -1479,7 +1505,7 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
      * Deletes all map features associated with the given group records.
      * Removes features from all data structures and updates the map visualization.
      *
-     * @param {Array<Object>} groupRecords - Array of record objects to delete from the map
+     * @param {Array<{group: Object, key: string}>} groupRecords - Group data objects as returned by `getGroupsOrRecords()`
      * @returns {Promise<void>}
      */
     async deleteGroupRecords(groupRecords) {
@@ -1518,6 +1544,8 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
      * @private
      */
     _cleanUp() {
+        this._isDestroyed = true;
+
         // Reset hovered record ID
         this.hoveredRecordId = null;
 
