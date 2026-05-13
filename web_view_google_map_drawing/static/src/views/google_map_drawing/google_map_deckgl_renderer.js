@@ -152,8 +152,7 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
 
         onWillStart(async () => {
             try {
-                await loadDeckGlAssets();
-                await loadTurfJSAssets();
+                await Promise.all([loadDeckGlAssets(), loadTurfJSAssets()]);
                 this.state.isAssetsLoaded = true;
             } catch {
                 this.notificationService.add(
