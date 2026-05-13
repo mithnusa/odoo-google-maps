@@ -28,7 +28,6 @@ import {
 } from '../../utils/utils';
 import { DECKGL_CONFIG, STROKE_CONFIG } from '../../utils/map_config';
 
-
 /**
  * Deck.gl High-Performance Renderer Component
  *
@@ -150,26 +149,33 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
             isMapLoaded: this.isMapLoaded.bind(this),
         });
 
-        onWillStart(async () => {
-            try {
-                await Promise.all([loadDeckGlAssets(), loadTurfJSAssets()]);
+        onWillStart(() => {
+            if (window.deck && window.turf) {
                 this.state.isAssetsLoaded = true;
-            } catch {
-                this.notificationService.add(
-                    _t('Failed to load Deck.gl assets. Please refresh the page and try again.'),
-                    { type: 'danger', title: _t('Error'), }
-                );
+                return;
             }
+            Promise.all([loadDeckGlAssets(), loadTurfJSAssets()])
+                .then(() => {
+                    if (window.deck && window.turf) {
+                        this.state.isAssetsLoaded = true;
+                    }
+                })
+                .catch(() => {
+                    this.notificationService.add(
+                        _t('Failed to load Deck.gl assets. Please refresh the page and try again.'),
+                        { type: 'danger', title: _t('Error') }
+                    );
+                });
         });
 
         useEffect(
             (isMapLoaded) => {
                 if (isMapLoaded && !this._isSidebarAction) {
+                    this._initializeDeckGLOverlay();
                     this.debounceRenderGeolocationData();
                 }
-            }, () => {
-                return [this.isMapLoaded()]
-            }
+            },
+            () => [this.isMapLoaded()],
         );
 
         onWillUpdateProps((nextProps) => {
@@ -189,7 +195,7 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
     }
 
     isMapLoaded() {
-        return super.isMapLoaded() && this.state.isAssetsLoaded && !!this.deckglOverlay;
+        return super.isMapLoaded() && this.state.isAssetsLoaded;
     }
 
     /**
@@ -983,8 +989,6 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
             this.markerInfoWindow = new InfoWindow({ disableAutoPan: true });
         }
 
-        await this._initializeDeckGLOverlay();
-
         // Note: bounds_changed/zoom_changed listeners removed
         // Deck.gl handles viewport rendering automatically at the GPU level
     }
@@ -1101,10 +1105,6 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
             });
 
             this.deckglOverlay.setMap(this.googleMap);
-
-            // Initial data load
-            this.debounceRenderGeolocationData();
-
         } catch {
             this.notificationService.add(
                 _t('Failed to initialize high-performance renderer. Please refresh the page.'),
