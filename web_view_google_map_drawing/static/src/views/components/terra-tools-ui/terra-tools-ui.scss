@@ -1,5 +1,8 @@
 .o_google_map_renderer {
     position: relative;
+    .o_google_map_view {
+        border-radius: 4px;
+    }
 }
 
 .o_terra_tools_ui {
@@ -25,6 +28,7 @@
         height: 32px;
         border: 1px solid #ccc;
         background-color: white;
+        border-radius: 4px;
         padding: 4px;
         -webkit-box-sizing: border-box; /* Safari/Chrome */
         -moz-box-sizing: border-box; /* Firefox */
@@ -38,6 +42,10 @@
         &.active {
             // background-color: #84e0d8;
             background-color: #71639e;
+        }
+
+        &:hover {
+            background-color: #796ba89d;
         }
     }
 

@@ -22,7 +22,14 @@ import { formatNumber } from '@web_view_google_map/views/google_map/utils';
 export const TERRA_DRAW_CONFIG = {
     COORDINATE_PRECISION: 9,
     SAVE_DEBOUNCE_DELAY: 3000,
+    // Delay after addFeatures during a full data reload. Must exceed the
+    // onDrawChange debounce (500 ms) because loadRecordData does not cancel
+    // it before calling addFeatures.
     RESTORE_DELAY: 500,
+    // Delay after addFeatures during undo/redo. onDrawChange's debounce is
+    // always cancelled before _restoreSnapshot is called (see _actionUndo /
+    // _actionRedo), so this only needs to cover Terra Draw's adapter
+    // microtask queue — 100 ms is sufficient for that.
     UNDO_RESTORE_DELAY: 100,
     FALLBACK_TIMEOUT: 2000,
 };
@@ -58,10 +65,10 @@ export const MEASUREMENT_CONFIG = {
     COORDINATE_PRECISION: 6, // Decimal places for coordinate display
 };
 
-const TERRA_DRAW_VERSION = '1.28.8';
-const TERRA_DRAW_GMAPS_ADAPTER_VERSION = '1.3.1';
+const TERRA_DRAW_VERSION = '1.30.1';
+const TERRA_DRAW_GMAPS_ADAPTER_VERSION = '1.6.0';
 const TURF_JS_VERSION = '7.3.5';
-const DECK_GL_VERSION = '9.3.1';
+const DECK_GL_VERSION = '9.3.2';
 
 /**
  * Load Terra Draw library assets

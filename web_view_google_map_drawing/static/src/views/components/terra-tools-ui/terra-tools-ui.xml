@@ -4,34 +4,34 @@
         <!-- Main Toolbar -->
         <div class="o_terra_tools_ui" t-ref="toolUiRef">
             <div class="o_terra_toolbar">
-                <button id="point-mode" class="mode-button" data-tooltip="Point" t-on-click.prevent="onClickSetActiveMode">
+                <button id="point-mode" class="mode-button" t-att-class="{ active: state.activeButton === 'point-mode' }" data-tooltip="Point" t-on-click.prevent="onClickSetActiveMode">
                     <img src="/web_view_google_map_drawing/static/img/point.svg" alt="Point" draggable="false"/>
                 </button>
-                <button id="linestring-mode" class="mode-button" data-tooltip="Linestring" t-on-click.prevent="onClickSetActiveMode">
+                <button id="linestring-mode" class="mode-button" t-att-class="{ active: state.activeButton === 'linestring-mode' }" data-tooltip="Linestring" t-on-click.prevent="onClickSetActiveMode">
                     <img src="/web_view_google_map_drawing/static/img/polyline.svg" alt="Linestring" draggable="false"/>
                 </button>
-                <button id="polygon-mode" class="mode-button" data-tooltip="Polygon" t-on-click.prevent="onClickSetActiveMode">
+                <button id="polygon-mode" class="mode-button" t-att-class="{ active: state.activeButton === 'polygon-mode' }" data-tooltip="Polygon" t-on-click.prevent="onClickSetActiveMode">
                     <img src="/web_view_google_map_drawing/static/img/polygon.png" alt="Polygon" draggable="false"/>
                 </button>
-                <button id="rectangle-mode" class="mode-button" data-tooltip="Rectangle" t-on-click.prevent="onClickSetActiveMode">
+                <button id="rectangle-mode" class="mode-button" t-att-class="{ active: state.activeButton === 'rectangle-mode' }" data-tooltip="Rectangle" t-on-click.prevent="onClickSetActiveMode">
                     <img src="/web_view_google_map_drawing/static/img/rectangle.svg" alt="Rectangle" draggable="false"/>
                 </button>
-                <button id="circle-mode" class="mode-button" data-tooltip="Circle" t-on-click.prevent="onClickSetActiveMode">
+                <button id="circle-mode" class="mode-button" t-att-class="{ active: state.activeButton === 'circle-mode' }" data-tooltip="Circle" t-on-click.prevent="onClickSetActiveMode">
                     <img src="/web_view_google_map_drawing/static/img/circle.svg" alt="Circle" draggable="false"/>
                 </button>
-                <button id="freehand-mode" class="mode-button" data-tooltip="Freehand" t-on-click.prevent="onClickSetActiveMode">
+                <button id="freehand-mode" class="mode-button" t-att-class="{ active: state.activeButton === 'freehand-mode' }" data-tooltip="Freehand" t-on-click.prevent="onClickSetActiveMode">
                     <img src="/web_view_google_map_drawing/static/img/freehand.svg" alt="Freehand" draggable="false"/>
                 </button>
-                <button id="select-mode" class="mode-button" data-tooltip="Select" t-on-click.prevent="onClickSetActiveMode">
+                <button id="select-mode" class="mode-button" t-att-class="{ active: state.activeButton === 'select-mode' }" data-tooltip="Select" t-on-click.prevent="onClickSetActiveMode">
                     <img src="/web_view_google_map_drawing/static/img/select.svg" alt="Select" draggable="false"/>
                 </button>
-                <button id="resize-button" class="mode-button" data-tooltip="Resize" t-on-click.prevent="onClickSetActiveMode">
+                <button id="resize-button" class="mode-button" t-att-class="{ active: state.resizingEnabled }" data-tooltip="Resize" t-on-click.prevent="onClickActionButton">
                     <img src="/web_view_google_map_drawing/static/img/resize.svg" alt="Resize" draggable="false"/>
                 </button>
-                <button id="clear-mode" class="mode-button" data-tooltip="Clear" t-on-click.prevent="onClickActionButton">
+                <button id="clear-mode" class="mode-button" t-att-class="{ active: state.activeButton === 'clear-mode' }" data-tooltip="Clear" t-on-click.prevent="onClickActionButton">
                     <img src="/web_view_google_map_drawing/static/img/delete.svg" alt="Clear" draggable="false"/>
                 </button>
-                <button id="delete-selected-button" class="mode-button" data-tooltip="Clear last or selected" t-on-click.prevent="onClickActionButton">
+                <button id="delete-selected-button" class="mode-button" t-att-class="{ active: state.activeButton === 'delete-selected-button' }" data-tooltip="Clear last or selected" t-on-click.prevent="onClickActionButton">
                     <img src="/web_view_google_map_drawing/static/img/delete-selected.svg" alt="Delete Selected" draggable="false"/>
                 </button>
                 <button id="undo-button" class="mode-button" data-tooltip="Undo" t-on-click.prevent="onClickActionButton">
