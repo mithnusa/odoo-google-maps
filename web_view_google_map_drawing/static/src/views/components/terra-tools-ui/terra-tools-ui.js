@@ -175,6 +175,13 @@ export class TerraDrawToolsUI extends Component {
 
         this._loadingData = true;
 
+        // Cancel any in-flight onDrawChange debounce so it cannot fire during the
+        // reload and corrupt history or wipe redoHistory with a stale snapshot.
+        if (this.debounceTimeout) {
+            clearTimeout(this.debounceTimeout);
+            this.debounceTimeout = null;
+        }
+
         try {
             // Clear existing features before loading new ones
             if (this.terraDrawInstance.hasFeature()) {
@@ -1371,6 +1378,9 @@ export class TerraDrawToolsUI extends Component {
         }
         this.debounceTimeout = setTimeout(() => {
             if (!this.terraDrawInstance) return;
+            // Re-check guards: a loadRecordData or restore may have started between
+            // when this timer was scheduled and when it fires.
+            if (this.state.isRestoring || this.state.isSaving) return;
             const snapshot = this.terraDrawInstance.getSnapshot();
             const processedSnapshot = this._actionProcessSnapshotForUndo(snapshot);
             const filteredSnapshot = processedSnapshot.filter(

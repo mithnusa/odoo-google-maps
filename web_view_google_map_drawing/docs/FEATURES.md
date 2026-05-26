@@ -144,7 +144,7 @@ The "Show Nearby" button is intentionally removed from the drawing view's sideba
 
 **Included libraries**:
 
-- **Terra Draw** (v1.28.8): Drawing tools and feature editing
-- **Terra Draw Google Maps Adapter** (v1.3.1): Integration layer between Terra Draw and the Google Maps JavaScript API
-- **Deck.gl** (v9.3.1): GPU-accelerated rendering for large datasets
+- **Terra Draw** (v1.30.1): Drawing tools and feature editing
+- **Terra Draw Google Maps Adapter** (v1.6.0): Integration layer between Terra Draw and the Google Maps JavaScript API
+- **Deck.gl** (v9.3.2): GPU-accelerated rendering for large datasets
 - **Turf.js** (v7.3.5): Geospatial calculations (area, distance, simplification)
