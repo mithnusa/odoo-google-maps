@@ -1,5 +1,29 @@
 # Change Log
 
+## 19.0.1.0.18
+
+### Fixed
+
+- **Undo Wipes Server-Loaded Data**: First undo after opening a record was restoring the empty pre-load snapshot instead of the first user edit. `loadRecordData` now resets the history stack to a single entry containing the freshly loaded features after `addFeatures` settles, so undo can never reach an empty map
+- **Debounce Race Corrupts Undo/Redo History**: A 500 ms debounce timer started by a drawing action just before undo/redo could fire after `isRestoring` reset, pushing a stale pre-undo snapshot and wiping `redoHistory`. Fixed by cancelling the pending debounce at the start of `_actionUndo` and `_actionRedo`
+- **Keydown Listener Leaks on Every Render**: `useEffect` for the keyboard shortcut listener had no dependency array, causing it to re-run on every render. Each run created a new bound function and the cleanup removed the wrong reference, leaking one listener per render. Handler is now captured in the closure with an empty deps array `() => []`
+- **Rectangle Mode Lost After Undo**: `_actionProcessSnapshotForUndo` was converting `mode: 'rectangle'` to `mode: 'polygon'` before storing in history. After undo, Terra Draw received polygon features and rectangle editing behaviour (resize handles, coordinate constraints) was permanently lost. The mode property is now preserved; only the geometry type is normalised to `Polygon` (which Terra Draw already stores internally for both rectangle and circle)
+- **Direct DOM Mutation Bypasses OWL Rendering**: `updateActiveButton` was using `querySelectorAll` / `classList` to toggle the active state on toolbar buttons, which OWL can silently overwrite on the next render. Replaced with a `state.activeButton` write; the template now uses `t-att-class` on each button for reactive active state
+- **Resize Button Click Handler Mismatch**: `resize-button` in the template was wired to `onClickSetActiveMode`, but `resize-button` is not in `MODE_BUTTONS`, so clicking it silently did nothing. Corrected to `onClickActionButton` where the `_actionResize` branch lives
+- **Unbounded History Growth**: `this.history` had no size cap; long editing sessions with large features could accumulate hundreds of megabytes of deep-copied snapshots. History is now capped at 50 entries — oldest entry is dropped when the 51st is pushed
+- **Wrong `useEffect` Dependency for Terra Draw Init**: The dep array returned `this.toolsUiRef` (the ref object, always the same identity) instead of `this.toolsUiRef.el` (the DOM element, `null` before mount). The effect never re-triggered when the DOM element appeared
+- **`_t()` Called on Runtime Variable**: `_restoreSnapshot` accepted a `successMessage` string and wrapped it in `_t()`, which Odoo's translation extractor cannot detect at parse time. The parameter is removed; `_actionUndo` and `_actionRedo` are now `async` and show their own `_t('Undo completed')` / `_t('Redo completed')` literals after awaiting the restore
+
+### Updated Dependencies
+
+- **Deck.gl**: Updated from 9.3.1 to 9.3.2
+- **Terra Draw**: Updated from 1.28.8 to 1.30.1
+- **Terra Draw Google Maps Adapter**: Updated from 1.3.1 to 1.6.0
+
+### Improved
+
+- **`TERRA_DRAW_CONFIG` Delay Constants Documented**: Added inline comments to `RESTORE_DELAY` and `UNDO_RESTORE_DELAY` in `utils.js` explaining exactly what each delay guards against and why their values differ
+
 ## 19.0.1.0.17
 
 - [Fixed] **`isinstance` → `getattr` Duck-Type Check in `_condition_to_sql`**: Version 19.0.1.0.16 replaced `hasattr` marker checks with `isinstance(v, JsonValue)` / `isinstance(v, JsonContainsValue)`, but this caused a `ValueError: Cannot serialize value for comparison: Object of type JsonValue is not JSON serializable` at runtime. Root cause: Odoo can load the same Python module under two different import paths, producing two distinct class objects in memory. When the domain optimization helpers (`_json_equal_optimization` / `_json_contains_optimization`) create a `JsonValue` or `JsonContainsValue` using one class object and `_condition_to_sql` checks `isinstance` against the other, the check returns `False` even though the instance looks correct — falling into the `else` branch which calls `json.dumps(v)` and raises a `TypeError`. Fixed by reverting to `getattr(v, '_json_contains_marker', False)` / `getattr(v, '_json_marker', False)` duck-typing, which is immune to class identity mismatches.

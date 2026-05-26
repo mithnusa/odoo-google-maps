@@ -91,15 +91,14 @@ export class TerraDrawToolsUI extends Component {
         this.initTimeout = null;
 
         useEffect(() => {
-            this.handleKeydown = this._handleKeyboardShortcuts.bind(this);
-            document.addEventListener('keydown', this.handleKeydown);
-
-            return () => {
-                if (this.handleKeydown) {
-                    document.removeEventListener('keydown', this.handleKeydown);
-                }
-            };
-        });
+            // Capture the bound handler in the closure so the cleanup removes
+            // exactly this listener, not whatever this.handleKeydown points to
+            // at cleanup time (which would be a different render's binding).
+            const handler = this._handleKeyboardShortcuts.bind(this);
+            this.handleKeydown = handler;
+            document.addEventListener('keydown', handler);
+            return () => document.removeEventListener('keydown', handler);
+        }, () => []);
 
         onWillStart(async () => {
             try {
@@ -130,8 +129,8 @@ export class TerraDrawToolsUI extends Component {
         });
 
         useEffect(
-            (googleMap, toolUiRef, renderingMode) => {
-                if (googleMap && toolUiRef.el && window.terraDraw && renderingMode === 'terra-draw') {
+            () => {
+                if (this.props.googleMap && this.toolsUiRef.el && window.terraDraw && this.props.renderingMode === 'terra-draw') {
                     this.initTerraDraw().catch((error) => {
                         console.error('Failed to initialize Terra Draw:', error);
                         this.notificationService.add(
@@ -141,7 +140,7 @@ export class TerraDrawToolsUI extends Component {
                     });
                 }
             },
-            () => [this.props.googleMap, this.toolsUiRef, this.props.renderingMode]
+            () => [this.props.googleMap, this.toolsUiRef.el, this.props.renderingMode]
         );
     }
 
@@ -176,6 +175,13 @@ export class TerraDrawToolsUI extends Component {
 
         this._loadingData = true;
 
+        // Cancel any in-flight onDrawChange debounce so it cannot fire during the
+        // reload and corrupt history or wipe redoHistory with a stale snapshot.
+        if (this.debounceTimeout) {
+            clearTimeout(this.debounceTimeout);
+            this.debounceTimeout = null;
+        }
+
         try {
             // Clear existing features before loading new ones
             if (this.terraDrawInstance.hasFeature()) {
@@ -203,6 +209,21 @@ export class TerraDrawToolsUI extends Component {
 
             // Fit map to bounds of loaded features
             this._fitMapToBounds(geoJson.features);
+
+            // Build the history baseline from what Terra Draw actually stored.
+            // getSnapshot() is preferred because Terra Draw may normalise IDs or
+            // properties during addFeatures. If it returns empty (Terra Draw has
+            // not yet processed the features, or silently rejected some), fall
+            // back to the features array we already have — this guarantees the
+            // baseline is never empty when features were loaded, which prevents
+            // the first undo from wiping the map.
+            const snapshot = this.terraDrawInstance.getSnapshot().filter(
+                f => !f.properties?.midPoint && !f.properties?.selectionPoint
+            );
+            const baseline = snapshot.length > 0 ? snapshot : features;
+            const getSnapshotForUndo = this._actionProcessSnapshotForUndo(baseline);
+            this.history = [getSnapshotForUndo];
+            this.redoHistory = [];
         } catch (error) {
             console.error('Failed to load existing features:', error);
             this.notificationService.add(_t('Failed to load existing features'), { type: 'danger' });
@@ -257,9 +278,10 @@ export class TerraDrawToolsUI extends Component {
                     });
                     return multiPolygonFeatures;
                 } else {
-                    if (!plainFeature.id || typeof plainFeature.id !== 'string') {
-                        plainFeature.id = generateUUID();
-                    }
+                    // Always generate a fresh UUID — the Google Maps adapter batches
+                    // renders via RAF, so reusing an ID that was just deleted by
+                    // clear() in the same RAF batch suppresses the create silently.
+                    plainFeature.id = generateUUID();
 
                     plainFeature.geometry.coordinates = normalizeCoordinates(
                         plainFeature.geometry.coordinates,
@@ -806,17 +828,25 @@ export class TerraDrawToolsUI extends Component {
      * Provides user feedback and moves current state to redo history
      * @private
      */
-    _actionUndo() {
+    async _actionUndo() {
         if (this.history.length <= 1) {
             this.notificationService.add(_t('Nothing to undo'), { type: 'info' });
             return;
         }
-        
+
+        // Cancel any pending debounce so it cannot push a stale pre-undo
+        // snapshot after isRestoring resets, which would corrupt the redo stack.
+        if (this.debounceTimeout) {
+            clearTimeout(this.debounceTimeout);
+            this.debounceTimeout = null;
+        }
+
         try {
             this.redoHistory.push(this.history.pop());
             const snapshotToRestore = this.history[this.history.length - 1];
 
-            this._restoreSnapshot(snapshotToRestore, 'Undo completed');
+            await this._restoreSnapshot(snapshotToRestore);
+            this.notificationService.add(_t('Undo completed'), { type: 'success' });
         } catch (error) {
             console.error('Error during undo:', error);
             this.notificationService.add(_t('Undo failed'), { type: 'danger' });
@@ -828,17 +858,25 @@ export class TerraDrawToolsUI extends Component {
      * Provides user feedback and moves state back to main history
      * @private
      */
-    _actionRedo() {
+    async _actionRedo() {
         if (this.redoHistory.length === 0) {
             this.notificationService.add(_t('Nothing to redo'), { type: 'info' });
             return;
         }
-        
+
+        // Same debounce cancellation as _actionUndo — prevents a stale pending
+        // push from overwriting history after the restore settles.
+        if (this.debounceTimeout) {
+            clearTimeout(this.debounceTimeout);
+            this.debounceTimeout = null;
+        }
+
         try {
             const snapshotToRestore = this.redoHistory.pop();
             this.history.push(snapshotToRestore);
 
-            this._restoreSnapshot(snapshotToRestore, 'Redo completed');
+            await this._restoreSnapshot(snapshotToRestore);
+            this.notificationService.add(_t('Redo completed'), { type: 'success' });
         } catch (error) {
             console.error('Error during redo:', error);
             this.notificationService.add(_t('Redo failed'), { type: 'danger' });
@@ -848,23 +886,29 @@ export class TerraDrawToolsUI extends Component {
     /**
      * Restore Terra Draw to a previous state snapshot
      * @param {Array} snapshot - Array of GeoJSON features representing the state to restore
-     * @param {string} successMessage - Message to display on successful restoration
      * @returns {Promise<void>}
      * @private
      */
-    async _restoreSnapshot(snapshot, successMessage) {
+    async _restoreSnapshot(snapshot) {
         this.state.isRestoring = true;
-        
+        this.setSelectedFeatureId(null);
+
         try {
             this.terraDrawInstance.clear();
             if (snapshot.length > 0) {
-                // Note: Snapshot features should already be Terra Draw compatible
-                // since they were processed when first loaded or created through drawing
-                this.terraDrawInstance.addFeatures(snapshot);
+                // The Google Maps adapter batches renders via requestAnimationFrame.
+                // When clear() queues IDs for deletion and addFeatures() tries to
+                // create features with the SAME IDs in the same RAF batch, the adapter
+                // detects the duplicate in deletedSet and suppresses the create —
+                // leaving the map empty. Regenerating IDs ensures no ID collision.
+                const freshFeatures = snapshot.map((f) => {
+                    const clone = JSON.parse(JSON.stringify(f));
+                    clone.id = generateUUID();
+                    return clone;
+                });
+                this.terraDrawInstance.addFeatures(freshFeatures);
             }
-            
             await new Promise(resolve => setTimeout(resolve, TERRA_DRAW_CONFIG.UNDO_RESTORE_DELAY));
-            this.notificationService.add(_t(successMessage), { type: 'success' });
         } finally {
             this.state.isRestoring = false;
         }
@@ -962,13 +1006,12 @@ export class TerraDrawToolsUI extends Component {
     _actionProcessSnapshotForUndo(snapshot) {
         return snapshot.map((feature) => {
             const newFeature = JSON.parse(JSON.stringify(feature));
-            if (newFeature.properties.mode === 'rectangle') {
+            // Terra Draw stores rectangle and circle features internally as
+            // Polygon geometries — normalise the geometry type without touching
+            // the mode property so addFeatures restores the correct editing
+            // behaviour (resize handles, coordinate constraints, etc.).
+            if (newFeature.properties.mode === 'rectangle' || newFeature.properties.mode === 'circle') {
                 newFeature.geometry.type = 'Polygon';
-                newFeature.properties.mode = 'polygon';
-            } else if (newFeature.properties.mode === 'circle') {
-                newFeature.geometry.type = 'Polygon';
-                // The radius is already in properties, so we just need to ensure the mode is correct for re-creation
-                newFeature.properties.mode = 'circle';
             }
             return newFeature;
         });
@@ -980,10 +1023,7 @@ export class TerraDrawToolsUI extends Component {
      * @public
      */
     updateActiveButton(modeId) {
-        this.toolsUiRef.el.querySelectorAll('.mode-button').forEach((btn) => {
-            btn.classList.remove('active');
-        });
-        this.toolsUiRef.el.querySelector(`#${modeId}`)?.classList.add('active');
+        this.state.activeButton = modeId;
     }
 
     /**
@@ -1061,16 +1101,18 @@ export class TerraDrawToolsUI extends Component {
             this.terraDrawInstance.on('ready', () => {
                 const isGeoJsonValid = validateGeoJson(this.props.dataGeoJson, { requireFeatures: true, validateGeometry: true, strict: true });
                 if (isGeoJsonValid) {
+                    // loadRecordData sets this.history = [baseline] after addFeatures
                     this.loadRecordData(this.props.dataGeoJson);
                 } else {
+                    // No existing data — seed an empty undo floor so the first
+                    // drawn feature can be undone (guards require history.length > 1)
+                    this.history = [[]];
+                    this.redoHistory = [];
                     console.warn('⚠️ No dataGeoJson available on Terra Draw ready event');
                 }
                 this.setActiveMode('select-mode');
                 this.terraDrawInstance.on('select', this.onDrawSelect.bind(this));
                 this.terraDrawInstance.on('deselect', this.onDrawDeselect.bind(this));
-                this.history.push(
-                    this._actionProcessSnapshotForUndo(this.terraDrawInstance.getSnapshot())
-                ); // push initial empty state
                 this.terraDrawInstance.on('change', this.onDrawChange.bind(this));
             });
         };
@@ -1336,12 +1378,18 @@ export class TerraDrawToolsUI extends Component {
         }
         this.debounceTimeout = setTimeout(() => {
             if (!this.terraDrawInstance) return;
+            // Re-check guards: a loadRecordData or restore may have started between
+            // when this timer was scheduled and when it fires.
+            if (this.state.isRestoring || this.state.isSaving) return;
             const snapshot = this.terraDrawInstance.getSnapshot();
             const processedSnapshot = this._actionProcessSnapshotForUndo(snapshot);
             const filteredSnapshot = processedSnapshot.filter(
                 (f) => !f.properties.midPoint && !f.properties.selectionPoint
             );
             this.history.push(filteredSnapshot);
+            if (this.history.length > 50) {
+                this.history.shift();
+            }
             this.redoHistory = [];
         }, 500);
     }

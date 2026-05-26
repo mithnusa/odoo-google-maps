@@ -5,25 +5,23 @@
         <field name="model">res.partner.area</field>
         <field name="arch" type="xml">
             <form string="Land">
-                <sheet>
-                    <field name="gshape_geojson" widget="google_map_terra_draw" options="{'map_type_id': 'hybrid', 'default_zoom': 14, 'default_center': [-6.175664127601439, 106.82703162885998], 'field_area': 'gshape_area'}"/>
+                <field name="gshape_geojson" widget="google_map_terra_draw" options="{'map_type_id': 'hybrid', 'default_zoom': 14, 'default_center': [-6.175664127601439, 106.82703162885998], 'field_area': 'gshape_area'}"/>
+                <group>
                     <group>
-                        <group>
-                            <field name="gshape_name" required="1" placeholder="Name"/>
-                            <field name="partner_id"/>
-                        </group>
-                        <group>
-                            <label for="gshape_area"/>
-                            <div>
-                                <field name="gshape_area" class="oe_inline" nolabel="1"/>
-                                <span>m</span>
-                                <sup>2</sup>
-                            </div>
-                            <field name="gshape_color" widget="color_picker"/>
-                        </group>
+                        <field name="gshape_name" required="1" placeholder="Name"/>
+                        <field name="partner_id"/>
                     </group>
-                    <field name="gshape_description" placeholder="Description"/>
-                </sheet>
+                    <group>
+                        <label for="gshape_area"/>
+                        <div>
+                            <field name="gshape_area" class="oe_inline" nolabel="1"/>
+                            <span>m</span>
+                            <sup>2</sup>
+                        </div>
+                        <field name="gshape_color" widget="color_picker"/>
+                    </group>
+                </group>
+                <field name="gshape_description" placeholder="Description"/>
             </form>
         </field>
     </record>
