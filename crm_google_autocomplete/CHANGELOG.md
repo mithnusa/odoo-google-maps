@@ -1,5 +1,16 @@
 # Change Log
 
+## 19.0.1.0.2
+
+### Added
+
+- **`_compute_customer_geo` context guard** (`models/crm_lead.py`): New model override that intercepts `_compute_customer_geo` from `crm_google_map`. When `is_from_google_maps=True` is present in the context — set by the Google Places autocomplete RPC handler — the override returns early without calling `super()`, preserving the coordinates already written onto the lead by the autocomplete response. Without this guard, the base compute detects an address divergence (the autocomplete-set address may differ from the linked partner's) and resets both coordinates to `0.0`, discarding the Places API result.
+- **`_compute_customer_geo` test suite** (`tests/test_compute_customer_geo.py`): Two test classes covering the two execution paths of the override — `TestComputeSkipsWithGoogleMapsContext` (coordinates preserved on single-record and multi-record writes with `is_from_google_maps=True`) and `TestComputeRunsWithoutGoogleMapsContext` (base compute still runs normally without the context flag: coordinates reset on divergence, partner sync intact, no-partner case produces `0.0`).
+
+### Changed
+
+- **Dependency**: Changed from `crm` to `crm_google_map`. The `_compute_customer_geo` override requires the `customer_latitude` / `customer_longitude` stored computed fields and the base compute method provided by `crm_google_map`. Test classes skip gracefully when `crm_google_map` is not installed.
+
 ## 19.0.1.0.1
 ### Improved
 - **Performance Optimization**: Changed from `search()` to `search_count()` for existence checks in post-install hook

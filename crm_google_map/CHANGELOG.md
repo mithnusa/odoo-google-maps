@@ -1,6 +1,20 @@
 <!-- markdownlint-disable MD024 -->
 # Change Log
 
+## 19.0.1.0.9
+
+### Added
+
+- **`_compute_customer_geo` test suite**: New `tests/test_compute_customer_geo.py` covering four scenarios — no partner (coordinates reset to `0.0`), address in sync with partner (coordinates inherited), address diverged from partner (coordinates reset to `0.0` for cron pickup), and partner geocoded after lead creation (coordinates update automatically via `partner_id.partner_latitude` / `partner_id.partner_longitude` dependencies).
+
+### Fixed
+
+- **Spurious divergence on empty Char fields in `_compute_customer_geo`**: The inline `all(lead[f] == partner[f] …)` comparison treated `False` and `''` as unequal for Char fields (`street`, `street2`, `city`, `zip`). The ORM may store either depending on the write path, so a lead and its partner that are semantically in sync were incorrectly detected as diverged, resetting coordinates to `0.0` and scheduling an unnecessary cron re-geocode. Extracted the comparison to a `_lead_address_matches_partner` module-level helper that normalises empty strings to `False` before comparing.
+
+### Documentation
+
+- **README**: Removed stale "Google Map Smart Button" feature entry — the action and smart button xpath were already removed in v19.0.1.0.8 but the README was not updated at that time.
+
 ## 19.0.1.0.8
 
 ### Added
