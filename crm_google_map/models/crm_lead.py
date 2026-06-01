@@ -7,6 +7,27 @@ from odoo.addons.base.models.res_partner import ADDRESS_FIELDS
 from odoo.addons.crm.models.crm_lead import PARTNER_ADDRESS_FIELDS_TO_SYNC
 
 
+def _lead_address_matches_partner(lead, partner):
+    """Return True when the lead's address is still in sync with its partner.
+
+    Normalises False and '' for Char fields — the ORM may store either
+    depending on the write path, and a bare False != '' comparison would
+    wrongly detect a divergence and schedule the lead for re-geocoding.
+    Many2one fields (state_id, country_id) use recordset equality, which
+    correctly compares by ID and handles empty recordsets.
+    """
+    for fname in PARTNER_ADDRESS_FIELDS_TO_SYNC:
+        lead_val = lead[fname]
+        partner_val = partner[fname]
+        if isinstance(lead_val, str):
+            lead_val = lead_val or False
+        if isinstance(partner_val, str):
+            partner_val = partner_val or False
+        if lead_val != partner_val:
+            return False
+    return True
+
+
 class CrmLead(models.Model):
     _inherit = 'crm.lead'
 
@@ -27,7 +48,17 @@ class CrmLead(models.Model):
             or self._get_default_address_format()
         )
 
-    @api.depends('partner_id', 'street', 'street2', 'city', 'zip', 'state_id', 'country_id')
+    @api.depends(
+        'partner_id',
+        'partner_id.partner_latitude',
+        'partner_id.partner_longitude',
+        'street',
+        'street2',
+        'city',
+        'zip',
+        'state_id',
+        'country_id',
+    )
     def _compute_customer_geo(self):
         for lead in self:
             partner = lead.partner_id
@@ -35,16 +66,16 @@ class CrmLead(models.Model):
                 lead.customer_latitude = 0.0
                 lead.customer_longitude = 0.0
                 continue
-            # Use the partner's coordinates only when the lead's address still
-            # matches the partner's — i.e. it was auto-synced and not manually
-            # overridden.  This mirrors the "all or none" guard in
-            # _prepare_address_values_from_partner from the base crm module.
-            # When the addresses diverge the lead must be re-geocoded against
-            # its own address, so we reset to 0.0 so the cron picks it up.
-            if all(lead[f] == partner[f] for f in PARTNER_ADDRESS_FIELDS_TO_SYNC):
+            if _lead_address_matches_partner(lead, partner):
+                # Address still in sync with partner — mirror partner's geo.
                 lead.customer_latitude = partner.partner_latitude
                 lead.customer_longitude = partner.partner_longitude
             else:
+                # Address diverged — reset to (0, 0) so action_cron_geolocalize
+                # picks this lead up for re-geocoding against its own address.
+                # Coordinates written directly by Google Places autocomplete are
+                # protected from this reset by the is_from_google_maps context
+                # guard in crm_google_autocomplete.
                 lead.customer_latitude = 0.0
                 lead.customer_longitude = 0.0
 

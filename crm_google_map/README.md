@@ -18,7 +18,6 @@ Adds the `google_map` view type to the Leads, Opportunities, My Activities, Pipe
 - **Automatic Geolocation from Partner**: When a contact is linked to a lead, the lead's latitude and longitude are automatically set from the partner's stored coordinates
 - **Geocode from Address**: A button on the Geolocation tab computes coordinates from the lead's address fields using Odoo's geocoding service
 - **Geolocation Tab**: Adds a dedicated tab to the lead form showing coordinates, a geocode button, a marker color picker, and an embedded map preview of the lead's location
-- **Google Map Smart Button**: A map button appears on the lead form when coordinates are set, opening the map view scoped to that single lead
 
 ## Dependencies
 
