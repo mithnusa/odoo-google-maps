@@ -1,5 +1,6 @@
 import secrets
 from odoo import Command
+from . import models
 
 
 def _post_install_hook_configure_crm_google_place_mapping(env):
