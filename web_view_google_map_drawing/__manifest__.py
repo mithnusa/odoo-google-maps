@@ -16,7 +16,7 @@
     'category': 'Extra Tools',
     'version': '1.0.19',
     'depends': ['web_view_google_map'],
-    'data': ['data/gmap_libraries.xml'],
+    'data': [],
     'assets': {
         'web.assets_backend': [
             'web_view_google_map_drawing/static/src/utils/**/*',
