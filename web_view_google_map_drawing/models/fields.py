@@ -1,5 +1,5 @@
 """
-Custom JSON field with advanced search capabilities for Mapbox GL Drawing module.
+Custom JSON field with advanced search capabilities for Google Maps Drawing module.
 
 Extends Odoo's standard JSON field with GeoJSON-specific domain operators backed
 by PostgreSQL JSONB operators. NULL handling: Python False/None maps to SQL NULL.
