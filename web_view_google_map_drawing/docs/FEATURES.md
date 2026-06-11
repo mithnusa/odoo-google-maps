@@ -28,6 +28,15 @@ Keyboard shortcuts are available for switching modes (keys `1`–`7`), saving (`
 
 **How it works**: The module provides a `SearchableJson` field type that extends Odoo's standard JSON field with four additional search operators: `json_eq`, `json_ne`, `json_contains`, and `json_not_contains`. These map to PostgreSQL JSONB operators, allowing domain filters like "find all records whose shape is a polygon" directly from the Odoo ORM.
 
+| Operator | Description |
+| --- | --- |
+| `json_eq` | Exact match — returns records whose GeoJSON is structurally identical to the given value |
+| `json_ne` | Not equal — returns records with a different value, including records with no GeoJSON at all |
+| `json_contains` | Containment — returns records whose GeoJSON contains the given sub-object (PostgreSQL `@>` operator) |
+| `json_not_contains` | Not contains — returns records that do not contain the sub-object, including records with no GeoJSON |
+
+Records with no GeoJSON stored (NULL) are correctly included in `json_ne` and `json_not_contains` results. Standard Odoo `= False` and `!= False` operators also work correctly on the field for explicit NULL checks.
+
 ---
 
 ## Google Drawing Shape Mixin
