@@ -1,271 +1,158 @@
 """
-Custom JSON field with advanced search capabilities for Google Map Drawing module.
+Custom JSON field with advanced search capabilities for Mapbox GL Drawing module.
 
-This module extends Odoo's standard JSON field to support GeoJSON-specific
-search operations using PostgreSQL's JSONB operators. It provides custom
-domain operators for efficient JSON field querying in the web_view_google_map_drawing module.
+Extends Odoo's standard JSON field with GeoJSON-specific domain operators backed
+by PostgreSQL JSONB operators. NULL handling: Python False/None maps to SQL NULL.
+
+Supported operators:
+    json_eq / json_ne           -- exact JSONB equality / inequality
+    json_contains               -- field @> value  (field contains sub-object)
+    json_not_contains           -- NOT (field @> value)
 """
 import json
 
-from odoo import _, fields
+from odoo import fields
 from odoo.tools import SQL
 from odoo.orm.domains import CONDITION_OPERATORS, operator_optimization, DomainCondition
 from odoo.tools.misc import OrderedSet
 
-# Register new operators for JSON field searching
 CONDITION_OPERATORS.update(['json_eq', 'json_ne', 'json_contains', 'json_not_contains'])
 
 
+# ---------------------------------------------------------------------------
+# Wrapper types — make JSON values hashable for Odoo's OrderedSet optimizer
+# ---------------------------------------------------------------------------
+
+class _JsonWrappedValue:
+    """Base for JSON value wrappers that need to participate in domain optimization."""
+
+    __slots__ = ('value', '_hash')
+
+    def __init__(self, value):
+        self.value = value
+        try:
+            self._hash = hash(json.dumps(value, sort_keys=True, separators=(',', ':')))
+        except (TypeError, ValueError) as e:
+            raise ValueError(
+                f"Cannot create {type(self).__name__} from non-serializable value: {e}"
+            ) from e
+
+    def __hash__(self):
+        return self._hash
+
+    def __eq__(self, other):
+        return type(self) is type(other) and self.value == other.value
+
+    def __repr__(self):
+        return f"{type(self).__name__}({self.value!r})"
+
+
+class JsonValue(_JsonWrappedValue):
+    """Wraps a value for json_eq / json_ne (exact JSONB equality)."""
+    __slots__ = ()
+
+
+class JsonContainsValue(_JsonWrappedValue):
+    """Wraps a value for json_contains / json_not_contains (JSONB @> operator)."""
+    __slots__ = ()
+
+
+# ---------------------------------------------------------------------------
+# Field
+# ---------------------------------------------------------------------------
+
 class SearchableJson(fields.Json):
     """
-    Extended JSON Field with advanced search capabilities for GeoJSON data.
+    JSON field that supports custom GeoJSON domain operators.
 
-    This field extends Odoo's standard JSON field to support custom operators
-    optimized for PostgreSQL JSONB columns, enabling efficient querying of
-    complex JSON structures like GeoJSON geometries.
-
-    Supported custom operators:
-        - json_eq: Exact JSON equality comparison (converted to 'in' operator)
-        - json_ne: JSON inequality comparison (converted to 'not in' operator)
-        - json_contains: Check if JSON field contains a sub-object (uses PostgreSQL @>)
-        - json_not_contains: Check if JSON field does NOT contain a sub-object
-
-    These operators are automatically optimized through Odoo's domain optimization
-    system, allowing multiple conditions to be combined efficiently.
-
-    Example usage in domain:
-        [('geojson', 'json_eq', {'type': 'Point'})]
-        [('geojson', 'json_contains', {'geometry': {'type': 'Polygon'}})]
+    See module docstring for supported operators and NULL handling.
     """
 
-    def _condition_to_sql(self, field_expr: str, operator: str, value, model, alias: str, query) -> SQL:
-        """Convert domain conditions to SQL for JSON fields"""
+    def _condition_to_sql(
+        self, field_expr: str, operator: str, value, model, alias: str, query
+    ) -> SQL:
         sql_field = model._field_to_sql(alias, field_expr, query)
 
-        # Handle the 'in'/'not in' operators that come from optimization
         if operator in ('in', 'not in'):
-            conditions = []
-            for v in value:
-                if getattr(v, '_json_contains_marker', False):
-                    # This is a containment check - use PostgreSQL @> operator
-                    original_value = v.value
-                    try:
-                        json_value = json.dumps(original_value)
-                    except (TypeError, ValueError) as e:
-                        raise ValueError(
-                            _("Cannot serialize JSON value for containment check: %s") % e
-                        ) from e
+            return self._build_json_in_sql(sql_field, operator, value)
 
-                    if operator == 'in':
-                        # json_contains: field contains the value
-                        conditions.append(SQL("%s @> %s::jsonb", sql_field, json_value))
-                    else:
-                        # json_not_contains: include NULL rows (NULL @> value = NULL, not FALSE)
-                        conditions.append(SQL("(%s IS NULL OR NOT (%s @> %s::jsonb))", sql_field, sql_field, json_value))
-                elif getattr(v, '_json_marker', False):
-                    # This is a JSON equality check
-                    original_value = v.value
-                    # Use compact JSON with sorted keys for consistent comparison
-                    # separators=(',', ':') removes whitespace for stable string matching
-                    try:
-                        json_value = json.dumps(original_value, sort_keys=True, separators=(',', ':'))
-                    except (TypeError, ValueError) as e:
-                        raise ValueError(
-                            _("Cannot serialize JSON value for comparison: %s") % e
-                        ) from e
-
-                    if operator == 'in':
-                        conditions.append(SQL("%s = %s", sql_field, json_value))
-                    else:
-                        # Use OR with IS NULL to handle null fields correctly
-                        conditions.append(SQL("(%s IS NULL OR %s != %s)", sql_field, sql_field, json_value))
-                else:
-                    # Regular value (not wrapped)
-                    try:
-                        json_str = json.dumps(v)
-                    except (TypeError, ValueError) as e:
-                        raise ValueError(
-                            _("Cannot serialize value for comparison: %s") % e
-                        ) from e
-
-                    if operator == 'in':
-                        conditions.append(SQL("%s = %s", sql_field, json_str))
-                    else:
-                        # Use IS NULL to include NULL fields in 'not equal' results
-                        conditions.append(SQL("(%s IS NULL OR %s != %s)", sql_field, sql_field, json_str))
-
-            if not conditions:
-                return SQL("FALSE") if operator == 'in' else SQL("TRUE")
-
-            if operator == 'in':
-                return SQL("(%s)", SQL(" OR ".join(["%s"] * len(conditions)), *conditions))
-            else:
-                return SQL("(%s)", SQL(" AND ".join(["%s"] * len(conditions)), *conditions))
-
-        # Guard: custom operators must always be optimized to 'in'/'not in' before reaching
-        # this method. If one arrives here it means it was applied to a non-SearchableJson field.
+        # Custom operators must be optimized to in/not in before reaching here.
         if operator in ('json_eq', 'json_ne', 'json_contains', 'json_not_contains'):
             raise ValueError(
-                _("Operator '%s' is only supported on SearchableJson fields.") % operator
+                f"Operator '{operator}' is only supported on SearchableJson fields."
             )
+
         return super()._condition_to_sql(field_expr, operator, value, model, alias, query)
 
+    def _build_json_in_sql(self, sql_field: SQL, operator: str, values) -> SQL:
+        conditions = [self._single_value_to_sql(sql_field, operator, v) for v in values]
 
-# Wrapper class for JSON values to make them hashable
-class JsonValue:
-    """
-    Wrapper class to make JSON values hashable for domain optimization.
+        if not conditions:
+            return SQL("FALSE") if operator == 'in' else SQL("TRUE")
 
-    Odoo's domain optimization uses sets (OrderedSet) to collect values for 'in'/'not in'
-    operators. Since JSON objects (dicts/lists) are not hashable in Python, this wrapper
-    provides the necessary __hash__ and __eq__ methods to enable set operations.
+        joiner = " OR " if operator == 'in' else " AND "
+        return SQL("(%s)", SQL(joiner.join(["%s"] * len(conditions)), *conditions))
 
-    The hash is computed from a stable JSON string representation with sorted keys
-    and compact formatting to ensure that structurally identical JSON values produce
-    the same hash, regardless of key ordering or whitespace.
+    def _single_value_to_sql(self, sql_field: SQL, operator: str, v) -> SQL:
+        if isinstance(v, JsonContainsValue):
+            return self._containment_sql(sql_field, operator, v.value)
+        if isinstance(v, JsonValue):
+            return self._equality_sql(sql_field, operator, v.value)
 
-    Attributes:
-        value: The original JSON-serializable Python value (dict, list, etc.)
-        _json_marker (bool): Marker attribute to identify wrapped values in SQL generation
-        _hash (int): Pre-computed hash value for performance
+        # Plain value from standard Odoo operators (e.g. != False → not in [False])
+        if v is False or v is None:
+            return (
+                SQL("%s IS NULL", sql_field)
+                if operator == 'in'
+                else SQL("%s IS NOT NULL", sql_field)
+            )
 
-    Example:
-        >>> v1 = JsonValue({"type": "Point", "coordinates": [0, 0]})
-        >>> v2 = JsonValue({"coordinates": [0, 0], "type": "Point"})
-        >>> v1 == v2  # True - same structure despite different key order
-        >>> hash(v1) == hash(v2)  # True - same hash
-        >>> {v1, v2}  # {JsonValue(...)} - only one element in set
-    """
-    def __init__(self, value):
-        self.value = value
-        self._json_marker = True
-        # Use compact JSON representation with sorted keys for stable hashing
+        return self._equality_sql(sql_field, operator, v)
+
+    def _equality_sql(self, sql_field: SQL, operator: str, value) -> SQL:
+        """Generate SQL for exact JSONB equality using ::jsonb cast on both sides."""
         try:
-            self._hash = hash(json.dumps(value, sort_keys=True, separators=(',', ':')))
+            json_str = json.dumps(value, sort_keys=True, separators=(',', ':'))
         except (TypeError, ValueError) as e:
             raise ValueError(
-                _("Cannot create JsonValue from non-serializable value: %s") % e
+                f"Cannot serialize JSON value for comparison: {e}"
             ) from e
 
-    def __hash__(self):
-        return self._hash
+        if operator == 'in':
+            return SQL("%s::jsonb = %s::jsonb", sql_field, json_str)
+        # Include NULL rows in != results (NULL != anything is NULL, not TRUE)
+        return SQL("(%s IS NULL OR %s::jsonb != %s::jsonb)", sql_field, sql_field, json_str)
 
-    def __eq__(self, other):
-        if not isinstance(other, JsonValue):
-            return False
-        return self.value == other.value
-
-    def __repr__(self):
-        return f"JsonValue({self.value!r})"
-
-
-class JsonContainsValue:
-    """
-    Wrapper class for JSON containment check values.
-
-    This wrapper marks values that should be used with PostgreSQL's @> (contains)
-    operator instead of exact equality. It's used to pass containment check values
-    through the domain optimization system.
-
-    Attributes:
-        value: The JSON value to check for containment
-        _json_contains_marker (bool): Marker to identify this as a containment check
-        _hash (int): Pre-computed hash value for performance
-    """
-    def __init__(self, value):
-        self.value = value
-        self._json_contains_marker = True
+    def _containment_sql(self, sql_field: SQL, operator: str, value) -> SQL:
+        """Generate SQL for JSONB @> containment check."""
         try:
-            self._hash = hash(json.dumps(value, sort_keys=True, separators=(',', ':')))
+            json_str = json.dumps(value)
         except (TypeError, ValueError) as e:
             raise ValueError(
-                _("Cannot create JsonContainsValue from non-serializable value: %s") % e
+                f"Cannot serialize JSON value for containment check: {e}"
             ) from e
 
-    def __hash__(self):
-        return self._hash
-
-    def __eq__(self, other):
-        if not isinstance(other, JsonContainsValue):
-            return False
-        return self.value == other.value
-
-    def __repr__(self):
-        return f"JsonContainsValue({self.value!r})"
+        if operator == 'in':
+            return SQL("%s @> %s::jsonb", sql_field, json_str)
+        # NULL @> value = NULL (not FALSE) — include NULL rows in NOT-contains results
+        return SQL("(%s IS NULL OR NOT (%s @> %s::jsonb))", sql_field, sql_field, json_str)
 
 
-# Convert our custom operators to standard 'in'/'not in' with wrapped values
+# ---------------------------------------------------------------------------
+# Domain optimizations — rewrite custom operators to in/not in with wrapped values
+# ---------------------------------------------------------------------------
+
 @operator_optimization(['json_eq', 'json_ne'])
 def _json_equal_optimization(condition, model):
-    """
-    Optimize json_eq/json_ne operators to standard in/not in operators.
+    operator = 'in' if condition.operator == 'json_eq' else 'not in'
+    return DomainCondition(
+        condition.field_expr, operator, OrderedSet([JsonValue(condition.value)])
+    )
 
-    This optimization function is called by Odoo's domain optimizer to transform
-    custom JSON equality operators into standard 'in'/'not in' operators. This
-    allows multiple json_eq conditions to be combined into a single SQL IN clause.
-
-    The transformation wraps JSON values in JsonValue objects to make them hashable,
-    enabling Odoo's optimizer to collect multiple values into OrderedSets for
-    efficient SQL generation.
-
-    Transformations:
-        [('geojson', 'json_eq', {...})]  ->  [('geojson', 'in', [JsonValue({...})])]
-        [('geojson', 'json_ne', {...})]  ->  [('geojson', 'not in', [JsonValue({...})])]
-
-    Multiple conditions are automatically combined by Odoo:
-        [('geojson', 'json_eq', val1), ('geojson', 'json_eq', val2)]
-        -> [('geojson', 'in', [JsonValue(val1), JsonValue(val2)])]
-
-    Args:
-        condition (DomainCondition): Domain condition with json_eq or json_ne operator
-        model: Odoo model class (unused but required by decorator signature)
-
-    Returns:
-        DomainCondition: New condition with 'in' or 'not in' operator and wrapped value
-    """
-    if condition.operator == 'json_eq':
-        operator = 'in'
-    else:  # json_ne
-        operator = 'not in'
-
-    # Wrap the value to make it hashable for OrderedSet operations
-    wrapped_value = JsonValue(condition.value)
-    value = OrderedSet([wrapped_value])
-
-    return DomainCondition(condition.field_expr, operator, value)
 
 @operator_optimization(['json_contains', 'json_not_contains'])
 def _json_contains_optimization(condition, model):
-    """
-    Optimize json_contains/json_not_contains to standard in/not in operators.
-
-    This optimization function transforms JSON containment operators into standard
-    'in'/'not in' operators with wrapped values. The wrapping allows _condition_to_sql
-    to detect containment checks and generate the appropriate PostgreSQL @> operator.
-
-    Transformations:
-        [('geojson', 'json_contains', {'type': 'Point'})]
-        -> [('geojson', 'in', [JsonContainsValue({'type': 'Point'})])]
-        -> SQL: geojson @> '{"type":"Point"}'::jsonb
-
-        [('geojson', 'json_not_contains', {'type': 'Point'})]
-        -> [('geojson', 'not in', [JsonContainsValue({'type': 'Point'})])]
-        -> SQL: NOT (geojson @> '{"type":"Point"}'::jsonb)
-
-    Args:
-        condition (DomainCondition): Domain condition with json_contains or json_not_contains
-        model: Odoo model class (unused but required by decorator signature)
-
-    Returns:
-        DomainCondition: Condition with 'in' or 'not in' operator and wrapped value
-    """
-    if condition.operator == 'json_contains':
-        operator = 'in'
-    else:  # json_not_contains
-        operator = 'not in'
-
-    # Wrap the value to mark it as a containment check
-    wrapped_value = JsonContainsValue(condition.value)
-    value = OrderedSet([wrapped_value])
-
-    return DomainCondition(condition.field_expr, operator, value)
+    operator = 'in' if condition.operator == 'json_contains' else 'not in'
+    return DomainCondition(
+        condition.field_expr, operator, OrderedSet([JsonContainsValue(condition.value)])
+    )

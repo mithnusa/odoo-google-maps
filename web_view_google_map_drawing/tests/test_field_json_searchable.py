@@ -40,7 +40,7 @@ class TestJsonValue(TransactionCase):
         json_val = JsonValue(value)
 
         self.assertEqual(json_val.value, value)
-        self.assertTrue(json_val._json_marker)
+        self.assertIsInstance(json_val, JsonValue)
         self.assertIsInstance(json_val._hash, int)
 
     def test_json_value_hash_consistency(self):
@@ -127,7 +127,7 @@ class TestJsonContainsValue(TransactionCase):
         json_val = JsonContainsValue(value)
 
         self.assertEqual(json_val.value, value)
-        self.assertTrue(json_val._json_contains_marker)
+        self.assertIsInstance(json_val, JsonContainsValue)
         self.assertIsInstance(json_val._hash, int)
 
     def test_json_contains_value_hash_consistency(self):
@@ -254,8 +254,9 @@ class TestSearchableJsonField(TransactionCase):
 
         self.assertIsInstance(result, SQL)
         sql_str = str(result)
-        # Should include IS NULL check for 'not in'
         self.assertIn('test_table.geojson', sql_str)
+        # NULL rows must be included in negation results (NULL != value = NULL, not TRUE)
+        self.assertIn('IS NULL', sql_str)
 
     def test_json_contains_sql_generation(self):
         """Test SQL generation for 'in' operator with JsonContainsValue wrapper."""
@@ -285,6 +286,21 @@ class TestSearchableJsonField(TransactionCase):
         self.assertIn('NOT', sql_str)
         self.assertIn('@>', sql_str)
         self.assertIn('::jsonb', sql_str)
+        # NULL rows must be included: NULL @> value = NULL, not FALSE
+        self.assertIn('IS NULL', sql_str)
+
+    def test_regular_value_not_in_includes_null_check(self):
+        """Test that 'not in' with a plain (non-wrapped) value generates an IS NULL guard."""
+        values = OrderedSet(['test_string'])
+
+        result = self.field._condition_to_sql(
+            'geojson', 'not in', values, self.mock_model, 'test_table', self.mock_query
+        )
+
+        self.assertIsInstance(result, SQL)
+        sql_str = str(result)
+        # NULL rows must be included: NULL != value = NULL, not TRUE
+        self.assertIn('IS NULL', sql_str)
 
     def test_empty_in_operator_returns_false(self):
         """Test that empty 'in' operator returns SQL FALSE."""
@@ -427,3 +443,20 @@ class TestEdgeCases(TransactionCase):
 
         json_val = JsonValue(bool_data)
         self.assertEqual(json_val.value, bool_data)
+
+    def test_misapplied_custom_operator_raises_error(self):
+        """Test that custom operators raise ValueError when they bypass optimization."""
+        field = SearchableJson()
+        mock_model = Mock()
+        mock_model._field_to_sql = Mock(return_value=SQL("test_table.geojson"))
+        mock_query = Mock()
+
+        for operator in ('json_eq', 'json_ne', 'json_contains', 'json_not_contains'):
+            with self.assertRaises(ValueError) as context:
+                field._condition_to_sql(
+                    'geojson', operator, 'value', mock_model, 'test_table', mock_query
+                )
+            self.assertIn(
+                'only supported on SearchableJson fields',
+                str(context.exception),
+            )

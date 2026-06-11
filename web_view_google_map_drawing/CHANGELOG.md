@@ -1,5 +1,31 @@
 # Change Log
 
+## 19.0.1.0.19
+
+### Refactored
+
+- **`SearchableJson` / `JsonValue` / `JsonContainsValue` — Base Class Introduced**: Extracted shared `__init__`, `__hash__`, `__eq__`, and `__repr__` into a new `_JsonWrappedValue` base class, eliminating ~40 lines of duplicated code between `JsonValue` and `JsonContainsValue`
+- **`_condition_to_sql` Split into Four Methods**: The monolithic method is now `_build_json_in_sql` (loop + SQL joining), `_single_value_to_sql` (type dispatch), `_equality_sql` (exact JSONB equality), and `_containment_sql` (JSONB @> containment) — each independently testable
+- **Type Dispatch via `isinstance` (re-introduced)**: `_single_value_to_sql` now uses `isinstance(v, JsonContainsValue)` / `isinstance(v, JsonValue)` instead of `getattr` marker attribute duck-typing, enabled by the base class consolidation. See 19.0.1.0.17 for the dual-import context; this assumes a single import path for the module
+- **`type(self) is type(other)` in `__eq__`**: Replaced `isinstance(other, JsonValue)` with an exact type check so `JsonValue(x)` is never equal to `JsonContainsValue(x)` even when wrapping the same payload — prevents silent `OrderedSet` deduplication across operator classes
+
+### Fixed
+
+- **`False`/`None` Handled as SQL NULL**: Plain `False` or `None` values in `not in` now generate `IS NULL` / `IS NOT NULL` SQL directly, instead of routing through `json.dumps` which produces the JSON literals `false`/`null` and misses actual SQL NULL rows
+- **Explicit `::jsonb` Casts on Both Sides of Equality**: `_equality_sql` now generates `%s::jsonb = %s::jsonb` instead of bare `%s = %s`, removing the dependency on PostgreSQL's implicit text→jsonb coercion
+
+### Tests Added
+
+- **NULL Operator Coverage (Integration)**: Four new integration tests verify correct SQL NULL semantics end-to-end against a real JSONB column: `test_eq_false_finds_null_records`, `test_ne_false_excludes_null_records`, `test_json_ne_includes_null_records`, `test_json_not_contains_includes_null_records`
+- **IS NULL Guard Assertions**: `test_json_ne_sql_generation_with_wrapped_value` and `test_json_not_contains_sql_generation` now assert `IS NULL` is present in the generated SQL — previously these tests could pass even with broken NULL handling
+- **`test_regular_value_not_in_includes_null_check`**: Verifies that plain (non-wrapped) values in a `not in` operator also generate the IS NULL guard
+- **`test_misapplied_custom_operator_raises_error`**: Verifies all four custom operators (`json_eq`, `json_ne`, `json_contains`, `json_not_contains`) raise `ValueError` when they bypass domain optimization
+
+### Improved
+
+- **Test Isolation in Integration Tests**: All integration test searches are now scoped via a `_search(ids, ...)` helper that prepends `('id', 'in', ids)` — prevents flaky results caused by pre-existing `res.partner.area` rows in the test database
+- **GeoJSON Fixtures as Module-Level Constants**: `POINT`, `POINT_OTHER`, `POLYGON`, `FEATURE_COLLECTION_EMPTY`, `FEATURE_COLLECTION_POINT` are module-level constants shared across all integration tests, replacing repeated inline dicts
+
 ## 19.0.1.0.18
 
 ### Fixed
