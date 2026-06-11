@@ -11,10 +11,10 @@
     ''',
     'license': 'LGPL-3',
     'author': 'Yopi Angi',
-    'website': 'https://github.com/mithnusa',
+    'website': 'https://www.mithnusa.com',
     'support': 'yopiangi@gmail.com',
     'category': 'Extra Tools',
-    'version': '1.0.18',
+    'version': '1.0.19',
     'depends': ['web_view_google_map'],
     'data': ['data/gmap_libraries.xml'],
     'assets': {
