@@ -41,7 +41,7 @@ class _JsonWrappedValue:
         return self._hash
 
     def __eq__(self, other):
-        return type(self) is type(other) and self.value == other.value
+        return type(self).__name__ == type(other).__name__ and self.value == other.value
 
     def __repr__(self):
         return f"{type(self).__name__}({self.value!r})"
@@ -94,9 +94,10 @@ class SearchableJson(fields.Json):
         return SQL("(%s)", SQL(joiner.join(["%s"] * len(conditions)), *conditions))
 
     def _single_value_to_sql(self, sql_field: SQL, operator: str, v) -> SQL:
-        if isinstance(v, JsonContainsValue):
+        vname = type(v).__name__
+        if vname == 'JsonContainsValue':
             return self._containment_sql(sql_field, operator, v.value)
-        if isinstance(v, JsonValue):
+        if vname == 'JsonValue':
             return self._equality_sql(sql_field, operator, v.value)
 
         # Plain value from standard Odoo operators (e.g. != False → not in [False])
