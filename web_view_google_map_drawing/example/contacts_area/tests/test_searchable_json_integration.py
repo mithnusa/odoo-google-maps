@@ -10,6 +10,8 @@ against a real PostgreSQL JSONB column.
 Unit tests for the field class, wrapper classes, and domain optimization live in:
   web_view_google_map_drawing/tests/test_field_json_searchable.py
 """
+import unittest
+
 from odoo.tests.common import TransactionCase
 
 POINT = {"type": "Point", "coordinates": [106.45, -6.36]}
@@ -37,6 +39,8 @@ class TestSearchableJsonIntegration(TransactionCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
+        if 'res.partner.area' not in cls.env:
+            raise unittest.SkipTest('contacts_area module is not installed')
         cls.Model = cls.env['res.partner.area']
 
     def _create(self, name, geojson):
@@ -191,3 +195,49 @@ class TestSearchableJsonIntegration(TransactionCase):
 
         collection_results = self._search(ids, ('gshape_geojson', 'json_contains', {'type': 'FeatureCollection'}))
         self.assertEqual(collection_results, collection_rec)
+
+    # -------------------------------------------------------------------------
+    # Edge cases
+    # -------------------------------------------------------------------------
+
+    def test_json_eq_key_order_independent(self):
+        """json_eq must match regardless of JSON key insertion order.
+
+        _equality_sql uses ::jsonb cast on both sides; PostgreSQL normalizes key
+        order inside JSONB, so {'b': 2, 'a': 1} must equal {'a': 1, 'b': 2}.
+        """
+        stored = {"coordinates": [106.45, -6.36], "type": "Point"}
+        rec = self._create('Reversed Keys', stored)
+        ids = [rec.id]
+
+        results = self._search(ids, ('gshape_geojson', 'json_eq', POINT))
+
+        self.assertIn(rec, results)
+
+    def test_json_eq_false_does_not_find_null_records(self):
+        """json_eq False finds rows storing JSON boolean false, NOT NULL rows.
+
+        ('field', '=', False) maps to IS NULL.
+        ('field', 'json_eq', False) maps to field::jsonb = 'false'::jsonb.
+        These are semantically different — this test documents and protects that boundary.
+        """
+        null_rec = self._create('Null GeoJSON', False)
+        ids = [null_rec.id]
+
+        results = self._search(ids, ('gshape_geojson', 'json_eq', False))
+
+        self.assertNotIn(null_rec, results)
+
+    def test_json_contains_empty_dict_matches_all_non_null(self):
+        """json_contains with {} matches every non-NULL row (JSONB containment of empty object).
+
+        In PostgreSQL, any_jsonb @> '{}'::jsonb is TRUE for all non-NULL values.
+        """
+        rec = self._create('Point', POINT)
+        null_rec = self._create('Null GeoJSON', False)
+        ids = [rec.id, null_rec.id]
+
+        results = self._search(ids, ('gshape_geojson', 'json_contains', {}))
+
+        self.assertIn(rec, results)
+        self.assertNotIn(null_rec, results)

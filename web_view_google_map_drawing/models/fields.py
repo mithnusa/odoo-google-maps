@@ -16,6 +16,9 @@ from odoo.tools import SQL
 from odoo.orm.domains import CONDITION_OPERATORS, operator_optimization, DomainCondition
 from odoo.tools.misc import OrderedSet
 
+# Odoo 19 has no public API for registering custom domain operators.
+# Mutating this internal set is the only available extension point.
+# Re-verify this is still a plain set on each major Odoo version upgrade.
 CONDITION_OPERATORS.update(['json_eq', 'json_ne', 'json_contains', 'json_not_contains'])
 
 
@@ -34,14 +37,20 @@ class _JsonWrappedValue:
             self._hash = hash(json.dumps(value, sort_keys=True, separators=(',', ':')))
         except (TypeError, ValueError) as e:
             raise ValueError(
-                f"Cannot create {type(self).__name__} from non-serializable value: {e}"
+                f"Domain value is not JSON-serializable: {e}"
             ) from e
 
     def __hash__(self):
         return self._hash
 
     def __eq__(self, other):
-        return type(self) is type(other) and self.value == other.value
+        # type().__name__ comparison is intentional: when this module is loaded via two
+        # Python import paths (dual-import), `type(self) is type(other)` can be False for
+        # semantically identical classes. Name-based comparison preserves correct
+        # OrderedSet deduplication. Do NOT replace with isinstance or type() identity.
+        if type(self).__name__ != type(other).__name__ or not hasattr(other, 'value'):
+            return NotImplemented
+        return self.value == other.value
 
     def __repr__(self):
         return f"{type(self).__name__}({self.value!r})"
@@ -73,13 +82,17 @@ class SearchableJson(fields.Json):
     ) -> SQL:
         sql_field = model._field_to_sql(alias, field_expr, query)
 
+        # Intercept in/not in entirely: parent fields.Json uses text comparison,
+        # but this field requires JSONB semantics for all value types.
         if operator in ('in', 'not in'):
             return self._build_json_in_sql(sql_field, operator, value)
 
-        # Custom operators must be optimized to in/not in before reaching here.
+        # Custom operators must be rewritten to in/not in by operator_optimization before
+        # reaching here. If they arrive unrewritten, the registration failed.
         if operator in ('json_eq', 'json_ne', 'json_contains', 'json_not_contains'):
-            raise ValueError(
-                f"Operator '{operator}' is only supported on SearchableJson fields."
+            raise AssertionError(
+                f"Operator '{operator}' reached _condition_to_sql without being rewritten "
+                "— operator_optimization registration may have failed."
             )
 
         return super()._condition_to_sql(field_expr, operator, value, model, alias, query)
@@ -94,9 +107,13 @@ class SearchableJson(fields.Json):
         return SQL("(%s)", SQL(joiner.join(["%s"] * len(conditions)), *conditions))
 
     def _single_value_to_sql(self, sql_field: SQL, operator: str, v) -> SQL:
-        if isinstance(v, JsonContainsValue):
+        # type().__name__ dispatch is intentional — see _JsonWrappedValue.__eq__ for
+        # rationale. Do NOT replace with isinstance: dual-import creates distinct class
+        # objects for the same logical type, making isinstance unreliable here.
+        vname = type(v).__name__
+        if vname == 'JsonContainsValue' and hasattr(v, 'value'):
             return self._containment_sql(sql_field, operator, v.value)
-        if isinstance(v, JsonValue):
+        if vname == 'JsonValue' and hasattr(v, 'value'):
             return self._equality_sql(sql_field, operator, v.value)
 
         # Plain value from standard Odoo operators (e.g. != False → not in [False])
@@ -126,7 +143,7 @@ class SearchableJson(fields.Json):
     def _containment_sql(self, sql_field: SQL, operator: str, value) -> SQL:
         """Generate SQL for JSONB @> containment check."""
         try:
-            json_str = json.dumps(value)
+            json_str = json.dumps(value, sort_keys=True)
         except (TypeError, ValueError) as e:
             raise ValueError(
                 f"Cannot serialize JSON value for containment check: {e}"

@@ -16,14 +16,16 @@ Test Structure:
 3. TestDomainOptimization - Tests for domain optimization functions
 4. TestSearchableJsonField - Tests for SQL generation
 5. TestEdgeCases - Edge cases and error handling
+6. TestModuleReloadRobustness - Regression tests for dual-import / module reload
 
 Integration tests (end-to-end ORM search against a real JSONB column) live in:
   web_view_google_map_drawing/example/contacts_area/tests/test_searchable_json_integration.py
 They require the contacts_area module to be installed.
 """
+import json
 from unittest.mock import Mock
 
-from odoo.tests.common import TransactionCase
+from odoo.tests.common import BaseCase
 from odoo.tools import SQL
 from odoo.orm.domains import DomainCondition
 from odoo.tools.misc import OrderedSet
@@ -31,7 +33,7 @@ from odoo.tools.misc import OrderedSet
 from ..models.fields import SearchableJson, JsonValue, JsonContainsValue, _json_equal_optimization, _json_contains_optimization
 
 
-class TestJsonValue(TransactionCase):
+class TestJsonValue(BaseCase):
     """Test suite for JsonValue wrapper class."""
 
     def test_json_value_basic_creation(self):
@@ -115,10 +117,10 @@ class TestJsonValue(TransactionCase):
         with self.assertRaises(ValueError) as context:
             JsonValue({"date": datetime.now()})
 
-        self.assertIn("Cannot create JsonValue", str(context.exception))
+        self.assertIn("Domain value is not JSON-serializable", str(context.exception))
 
 
-class TestJsonContainsValue(TransactionCase):
+class TestJsonContainsValue(BaseCase):
     """Test suite for JsonContainsValue wrapper class."""
 
     def test_json_contains_value_basic_creation(self):
@@ -157,7 +159,7 @@ class TestJsonContainsValue(TransactionCase):
         self.assertEqual(len(value_set), 2)
 
 
-class TestDomainOptimization(TransactionCase):
+class TestDomainOptimization(BaseCase):
     """Test suite for domain optimization functions."""
 
     def test_json_eq_optimization(self):
@@ -219,7 +221,7 @@ class TestDomainOptimization(TransactionCase):
         self.assertEqual(wrapped_value.value, {'type': 'Point'})
 
 
-class TestSearchableJsonField(TransactionCase):
+class TestSearchableJsonField(BaseCase):
     """Test suite for SearchableJson field SQL generation."""
 
     def setUp(self):
@@ -366,7 +368,7 @@ class TestSearchableJsonField(TransactionCase):
         with self.assertRaises(ValueError) as context:
             JsonContainsValue({'date': datetime.now()})
 
-        self.assertIn("Cannot create JsonContainsValue", str(context.exception))
+        self.assertIn("Domain value is not JSON-serializable", str(context.exception))
 
     def test_regular_value_without_json_marker(self):
         """Test SQL generation with regular values (not wrapped)."""
@@ -379,7 +381,7 @@ class TestSearchableJsonField(TransactionCase):
         self.assertIsInstance(result, SQL)
 
 
-class TestEdgeCases(TransactionCase):
+class TestEdgeCases(BaseCase):
     """Test edge cases and error conditions."""
 
     def test_null_json_value(self):
@@ -452,11 +454,124 @@ class TestEdgeCases(TransactionCase):
         mock_query = Mock()
 
         for operator in ('json_eq', 'json_ne', 'json_contains', 'json_not_contains'):
-            with self.assertRaises(ValueError) as context:
+            with self.assertRaises(AssertionError) as context:
                 field._condition_to_sql(
                     'geojson', operator, 'value', mock_model, 'test_table', mock_query
                 )
             self.assertIn(
-                'only supported on SearchableJson fields',
+                'reached _condition_to_sql without being rewritten',
                 str(context.exception),
             )
+
+
+class TestModuleReloadRobustness(BaseCase):
+    """Regression tests for dual-import / module reload robustness.
+
+    _single_value_to_sql and __eq__ use type(v).__name__ instead of isinstance
+    or type identity so they survive Odoo module reloads, where the same module
+    may be executed twice under different sys.modules keys, producing classes
+    with the same name but different identity.
+
+    These tests simulate that scenario by constructing local classes with the
+    same names as the real wrappers and verifying that cross-identity instances
+    are handled correctly.
+    """
+
+    def _stale_json_value(self, data):
+        """Return an instance whose class is named JsonValue but has a different identity."""
+        class JsonValue:
+            __slots__ = ('value', '_hash')
+
+            def __init__(self, v):
+                self.value = v
+                self._hash = hash(json.dumps(v, sort_keys=True, separators=(',', ':')))
+
+            def __hash__(self):
+                return self._hash
+
+        return JsonValue(data)
+
+    def _stale_json_contains_value(self, data):
+        """Return an instance whose class is named JsonContainsValue but has a different identity."""
+        class JsonContainsValue:
+            __slots__ = ('value', '_hash')
+
+            def __init__(self, v):
+                self.value = v
+                self._hash = hash(json.dumps(v, sort_keys=True, separators=(',', ':')))
+
+            def __hash__(self):
+                return self._hash
+
+        return JsonContainsValue(data)
+
+    # ------------------------------------------------------------------
+    # __eq__ cross-identity tests
+    # ------------------------------------------------------------------
+
+    def test_eq_cross_identity_same_value(self):
+        """Two JsonValue instances from different class objects are equal when their values match."""
+        real = JsonValue({'type': 'Point'})
+        stale = self._stale_json_value({'type': 'Point'})
+        self.assertEqual(real, stale)
+
+    def test_eq_cross_identity_different_value(self):
+        """Two JsonValue instances from different class objects are not equal when values differ."""
+        real = JsonValue({'type': 'Point'})
+        stale = self._stale_json_value({'type': 'Polygon'})
+        self.assertNotEqual(real, stale)
+
+    def test_eq_does_not_mix_wrapper_kinds(self):
+        """A stale JsonValue instance is not equal to a JsonContainsValue instance."""
+        real_contains = JsonContainsValue({'type': 'Point'})
+        stale_value = self._stale_json_value({'type': 'Point'})
+        self.assertNotEqual(real_contains, stale_value)
+
+    # ------------------------------------------------------------------
+    # _single_value_to_sql dispatch tests
+    # ------------------------------------------------------------------
+
+    def _make_field_and_sql(self):
+        field = SearchableJson()
+        sql_field = SQL("test_table.geojson")
+        return field, sql_field
+
+    def test_dispatch_stale_json_value_generates_equality_sql(self):
+        """_single_value_to_sql generates equality SQL for a stale JsonValue instance."""
+        field, sql_field = self._make_field_and_sql()
+        stale = self._stale_json_value({'type': 'Point'})
+
+        result = field._single_value_to_sql(sql_field, 'in', stale)
+
+        self.assertIsInstance(result, SQL)
+        sql_str = str(result)
+        self.assertIn('::jsonb', sql_str)
+        self.assertNotIn('@>', sql_str)
+
+    def test_dispatch_stale_json_contains_value_generates_containment_sql(self):
+        """_single_value_to_sql generates @> SQL for a stale JsonContainsValue instance."""
+        field, sql_field = self._make_field_and_sql()
+        stale = self._stale_json_contains_value({'type': 'Point'})
+
+        result = field._single_value_to_sql(sql_field, 'in', stale)
+
+        self.assertIsInstance(result, SQL)
+        self.assertIn('@>', str(result))
+
+    def test_dispatch_impostor_missing_value_attr_does_not_raise_attribute_error(self):
+        """An impostor class with the right name but no .value falls through without AttributeError."""
+        class JsonValue:
+            pass  # Same name as the real wrapper, but no .value attribute
+
+        field, sql_field = self._make_field_and_sql()
+        impostor = JsonValue()
+
+        try:
+            field._single_value_to_sql(sql_field, 'in', impostor)
+        except AttributeError as exc:
+            self.fail(
+                f"AttributeError raised — .value was accessed without guard: {exc}"
+            )
+        except (ValueError, TypeError):
+            pass  # Expected: falls through to plain path; _equality_sql re-raises TypeError
+                  # from json.dumps as ValueError — either is acceptable here
