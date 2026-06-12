@@ -150,7 +150,7 @@ class ResConfigSettings(models.TransientModel):
         string='Color Scheme',
         config_parameter='base_google_map.color_scheme',
     )
-    is_web_google_map_installed = fields.Boolean(string="Is the Sale Module Installed")
+    is_web_google_map_installed = fields.Boolean(string="Is the 'Web View Google Map' Module Installed")
 
     @api.depends('google_autocomplete_country_restriction_str')
     def _compute_country_restriction(self):
