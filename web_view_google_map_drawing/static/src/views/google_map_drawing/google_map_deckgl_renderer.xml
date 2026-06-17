@@ -21,7 +21,7 @@
             <p class="mb-0 pb-0 fs-4" t-out="title"/>
             <div class="mt-1" t-if="displayNames">
                 <ul class="list-unstyled">
-                    <t t-foreach="displayNames" t-as="displayName" t-key="displayNameIndex">
+                    <t t-foreach="displayNames" t-as="displayName" t-key="displayName_index">
                         <li>
                             <div class="d-flex flex-column mb-2">
                                 <div>
@@ -37,7 +37,7 @@
             <!-- Show more original properties -->
             <div class="popup-more-properties mt-2" t-if="properties">
                 <div class="properties-list" style="max-height: 150px; overflow-y: auto; margin-top: 6px; padding-top: 6px; border-top: 1px solid #ecf0f1;">
-                    <t t-foreach="Object.entries(properties)" t-as="entry" t-key="entryIndex">
+                    <t t-foreach="Object.entries(properties)" t-as="entry" t-key="entry_index">
                         <div class="d-flex justify-content-between mb-1 text-muted" style="font-size: 11px;">
                             <span t-out="entry[0] + ':' "/>
                             <span t-out="entry[1]?.toString()"/>
