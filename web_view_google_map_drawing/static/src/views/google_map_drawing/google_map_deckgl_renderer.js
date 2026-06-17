@@ -1093,10 +1093,9 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
                 interleaved: false,
                 layers: [],
                 getTooltip: ({ object }) => {
-                    if (object && object.properties) {
+                    if (object?.id) {
                         const feature = this.geoJsonData.get(object.id);
                         const content = this._renderTooltipContent(feature);
-                        const properties = feature?.properties || {};
                         const style = {
                             backgroundColor: 'light-dark(white, black)',
                             padding: '12px',
