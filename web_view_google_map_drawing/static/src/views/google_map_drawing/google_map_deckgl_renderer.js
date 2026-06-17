@@ -1062,20 +1062,10 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
         const measurements = this._calculateFeatureMeasurement(feature, relatedFeatures);
         const displayNames = measurements?.display_name || [];
 
-        // Build filtered properties object
-        const properties = feature.properties ? { ...feature.properties } : {};
-        const attrsToExclude = [
-            'odoo', 'color', 'fillColor', 'strokeColor',
-            'odooId', 'odooResId'
-        ];
-        for (const attr of attrsToExclude) {
-            delete properties[attr];
-        }
-
         return renderToString('web_view_google_map_drawing.FeatureProperties', {
-            title: feature.properties.odoo?.title || _t('Feature'),
             displayNames,
-            properties,
+            title: feature.properties.odoo?.title || _t('Feature'),
+            properties: false,
         });
     }
 
@@ -1109,16 +1099,13 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
                         const properties = feature?.properties || {};
                         const style = {
                             backgroundColor: 'light-dark(white, black)',
-                            padding: '8px',
+                            padding: '12px',
                             fontSize: '12px',
                             borderRadius: '4px',
                             boxShadow: '0 4px 6px rgba(0,0,0,0.2)',
                             opacity: '0.95',
                             maxWidth: '300px',
                         };
-                        if (properties.color) {
-                            style.borderLeft = `4px solid ${properties.color}`;
-                        }
                         return {
                             html: content,
                             style

@@ -16,7 +16,18 @@
 - **Freehand**: Draw naturally with the cursor, shape is auto-smoothed
 - **Select**: Click and drag vertices to modify existing shapes
 
-Keyboard shortcuts are available for switching modes (keys `1`–`7`), saving (`Ctrl+S`), undoing (`Ctrl+Z`), simplifying (`Ctrl+E`), and deleting selected features (`Delete`).
+Keyboard shortcuts are available:
+
+| Shortcut | Action |
+| --- | --- |
+| `1` – `7` | Switch drawing mode (Select, Point, LineString, Polygon, Rectangle, Circle, Freehand) |
+| `Ctrl+S` / `Cmd+S` | Save manually |
+| `Ctrl+Z` / `Cmd+Z` | Undo |
+| `Ctrl+Y` / `Cmd+Y` or `Ctrl+Shift+Z` | Redo |
+| `Ctrl+E` / `Cmd+E` | Simplify selected feature |
+| `Delete` / `Backspace` | Delete selected feature |
+| `Escape` | Switch to Select mode |
+| `C` | Clear all features |
 
 ---
 
@@ -48,6 +59,7 @@ Records with no GeoJSON stored (NULL) are correctly included in `json_ne` and `j
 **How it works**: Inheriting `google.drawing.shape` adds:
 
 - `gshape_name`: Display name for the shape
+- `gshape_description`: Optional free-text description (Text)
 - `gshape_geojson`: The GeoJSON data (SearchableJson field)
 - `gshape_area`: Auto-calculated area in square meters (Float)
 - `gshape_color`: Color picker value for visual identification (Integer)
@@ -153,7 +165,7 @@ The "Show Nearby" button is intentionally removed from the drawing view's sideba
 
 **Included libraries**:
 
-- **Terra Draw** (v1.30.1): Drawing tools and feature editing
-- **Terra Draw Google Maps Adapter** (v1.6.0): Integration layer between Terra Draw and the Google Maps JavaScript API
-- **Deck.gl** (v9.3.2): GPU-accelerated rendering for large datasets
+- **Terra Draw** (v1.31.1): Drawing tools and feature editing
+- **Terra Draw Google Maps Adapter** (v1.6.1): Integration layer between Terra Draw and the Google Maps JavaScript API
+- **Deck.gl** (v9.3.4): GPU-accelerated rendering for large datasets
 - **Turf.js** (v7.3.5): Geospatial calculations (area, distance, simplification)

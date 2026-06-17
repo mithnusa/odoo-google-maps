@@ -95,7 +95,7 @@ Root configuration module. Adds a Google Maps section to General Settings for AP
 
 Registers `google_map` as a valid Odoo view type. Provides the full map view stack — controller, model, renderer, sidebar, and search bar — with marker clustering, overlap handling, multi-selection box select, nearby records search, in-map place search, geolocation button, grouped markers, and dark mode support.
 
-**[web_view_google_map_drawing](web_view_google_map_drawing/README.md)** `19.0.1.0.19`
+**[web_view_google_map_drawing](web_view_google_map_drawing/README.md)** `19.0.1.0.20`
 
 Extends the map view with geographic shape drawing using [Terra Draw](https://terradraw.io/) (Google's recommended replacement for the deprecated Maps Drawing Library) for editing and [Deck.gl](https://deck.gl/) for GPU-accelerated rendering of large datasets. Includes a `google.drawing.shape` mixin and GeoJSON field type with server-side filtering. All libraries bundled locally.
 
