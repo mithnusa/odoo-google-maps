@@ -167,7 +167,7 @@ Adds a Google Map view across Deliveries, Ready to Transfer, Waiting Transfer, L
 
 ### Project
 
-**[project_google_map](project_google_map/README.md)** `19.0.1.0.3`
+**[project_google_map](project_google_map/README.md)** `19.0.1.0.4`
 
 Adds a Google Map view for Projects and Tasks. Project markers show task counts and completion statistics; a satellite site map is embedded on the project form. Task maps are scoped per project. Status color-coding (on track, at risk, off track, on hold, done) is configurable per project.
 

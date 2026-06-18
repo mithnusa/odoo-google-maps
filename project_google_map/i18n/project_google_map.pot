@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 19.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-07 14:47+0000\n"
-"PO-Revision-Date: 2026-04-07 14:47+0000\n"
+"POT-Creation-Date: 2026-06-17 11:08+0000\n"
+"PO-Revision-Date: 2026-06-17 11:08+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -30,16 +30,6 @@ msgstr ""
 #. module: project_google_map
 #: model:ir.model,name:project_google_map.model_res_partner
 msgid "Contact"
-msgstr ""
-
-#. module: project_google_map
-#: model:ir.model,website_form_label:project_google_map.model_res_partner
-msgid "Create a Customer"
-msgstr ""
-
-#. module: project_google_map
-#: model:ir.model,website_form_label:project_google_map.model_project_task
-msgid "Create a Task"
 msgstr ""
 
 #. module: project_google_map
@@ -127,6 +117,20 @@ msgstr ""
 #. module: project_google_map
 #: model_terms:ir.ui.view,arch_db:project_google_map.view_project_task_google_map
 msgid "Task Sites"
+msgstr ""
+
+#. module: project_google_map
+#: model:ir.model.fields,help:project_google_map.field_project_task__display_name
+msgid ""
+"Use these keywords in the title to set new tasks:\n"
+"\n"
+"            #tags Set tags on the task\n"
+"            @user Assign the task to a user\n"
+"            ! Set the task a medium priority\n"
+"            !! Set the task a high priority\n"
+"            !!! Set the task a urgent priority\n"
+"\n"
+"            Make sure to use the right format and order e.g. Improve the configuration screen #feature #v16 @Mitchell !"
 msgstr ""
 
 #. module: project_google_map

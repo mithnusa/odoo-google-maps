@@ -1,5 +1,12 @@
 # Change Log
 
+## 1.0.4
+
+### Improved
+
+- **Manifest**: Rewrote summary and description; replaced wildcard asset glob with explicit ordered file entries; removed empty `demo` key
+- **i18n**: Regenerated POT — updated dates; removed stale `"Create a Customer"` and `"Create a Task"` website form label entries; added task quick-entry keyword help text string
+
 ## 1.0.3
 
 ### Fixed
