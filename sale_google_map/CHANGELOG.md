@@ -1,6 +1,14 @@
 <!-- markdownlint-disable MD024 -->
 # Change Log
 
+## 19.0.1.0.13
+
+### Improved
+
+- **Manifest**: Rewrote summary and description; replaced wildcard asset glob with explicit ordered file entries; removed empty `demo` key
+- **README**: Clarified that the sidebar arrow button pans to the marker (not opens orders), and that the open action is only on markers
+- **i18n**: Regenerated POT — updated dates; added new strings (`"Avatar"`, `"Customer"`, `"Find nearby records"`, `"Invalid Data"`, `"Logo"`, `"Nearby"`, `"No records available…"`, `"Open"`, no-grouping guidance notification); removed stale `"Complete Address"` field entry
+
 ## 19.0.1.0.12
 
 ### Fixed

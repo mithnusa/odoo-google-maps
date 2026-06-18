@@ -6,12 +6,12 @@
 
 ## What It Does
 
-Adds a "Map" view button to the Quotations, Orders, Orders to Invoice, Orders to Upsell, and Customers lists. Each customer with geolocated records appears as a single marker on the map. Clicking the marker or the sidebar entry lets you open the related orders or find other nearby customers.
+Adds a "Map" view button to the Quotations, Orders, Orders to Invoice, Orders to Upsell, and Customers lists. Each customer with geolocated records appears as a single marker on the map. Clicking a marker's arrow button opens the related orders for that customer. Clicking a sidebar entry pans the map to that customer's marker; the location-arrow button on markers and sidebar entries finds nearby customers.
 
 ## Key Features
 
 - **Customer-Grouped Markers**: One marker per customer — shows their name, total order value, and avatar
-- **"Open" Action**: Click the arrow button on a marker or sidebar entry to open all orders for that customer
+- **"Open" Action**: Click the arrow button on a marker to open all orders for that customer
 - **"Find Nearby" Action**: Click the location-arrow button on a marker or sidebar to search for nearby customers
 - **Sidebar with Totals**: Left-hand panel lists all customers with their avatar and aggregated order total
 - **Automatic Group Loading**: Groups are expanded automatically when the map loads so all markers appear without manual interaction
