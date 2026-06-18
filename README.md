@@ -127,7 +127,7 @@ Activates click-to-create on the Contacts map view. Clicking a named Google Plac
 
 Applies `gplace_autocomplete_el` to the Contact form's name field (`places` mode) and street field (`address` mode). Populates address fields and coordinates on selection. Mapping configurations for `res.partner` are created automatically on installation.
 
-**[partner_autocomplete_with_google_autocomplete](partner_autocomplete_with_google_autocomplete/README.md)** `19.0.1.0.4`
+**[partner_autocomplete_with_google_autocomplete](partner_autocomplete_with_google_autocomplete/README.md)** `19.0.1.0.5`
 
 Combines Odoo's built-in partner autocomplete with a Google Places toggle panel on the Contact name field, applied to all `res.partner` form views automatically via `_get_view()` — no XML changes required. The Odoo partner autocomplete remains available on the same input.
 
