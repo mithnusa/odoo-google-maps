@@ -139,7 +139,7 @@ Combines Odoo's built-in partner autocomplete with a Google Places toggle panel 
 
 Adds a Google Map view across five CRM menus (All Leads, My Activities, Opportunities, Pipeline, Forecast). Each lead appears as a color-coded marker card with stage, contact, salesperson, revenue, probability, and closing date. The lead form gains a Geolocation tab, geocode button, color picker, and an embedded map preview.
 
-**[crm_google_map_add_place](crm_google_map_add_place/README.md)** `19.0.1.0.0`
+**[crm_google_map_add_place](crm_google_map_add_place/README.md)** `19.0.1.0.1`
 
 Activates click-to-create on the CRM map view. Named place clicks create a pre-filled lead with address, phone, website, coordinates, and an auto-generated opportunity name. Empty map clicks reverse-geocode the coordinate. Duplicate detection uses the Google Place ID.
 
