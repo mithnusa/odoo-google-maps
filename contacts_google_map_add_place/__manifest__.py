@@ -1,18 +1,22 @@
 # -*- coding: utf-8 -*-
 {
     "name": "Contacts - Google Maps: Click to Add Place",
-    "summary": """
-        Create new contacts directly from the Google Maps view by clicking on any place or map location.
-    """,
+    "summary": "Create contacts directly from the Google Maps view by clicking on any place or location",
     "description": """
-        Extends the Google Maps view for Contacts with a click-to-create workflow.
-        When zoomed in sufficiently, clicking a named Google Place fetches its details
-        (name, address, phone, website) via the Places API and pre-populates a quick-create
-        form. Clicking on empty map space performs a reverse geocode and pre-populates the
-        form with the resolved address. A visual indicator in the map corner signals when
-        the feature is active. After saving, the map view reloads automatically to reflect
-        the new or updated contact.
-    """,
+Contacts - Google Maps: Click to Add Place
+==========================================
+
+Extends the Contacts Google Maps view with a click-to-create workflow.
+
+Provides:
+
+- ``res.partner`` inherits ``google_map.add_place.mixin``, activating the click-to-create server-side methods for the Contact model
+- Patches the Contacts map renderer to include the ``InMapClickAddPlace`` component: clicking a named Google Place fetches name, address, phone, and website via the Places API (New) and opens a pre-populated quick-create form; clicking empty map space reverse-geocodes the coordinate and pre-fills the form with the resolved address
+- Duplicate detection: if a contact with the same Google Place ID already exists, that record opens instead of creating a new one
+- ``gplace_id`` stored on each contact created from a named Google Place
+- Visual indicator in the map's top-right corner with one-click zoom shortcut
+- Map view reloads automatically after save with a notification linking to the new contact
+""",
     "license": "LGPL-3",
     "author": "Yopi Angi",
     "website": "https://github.com/mithnusa",
@@ -24,13 +28,12 @@
         "base_google_map_add_place",
         "contacts_google_map",
     ],
-    "data": [],
     "assets": {
         "web.assets_backend": [
-            "contacts_google_map_add_place/static/src/views/**/*",
-        ]
+            "contacts_google_map_add_place/static/src/views/google_map/google_map_renderer.js",
+            "contacts_google_map_add_place/static/src/views/google_map/google_map_renderer.xml",
+        ],
     },
-    "demo": [],
     "installable": True,
     "application": False,
     "auto_install": False,
