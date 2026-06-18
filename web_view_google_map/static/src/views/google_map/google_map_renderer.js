@@ -1,4 +1,12 @@
-import { useRef, useState, useSubEnv, useEffect, onPatched, onWillUpdateProps } from '@odoo/owl';
+import { 
+    useRef,
+    useState,
+    useSubEnv,
+    useEffect,
+    onPatched,
+    onWillUpdateProps,
+    onWillStart,
+} from '@odoo/owl';
 import { _t } from '@web/core/l10n/translation';
 import { renderToString } from '@web/core/utils/render';
 import { debounce } from '@web/core/utils/timing';
@@ -17,6 +25,7 @@ import {
     lightenColor,
     AdvancedMarkerBoxSelector,
     getRecordDataView,
+    loadMarkerClustererAssets,
 } from './utils';
 
 /**
@@ -147,6 +156,10 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
             isMapLoaded: this.isMapLoaded.bind(this),
         });
 
+        onWillStart(async () => {
+            await this._onWillStart();
+        });
+
         onWillUpdateProps((nextProps) => {
             this.onWillUpdatePropsRenderMarkers(nextProps);
         });
@@ -162,6 +175,10 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
                 this.centerMap().catch((e) => console.error('GoogleMapRenderer: centerMap failed:', e))
             );
         }
+    }
+
+    async _onWillStart() {
+        return loadMarkerClustererAssets();
     }
 
     /**

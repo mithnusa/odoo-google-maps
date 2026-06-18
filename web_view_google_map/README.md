@@ -21,6 +21,7 @@ Registers a new `google_map` view type alongside Odoo's standard list, form, and
 - **Geolocation Button**: Show the user's current location on the map with a single click
 - **Nearby Records**: From any marker's info window or sidebar row, find other records within a configurable radius; a rectangle overlay shows the search area on the map
 - **Record Actions**: Open, archive, duplicate, delete, or export selected records from the action menu
+- **Google Maps Links**: Each marker info window includes direct links to open Google Maps navigation to that location and to view it on the Google Maps website
 - **Embedded Map in Forms**: Embed a map inside a form view using the `google_map_one2many` or `google_map_many2many` field widget
 - **Dark Mode Support**: Map styles and sidebar automatically adapt to Odoo's dark mode
 

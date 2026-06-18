@@ -26,7 +26,7 @@
 
 **Why it matters**: Gives users two ways to navigate data simultaneously — spatially on the map and as a structured list — without switching views.
 
-**How it works**: The sidebar is a collapsible panel on the right side of the map. It shows the `sidebar_title` and `sidebar_subtitle` fields for each record. Selecting a record in the sidebar pans and zooms the map to its marker.
+**How it works**: The sidebar is a collapsible panel on the left side of the map. It shows the `sidebar_title` and `sidebar_subtitle` fields for each record. Selecting a record in the sidebar pans and zooms the map to its marker.
 
 ---
 
@@ -107,6 +107,16 @@
 **Why it matters**: Allows users to act on geographically selected records without switching to a list view.
 
 **How it works**: Actions apply to all currently selected records (those highlighted on the map and in the sidebar). Delete and archive actions include a confirmation step. Export uses Odoo's standard export dialog. Custom actions defined in the view's `<header>` block are also rendered in the control panel.
+
+---
+
+## Google Maps External Links
+
+**What it does**: Each marker's info window contains two external links — one to open Google Maps navigation directions to that location, and one to view the location on the Google Maps website.
+
+**Why it matters**: Lets users jump directly from a record on the map to Google Maps for turn-by-turn navigation or to explore the surrounding area in detail.
+
+**How it works**: The marker info window template renders an `<a>` tag for navigation (`https://www.google.com/maps/dir/?api=1&destination=...`) and another for Google Maps search (`https://www.google.com/maps/search/?api=1&query=...`), both built from the record's latitude and longitude. Both links open in a new browser tab.
 
 ---
 
