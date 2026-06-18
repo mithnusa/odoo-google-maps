@@ -1,5 +1,12 @@
 # Change Log
 
+## 1.0.1
+
+### Improved
+
+- **Manifest**: Rewrote summary and description; replaced wildcard asset glob with explicit file entries; removed empty `data` and `demo` keys
+- **i18n**: Regenerated POT — updated dates; removed stale `"Create an Opportunity"` website form label entry
+
 ## 1.0.0 - Initial Release
 
 - **CRM Lead Mixin**: Extended `crm.lead` with `google_map.add_place.mixin` to gain `gplace_id` field and click-to-create methods
