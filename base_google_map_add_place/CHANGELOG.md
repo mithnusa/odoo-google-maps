@@ -1,5 +1,12 @@
 # Change Log
 
+## 1.0.3
+
+### Improved
+
+- **Manifest**: Rewrote summary and description; replaced wildcard asset glob with explicit file entries; removed empty `data` and `demo` keys
+- **README**: Added `gplace_id` field to the Key Features list
+
 ## 1.0.2
 
 - [Improved] **`is_from_google_maps` Context Flag**: Added `is_from_google_maps=True` to the action context in all three form-open paths in `GoogleMapAddPlaceMixin` — the existing-record open action, `action_in_map_google_place_create`, and `action_in_map_google_place_from_reverse_geocode` — so the quick-create form view and its field handlers can detect that the record was opened from the Google Maps click-to-create workflow
