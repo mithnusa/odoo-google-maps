@@ -103,7 +103,7 @@ Extends the map view with geographic shape drawing using [Terra Draw](https://te
 
 Provides the `google_map` form widget — an embedded Google Maps iframe showing a record's coordinates, with an edit dialog containing a draggable marker and place search for visually updating the location without leaving the form.
 
-**[web_widget_google_place_autocomplete](web_widget_google_place_autocomplete/README.md)** `19.0.1.0.7`
+**[web_widget_google_place_autocomplete](web_widget_google_place_autocomplete/README.md)** `19.0.1.0.8`
 
 Provides the `gplace_autocomplete_el` widget and the `google.places.mapping` configuration system. Connects Google Places API (New) to any Odoo Char field. Which fields are populated on selection is fully controlled by mapping records — supporting two autocomplete modes, three component handling modes, configurable separators, relational field auto-resolution, and a live built-in test tool.
 
