@@ -1,5 +1,12 @@
 # Change Log
 
+## 19.0.1.0.8
+
+### Improved
+
+- **Manifest**: Rewrote summary and description; replaced wildcard asset globs with explicit ordered file entries; removed empty `demo` key
+- **`google.places.mapping` — Field Labels**: Renamed both ambiguous `'Fetch Fields'` string labels to `'Google Fields for Place Mode'` and `'Google Fields for Address Mode'` to clearly distinguish the two fetch-field Text fields
+
 ## 19.0.1.0.7
 
 - [Improved] **Google Maps Context Flag**: `record.update()` in `_handlePlaceSelect` is now wrapped with `record.context.is_from_google_maps = true` set before the call and cleaned up in a `finally` block after; downstream field handlers and computed triggers can use this flag to detect that the update originated from a Google Places selection

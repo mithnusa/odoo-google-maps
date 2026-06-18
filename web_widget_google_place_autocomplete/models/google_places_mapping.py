@@ -134,11 +134,11 @@ class GooglePlacesMapping(models.Model):
         help='PlaceAutocompleteElement options',
     )
     gplace_place_fetch_fields = fields.Text(
-        string='Fetch Fields',
+        string='Google Fields for Place Mode',
         help='PlaceAutocompleteElement options "fields" parameter.',
     )
     gplace_address_fetch_fields = fields.Text(
-        string='Fetch Fields',
+        string='Google Fields for Address Mode',
         help='PlaceAutocompleteElement options "fields" parameter.',
         default="['addressComponents', 'location']",
     )
