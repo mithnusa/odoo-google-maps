@@ -15,11 +15,12 @@ Replaces the standard company name and street inputs on the Lead/Opportunity for
 - **Full Address Auto-Fill**: Selecting a suggestion populates street, street2, city, state, zip, and country automatically
 - **Geolocation Auto-Fill**: Lead latitude (`customer_latitude`) and longitude (`customer_longitude`) are stored automatically from the selected place's location data
 - **Company Details Auto-Fill**: Selecting a business from the company name field also fills in phone and website
+- **Coordinate Preservation**: When an address is updated via the Google Maps workflow, the lead's coordinates are not reset — they are kept exactly as returned by the Places API
 - **Auto-Configured on Install**: Field mappings between Google Places data and Odoo Lead fields are created automatically during installation — no manual setup required
 
 ## Dependencies
 
-- `crm`
+- `crm_google_map`
 - `web_widget_google_place_autocomplete`
 
 ## Installation
