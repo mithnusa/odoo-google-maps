@@ -4,10 +4,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo Server 19.0-20260118\n"
+"Project-Id-Version: Odoo Server 19.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-01 13:45+0000\n"
-"PO-Revision-Date: 2026-03-01 13:45+0000\n"
+"POT-Creation-Date: 2026-06-17 11:10+0000\n"
+"PO-Revision-Date: 2026-06-17 11:10+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -46,21 +46,9 @@ msgid "Are you sure that you want to archive all the selected records?"
 msgstr ""
 
 #. module: web_view_google_map
-#. odoo-javascript
-#: code:addons/web_view_google_map/static/src/views/google_map/google_map_controller.js:0
-msgid "Are you sure you want to delete these records?"
-msgstr ""
-
-#. module: web_view_google_map
 #. odoo-python
 #: code:addons/web_view_google_map/models/ir_ui_view.py:0
 msgid "Attribute \"sidebar_title\" is required on tag \"google_map\""
-msgstr ""
-
-#. module: web_view_google_map
-#. odoo-javascript
-#: code:addons/web_view_google_map/static/src/views/google_map/google_map_controller.js:0
-msgid "Bye-bye, record!"
 msgstr ""
 
 #. module: web_view_google_map
@@ -72,6 +60,17 @@ msgstr ""
 
 #. module: web_view_google_map
 #. odoo-javascript
+#: code:addons/web_view_google_map/static/src/views/google_map/google_map_renderer.js:0
+msgid "Collapse side panel"
+msgstr ""
+
+#. module: web_view_google_map
+#: model:ir.model,name:web_view_google_map.model_res_config_settings
+msgid "Config Settings"
+msgstr ""
+
+#. module: web_view_google_map
+#. odoo-javascript
 #: code:addons/web_view_google_map/static/src/views/google_map/google_map_controller.js:0
 msgid "Delete"
 msgstr ""
@@ -79,6 +78,7 @@ msgstr ""
 #. module: web_view_google_map
 #: model:ir.model.fields,field_description:web_view_google_map.field_ir_actions_act_window_view__display_name
 #: model:ir.model.fields,field_description:web_view_google_map.field_ir_ui_view__display_name
+#: model:ir.model.fields,field_description:web_view_google_map.field_res_config_settings__display_name
 msgid "Display Name"
 msgstr ""
 
@@ -94,6 +94,12 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/web_view_google_map/static/src/views/google_map/google_map_controller.js:0
 msgid "Duplicate"
+msgstr ""
+
+#. module: web_view_google_map
+#. odoo-javascript
+#: code:addons/web_view_google_map/static/src/views/google_map/google_map_renderer.js:0
+msgid "Expand side panel"
 msgstr ""
 
 #. module: web_view_google_map
@@ -207,6 +213,7 @@ msgstr ""
 #. module: web_view_google_map
 #: model:ir.model.fields,field_description:web_view_google_map.field_ir_actions_act_window_view__id
 #: model:ir.model.fields,field_description:web_view_google_map.field_ir_ui_view__id
+#: model:ir.model.fields,field_description:web_view_google_map.field_res_config_settings__id
 msgid "ID"
 msgstr ""
 
@@ -242,6 +249,29 @@ msgstr ""
 
 #. module: web_view_google_map
 #. odoo-javascript
+#: code:addons/web_view_google_map/static/src/views/google_map/google_map_renderer.xml:0
+#: code:addons/web_view_google_map/static/src/views/google_map/google_map_sidebar.xml:0
+msgid "Nearby"
+msgstr ""
+
+#. module: web_view_google_map
+#. odoo-javascript
+#: code:addons/web_view_google_map/static/src/views/google_map/google_map_controller.js:0
+msgid "Nearby %s (within %s km)"
+msgstr ""
+
+#. module: web_view_google_map
+#: model_terms:ir.ui.view,arch_db:web_view_google_map.res_config_settings_view_form
+msgid "Nearby Search Radius (m)"
+msgstr ""
+
+#. module: web_view_google_map
+#: model:ir.model.fields,field_description:web_view_google_map.field_res_config_settings__nearby_radius_search
+msgid "Nearby Search Radius (meters)"
+msgstr ""
+
+#. module: web_view_google_map
+#. odoo-javascript
 #: code:addons/web_view_google_map/static/src/views/google_map/google_map_controller.xml:0
 msgid "New"
 msgstr ""
@@ -262,32 +292,39 @@ msgstr ""
 
 #. module: web_view_google_map
 #. odoo-javascript
-#: code:addons/web_view_google_map/static/src/views/google_map/google_map_controller.js:0
-msgid "No, keep it"
-msgstr ""
-
-#. module: web_view_google_map
-#. odoo-javascript
 #: code:addons/web_view_google_map/static/src/views/google_map/google_map_sidebar.js:0
 msgid "None"
 msgstr ""
 
 #. module: web_view_google_map
 #. odoo-javascript
-#: code:addons/web_view_google_map/static/src/views/google_map/google_map_sidebar.xml:0
+#: code:addons/web_view_google_map/static/src/views/google_map/google_map_sidebar.js:0
 msgid "Only records with geolocation data set are displayed"
 msgstr ""
 
 #. module: web_view_google_map
 #. odoo-javascript
+#: code:addons/web_view_google_map/static/src/views/google_map/google_map_renderer.xml:0
 #: code:addons/web_view_google_map/static/src/views/google_map/google_map_sidebar.xml:0
 msgid "Open"
 msgstr ""
 
 #. module: web_view_google_map
 #. odoo-javascript
+#: code:addons/web_view_google_map/static/src/views/google_map/google_map_renderer.xml:0
+msgid "Open Google Maps"
+msgstr ""
+
+#. module: web_view_google_map
+#. odoo-javascript
 #: code:addons/web_view_google_map/static/src/views/google_map/google_map_sidebar.xml:0
 msgid "Please ensure geolocation data is set"
+msgstr ""
+
+#. module: web_view_google_map
+#. odoo-javascript
+#: code:addons/web_view_google_map/static/src/views/google_map/google_map_controller.js:0
+msgid "Records"
 msgstr ""
 
 #. module: web_view_google_map
@@ -300,6 +337,22 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/web_view_google_map/static/src/views/google_map/utils.js:0
 msgid "Selection Mode Active - Click and drag to select markers"
+msgstr ""
+
+#. module: web_view_google_map
+#: model_terms:ir.ui.view,arch_db:web_view_google_map.res_config_settings_view_form
+msgid ""
+"Set the default radius for the nearby search in Google Maps. The search uses"
+" a bounding box approximation — all records within a square area of this "
+"radius around the selected location are returned. The radius is specified in"
+" meters and must be a positive integer. The default value is 1000 meters (1 "
+"kilometer)."
+msgstr ""
+
+#. module: web_view_google_map
+#. odoo-javascript
+#: code:addons/web_view_google_map/static/src/views/google_map/google_map_renderer.xml:0
+msgid "Show nearby records"
 msgstr ""
 
 #. module: web_view_google_map
@@ -332,10 +385,22 @@ msgstr ""
 
 #. module: web_view_google_map
 #. odoo-javascript
+#: code:addons/web_view_google_map/static/src/views/google_map/google_map_controller.js:0
+msgid "The selected record does not have valid geolocation data."
+msgstr ""
+
+#. module: web_view_google_map
+#. odoo-javascript
 #: code:addons/web_view_google_map/static/src/views/google_map/google_map_renderer.xml:0
 msgid ""
 "This marker has been adjusted slightly so it doesn't overlap with others. "
 "The line points to its original location."
+msgstr ""
+
+#. module: web_view_google_map
+#. odoo-javascript
+#: code:addons/web_view_google_map/static/src/views/google_map/google_map_controller.js:0
+msgid "This view is not configured with latitude and longitude fields."
 msgstr ""
 
 #. module: web_view_google_map
@@ -353,12 +418,6 @@ msgstr ""
 #: model:ir.model.fields,field_description:web_view_google_map.field_ir_actions_act_window_view__view_mode
 #: model:ir.model.fields,field_description:web_view_google_map.field_ir_ui_view__type
 msgid "View Type"
-msgstr ""
-
-#. module: web_view_google_map
-#. odoo-javascript
-#: code:addons/web_view_google_map/static/src/views/google_map/google_map_renderer.xml:0
-msgid "View on Google Maps"
 msgstr ""
 
 #. module: web_view_google_map

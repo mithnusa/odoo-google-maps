@@ -1,5 +1,23 @@
 # Change Log
 
+## 19.0.1.0.25
+
+### Added
+
+- **MarkerClusterer Library**: Bundled MarkerClusterer v2.6.2 static files (`index.min.js`, `index.min.js.map`, `note.txt`) moved from `base_google_map` into this module, which is the sole consumer of the library
+- **`loadMarkerClustererAssets()` — On-Demand Loader** (`utils.js`): New async helper that loads the MarkerClusterer script lazily via `loadJS` (with a `window.MarkerClusterer` guard to skip if already present), replacing the unconditional QWeb bootstrap injection that was previously in `base_google_map`
+- **`_onWillStart()` Hook** (`google_map_renderer.js`): New `onWillStart` lifecycle hook added to `GoogleMapRenderer` that calls `loadMarkerClustererAssets()`, ensuring the library is loaded before the map component mounts
+
+### Improved
+
+- **`__manifest__.py` — Summary & Description**: Rewrote the summary to a single concise line and the description to a structured bullet-point block documenting all provided components: the view stack, field widgets, sidebar, clustering, multi-selection, nearby search, Google Maps links, and dark mode
+- **`__manifest__.py` — Explicit Asset Entries**: Replaced all wildcard globs (`views/**/*`, `fields/**/*`, `helpers/*`) with explicit file entries in dependency order, ensuring deterministic asset loading; dark mode stylesheet updated to explicit path
+- **`__manifest__.py` — Cleanup**: Removed empty `demo: []` key
+- **`README.md` — Key Features**: Added "Google Maps Links" entry documenting navigation and search links in each marker info window
+- **`docs/FEATURES.md` — Sidebar Position**: Corrected sidebar position description from "right side" to "left side" to match the layout change shipped in v1.0.22
+- **`docs/FEATURES.md` — Google Maps External Links**: Added new feature section documenting the navigation link (`/maps/dir/`) and search link (`/maps/search/`) rendered in each marker info window
+- **`i18n/web_view_google_map.pot`**: Regenerated translation template — updated POT creation/revision dates, normalized version string to `19.0`, added new strings (`"Collapse side panel"`, `"Expand side panel"`, `"Nearby"`, `"Nearby %s (within %s km)"`, `"Nearby Search Radius (m)"`, `"Open Google Maps"`, `"Records"`, `"Show nearby records"`, `"The selected record does not have valid geolocation data."`, `"This view is not configured with latitude and longitude fields."`), removed obsolete strings (`"Are you sure you want to delete these records?"`, `"Bye-bye, record!"`, `"No, keep it"`, `"View on Google Maps"`)
+
 ## 19.0.1.0.24
 
 ### Fixed

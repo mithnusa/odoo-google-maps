@@ -1,4 +1,5 @@
 import { _t } from '@web/core/l10n/translation';
+import { loadJS } from '@web/core/assets';
 
 /**
  * Parse config markerColor given in google_map view
@@ -25,6 +26,13 @@ export const WIDGET_COLOR_PICKER_COLOR = [
 
 export function getHexColorPicker(index) {
     return WIDGET_COLOR_PICKER_COLOR[index] || DEFAULT_COLOR;
+}
+
+export async function loadMarkerClustererAssets() {
+    if (window.MarkerClusterer) {
+        return Promise.resolve();
+    }
+    return loadJS('/web_view_google_map/static/src/libs/markerclusterer/v_2_6_2/index.min.js');
 }
 
 /**
