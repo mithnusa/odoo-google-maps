@@ -1,5 +1,20 @@
 # Change Log
 
+## 19.0.1.0.20
+
+### Updated Dependencies
+
+- **Terra Draw**: Updated from 1.30.1 to 1.31.1
+- **Terra Draw Google Maps Adapter**: Updated from 1.6.0 to 1.6.1
+- **Deck.gl**: Updated from 9.3.2 to 9.3.4
+
+### Improved
+
+- **Feature Popup — Measurement Layout**: Refactored `FeatureProperties` QWeb template so each measurement entry renders the label on one line and the value (monospace) indented below it, using a `flex-column` layout instead of the previous inline `label: value` single-line format
+- **Feature Popup — Raw Properties Hidden**: `_generateInfoWindowHtml` now passes `properties: false` to the template; the raw GeoJSON properties block and its associated filtering logic (excluding `odoo`, `color`, `fillColor`, `strokeColor`, `odooId`, `odooResId` keys) have been removed
+- **Feature Popup — Color Border Removed**: The conditional `borderLeft` style that applied a feature-color swatch to the InfoWindow border has been removed
+- **Border Radius Scoped to Widget**: Moved `border-radius: 4px` on `.o_google_map_view` from `terra-tools-ui.scss` (where it applied to all `.o_google_map_renderer` instances) into `terra_draw.scss` scoped under `.terra_draw_field_widget`, so the rounding only applies in the Terra Draw widget context
+
 ## 19.0.1.0.19
 
 ### Refactored
