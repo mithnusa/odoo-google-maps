@@ -1,5 +1,12 @@
 # Change Log
 
+## 19.0.1.0.21
+
+### Improved
+
+- **Manifest**: Rewrote summary and description; replaced all wildcard asset globs with explicit ordered file entries; removed empty `data` and `demo` keys
+- **i18n**: Regenerated POT — updated dates; added a large set of new strings covering geometry limit warnings, Terra Draw UI labels (`"Upload GeoJSON"`, `"Download GeoJSON"`, `"Export GeoJSON"`, `"Undo completed"`, `"Redo completed"`), GeoJSON import/export dialogs (`UploadGeoJSONDialog`), Deck.gl renderer labels (`"Area"`, `"Length"`, `"Perimeter"`, `"Total Area"`, `"Points"`), measurement error messages, simplification prompts, and file validation errors; removed stale `"Readonly Mode:"` and `"Features contain polygons with holes…"` strings; updated `"Failed to initialize %s drawing mode"` argument order
+
 ## 19.0.1.0.20
 
 ### Updated Dependencies
