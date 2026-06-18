@@ -1,24 +1,21 @@
 # -*- coding: utf-8 -*-
 {
     "name": "Base - Google Maps: Add Place from Map Click",
-    "summary": """
-        Abstract mixin and UI component for creating Odoo records directly from the Google Maps view by clicking on a place or map location.
-    """,
+    "summary": "Abstract mixin and UI component for creating Odoo records by clicking on a Google Maps view",
     "description": """
-        Provides the reusable foundation for click-to-create workflows on Google Maps views.
+Base - Google Maps: Add Place from Map Click
+============================================
 
-        Includes an abstract model mixin (google_map.add_place.mixin) that application
-        modules inherit to gain click-to-create behaviour. The mixin handles Google Places API
-        detail fetching, reverse geocoding via the Geocoding API, address component mapping to
-        Odoo partner fields, and duplicate detection by Google Place ID.
+Reusable foundation for click-to-create workflows on Google Maps views.
 
-        Also ships the InMapClickAddPlace OWL component: a map overlay that listens for clicks
-        when zoomed in sufficiently (zoom >= 15). Clicking a named Google Place fetches its
-        details (name, address, phone, website, coordinates) and opens a pre-populated
-        quick-create form. Clicking empty map space reverse-geocodes the coordinate and
-        pre-populates the form with the resolved address. A visual indicator in the map corner
-        shows when the feature is active. After saving, the map view reloads automatically.
-    """,
+Provides:
+
+- ``google_map.add_place.mixin`` — abstract model mixin with server-side methods for place detail fetching, address component mapping, reverse geocoding, and duplicate detection
+- ``gplace_id`` Char field added to any inheriting model for Google Place ID storage
+- Address parsing from the adr microformat (Places API New) and plain-text ``formatted_address`` (Geocoding API), with multi-country postal code support
+- ``InMapClickAddPlace`` OWL component — map overlay listening for clicks at zoom ≥ 15, fetching place or reverse-geocoded data, and opening a pre-populated quick-create form
+- Visual indicator injected into the map's top-right corner showing when map-click-to-create is active, with a one-click zoom shortcut
+""",
     "license": "LGPL-3",
     "author": "Yopi Angi",
     "website": "https://github.com/mithnusa",
@@ -28,13 +25,13 @@
     "depends": [
         "web_view_google_map",
     ],
-    "data": [],
     "assets": {
         "web.assets_backend": [
-            "base_google_map_add_place/static/src/components/**/*",
-        ]
+            "base_google_map_add_place/static/src/components/in_map_click_add_place/in_map_click_add_place.js",
+            "base_google_map_add_place/static/src/components/in_map_click_add_place/in_map_click_add_place.xml",
+            "base_google_map_add_place/static/src/components/in_map_click_add_place/in_map_click_add_place.scss",
+        ],
     },
-    "demo": [],
     "installable": True,
     "application": False,
     "auto_install": False,
