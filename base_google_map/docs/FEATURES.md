@@ -25,7 +25,7 @@
 
 **Why it matters**: Ensures the map UI matches the language your users expect, including region-specific language variants.
 
-**How it works**: Choose from 84 supported languages including regional variants (e.g., Chinese Simplified, Chinese Traditional, English AU, Portuguese BR). The selected language is passed to the Google Maps API on load. This setting is only visible when `web_view_google_map` is installed.
+**How it works**: Choose from 81 supported languages including regional variants (e.g., Chinese Simplified, Chinese Traditional, English AU, Portuguese BR). The selected language is passed to the Google Maps API on load. This setting is only visible when `web_view_google_map` is installed.
 
 ---
 

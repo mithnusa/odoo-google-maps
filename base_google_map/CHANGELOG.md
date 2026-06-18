@@ -1,5 +1,22 @@
 # Change Log
 
+## 19.0.1.0.11
+
+### Removed
+
+- **MarkerClusterer Library**: Removed bundled `markerclusterer` v2.6.2 static files (`index.min.js`, `index.min.js.map`, `note.txt`) — the library is no longer shipped with this module
+- **`views/templates.xml`**: Deleted the QWeb template that injected the MarkerClusterer script into the webclient bootstrap; the file has been removed from the module entirely
+- **Wildcard Asset Glob**: Replaced `base_google_map/static/src/utils/*` asset glob with explicit entries (`loader_google_map.js`, `base_google_map.js`) for deterministic asset loading order
+
+### Improved
+
+- **`__manifest__.py` — Summary & Description**: Rewrote the module summary and description to accurately document the three main components provided: `GoogleMapsAPILoader`, `useGoogleMapsAPILoader`, and `BaseGoogleMapComponent`
+- **`__manifest__.py` — `installable` Flag**: Added explicit `installable: True` (replaces the empty `demo: []` entry)
+- **Language Count**: Corrected supported language count from 84 to 81 in `README.md` and `docs/FEATURES.md`
+- **Field Label — Module Detection**: Updated `is_web_google_map_installed` field description from `"Is the Sale Module Installed"` to `"Is the 'Web View Google Map' Module Installed"` in the translation template
+- **`README.md` — Related Modules**: Replaced the non-existent `base_google_places` reference with `web_widget_google_place_autocomplete`; updated description for `web_widget_google_map`
+- **`i18n/base_google_map.pot`**: Regenerated translation template — updated POT creation/revision dates and normalized the project version string to `19.0`
+
 ## 19.0.1.0.10
 
 ### Fixed
