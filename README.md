@@ -87,7 +87,7 @@ graph LR
 
 ### Infrastructure
 
-**[base_google_map](base_google_map/README.md)** `19.0.1.0.10`
+**[base_google_map](base_google_map/README.md)** `19.0.1.0.11`
 
 Root configuration module. Adds a Google Maps section to General Settings for API Key, Map ID, language, region, color scheme, and nearby search radius. Provides the shared `useGoogleMapsAPILoader` JavaScript API loader used by every other module in this suite.
 
