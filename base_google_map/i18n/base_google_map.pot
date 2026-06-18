@@ -4,10 +4,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo Server 19.0-20260118\n"
+"Project-Id-Version: Odoo Server 19.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-01 13:40+0000\n"
-"PO-Revision-Date: 2026-03-01 13:40+0000\n"
+"POT-Creation-Date: 2026-06-17 10:59+0000\n"
+"PO-Revision-Date: 2026-06-17 10:59+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -357,7 +357,7 @@ msgstr ""
 
 #. module: base_google_map
 #: model:ir.model.fields,field_description:base_google_map.field_res_config_settings__is_web_google_map_installed
-msgid "Is the Sale Module Installed"
+msgid "Is the 'Web View Google Map' Module Installed"
 msgstr ""
 
 #. module: base_google_map
