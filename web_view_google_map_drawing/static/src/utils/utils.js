@@ -12,7 +12,7 @@
  * - Area calculation using Turf.js
  * - Measurement formatting
  *
- * @author Yan - https://github.com/yan
+ * @author Yopi Angi - https://github.com/gityopie
  * @version 1.0.0
  */
 
