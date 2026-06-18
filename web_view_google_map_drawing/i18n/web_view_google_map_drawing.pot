@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 19.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-27 10:49+0000\n"
-"PO-Revision-Date: 2025-10-27 10:49+0000\n"
+"POT-Creation-Date: 2026-06-17 11:11+0000\n"
+"PO-Revision-Date: 2026-06-17 11:11+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -17,11 +17,53 @@ msgstr ""
 
 #. module: web_view_google_map_drawing
 #. odoo-javascript
+#: code:addons/web_view_google_map_drawing/static/src/utils/geometry_performance_utils.js:0
+msgid "%s features exceeds limit of %s"
+msgstr ""
+
+#. module: web_view_google_map_drawing
+#. odoo-javascript
+#: code:addons/web_view_google_map_drawing/static/src/utils/geometry_performance_utils.js:0
+msgid "%s points exceeds limit of %s"
+msgstr ""
+
+#. module: web_view_google_map_drawing
+#. odoo-javascript
+#: code:addons/web_view_google_map_drawing/static/src/utils/geometry_performance_utils.js:0
+msgid "%s total vertices exceeds limit of %s"
+msgstr ""
+
+#. module: web_view_google_map_drawing
+#. odoo-javascript
+#: code:addons/web_view_google_map_drawing/static/src/widget/terra_draw/terra_draw.xml:0
+msgid ""
+"*Features containing complex geometry (polygon with holes or 3D coordinates)"
+" are not supported for editing."
+msgstr ""
+
+#. module: web_view_google_map_drawing
+#. odoo-javascript
 #: code:addons/web_view_google_map_drawing/static/src/views/components/terra-tools-ui/terra-tools-ui.js:0
 msgid "All features cleared"
 msgstr ""
 
 #. module: web_view_google_map_drawing
+#. odoo-javascript
+#: code:addons/web_view_google_map_drawing/static/src/views/components/upload_geojson_dialog/upload_geojson_dialog.xml:0
+msgid ""
+"Any existing drawn features will be removed when importing a new GeoJSON "
+"file"
+msgstr ""
+
+#. module: web_view_google_map_drawing
+#. odoo-javascript
+#: code:addons/web_view_google_map_drawing/static/src/views/components/upload_geojson_dialog/upload_geojson_dialog.js:0
+msgid "Apply"
+msgstr ""
+
+#. module: web_view_google_map_drawing
+#. odoo-javascript
+#: code:addons/web_view_google_map_drawing/static/src/views/google_map_drawing/google_map_deckgl_renderer.js:0
 #: model:ir.model.fields,field_description:web_view_google_map_drawing.field_google_drawing_shape__gshape_area
 msgid "Area"
 msgstr ""
@@ -32,6 +74,12 @@ msgstr ""
 msgid ""
 "Attributes \"lat\" and \"lng\" should not be set when using \"drawing\" "
 "js_class in google_map view"
+msgstr ""
+
+#. module: web_view_google_map_drawing
+#. odoo-javascript
+#: code:addons/web_view_google_map_drawing/static/src/views/components/deck-gl-editor/deck-gl-editor.xml:0
+msgid "Calculate Area"
 msgstr ""
 
 #. module: web_view_google_map_drawing
@@ -109,8 +157,20 @@ msgstr ""
 
 #. module: web_view_google_map_drawing
 #. odoo-javascript
+#: code:addons/web_view_google_map_drawing/static/src/views/components/terra-tools-ui/terra-tools-ui.xml:0
+msgid "Download GeoJSON"
+msgstr ""
+
+#. module: web_view_google_map_drawing
+#. odoo-javascript
 #: code:addons/web_view_google_map_drawing/static/src/views/google_map_drawing/google_map_deckgl_renderer.js:0
 msgid "Error"
+msgstr ""
+
+#. module: web_view_google_map_drawing
+#. odoo-javascript
+#: code:addons/web_view_google_map_drawing/static/src/views/google_map_drawing/google_map_deckgl_renderer.js:0
+msgid "Error calculating measurements"
 msgstr ""
 
 #. module: web_view_google_map_drawing
@@ -129,8 +189,20 @@ msgstr ""
 
 #. module: web_view_google_map_drawing
 #. odoo-javascript
+#: code:addons/web_view_google_map_drawing/static/src/views/components/deck-gl-editor/deck-gl-editor.xml:0
+msgid "Export GeoJSON"
+msgstr ""
+
+#. module: web_view_google_map_drawing
+#. odoo-javascript
 #: code:addons/web_view_google_map_drawing/static/src/utils/geometry_performance_utils.js:0
 msgid "Extremely Complex Feature"
+msgstr ""
+
+#. module: web_view_google_map_drawing
+#. odoo-javascript
+#: code:addons/web_view_google_map_drawing/static/src/views/components/deck-gl-editor/deck-gl-editor.js:0
+msgid "Failed to calculate area."
 msgstr ""
 
 #. module: web_view_google_map_drawing
@@ -147,8 +219,9 @@ msgstr ""
 
 #. module: web_view_google_map_drawing
 #. odoo-javascript
+#: code:addons/web_view_google_map_drawing/static/src/views/components/deck-gl-editor/deck-gl-editor.js:0
 #: code:addons/web_view_google_map_drawing/static/src/views/components/terra-tools-ui/terra-tools-ui.js:0
-msgid "Failed to initialize %s drawing mode"
+msgid "Failed to export GeoJSON file."
 msgstr ""
 
 #. module: web_view_google_map_drawing
@@ -157,6 +230,12 @@ msgstr ""
 msgid ""
 "Failed to initialize Terra Draw. Please check javascript console for more "
 "information"
+msgstr ""
+
+#. module: web_view_google_map_drawing
+#. odoo-javascript
+#: code:addons/web_view_google_map_drawing/static/src/views/components/terra-tools-ui/terra-tools-ui.js:0
+msgid "Failed to initialize drawing mode %s"
 msgstr ""
 
 #. module: web_view_google_map_drawing
@@ -170,9 +249,7 @@ msgstr ""
 #. module: web_view_google_map_drawing
 #. odoo-javascript
 #: code:addons/web_view_google_map_drawing/static/src/views/google_map_drawing/google_map_deckgl_renderer.js:0
-msgid ""
-"Failed to load Deck.gl assets. Please check javascript console for more "
-"information"
+msgid "Failed to load Deck.gl assets. Please refresh the page and try again."
 msgstr ""
 
 #. module: web_view_google_map_drawing
@@ -187,6 +264,26 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/web_view_google_map_drawing/static/src/views/components/terra-tools-ui/terra-tools-ui.js:0
 msgid "Failed to load existing features"
+msgstr ""
+
+#. module: web_view_google_map_drawing
+#. odoo-javascript
+#: code:addons/web_view_google_map_drawing/static/src/views/components/deck-gl-editor/deck-gl-editor.js:0
+#: code:addons/web_view_google_map_drawing/static/src/views/components/terra-tools-ui/terra-tools-ui.js:0
+msgid "Failed to parse the imported GeoJSON file."
+msgstr ""
+
+#. module: web_view_google_map_drawing
+#. odoo-javascript
+#: code:addons/web_view_google_map_drawing/static/src/views/components/deck-gl-editor/deck-gl-editor.js:0
+#: code:addons/web_view_google_map_drawing/static/src/views/components/terra-tools-ui/terra-tools-ui.js:0
+msgid "Failed to read the imported GeoJSON file."
+msgstr ""
+
+#. module: web_view_google_map_drawing
+#. odoo-javascript
+#: code:addons/web_view_google_map_drawing/static/src/widget/terra_draw/terra_draw.js:0
+msgid "Failed to save area calculation"
 msgstr ""
 
 #. module: web_view_google_map_drawing
@@ -256,19 +353,17 @@ msgid ""
 msgstr ""
 
 #. module: web_view_google_map_drawing
-#. odoo-javascript
-#: code:addons/web_view_google_map_drawing/static/src/widget/terra_draw/terra_draw.xml:0
-msgid ""
-"Features contain polygons with holes (interior rings) which are not "
-"supported for editing."
-msgstr ""
-
-#. module: web_view_google_map_drawing
 #. odoo-python
 #: code:addons/web_view_google_map_drawing/models/ir_ui_view.py:0
 msgid ""
 "Field %(name)s assigned to attribute \"geojson\" does not exist. All fields "
 "used in google_map view attribute must be loaded"
+msgstr ""
+
+#. module: web_view_google_map_drawing
+#. odoo-javascript
+#: code:addons/web_view_google_map_drawing/static/src/views/components/upload_geojson_dialog/upload_geojson_dialog.js:0
+msgid "File size exceeds the maximum allowed size of 5MB"
 msgstr ""
 
 #. module: web_view_google_map_drawing
@@ -282,6 +377,20 @@ msgstr ""
 #: code:addons/contacts_area/static/src/views/google_map_drawing_controller.xml:0
 #: code:addons/web_view_google_map_drawing/example/contacts_area/static/src/views/google_map_drawing_controller.xml:0
 msgid "GeoJSON"
+msgstr ""
+
+#. module: web_view_google_map_drawing
+#. odoo-javascript
+#: code:addons/web_view_google_map_drawing/static/src/views/components/deck-gl-editor/deck-gl-editor.js:0
+#: code:addons/web_view_google_map_drawing/static/src/views/components/terra-tools-ui/terra-tools-ui.js:0
+msgid "GeoJSON exported successfully."
+msgstr ""
+
+#. module: web_view_google_map_drawing
+#. odoo-javascript
+#: code:addons/web_view_google_map_drawing/static/src/views/components/deck-gl-editor/deck-gl-editor.js:0
+#: code:addons/web_view_google_map_drawing/static/src/views/components/terra-tools-ui/terra-tools-ui.js:0
+msgid "GeoJSON file imported successfully."
 msgstr ""
 
 #. module: web_view_google_map_drawing
@@ -331,7 +440,14 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/contacts_area/static/src/views/google_map_drawing_controller.js:0
 #: code:addons/web_view_google_map_drawing/example/contacts_area/static/src/views/google_map_drawing_controller.js:0
+#: code:addons/web_view_google_map_drawing/static/src/views/components/deck-gl-editor/deck-gl-editor.xml:0
 msgid "Import GeoJSON"
+msgstr ""
+
+#. module: web_view_google_map_drawing
+#. odoo-javascript
+#: code:addons/web_view_google_map_drawing/static/src/views/components/upload_geojson_dialog/upload_geojson_dialog.js:0
+msgid "Import GeoJSON File"
 msgstr ""
 
 #. module: web_view_google_map_drawing
@@ -357,14 +473,38 @@ msgstr ""
 
 #. module: web_view_google_map_drawing
 #. odoo-javascript
+#: code:addons/web_view_google_map_drawing/static/src/views/components/upload_geojson_dialog/upload_geojson_dialog.js:0
+msgid "Invalid file type. Please upload a valid GeoJSON file."
+msgstr ""
+
+#. module: web_view_google_map_drawing
+#. odoo-javascript
 #: code:addons/web_view_google_map_drawing/static/src/views/components/terra-tools-ui/terra-tools-ui.js:0
 msgid "Last feature deleted"
 msgstr ""
 
 #. module: web_view_google_map_drawing
 #. odoo-javascript
+#: code:addons/web_view_google_map_drawing/static/src/views/google_map_drawing/google_map_deckgl_renderer.js:0
+msgid "Length"
+msgstr ""
+
+#. module: web_view_google_map_drawing
+#. odoo-javascript
 #: code:addons/web_view_google_map_drawing/static/src/views/components/terra-tools-ui/terra-tools-ui.xml:0
 msgid "Linestring"
+msgstr ""
+
+#. module: web_view_google_map_drawing
+#. odoo-javascript
+#: code:addons/web_view_google_map_drawing/static/src/views/components/upload_geojson_dialog/upload_geojson_dialog.xml:0
+msgid "Maximum file size: 5 MB"
+msgstr ""
+
+#. module: web_view_google_map_drawing
+#. odoo-javascript
+#: code:addons/web_view_google_map_drawing/static/src/views/google_map_drawing/google_map_deckgl_renderer.js:0
+msgid "Measurements not available for this geometry type"
 msgstr ""
 
 #. module: web_view_google_map_drawing
@@ -379,6 +519,19 @@ msgid "Name"
 msgstr ""
 
 #. module: web_view_google_map_drawing
+#. odoo-python
+#: code:addons/web_view_google_map_drawing/models/google_drawing_shape.py:0
+msgid "New Shape"
+msgstr ""
+
+#. module: web_view_google_map_drawing
+#. odoo-javascript
+#: code:addons/web_view_google_map_drawing/static/src/views/components/deck-gl-editor/deck-gl-editor.js:0
+#: code:addons/web_view_google_map_drawing/static/src/views/components/terra-tools-ui/terra-tools-ui.js:0
+msgid "No data available to export."
+msgstr ""
+
+#. module: web_view_google_map_drawing
 #. odoo-javascript
 #: code:addons/web_view_google_map_drawing/static/src/views/components/terra-tools-ui/terra-tools-ui.js:0
 msgid "No feature selected for simplification"
@@ -386,8 +539,27 @@ msgstr ""
 
 #. module: web_view_google_map_drawing
 #. odoo-javascript
+#: code:addons/web_view_google_map_drawing/static/src/views/components/deck-gl-editor/deck-gl-editor.js:0
+msgid "No features available to calculate area."
+msgstr ""
+
+#. module: web_view_google_map_drawing
+#. odoo-javascript
 #: code:addons/web_view_google_map_drawing/static/src/views/components/terra-tools-ui/terra-tools-ui.js:0
 msgid "No features to delete"
+msgstr ""
+
+#. module: web_view_google_map_drawing
+#. odoo-javascript
+#: code:addons/web_view_google_map_drawing/static/src/views/components/deck-gl-editor/deck-gl-editor.js:0
+#: code:addons/web_view_google_map_drawing/static/src/views/components/terra-tools-ui/terra-tools-ui.js:0
+msgid "No file was uploaded."
+msgstr ""
+
+#. module: web_view_google_map_drawing
+#. odoo-javascript
+#: code:addons/web_view_google_map_drawing/static/src/views/components/deck-gl-editor/deck-gl-editor.js:0
+msgid "No polygon features available to calculate area."
 msgstr ""
 
 #. module: web_view_google_map_drawing
@@ -409,6 +581,12 @@ msgid "Nothing to undo"
 msgstr ""
 
 #. module: web_view_google_map_drawing
+#. odoo-javascript
+#: code:addons/web_view_google_map_drawing/static/src/views/google_map_drawing/google_map_deckgl_renderer.js:0
+msgid "Perimeter"
+msgstr ""
+
+#. module: web_view_google_map_drawing
 #. odoo-python
 #: code:addons/contacts_area/wizard/geojson_upload_wizard.py:0
 #: code:addons/web_view_google_map_drawing/example/contacts_area/wizard/geojson_upload_wizard.py:0
@@ -417,20 +595,27 @@ msgstr ""
 
 #. module: web_view_google_map_drawing
 #. odoo-javascript
+#: code:addons/web_view_google_map_drawing/static/src/views/components/upload_geojson_dialog/upload_geojson_dialog.js:0
+msgid "Please upload your GeoJSON file"
+msgstr ""
+
+#. module: web_view_google_map_drawing
+#. odoo-javascript
 #: code:addons/web_view_google_map_drawing/static/src/views/components/terra-tools-ui/terra-tools-ui.xml:0
+#: code:addons/web_view_google_map_drawing/static/src/views/google_map_drawing/google_map_deckgl_renderer.js:0
 msgid "Point"
+msgstr ""
+
+#. module: web_view_google_map_drawing
+#. odoo-javascript
+#: code:addons/web_view_google_map_drawing/static/src/views/google_map_drawing/google_map_deckgl_renderer.js:0
+msgid "Points"
 msgstr ""
 
 #. module: web_view_google_map_drawing
 #. odoo-javascript
 #: code:addons/web_view_google_map_drawing/static/src/views/components/terra-tools-ui/terra-tools-ui.xml:0
 msgid "Polygon"
-msgstr ""
-
-#. module: web_view_google_map_drawing
-#. odoo-javascript
-#: code:addons/web_view_google_map_drawing/static/src/widget/terra_draw/terra_draw.xml:0
-msgid "Readonly Mode:"
 msgstr ""
 
 #. module: web_view_google_map_drawing
@@ -443,6 +628,12 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/web_view_google_map_drawing/static/src/views/components/terra-tools-ui/terra-tools-ui.xml:0
 msgid "Redo"
+msgstr ""
+
+#. module: web_view_google_map_drawing
+#. odoo-javascript
+#: code:addons/web_view_google_map_drawing/static/src/views/components/terra-tools-ui/terra-tools-ui.js:0
+msgid "Redo completed"
 msgstr ""
 
 #. module: web_view_google_map_drawing
@@ -542,12 +733,19 @@ msgid ""
 msgstr ""
 
 #. module: web_view_google_map_drawing
+#. odoo-javascript
+#: code:addons/web_view_google_map_drawing/static/src/views/components/deck-gl-editor/deck-gl-editor.js:0
+#: code:addons/web_view_google_map_drawing/static/src/views/components/terra-tools-ui/terra-tools-ui.js:0
+msgid "The imported file is not a valid GeoJSON."
+msgstr ""
+
+#. module: web_view_google_map_drawing
 #. odoo-python
 #: code:addons/contacts_area/wizard/geojson_upload_wizard.py:0
 #: code:addons/web_view_google_map_drawing/example/contacts_area/wizard/geojson_upload_wizard.py:0
 msgid ""
 "The specified feature name source \"%s\" does not exist in feature "
-"properties."
+"properties. Please close the pop-up window and try again"
 msgstr ""
 
 #. module: web_view_google_map_drawing
@@ -580,8 +778,20 @@ msgstr ""
 
 #. module: web_view_google_map_drawing
 #. odoo-javascript
+#: code:addons/web_view_google_map_drawing/static/src/views/google_map_drawing/google_map_deckgl_renderer.js:0
+msgid "Total Area"
+msgstr ""
+
+#. module: web_view_google_map_drawing
+#. odoo-javascript
 #: code:addons/web_view_google_map_drawing/static/src/views/components/terra-tools-ui/terra-tools-ui.xml:0
 msgid "Undo"
+msgstr ""
+
+#. module: web_view_google_map_drawing
+#. odoo-javascript
+#: code:addons/web_view_google_map_drawing/static/src/views/components/terra-tools-ui/terra-tools-ui.js:0
+msgid "Undo completed"
 msgstr ""
 
 #. module: web_view_google_map_drawing
@@ -594,6 +804,12 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/web_view_google_map_drawing/static/src/views/components/terra-tools-ui/terra-tools-ui.js:0
 msgid "Unknown Region"
+msgstr ""
+
+#. module: web_view_google_map_drawing
+#. odoo-javascript
+#: code:addons/web_view_google_map_drawing/static/src/views/components/terra-tools-ui/terra-tools-ui.xml:0
+msgid "Upload GeoJSON"
 msgstr ""
 
 #. module: web_view_google_map_drawing
