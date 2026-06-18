@@ -1,5 +1,13 @@
 # Change Log
 
+## 19.0.1.0.3
+
+### Improved
+
+- **Manifest**: Rewrote summary and description; fixed declared dependency from `crm` to `crm_google_map`; moved `post_init_hook` key; removed empty `demo` key
+- **README**: Added "Coordinate Preservation" feature; corrected dependency from `crm` to `crm_google_map`
+- **FEATURES.md**: Added "Coordinate Preservation" section documenting the `is_from_google_maps` context flag guard
+
 ## 19.0.1.0.2
 
 ### Added
