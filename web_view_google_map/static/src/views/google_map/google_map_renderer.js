@@ -156,7 +156,9 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
             isMapLoaded: this.isMapLoaded.bind(this),
         });
 
-        onWillStart(() => this._onWillStart());
+        onWillStart(async () => {
+            await this._onWillStart();
+        });
 
         onWillUpdateProps((nextProps) => {
             this.onWillUpdatePropsRenderMarkers(nextProps);
@@ -175,8 +177,8 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
         }
     }
 
-    _onWillStart() {
-        loadMarkerClustererAssets();
+    async _onWillStart() {
+        return loadMarkerClustererAssets();
     }
 
     /**
