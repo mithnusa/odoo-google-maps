@@ -15,7 +15,7 @@ Adds the `google_map` view type to Contacts so you can see all your contacts pin
 - **Marker Color Customization**: Each contact can have a custom marker color set via a color picker on the contact form
 - **Nearby Contacts Search**: "Nearby Contacts" button on the contact form opens the map filtered to contacts within a configurable radius of that contact's location
 - **Embedded Map in Contact Form**: The Geolocation page of the contact form shows an embedded map at the contact's coordinates
-- **Automatic Geocoding Cron**: An optional scheduled job (inactive by default) automatically geocodes up to 500 contacts per day that have a country but no coordinates
+- **Automatic Geocoding Cron**: A scheduled job (enabled by default, runs every 12 hours) that automatically geocodes up to 80 contacts per run that have a country and at least one address field but no coordinates
 
 ## Dependencies
 
@@ -29,7 +29,7 @@ Adds the `google_map` view type to Contacts so you can see all your contacts pin
 1. Install the module through Odoo Apps
 2. Ensure `base_google_map` is configured with a valid Google Maps API key in **Settings → General Settings → Google Maps**
 3. Enable **Maps JavaScript API**, **Places API (New)**, **Maps Embed API**, and **Geocoding API** in your Google Cloud Console
-4. Optionally activate the geocoding cron job in **Settings → Technical → Scheduled Actions → Auto Geolocalize Contacts**
+4. The geocoding cron job is enabled by default. You can adjust its schedule or disable it in **Settings → Technical → Scheduled Actions → Contact: geolocate**
 
 ## Basic Usage
 
