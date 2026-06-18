@@ -49,6 +49,18 @@
 
 ---
 
+## Coordinate Preservation
+
+### Google Maps Coordinate Guard
+
+**What it does**: Prevents the lead's latitude and longitude from being reset when an address is updated through the Google Maps autocomplete workflow.
+
+**Why it matters**: Odoo's CRM lead model resets coordinates to `0.0` when the address diverges from the linked partner. Without this guard, selecting a place from autocomplete would first write the coordinates from the Places API and then immediately clear them.
+
+**How it works**: `_compute_customer_geo` is overridden to skip its logic entirely when the `is_from_google_maps` context flag is set, preserving the coordinates that were already written by the autocomplete widget.
+
+---
+
 ## Installation-Time Configuration
 
 ### Automatic Mapping Setup on Install

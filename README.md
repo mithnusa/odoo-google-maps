@@ -143,7 +143,7 @@ Adds a Google Map view across five CRM menus (All Leads, My Activities, Opportun
 
 Activates click-to-create on the CRM map view. Named place clicks create a pre-filled lead with address, phone, website, coordinates, and an auto-generated opportunity name. Empty map clicks reverse-geocode the coordinate. Duplicate detection uses the Google Place ID.
 
-**[crm_google_autocomplete](crm_google_autocomplete/README.md)** `19.0.1.0.2`
+**[crm_google_autocomplete](crm_google_autocomplete/README.md)** `19.0.1.0.3`
 
 Applies `gplace_autocomplete_el` to the Lead/Opportunity form's company name field (`places` mode) and street field (`address` mode), in both the quick-entry group and the detailed lead tab. Auto-fills address fields and CRM geolocation fields on selection.
 
