@@ -159,7 +159,7 @@ Adds a Google Map view to Quotations, Orders, Orders to Invoice, Orders to Upsel
 
 ### Inventory
 
-**[stock_google_map](stock_google_map/README.md)** `19.0.1.0.0`
+**[stock_google_map](stock_google_map/README.md)** `19.0.1.0.1`
 
 Adds a Google Map view across Deliveries, Ready to Transfer, Waiting Transfer, Late Transfers, Backorders, and All Operations in Inventory. Each picking appears as a teal marker at the delivery partner's address, with coordinates sourced automatically from the linked partner.
 
