@@ -107,7 +107,7 @@ Provides the `google_map` form widget — an embedded Google Maps iframe showing
 
 Provides the `gplace_autocomplete_el` widget and the `google.places.mapping` configuration system. Connects Google Places API (New) to any Odoo Char field. Which fields are populated on selection is fully controlled by mapping records — supporting two autocomplete modes, three component handling modes, configurable separators, relational field auto-resolution, and a live built-in test tool.
 
-**[base_google_map_add_place](base_google_map_add_place/README.md)** `19.0.1.0.2`
+**[base_google_map_add_place](base_google_map_add_place/README.md)** `19.0.1.0.3`
 
 Abstract base for the click-to-create workflow. Provides the `google_map.add_place.mixin` Python mixin and the `InMapClickAddPlace` OWL component with zoom threshold logic and smart zoom shortcut. Application modules extend this instead of re-implementing the pattern.
 
