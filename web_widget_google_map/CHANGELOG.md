@@ -1,5 +1,12 @@
 # Change Log
 
+## 19.0.1.0.5
+
+### Improved
+
+- **Manifest**: Rewrote summary and description; replaced wildcard asset glob with explicit ordered file entries; removed empty `data` and `demo` keys
+- **i18n**: Regenerated POT — updated dates; replaced stale `ir.ui.view` model field entries with actual JS translatable strings (`"Drag the marker to update the location"`, `"Failed to initialize Google Map.\n%s"`, `"Failed to load Google Maps API.\n%s"`, `"Save"`)
+
 ## 19.0.1.0.4
 
 ### Improved
