@@ -1,6 +1,13 @@
 <!-- markdownlint-disable MD024 -->
 # Change Log
 
+## 19.0.1.0.10
+
+### Improved
+
+- **Manifest**: Rewrote summary and description; replaced wildcard asset glob with explicit ordered file entries; removed empty `demo` key
+- **i18n**: Regenerated POT — updated dates; added new strings (`"CRM Lead: geolocate"`, `"Invalid Data"`, `"No match found for %(lead_names)s address(es)."`, `"Open"`, overlap-offset tooltip, `"Warning"`); renamed `"Customer"` → `"Contact"`; removed stale sidebar-sourced duplicates for `"Expected Closing"`, `"Expected Revenue"`, `"Probability"`, `"Salesperson"`
+
 ## 19.0.1.0.9
 
 ### Added
