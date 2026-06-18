@@ -123,7 +123,7 @@ Adds a Google Map view to the Contacts application with color-coded partner mark
 
 Activates click-to-create on the Contacts map view. Clicking a named Google Place or empty map location opens a pre-populated partner creation form. Duplicate detection prevents creating a second record for the same Google Place ID.
 
-**[contacts_google_autocomplete](contacts_google_autocomplete/README.md)** `19.0.1.0.1`
+**[contacts_google_autocomplete](contacts_google_autocomplete/README.md)** `19.0.1.0.2`
 
 Applies `gplace_autocomplete_el` to the Contact form's name field (`places` mode) and street field (`address` mode). Populates address fields and coordinates on selection. Mapping configurations for `res.partner` are created automatically on installation.
 

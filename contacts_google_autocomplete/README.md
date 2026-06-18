@@ -31,7 +31,7 @@ Replaces the standard name and street inputs on the Contact form with Google Pla
 
 ## Basic Usage
 
-Open any Contact form. The name and street fields now have Google autocomplete — start typing to see suggestions. Select a suggestion to auto-fill the address and other available details.
+Open any Contact form. The name and street fields now have Google autocomplete — start typing to see suggestions. Select a suggestion to auto-fill the address and other available details. The same autocomplete applies inside the child-contacts sub-form when adding contacts linked to a company.
 
 ## Related Modules
 
