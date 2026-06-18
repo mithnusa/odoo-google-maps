@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 19.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-27 10:48+0000\n"
-"PO-Revision-Date: 2025-10-27 10:48+0000\n"
+"POT-Creation-Date: 2026-06-17 11:09+0000\n"
+"PO-Revision-Date: 2026-06-17 11:09+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -16,8 +16,15 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. module: sale_google_map
-#: model:ir.model.fields,field_description:sale_google_map.field_sale_order__partner_contact_address
-msgid "Complete Address"
+#. odoo-javascript
+#: code:addons/sale_google_map/static/src/views/google_map/google_map_sidebar.xml:0
+msgid "Avatar"
+msgstr ""
+
+#. module: sale_google_map
+#. odoo-javascript
+#: code:addons/sale_google_map/static/src/views/google_map/google_map_renderer.js:0
+msgid "Customer"
 msgstr ""
 
 #. module: sale_google_map
@@ -26,8 +33,20 @@ msgid "Display Name"
 msgstr ""
 
 #. module: sale_google_map
+#. odoo-javascript
+#: code:addons/sale_google_map/static/src/views/google_map/google_map_renderer.js:0
+msgid "Find nearby records"
+msgstr ""
+
+#. module: sale_google_map
 #: model:ir.model.fields,field_description:sale_google_map.field_sale_order__id
 msgid "ID"
+msgstr ""
+
+#. module: sale_google_map
+#. odoo-javascript
+#: code:addons/sale_google_map/static/src/views/google_map/google_map_renderer.js:0
+msgid "Invalid Data"
 msgstr ""
 
 #. module: sale_google_map
@@ -36,8 +55,32 @@ msgid "Latitude"
 msgstr ""
 
 #. module: sale_google_map
+#. odoo-javascript
+#: code:addons/sale_google_map/static/src/views/google_map/google_map_renderer.js:0
+msgid "Logo"
+msgstr ""
+
+#. module: sale_google_map
 #: model:ir.model.fields,field_description:sale_google_map.field_sale_order__partner_longitude
 msgid "Longitude"
+msgstr ""
+
+#. module: sale_google_map
+#. odoo-javascript
+#: code:addons/sale_google_map/static/src/views/google_map/google_map_sidebar.xml:0
+msgid "Nearby"
+msgstr ""
+
+#. module: sale_google_map
+#. odoo-javascript
+#: code:addons/sale_google_map/static/src/views/google_map/google_map_renderer.js:0
+msgid "No records available in this group to find nearby records."
+msgstr ""
+
+#. module: sale_google_map
+#. odoo-javascript
+#: code:addons/sale_google_map/static/src/views/google_map/google_map_renderer.js:0
+msgid "Open"
 msgstr ""
 
 #. module: sale_google_map
@@ -53,6 +96,14 @@ msgstr ""
 #. module: sale_google_map
 #: model_terms:ir.ui.view,arch_db:sale_google_map.view_sale_order_upselling_google_map
 msgid "Orders to Upsell"
+msgstr ""
+
+#. module: sale_google_map
+#. odoo-javascript
+#: code:addons/sale_google_map/static/src/views/google_map/google_map_renderer.js:0
+msgid ""
+"Please group the records to display markers on the map. The Google Maps view"
+" is designed to load grouped data"
 msgstr ""
 
 #. module: sale_google_map
