@@ -1,5 +1,12 @@
 # Change Log
 
+## 1.0.2
+
+### Improved
+
+- **Manifest**: Rewrote summary and description; replaced wildcard asset glob with explicit file entries; removed empty `data` and `demo` keys
+- **i18n**: Regenerated POT — updated dates; removed stale JS strings moved upstream to `base_google_map_add_place`
+
 ## 1.0.1
 
 - [Refactor] **Mixin Extraction**: Moved `google_map.add_place.mixin` and the `InMapClickAddPlace` OWL component to the new `base_google_map_add_place` module; `contacts_google_map_add_place` now delegates all click-to-create logic to that base layer

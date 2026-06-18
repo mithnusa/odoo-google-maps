@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 19.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-28 04:42+0000\n"
-"PO-Revision-Date: 2026-03-28 04:42+0000\n"
+"POT-Creation-Date: 2026-06-17 11:05+0000\n"
+"PO-Revision-Date: 2026-06-17 11:05+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -21,37 +21,8 @@ msgid "Contact"
 msgstr ""
 
 #. module: contacts_google_map_add_place
-#. odoo-javascript
-#: code:addons/contacts_google_map_add_place/static/src/views/component/in_map_click_add_place/in_map_click_add_place.js:0
-msgid "Contact is updated successfully"
-msgstr ""
-
-#. module: contacts_google_map_add_place
-#: model:ir.model,website_form_label:contacts_google_map_add_place.model_res_partner
-msgid "Create a Customer"
-msgstr ""
-
-#. module: contacts_google_map_add_place
 #: model:ir.model.fields,field_description:contacts_google_map_add_place.field_res_partner__display_name
 msgid "Display Name"
-msgstr ""
-
-#. module: contacts_google_map_add_place
-#. odoo-javascript
-#: code:addons/contacts_google_map_add_place/static/src/views/component/in_map_click_add_place/in_map_click_add_place.js:0
-msgid "Failed to open the quick create form."
-msgstr ""
-
-#. module: contacts_google_map_add_place
-#. odoo-javascript
-#: code:addons/contacts_google_map_add_place/static/src/views/component/in_map_click_add_place/in_map_click_add_place.js:0
-msgid "Failed to retrieve place details."
-msgstr ""
-
-#. module: contacts_google_map_add_place
-#. odoo-javascript
-#: code:addons/contacts_google_map_add_place/static/src/views/component/in_map_click_add_place/in_map_click_add_place.js:0
-msgid "Failed to retrieve place information."
 msgstr ""
 
 #. module: contacts_google_map_add_place
@@ -65,28 +36,8 @@ msgid "ID"
 msgstr ""
 
 #. module: contacts_google_map_add_place
-#. odoo-javascript
-#: code:addons/contacts_google_map_add_place/static/src/views/component/in_map_click_add_place/in_map_click_add_place.js:0
-msgid "New contact is created successfully"
-msgstr ""
-
-#. module: contacts_google_map_add_place
-#. odoo-javascript
-#: code:addons/contacts_google_map_add_place/static/src/views/component/in_map_click_add_place/in_map_click_add_place.js:0
-msgid "Open"
-msgstr ""
-
-#. module: contacts_google_map_add_place
 #: model:ir.model.fields,help:contacts_google_map_add_place.field_res_partner__gplace_id
 msgid ""
 "The unique identifier for the place in Google Maps. This is used to link the"
 " record to a specific location on the map."
-msgstr ""
-
-#. module: contacts_google_map_add_place
-#. odoo-javascript
-#: code:addons/contacts_google_map_add_place/static/src/views/component/in_map_click_add_place/in_map_click_add_place.xml:0
-msgid ""
-"Zoom in on the map until this control turns green. Then click anywhere on "
-"the map to open a quick-create form with pre-filled location details"
 msgstr ""
