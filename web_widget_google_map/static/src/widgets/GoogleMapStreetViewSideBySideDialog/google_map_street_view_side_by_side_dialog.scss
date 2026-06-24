@@ -1,0 +1,24 @@
+.o_google_map_street_view_side_by_side {
+    padding: 0;
+    overflow: hidden;
+
+    .o_street_view_split_container {
+        height: 70vh;
+    }
+
+    .o_street_view_split_panel {
+        height: 100%;
+    }
+
+    .o_street_view_no_imagery {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        gap: 8px;
+        color: light-dark(#6c757d, #adb5bd);
+        background-color: light-dark(#f8f9fa, #1a1a1a);
+        font-size: 0.9375rem;
+    }
+}

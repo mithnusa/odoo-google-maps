@@ -45,4 +45,16 @@
 
 **Why it matters**: Finding a precise location by name is faster than manually panning the map, especially for new or unfamiliar addresses.
 
-**How it works**: The dialog reuses the `GoogleMapSearchPlaces` component from `web_view_google_map`. Selecting a result from the autocomplete pans the map to that location, after which the user can fine-tune the marker position by dragging before saving.
+**How it works**: The dialog reuses the `GoogleMapSearchPlaces` component. Selecting a result from the autocomplete pans the map to that location, after which the user can fine-tune the marker position by dragging before saving.
+
+---
+
+## Street View
+
+### Street View Side-by-Side Dialog
+
+**What it does**: Opens an XL dialog displaying a Google Map on the left panel and Google Street View on the right panel for the same coordinates.
+
+**Why it matters**: Lets users visually verify a record's exact location using street-level imagery alongside the standard map, without leaving the form.
+
+**How it works**: `GoogleMapStreetViewSideBySideDialog` loads the `maps`, `streetView`, and `marker` libraries in parallel. Before initialising the panorama it calls `StreetViewService.getPanorama()` to check imagery coverage within 50 metres of the coordinates. If coverage is confirmed (`StreetViewStatus.OK`) the panorama is created and linked to the map via `map.setStreetView()`. If no imagery is available the right panel is replaced by a styled placeholder and an `AdvancedMarkerElement` is placed on the map to indicate the exact position. Configurable `heading`, `pitch`, and `zoom` props control the initial Street View point-of-view.

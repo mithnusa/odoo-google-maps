@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 {
-    'name': 'Web widget Google Maps',
-    'summary': 'Google Maps embed widget for form views with an interactive coordinate-edit dialog',
-    'description': """
+    "name": "Web widget Google Maps",
+    "summary": "Google Maps embed widget for form views with an interactive coordinate-edit dialog",
+    "description": """
 Web Widget Google Maps
 ======================
 
@@ -16,22 +16,26 @@ Provides:
 - ``GoogleMapSearchPlaces`` component from ``web_view_google_map`` reused inside the dialog for place-autocomplete navigation before marker placement
 - Read-only mode: edit button hidden, dialog marker non-draggable
 - ``lat`` and ``lng`` XML attributes required; validated at component init with a clear error if the referenced fields are missing from the view
+- ``GoogleMapStreetViewSideBySideDialog`` — opens an XL dialog with a Google Map on the left and Google Street View on the right; checks Street View coverage via ``StreetViewService`` before rendering and falls back to a marker-only map with an informational placeholder when no imagery is available at the given coordinates
 """,
-    'license': 'LGPL-3',
-    'author': 'Yopi Angi',
-    'website': 'https://github.com/mithnusa',
-    'support': 'yopiangi@gmail.com',
-    'category': 'Extra Tools',
-    'version': '1.0.5',
-    'depends': ['base_google_map', 'web_view_google_map'],
-    'assets': {
-        'web.assets_backend': [
-            'web_widget_google_map/static/src/widgets/GoogleMap/google_map.scss',
-            'web_widget_google_map/static/src/widgets/GoogleMap/google_map.js',
-            'web_widget_google_map/static/src/widgets/GoogleMap/google_map.xml',
+    "license": "LGPL-3",
+    "author": "Yopi Angi",
+    "website": "https://github.com/mithnusa",
+    "support": "yopiangi@gmail.com",
+    "category": "Extra Tools",
+    "version": "19.0.1.0.6",
+    "depends": ["base_google_map"],
+    "assets": {
+        "web.assets_backend": [
+            "web_widget_google_map/static/src/widgets/GoogleMap/google_map.scss",
+            "web_widget_google_map/static/src/widgets/GoogleMap/google_map.js",
+            "web_widget_google_map/static/src/widgets/GoogleMap/google_map.xml",
+            "web_widget_google_map/static/src/widgets/GoogleMapStreetViewSideBySideDialog/google_map_street_view_side_by_side_dialog.scss",
+            "web_widget_google_map/static/src/widgets/GoogleMapStreetViewSideBySideDialog/google_map_street_view_side_by_side_dialog.js",
+            "web_widget_google_map/static/src/widgets/GoogleMapStreetViewSideBySideDialog/google_map_street_view_side_by_side_dialog.xml",
         ],
     },
-    'installable': True,
-    'application': False,
-    'auto_install': False,
+    "installable": True,
+    "application": False,
+    "auto_install": False,
 }

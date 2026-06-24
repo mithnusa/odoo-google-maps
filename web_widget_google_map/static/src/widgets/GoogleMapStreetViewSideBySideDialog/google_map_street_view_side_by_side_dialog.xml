@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="web_widget_google_map.GoogleMapStreetViewSideBySideDialog">
+        <Dialog title="props.title" size="'xl'" bodyClass="'o_google_map_street_view_side_by_side'">
+            <div class="o_street_view_split_container row g-0">
+                <div class="col-6">
+                    <div t-ref="map" class="o_street_view_split_panel"/>
+                </div>
+                <div class="col-6">
+                    <t t-if="state.streetViewAvailable">
+                        <div t-ref="streetView" class="o_street_view_split_panel"/>
+                    </t>
+                    <t t-else="">
+                        <div class="o_street_view_split_panel o_street_view_no_imagery">
+                            <i class="fa fa-street-view fa-3x mb-3"/>
+                            <span t-esc="streetViewUnavailableText"/>
+                        </div>
+                    </t>
+                </div>
+            </div>
+        </Dialog>
+    </t>
+</templates>

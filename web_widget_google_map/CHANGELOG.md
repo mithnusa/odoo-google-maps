@@ -1,5 +1,20 @@
 # Change Log
 
+## 19.0.1.0.6
+
+### Added
+
+- **Street View Side-by-Side Dialog**: New `GoogleMapStreetViewSideBySideDialog` component opens an XL dialog with a Google Map on the left and Google Street View on the right. Coverage is checked via `StreetViewService` before rendering — when no imagery is available the panel is replaced by a styled placeholder with an `AdvancedMarkerElement` on the map.
+
+### Improved
+
+- **i18n placeholders**: Replaced `sprintf(_t('…%s'), val)` with the named-placeholder form `_t('…%(key)s', { key: val })` in all error notifications, aligning with Odoo 16+ translation best practices. Removed unused `sprintf` import.
+- **Console noise**: Removed stray `console.error` calls from error handlers; errors are now surfaced exclusively through the Odoo notification service.
+
+### Changed
+
+- **Dependencies**: Removed `web_view_google_map` from module dependencies; the module now depends solely on `base_google_map`.
+
 ## 19.0.1.0.5
 
 ### Improved

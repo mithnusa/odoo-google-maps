@@ -1,6 +1,5 @@
 import { registry } from '@web/core/registry';
 import { _t } from '@web/core/l10n/translation';
-import { sprintf } from '@web/core/utils/strings';
 import { useService } from '@web/core/utils/hooks';
 import { standardWidgetProps } from '@web/views/widgets/standard_widget_props';
 import { rpc } from '@web/core/network/rpc';
@@ -58,10 +57,9 @@ class GeolocationEditDialog extends ConfirmationDialog {
                 this.state.isGoogleLoaded = true;
             },
             (error) => {
-                console.error(' Error loading Google Maps API: ', error);
                 this.state.isGoogleLoaded = false;
                 this.notificationService.add(
-                    sprintf(_t('Failed to load Google Maps API.\n%s'), error.message || error),
+                    _t('Failed to load Google Maps API.\n%(err)s', { err: error.message || error }),
                     { type: 'danger' }
                 );
             }
@@ -131,7 +129,7 @@ class GeolocationEditDialog extends ConfirmationDialog {
         } catch (error) {
             console.error('Error initializing Google Map:', error);
             this.notificationService.add(
-                sprintf(_t('Failed to initialize Google Map.\n%s'), error.message || error),
+                _t('Failed to initialize Google Map.\n%(err)s', { err: error.message || error }),
                 { type: 'danger' }
             );
         } finally {
@@ -188,9 +186,8 @@ class GeolocationEditDialog extends ConfirmationDialog {
                 if (this.googleMap.getZoom() < 16) this.googleMap.setZoom(16);
             });
         } catch (error) {
-            console.error('Error loading Google Maps API:', error);
             this.notificationService.add(
-                sprintf(_t('Failed to load Google Maps API.\n%s'), error.message || error),
+                _t('Failed to load Google Maps API.\n%(err)s', { err: error.message || error }),
                 { type: 'danger' }
             );
             return;
