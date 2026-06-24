@@ -185,7 +185,7 @@ export class GoogleMapSearchPlaces extends Component {
             this.markerPlacesSearch.map = null;
         });
     }
- 
+
     /**
      * Create the content for the info window
      * @param {Object} place - The place object containing displayName and formattedAddress

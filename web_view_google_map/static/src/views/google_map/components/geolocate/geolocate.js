@@ -118,7 +118,7 @@ export class GoogleMapGeolocate extends Component {
         const content = document.createElement('div');
         content.classList.add('infoWindow', 'p-3', 'mt-3');
         content.innerText = _t('Your location');
-        
+
         this.infoWindow.setOptions({ content });
         this.infoWindow.open(this.props.googleMap, this.marker);
     }

@@ -40,6 +40,10 @@
                             <i class="fa fa-location-arrow" aria-hidden="true"/>
                             <span class="visually-hidden">Nearby</span>
                         </button>
+                        <button type="button" tabindex="-1" class="btn btn-sm btn-outline-dark" data-role="btn-open_street_view" data-tooltip="Street View Side by Side">
+                            <i class="fa fa-street-view" aria-hidden="true"/>
+                            <span class="visually-hidden">Street View</span>
+                        </button>
                         <a tabindex="-1" t-attf-href="https://www.google.com/maps/dir/?api=1&amp;destination={{ destination }}" target="_blank" class="btn btn-sm btn-outline-dark" data-tooltip="Navigate to this location">
                             <i class="fa fa-map-signs" aria-hidden="true"/>
                             <span class="visually-hidden">Navigate to</span>

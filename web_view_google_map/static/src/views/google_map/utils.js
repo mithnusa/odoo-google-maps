@@ -32,7 +32,7 @@ export async function loadMarkerClustererAssets() {
     if (window.MarkerClusterer) {
         return Promise.resolve();
     }
-    return loadJS('/web_view_google_map/static/src/libs/markerclusterer/v_2_6_2/index.min.js');
+    return loadJS('/web_view_google_map/static/lib/markerclusterer/v_2_6_2/index.min.js');
 }
 
 /**

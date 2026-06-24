@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 {
-    'name': 'Web View Google Map',
-    'summary': 'Core Google Maps view type for Odoo with clustering, grouping, nearby search, and dark mode',
-    'description': """
+    "name": "Web View Google Map",
+    "summary": "Core Google Maps view type for Odoo with clustering, grouping, nearby search, and dark mode",
+    "description": """
 Web View Google Map
 ===================
 
@@ -24,49 +24,50 @@ Provides:
 - ``SearchPlaces`` component: in-map Google Places autocomplete using ``PlaceAutocompleteElement`` (requires Places API New and the "Enable Google Places Search" setting)
 - Nearby-records search: bounding-box domain filter with rectangle overlay and view-title update; antimeridian wraparound handled
 - Google Maps external links (navigation and search) in every marker info window
+- Street View button in every marker info window; opens ``GoogleMapStreetViewSideBySideDialog`` (from ``web_widget_google_map``) with a side-by-side map and Street View panel, falling back to a marker-only map when no imagery is available
 - Dark mode: separate ``*.dark.scss`` stylesheet loaded via ``web.dark_mode_assets_backend``
 - ``uninstall_hook`` that removes the ``google_map`` view mode from all ``ir.actions.act_window`` records on uninstall
 """,
-    'license': 'LGPL-3',
-    'author': 'Yopi Angi (Mithnusa), Brian McMaster (McMaster Lawn & Pest Services)',
-    'website': 'https://github.com/mithnusa',
-    'support': 'yopiangi@gmail.com',
-    'category': 'Extra Tools',
-    'version': '1.0.25',
-    'depends': ['base_google_map'],
-    'data': ['views/res_config_settings.xml'],
-    'assets': {
-        'web.assets_backend': [
-            'web_view_google_map/static/src/views/google_map/google_map_view.scss',
-            'web_view_google_map/static/src/views/google_map/google_map_sidebar.scss',
-            'web_view_google_map/static/src/views/google_map/components/geolocate/geolocate.scss',
-            'web_view_google_map/static/src/views/google_map/components/search_places/search_places.scss',
-            'web_view_google_map/static/src/fields/x2many/google_map_x2many_fields.scss',
-            'web_view_google_map/static/src/helpers/view_attrs_context_manager.js',
-            'web_view_google_map/static/src/views/google_map/utils.js',
-            'web_view_google_map/static/src/views/google_map/google_map_arch_parser.js',
-            'web_view_google_map/static/src/views/google_map/google_map_model.js',
-            'web_view_google_map/static/src/views/google_map/components/geolocate/geolocate.js',
-            'web_view_google_map/static/src/views/google_map/components/geolocate/geolocate.xml',
-            'web_view_google_map/static/src/views/google_map/components/search_places/search_places.js',
-            'web_view_google_map/static/src/views/google_map/components/search_places/search_places.xml',
-            'web_view_google_map/static/src/views/google_map/google_map_search_bar.js',
-            'web_view_google_map/static/src/views/google_map/google_map_sidebar.js',
-            'web_view_google_map/static/src/views/google_map/google_map_sidebar.xml',
-            'web_view_google_map/static/src/views/google_map/google_map_renderer.js',
-            'web_view_google_map/static/src/views/google_map/google_map_renderer.xml',
-            'web_view_google_map/static/src/views/google_map/google_map_controller.js',
-            'web_view_google_map/static/src/views/google_map/google_map_controller.xml',
-            'web_view_google_map/static/src/views/google_map/google_map_view.js',
-            'web_view_google_map/static/src/fields/x2many/google_map_x2many_field.js',
-            'web_view_google_map/static/src/fields/x2many/google_map_x2many_field.xml',
+    "license": "LGPL-3",
+    "author": "Yopi Angi (Mithnusa), Brian McMaster (McMaster Lawn & Pest Services)",
+    "website": "https://github.com/mithnusa",
+    "support": "yopiangi@gmail.com",
+    "category": "Extra Tools",
+    "version": "19.0.1.0.26",
+    "depends": ["base_google_map", "web_widget_google_map"],
+    "data": ["views/res_config_settings.xml"],
+    "assets": {
+        "web.assets_backend": [
+            "web_view_google_map/static/src/views/google_map/google_map_view.scss",
+            "web_view_google_map/static/src/views/google_map/google_map_sidebar.scss",
+            "web_view_google_map/static/src/views/google_map/components/geolocate/geolocate.scss",
+            "web_view_google_map/static/src/views/google_map/components/search_places/search_places.scss",
+            "web_view_google_map/static/src/fields/x2many/google_map_x2many_fields.scss",
+            "web_view_google_map/static/src/helpers/view_attrs_context_manager.js",
+            "web_view_google_map/static/src/views/google_map/utils.js",
+            "web_view_google_map/static/src/views/google_map/google_map_arch_parser.js",
+            "web_view_google_map/static/src/views/google_map/google_map_model.js",
+            "web_view_google_map/static/src/views/google_map/components/geolocate/geolocate.js",
+            "web_view_google_map/static/src/views/google_map/components/geolocate/geolocate.xml",
+            "web_view_google_map/static/src/views/google_map/components/search_places/search_places.js",
+            "web_view_google_map/static/src/views/google_map/components/search_places/search_places.xml",
+            "web_view_google_map/static/src/views/google_map/google_map_search_bar.js",
+            "web_view_google_map/static/src/views/google_map/google_map_sidebar.js",
+            "web_view_google_map/static/src/views/google_map/google_map_sidebar.xml",
+            "web_view_google_map/static/src/views/google_map/google_map_renderer.js",
+            "web_view_google_map/static/src/views/google_map/google_map_renderer.xml",
+            "web_view_google_map/static/src/views/google_map/google_map_controller.js",
+            "web_view_google_map/static/src/views/google_map/google_map_controller.xml",
+            "web_view_google_map/static/src/views/google_map/google_map_view.js",
+            "web_view_google_map/static/src/fields/x2many/google_map_x2many_field.js",
+            "web_view_google_map/static/src/fields/x2many/google_map_x2many_field.xml",
         ],
-        'web.dark_mode_assets_backend': [
-            'web_view_google_map/static/src/views/google_map/google_map_view.dark.scss',
+        "web.dark_mode_assets_backend": [
+            "web_view_google_map/static/src/views/google_map/google_map_view.dark.scss",
         ],
     },
-    'installable': True,
-    'application': False,
-    'auto_install': False,
-    'uninstall_hook': '_uninstall_view_google_map',
+    "installable": True,
+    "application": False,
+    "auto_install": False,
+    "uninstall_hook": "_uninstall_view_google_map",
 }
