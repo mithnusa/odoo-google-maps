@@ -444,10 +444,7 @@ export class GoogleMapWidget extends Component {
         if (!this.props.lat || !this.props.lng) {
             throw new Error("Widget google_map: 'lat' and 'lng' props are required.");
         }
-        if (
-            !this.props.record.fields[this.props.lat] ||
-            !this.props.record.fields[this.props.lng]
-        ) {
+        if (!this.props.record.fields[this.props.lat] || !this.props.record.fields[this.props.lng]) {
             throw new Error(
                 `Widget google_map: fields '${this.props.lat}' and '${this.props.lng}' must be present in the view.`
             );

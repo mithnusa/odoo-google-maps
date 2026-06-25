@@ -20,7 +20,6 @@ export class GoogleMapGeolocate extends Component {
         onWillUnmount(() => {
             this._cleanup();
         });
-
     }
 
     /**
@@ -32,13 +31,9 @@ export class GoogleMapGeolocate extends Component {
         if (this.props.googleMap && !this.geolocateBtn) {
             this.infoWindow = new google.maps.InfoWindow();
             const content = renderToString('web_widget_google_map.GeolocateBtn', {});
-            this.geolocateBtn = new DOMParser()
-                .parseFromString(content, 'text/html')
-                .querySelector('div');
+            this.geolocateBtn = new DOMParser().parseFromString(content, 'text/html').querySelector('div');
 
-            this.props.googleMap.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(
-                this.geolocateBtn
-            );
+            this.props.googleMap.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(this.geolocateBtn);
 
             this.geolocateBtn.addEventListener('click', this._boundGeolocation);
         }
@@ -83,9 +78,7 @@ export class GoogleMapGeolocate extends Component {
             const { AdvancedMarkerElement } = await this.env.apiLoader.importLibrary('marker');
 
             const markerContent = renderToString('web_widget_google_map.GeolocateMarker', {});
-            const content = new DOMParser()
-                .parseFromString(markerContent, 'text/html')
-                .querySelector('svg');
+            const content = new DOMParser().parseFromString(markerContent, 'text/html').querySelector('svg');
 
             this.marker = new AdvancedMarkerElement({
                 map: this.props.googleMap,
@@ -134,7 +127,9 @@ export class GoogleMapGeolocate extends Component {
         if (typeof error.code === 'number') {
             switch (error.code) {
                 case 1: // PERMISSION_DENIED
-                    message = _t('Geolocation is disabled. Please enable it in your browser settings if you want browser to detect your location.');
+                    message = _t(
+                        'Geolocation is disabled. Please enable it in your browser settings if you want browser to detect your location.'
+                    );
                     break;
                 case 2: // POSITION_UNAVAILABLE
                     message = _t('Location information is unavailable.');
