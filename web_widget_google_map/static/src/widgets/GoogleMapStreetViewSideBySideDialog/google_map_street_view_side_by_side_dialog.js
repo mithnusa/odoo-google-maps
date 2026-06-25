@@ -24,19 +24,10 @@ export class GoogleMapStreetViewSideBySideDialog extends Component {
     };
 
     setup() {
-        this.notificationService = useService('notification');
-
-        try {
-            this._validateProps();
-        } catch (error) {
-            this.notificationService.add(error.message, { type: 'danger' });
-            Promise.resolve().then(() => this.props.close());
-            return;
-        }
-
-        this._isMounted = true;
         this.mapRef = useRef('map');
         this.streetViewRef = useRef('streetView');
+        this.notificationService = useService('notification');
+        this._isMounted = true;
         this.googleMap = null;
         this.panorama = null;
         this._locationMarker = null;
@@ -70,6 +61,14 @@ export class GoogleMapStreetViewSideBySideDialog extends Component {
             this._isMounted = false;
             this._cleanup();
         });
+
+        try {
+            this._validateProps();
+        } catch (error) {
+            this.notificationService.add(error.message, { type: 'danger' });
+            Promise.resolve().then(() => this.props.close());
+            return;
+        }
     }
 
     _cleanup() {
