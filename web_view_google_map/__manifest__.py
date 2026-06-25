@@ -20,8 +20,8 @@ Provides:
 - MarkerClusterer (v2.6.2, loaded on-demand via ``loadJS``) for clustering markers at low zoom; disable per view with ``disable_cluster_marker="1"``
 - Overlapping-marker spread: same-coordinate records offset in a circle with a line drawn back to the true location on zoom-in
 - Multi-selection via Alt/Cmd-drag rectangle; Shift-drag extends selection
-- ``GeolocateButton`` component: shows the user's browser location on the map
-- ``SearchPlaces`` component: in-map Google Places autocomplete using ``PlaceAutocompleteElement`` (requires Places API New and the "Enable Google Places Search" setting)
+- ``GoogleMapGeolocate`` component (sourced from ``web_widget_google_map``): shows the user's browser location on the map
+- ``GoogleMapSearchPlaces`` component (sourced from ``web_widget_google_map``): in-map Google Places autocomplete using ``PlaceAutocompleteElement`` (requires Places API New and the "Enable Google Places Search" setting)
 - Nearby-records search: bounding-box domain filter with rectangle overlay and view-title update; antimeridian wraparound handled
 - Google Maps external links (navigation and search) in every marker info window
 - Street View button in every marker info window; opens ``GoogleMapStreetViewSideBySideDialog`` (from ``web_widget_google_map``) with a side-by-side map and Street View panel, falling back to a marker-only map when no imagery is available
@@ -40,17 +40,11 @@ Provides:
         "web.assets_backend": [
             "web_view_google_map/static/src/views/google_map/google_map_view.scss",
             "web_view_google_map/static/src/views/google_map/google_map_sidebar.scss",
-            "web_view_google_map/static/src/views/google_map/components/geolocate/geolocate.scss",
-            "web_view_google_map/static/src/views/google_map/components/search_places/search_places.scss",
             "web_view_google_map/static/src/fields/x2many/google_map_x2many_fields.scss",
             "web_view_google_map/static/src/helpers/view_attrs_context_manager.js",
             "web_view_google_map/static/src/views/google_map/utils.js",
             "web_view_google_map/static/src/views/google_map/google_map_arch_parser.js",
             "web_view_google_map/static/src/views/google_map/google_map_model.js",
-            "web_view_google_map/static/src/views/google_map/components/geolocate/geolocate.js",
-            "web_view_google_map/static/src/views/google_map/components/geolocate/geolocate.xml",
-            "web_view_google_map/static/src/views/google_map/components/search_places/search_places.js",
-            "web_view_google_map/static/src/views/google_map/components/search_places/search_places.xml",
             "web_view_google_map/static/src/views/google_map/google_map_search_bar.js",
             "web_view_google_map/static/src/views/google_map/google_map_sidebar.js",
             "web_view_google_map/static/src/views/google_map/google_map_sidebar.xml",

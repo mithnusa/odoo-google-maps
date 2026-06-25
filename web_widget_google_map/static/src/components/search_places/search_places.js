@@ -9,7 +9,7 @@ const INFO_WINDOW_MAX_WIDTH = '400px';
 
 
 export class GoogleMapSearchPlaces extends Component {
-    static template = 'web_view_google_map.SearchPlaces';
+    static template = 'web_widget_google_map.SearchPlaces';
     static props = ['googleMap'];
 
     setup() {
@@ -96,7 +96,6 @@ export class GoogleMapSearchPlaces extends Component {
                         this._boundHandlePlaceSelect = this.debouncedHandlePlaceSelect.bind(this);
                         this.placeAutocomplete.addEventListener('gmp-select', this._boundHandlePlaceSelect);
                     } catch (error) {
-                        console.error('Error initializing PlaceAutocompleteElement:', error);
                         this.notificationService.add(
                             _t(
                                 "Google Maps Places Autocomplete couldn't be created. You might need to check the Google Maps version and ensure that the Places API is enabled."
@@ -118,7 +117,6 @@ export class GoogleMapSearchPlaces extends Component {
                     }
                 });
             } catch (error) {
-                console.error(error);
                 this.notificationService.add(
                     _t('Something went wrong. See Javascript console for technical details. '),
                     {
@@ -154,7 +152,6 @@ export class GoogleMapSearchPlaces extends Component {
             }
             this.markerPlacesSearch.position = place.location;
         } catch (error) {
-            console.error('Error handling place select:', error);
             this.notificationService.add(
                 _t('Failed to fetch Google place detail.'),
                 { type: 'warning' }
@@ -197,7 +194,7 @@ export class GoogleMapSearchPlaces extends Component {
         content.style.maxWidth = INFO_WINDOW_MAX_WIDTH;
 
         // Use template rendering with t-esc to safely escape HTML content
-        const htmlString = renderToString('web_view_google_map.SearchPlacesInfoWindow', {
+        const htmlString = renderToString('web_widget_google_map.SearchPlacesInfoWindow', {
             displayName: place.displayName,
             formattedAddress: place.formattedAddress,
         });

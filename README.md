@@ -97,9 +97,9 @@ The core map view module. Adds a `google_map` view type alongside list, kanban, 
 
 Extends the map view with geographic drawing tools. Users can draw polygons, rectangles, and freehand shapes directly on the map. Shapes are stored as GeoJSON on the record and support server-side filtering so you can query which records fall inside a drawn area. Built on [Terra Draw](https://terradraw.io/) and [Deck.gl](https://deck.gl/); all libraries are bundled locally.
 
-**[web_widget_google_map](web_widget_google_map/README.md)** `19.0.1.0.5`
+**[web_widget_google_map](web_widget_google_map/README.md)** `19.0.1.0.6`
 
-Adds an embedded Google Map to any Odoo form. Shows the record's saved location and lets users update it visually — by dragging a marker or typing a place name — without leaving the form.
+Adds an embedded Google Map to any Odoo form. Shows the record's saved location and lets users update it visually — by dragging a marker or typing a place name — without leaving the form. A Street View side-by-side dialog lets users verify the exact location with street-level imagery alongside the standard map; it falls back gracefully when no Street View coverage is available.
 
 **[web_widget_google_place_autocomplete](web_widget_google_place_autocomplete/README.md)** `19.0.1.0.8`
 

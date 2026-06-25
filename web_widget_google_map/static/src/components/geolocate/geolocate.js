@@ -4,7 +4,7 @@ import { useService } from '@web/core/utils/hooks';
 import { renderToString } from '@web/core/utils/render';
 
 export class GoogleMapGeolocate extends Component {
-    static template = 'web_view_google_map.Geolocate';
+    static template = 'web_widget_google_map.Geolocate';
     static props = ['googleMap'];
 
     setup() {
@@ -31,7 +31,7 @@ export class GoogleMapGeolocate extends Component {
     _onMounted() {
         if (this.props.googleMap && !this.geolocateBtn) {
             this.infoWindow = new google.maps.InfoWindow();
-            const content = renderToString('web_view_google_map.GeolocateBtn', {});
+            const content = renderToString('web_widget_google_map.GeolocateBtn', {});
             this.geolocateBtn = new DOMParser()
                 .parseFromString(content, 'text/html')
                 .querySelector('div');
@@ -66,7 +66,6 @@ export class GoogleMapGeolocate extends Component {
 
             this._geolocationSuccess(position);
         } catch (error) {
-            console.warn('Geolocation error:', error);
             this._geolocationFailed(error);
         }
     }
@@ -83,7 +82,7 @@ export class GoogleMapGeolocate extends Component {
         if (!this.marker) {
             const { AdvancedMarkerElement } = await this.env.apiLoader.importLibrary('marker');
 
-            const markerContent = renderToString('web_view_google_map.GeolocateMarker', {});
+            const markerContent = renderToString('web_widget_google_map.GeolocateMarker', {});
             const content = new DOMParser()
                 .parseFromString(markerContent, 'text/html')
                 .querySelector('svg');

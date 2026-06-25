@@ -45,7 +45,7 @@ Add `google_map` to the `view_mode` of any action for a model that has latitude 
 ## Related Modules
 
 - `base_google_map`: Core API key configuration and Google Maps JavaScript API loader
-- `web_widget_google_map`: Provides the Street View side-by-side dialog opened from marker info windows
+- `web_widget_google_map`: Provides the Street View side-by-side dialog, the geolocation button component, and the in-map place search component consumed by this module
 - `web_view_google_map_drawing`: Extends the map view with drawing tools (polygons, shapes, areas)
 - `contacts_google_map`: Ready-made Google Maps view for the Contacts model
 - `crm_google_map`: Ready-made Google Maps view for CRM leads and opportunities

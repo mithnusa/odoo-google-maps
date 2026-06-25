@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates xml:space="preserve">
-    <t t-name="web_view_google_map.SearchPlaces">
+    <t t-name="web_widget_google_map.SearchPlaces">
         <div class="input-group google_search_places o_hidden" t-ref="searchPlaces"></div>
     </t>
-    <t t-name="web_view_google_map.SearchPlacesInfoWindow">
+    <t t-name="web_widget_google_map.SearchPlacesInfoWindow">
         <div id="infowindow-content">
             <span id="place-displayname" class="fs-4 fw-bolder">
                 <t t-esc="displayName"/>

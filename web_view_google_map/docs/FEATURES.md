@@ -76,7 +76,7 @@
 
 **Why it matters**: Lets users navigate the map to any address or landmark without leaving the view, making it easy to explore data in a specific area.
 
-**How it works**: Uses Google's `PlaceAutocompleteElement` (Places API New). The search respects the language and country restriction settings configured in `base_google_map`. Requires the **Places API (New)** to be enabled in Google Cloud Console and the "Enable Google Places Search" toggle to be on in settings.
+**How it works**: The `GoogleMapSearchPlaces` component (bundled in `web_widget_google_map`) is mounted inside the map view. It uses Google's `PlaceAutocompleteElement` (Places API New) and respects the language and country restriction settings configured in `base_google_map`. Requires the **Places API (New)** to be enabled in Google Cloud Console and the "Enable Google Places Search" toggle to be on in settings.
 
 ---
 
@@ -86,7 +86,7 @@
 
 **Why it matters**: Helps field users quickly orient themselves on the map relative to their nearby records.
 
-**How it works**: Clicking the button triggers the browser's Geolocation API. On success, an `AdvancedMarkerElement` is placed at the user's coordinates with an info window labelled "Your location". Requires browser location permission.
+**How it works**: The `GoogleMapGeolocate` component (bundled in `web_widget_google_map`) is mounted inside the map view. Clicking the button triggers the browser's Geolocation API. On success, an `AdvancedMarkerElement` is placed at the user's coordinates with an info window labelled "Your location". Requires browser location permission.
 
 ---
 
