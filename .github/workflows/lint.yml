@@ -1,0 +1,43 @@
+name: Lint (pylint-odoo)
+
+on:
+  push:
+    branches: ["19.0", "19.0-*"]
+  pull_request:
+    branches: ["19.0"]
+
+jobs:
+  pylint:
+    name: Run pylint-odoo
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          pip install pylint "pylint-odoo>=9.0" "astroid>=3.0"
+
+      - name: Find all module paths
+        id: modules
+        run: |
+          modules=$(find . -maxdepth 2 -name "__manifest__.py" \
+            | xargs -I{} dirname {} \
+            | sort \
+            | tr '\n' ',')
+          echo "paths=$modules" >> $GITHUB_OUTPUT
+
+      - name: Run pylint-odoo
+        run: |
+          pylint \
+            --load-plugins=pylint_odoo \
+            --disable=all \
+            --enable=odoolint \
+            --odoo-version=19.0 \
+            ${{ steps.modules.outputs.paths }}

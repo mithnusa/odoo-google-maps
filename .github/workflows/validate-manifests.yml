@@ -1,0 +1,93 @@
+name: Validate Manifests
+
+on:
+  push:
+    branches: ["19.0", "19.0-*"]
+  pull_request:
+    branches: ["19.0"]
+
+jobs:
+  validate-manifests:
+    name: Validate module manifests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Validate all __manifest__.py files
+        shell: python
+        run: |
+          import os
+          import ast
+          import sys
+
+          REQUIRED_KEYS = {"name", "version", "license", "depends", "author"}
+          EXPECTED_LICENSE = "LGPL-3"
+          VERSION_PREFIX = "19.0."
+          errors = []
+          found = []
+
+          for root, dirs, files in os.walk("."):
+              dirs[:] = sorted([d for d in dirs if not d.startswith(".")])
+              if "__manifest__.py" not in files:
+                  continue
+
+              manifest_path = os.path.join(root, "__manifest__.py")
+              module_name = os.path.basename(root)
+
+              try:
+                  with open(manifest_path, "r") as f:
+                      manifest = ast.literal_eval(f.read())
+              except Exception as e:
+                  errors.append(f"[{module_name}] Failed to parse manifest: {e}")
+                  continue
+
+              # Required keys
+              missing = REQUIRED_KEYS - manifest.keys()
+              if missing:
+                  errors.append(f"[{module_name}] Missing required keys: {sorted(missing)}")
+
+              # License
+              if manifest.get("license") != EXPECTED_LICENSE:
+                  errors.append(
+                      f"[{module_name}] Expected license '{EXPECTED_LICENSE}', "
+                      f"got '{manifest.get('license')}'"
+                  )
+
+              # Version format: 19.0.x.x.x
+              version = manifest.get("version", "")
+              if not version.startswith(VERSION_PREFIX):
+                  errors.append(
+                      f"[{module_name}] Version '{version}' must start with '{VERSION_PREFIX}'"
+                  )
+              else:
+                  parts = version.split(".")
+                  if len(parts) != 5 or not all(p.isdigit() for p in parts):
+                      errors.append(
+                          f"[{module_name}] Version '{version}' must follow "
+                          f"'19.0.x.x.x' format"
+                      )
+
+              # installable must not be False
+              if manifest.get("installable", True) is False:
+                  errors.append(
+                      f"[{module_name}] 'installable' is set to False"
+                  )
+
+              found.append(f"  ✓ {module_name} ({version})")
+
+          print(f"Found {len(found)} module(s):\n" + "\n".join(found))
+
+          if errors:
+              print(f"\n❌ {len(errors)} error(s) found:\n")
+              for e in errors:
+                  print(f"  • {e}")
+              sys.exit(1)
+          else:
+              print("\n✅ All manifests are valid.")
