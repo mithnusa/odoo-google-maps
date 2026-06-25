@@ -7,7 +7,7 @@ import { Component, onWillStart, useRef, useEffect, useState, onWillUnmount, use
 
 import { ConfirmationDialog } from '@web/core/confirmation_dialog/confirmation_dialog';
 import { useGoogleMapsAPILoader } from '@base_google_map/utils/loader_google_map';
-import { GoogleMapSearchPlaces } from '@web_view_google_map/views/google_map/components/search_places/search_places';
+import { GoogleMapSearchPlaces } from '../../components/search_places/search_places';
 
 /**
  * Dialog component for editing geolocation coordinates with an interactive Google Map.
@@ -127,7 +127,6 @@ class GeolocationEditDialog extends ConfirmationDialog {
             this.googleMap = googleMap;
             await this.onMapReady(googleMap);
         } catch (error) {
-            console.error('Error initializing Google Map:', error);
             this.notificationService.add(
                 _t('Failed to initialize Google Map.\n%(err)s', { err: error.message || error }),
                 { type: 'danger' }
@@ -335,7 +334,6 @@ export class GoogleMapWidget extends Component {
         try {
             return this.props.record.data[this.props.lat] || 0.0;
         } catch (e) {
-            console.error(e);
             return 0.0;
         }
     }
@@ -349,7 +347,6 @@ export class GoogleMapWidget extends Component {
         try {
             return this.props.record.data[this.props.lng] || 0.0;
         } catch (e) {
-            console.error(e);
             return 0.0;
         }
     }

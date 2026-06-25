@@ -16,6 +16,7 @@ Adds a `google_map` widget for use in form views. It shows an embedded map at th
 - **Place Search in Dialog**: A Google Places search box inside the dialog lets users navigate the map to a named location before dropping the marker
 - **Street View Side-by-Side Dialog**: Opens an XL dialog showing a Google Map on the left and Google Street View on the right; automatically falls back to a marker-only map when no Street View imagery is available at the given coordinates
 - **Read-Only Mode**: When the form field is in read-only mode, the embedded map is shown without an edit button and the dialog marker is non-draggable
+- **Shared Map Components**: Bundles `GoogleMapGeolocate` (browser geolocation button) and `GoogleMapSearchPlaces` (in-map Google Places autocomplete) as reusable OWL components; these are consumed directly by `web_view_google_map`'s map view
 
 ## Dependencies
 

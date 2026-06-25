@@ -177,7 +177,7 @@ export class GoogleMapStreetViewSideBySideDialog extends Component {
         }
 
         if (zoom < 0 || zoom > 5) {
-            throw new Error(_t('Panaroma zoom level must be between 0 and 5.'));
+            throw new Error(_t('Panorama zoom level must be between 0 and 5.'));
         }
 
         if (pitch < -90 || pitch > 90) {

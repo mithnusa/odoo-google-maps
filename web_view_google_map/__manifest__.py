@@ -33,7 +33,7 @@ Provides:
     'support': 'yopiangi@gmail.com',
     'category': 'Extra Tools',
     'version': '1.0.25',
-    'depends': ['base_google_map'],
+    'depends': ['base_google_map', 'web_widget_google_map'],
     'data': ['views/res_config_settings.xml'],
     'assets': {
         'web.assets_backend': [
@@ -46,10 +46,6 @@ Provides:
             'web_view_google_map/static/src/views/google_map/utils.js',
             'web_view_google_map/static/src/views/google_map/google_map_arch_parser.js',
             'web_view_google_map/static/src/views/google_map/google_map_model.js',
-            'web_view_google_map/static/src/views/google_map/components/geolocate/geolocate.js',
-            'web_view_google_map/static/src/views/google_map/components/geolocate/geolocate.xml',
-            'web_view_google_map/static/src/views/google_map/components/search_places/search_places.js',
-            'web_view_google_map/static/src/views/google_map/components/search_places/search_places.xml',
             'web_view_google_map/static/src/views/google_map/google_map_search_bar.js',
             'web_view_google_map/static/src/views/google_map/google_map_sidebar.js',
             'web_view_google_map/static/src/views/google_map/google_map_sidebar.xml',

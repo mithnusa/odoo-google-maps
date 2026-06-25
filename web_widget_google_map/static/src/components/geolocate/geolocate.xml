@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates xml:space="preserve">
-    <t t-name="web_view_google_map.Geolocate">
+    <t t-name="web_widget_google_map.Geolocate">
         <span></span>
     </t>
-    <t t-name="web_view_google_map.GeolocateBtn">
+    <t t-name="web_widget_google_map.GeolocateBtn">
         <div id="custom-control-geolocate" class="button-geolocate-user">
             <div class="button_geolocate_user">
                 <button class="btn btn-sm btn-light rounded-5 shadow-sm" type="button" data-tooltip="Get Current location" aria-label="Get Current location">
@@ -12,7 +12,7 @@
             </div>
         </div>
     </t>
-    <t t-name="web_view_google_map.GeolocateMarker">
+    <t t-name="web_widget_google_map.GeolocateMarker">
         <svg xmlns="http://www.w3.org/2000/svg" width="28" height="36" viewBox="0 0 28 36">
             <defs>
                 <radialGradient id="geoPin" cx="40%" cy="30%" r="65%">

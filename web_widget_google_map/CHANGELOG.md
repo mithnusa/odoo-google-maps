@@ -5,15 +5,18 @@
 ### Added
 
 - **Street View Side-by-Side Dialog**: New `GoogleMapStreetViewSideBySideDialog` component opens an XL dialog with a Google Map on the left and Google Street View on the right. Coverage is checked via `StreetViewService` before rendering — when no imagery is available the panel is replaced by a styled placeholder with an `AdvancedMarkerElement` on the map.
+- **`GoogleMapGeolocate` component** (`components/geolocate/`): Browser geolocation button injected into a map's `RIGHT_BOTTOM` control area. On click, calls the Geolocation API (`enableHighAccuracy: true`, 10 s timeout), places an `AdvancedMarkerElement` at the user's position, and opens an info window on marker click. Error codes 1/2/3 (`PERMISSION_DENIED`, `POSITION_UNAVAILABLE`, `TIMEOUT`) each produce a distinct notification. All DOM nodes and listeners are cleaned up in `onWillUnmount`.
+- **`GoogleMapSearchPlaces` component** (`components/search_places/`): In-map Google Places autocomplete using `PlaceAutocompleteElement` (Places API New). Injected into the map's `TOP_RIGHT` control area after the first `idle` event; respects language, region, and country-restriction settings from `base_google_map`. Bounds are kept in sync with the map on `bounds_changed`. On selection, fetches `displayName`, `formattedAddress`, and `location` via `fetchFields`, pans the map, and places an orange search marker with an info window. All listeners and control nodes are removed in `onWillUnmount`. Moved here from `web_view_google_map` and also used by `GeolocationEditDialog`.
 
 ### Improved
 
 - **i18n placeholders**: Replaced `sprintf(_t('…%s'), val)` with the named-placeholder form `_t('…%(key)s', { key: val })` in all error notifications, aligning with Odoo 16+ translation best practices. Removed unused `sprintf` import.
-- **Console noise**: Removed stray `console.error` calls from error handlers; errors are now surfaced exclusively through the Odoo notification service.
+- **Console noise**: Reduced console logging in Google Maps error handlers; errors are also surfaced through the Odoo notification service.
 
 ### Changed
 
 - **Dependencies**: Removed `web_view_google_map` from module dependencies; the module now depends solely on `base_google_map`.
+- **`GoogleMapSearchPlaces` import** (`google_map.js`): Updated import path from `@web_view_google_map/…` to the local `components/search_places/` path now that the component lives in this module.
 
 ## 19.0.1.0.5
 
