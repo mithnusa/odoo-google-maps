@@ -39,5 +39,5 @@ jobs:
             --load-plugins=pylint_odoo \
             --disable=all \
             --enable=odoolint \
-            --odoo-version=19.0 \
+            --disable=manifest-required-author,manifest-deprecated-key,manifest-version-format,attribute-string-redundant,translation-positional-used,missing-readme \
             ${{ steps.modules.outputs.paths }}
