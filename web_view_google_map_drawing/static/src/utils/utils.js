@@ -80,7 +80,8 @@ export async function loadTerraDrawAssets() {
     try {
         await loadJS('/web_view_google_map_drawing/static/lib/terra-draw/terra-draw.umd.js?v=' + TERRA_DRAW_VERSION);
         await loadJS(
-            '/web_view_google_map_drawing/static/lib/terra-draw/terra-draw-google-maps-adapter.umd.js?v=' + TERRA_DRAW_GMAPS_ADAPTER_VERSION
+            '/web_view_google_map_drawing/static/lib/terra-draw/terra-draw-google-maps-adapter.umd.js?v=' +
+                TERRA_DRAW_GMAPS_ADAPTER_VERSION
         );
         if (!window.terraDraw || !window.terraDrawGoogleMapsAdapter) {
             throw new Error('Terra Draw or its Google Maps adapter failed to load correctly.');
@@ -313,9 +314,7 @@ function validateGeometryCoordinates(type, coordinates) {
                 coordinates.length >= minLength &&
                 coordinates.every(
                     (pos) =>
-                        Array.isArray(pos) &&
-                        pos.length >= 2 &&
-                        pos.every((n) => typeof n === 'number' && isFinite(n))
+                        Array.isArray(pos) && pos.length >= 2 && pos.every((n) => typeof n === 'number' && isFinite(n))
                 )
             );
 
@@ -415,9 +414,7 @@ export function validateGeoJson(geoJson, options = {}) {
 
         // Optional: validate each feature
         if (validateGeometry && geoJson.features.length > 0) {
-            return geoJson.features.every((feature) =>
-                validateGeoJson(feature, { validateGeometry: true, strict })
-            );
+            return geoJson.features.every((feature) => validateGeoJson(feature, { validateGeometry: true, strict }));
         }
 
         return true;
@@ -452,9 +449,7 @@ export function validateGeoJson(geoJson, options = {}) {
             }
 
             if (validateGeometry) {
-                return geoJson.geometries.every((geom) =>
-                    validateGeoJson(geom, { validateGeometry: true, strict })
-                );
+                return geoJson.geometries.every((geom) => validateGeoJson(geom, { validateGeometry: true, strict }));
             }
 
             return true;

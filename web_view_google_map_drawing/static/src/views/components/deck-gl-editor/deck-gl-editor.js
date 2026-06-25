@@ -1,20 +1,17 @@
 import { _t } from '@web/core/l10n/translation';
 import { debounce } from '@web/core/utils/timing';
 import { useService } from '@web/core/utils/hooks';
-import {
-    Component,
-    useEffect,
-    useState,
-    useRef,
-    onWillStart,
-    onWillDestroy,
-    onWillUpdateProps,
-} from '@odoo/owl';
+import { Component, useEffect, useState, useRef, onWillStart, onWillDestroy, onWillUpdateProps } from '@odoo/owl';
 import { hexToRgba, generateColor } from '@web_view_google_map/views/google_map/utils';
-import { loadDeckGlAssets, loadTurfJSAssets, validateGeoJson, calculateFeaturesTotalArea, hasGeoJsonChanged } from '../../../utils/utils';
+import {
+    loadDeckGlAssets,
+    loadTurfJSAssets,
+    validateGeoJson,
+    calculateFeaturesTotalArea,
+    hasGeoJsonChanged,
+} from '../../../utils/utils';
 import { DECKGL_CONFIG, STROKE_CONFIG } from '../../../utils/map_config';
 import { UploadGeoJsonFileDialog } from '../upload_geojson_dialog/upload_geojson_dialog';
-
 
 export class DeckGlEditor extends Component {
     static template = 'web_view_google_map_drawing.DeckGlEditor';
@@ -42,7 +39,7 @@ export class DeckGlEditor extends Component {
             selectedFeatures: new Set(), // Track selected feature IDs
             hoveredFeatureId: null, // Track hovered feature
         });
-        
+
         // Drag state management
         this.isDragging = false;
         this.dragStartPosition = null;
@@ -61,7 +58,7 @@ export class DeckGlEditor extends Component {
                     this._initializeDeckGLOverlay();
                 }
             },
-            () => [this.editorRef, this.props.googleMap],
+            () => [this.editorRef, this.props.googleMap]
         );
 
         onWillDestroy(() => this._cleanUp());
@@ -102,7 +99,6 @@ export class DeckGlEditor extends Component {
 
             // Initial data load
             this.debounceRenderGeoJsonData();
-
         } catch (error) {
             console.error('Failed to initialize Deck.gl overlay:', error);
             this.notificationService.add(
@@ -126,14 +122,14 @@ export class DeckGlEditor extends Component {
 
         const feature = info.object;
         const featureId = feature.properties?.id || feature.id || `feature_${Date.now()}`;
-        
+
         // Add unique ID to feature if it doesn't have one
         if (!feature.properties) feature.properties = {};
         if (!feature.properties.id) feature.properties.id = featureId;
 
         // Check if Ctrl/Cmd is held for multi-selection
         const isMultiSelect = info.srcEvent && (info.srcEvent.ctrlKey || info.srcEvent.metaKey);
-        
+
         if (isMultiSelect) {
             // Multi-selection: toggle the feature
             if (this.state.selectedFeatures.has(featureId)) {
@@ -148,7 +144,7 @@ export class DeckGlEditor extends Component {
         }
         // Update visual styling to reflect selection
         this._updateLayerStyling();
-        
+
         // Emit selection change event (if needed by parent components)
         this._notifySelectionChange();
     }
@@ -158,7 +154,7 @@ export class DeckGlEditor extends Component {
      */
     _updateLayerStyling() {
         if (!this.deckglOverlay) return;
-        
+
         // Re-render with updated styling
         this.renderGeoJsonData();
     }
@@ -168,7 +164,7 @@ export class DeckGlEditor extends Component {
      */
     _notifySelectionChange() {
         const selectedFeatureIds = Array.from(this.state.selectedFeatures);
-        
+
         // If parent needs to know about selection changes
         if (this.props.onSelectionChange) {
             this.props.onSelectionChange(selectedFeatureIds);
@@ -181,11 +177,11 @@ export class DeckGlEditor extends Component {
     _translateFeatures(featureIds, deltaX, deltaY) {
         if (!this.props.dataGeoJson?.features) return;
 
-        this.props.dataGeoJson.features.forEach(feature => {
+        this.props.dataGeoJson.features.forEach((feature) => {
             if (!featureIds.has(feature.properties?.id)) return;
 
             const geometry = feature.geometry;
-            
+
             switch (geometry.type) {
                 case 'Point':
                     geometry.coordinates[0] += deltaX;
@@ -194,7 +190,7 @@ export class DeckGlEditor extends Component {
 
                 case 'MultiPoint':
                 case 'LineString':
-                    geometry.coordinates.forEach(coord => {
+                    geometry.coordinates.forEach((coord) => {
                         coord[0] += deltaX;
                         coord[1] += deltaY;
                     });
@@ -202,8 +198,8 @@ export class DeckGlEditor extends Component {
 
                 case 'MultiLineString':
                 case 'Polygon':
-                    geometry.coordinates.forEach(ring => {
-                        ring.forEach(coord => {
+                    geometry.coordinates.forEach((ring) => {
+                        ring.forEach((coord) => {
                             coord[0] += deltaX;
                             coord[1] += deltaY;
                         });
@@ -211,9 +207,9 @@ export class DeckGlEditor extends Component {
                     break;
 
                 case 'MultiPolygon':
-                    geometry.coordinates.forEach(polygon => {
-                        polygon.forEach(ring => {
-                            ring.forEach(coord => {
+                    geometry.coordinates.forEach((polygon) => {
+                        polygon.forEach((ring) => {
+                            ring.forEach((coord) => {
                                 coord[0] += deltaX;
                                 coord[1] += deltaY;
                             });
@@ -249,9 +245,11 @@ export class DeckGlEditor extends Component {
                 }
             });
 
-            const polygons = dataGeoJson.features.filter(f => ['Polygon', 'MultiPolygon'].includes(f.geometry.type));
-            const points = dataGeoJson.features.filter(f => ['Point', 'MultiPoint'].includes(f.geometry.type));
-            const lines = dataGeoJson.features.filter(f => ['LineString', 'MultiLineString'].includes(f.geometry.type));
+            const polygons = dataGeoJson.features.filter((f) => ['Polygon', 'MultiPolygon'].includes(f.geometry.type));
+            const points = dataGeoJson.features.filter((f) => ['Point', 'MultiPoint'].includes(f.geometry.type));
+            const lines = dataGeoJson.features.filter((f) =>
+                ['LineString', 'MultiLineString'].includes(f.geometry.type)
+            );
 
             const color = generateColor();
             const normalFillColor = hexToRgba(color, 0.4, DECKGL_CONFIG.DEFAULT_COLORS.FILL);
@@ -295,13 +293,11 @@ export class DeckGlEditor extends Component {
                 // ScatterplotLayer for point features
                 new window.deck.ScatterplotLayer({
                     id: 'pointsLayer',
-                    data: points.map(f => ({
+                    data: points.map((f) => ({
                         ...f,
-                        position: f.geometry.type === 'Point'
-                            ? f.geometry.coordinates
-                            : f.geometry.coordinates[0]
+                        position: f.geometry.type === 'Point' ? f.geometry.coordinates : f.geometry.coordinates[0],
                     })),
-                    getPosition: d => d.position,
+                    getPosition: (d) => d.position,
                     getRadius: 6,
                     radiusUnits: 'pixels',
                     radiusMinPixels: 6,
@@ -315,7 +311,7 @@ export class DeckGlEditor extends Component {
                     pickable: true,
                     autoHighlight: true,
                     highlightColor: DECKGL_CONFIG.DEFAULT_COLORS.HOVERED_FILL,
-                })
+                }),
             ];
 
             this.deckglOverlay.setProps({ layers });
@@ -329,10 +325,10 @@ export class DeckGlEditor extends Component {
 
     async centerMapToFeatures(features) {
         if (!features || features.length === 0 || !this.props.googleMap) return;
-        
+
         const { LatLngBounds } = await this.env.apiLoader.importLibrary('core');
         const bounds = new LatLngBounds();
-        features.forEach(feature => {
+        features.forEach((feature) => {
             const coords = feature.geometry.coordinates;
             this._extendBounds(bounds, feature.geometry.type, coords);
         });
@@ -346,22 +342,22 @@ export class DeckGlEditor extends Component {
                 break;
             case 'MultiPoint':
             case 'LineString':
-                coords.forEach(coord => {
+                coords.forEach((coord) => {
                     bounds.extend(new google.maps.LatLng(coord[1], coord[0]));
                 });
                 break;
             case 'MultiLineString':
             case 'Polygon':
-                coords.forEach(ring => {
-                    ring.forEach(coord => {
+                coords.forEach((ring) => {
+                    ring.forEach((coord) => {
                         bounds.extend(new google.maps.LatLng(coord[1], coord[0]));
                     });
                 });
                 break;
             case 'MultiPolygon':
-                coords.forEach(polygon => {
-                    polygon.forEach(ring => {
-                        ring.forEach(coord => {
+                coords.forEach((polygon) => {
+                    polygon.forEach((ring) => {
+                        ring.forEach((coord) => {
                             bounds.extend(new google.maps.LatLng(coord[1], coord[0]));
                         });
                     });
@@ -375,7 +371,7 @@ export class DeckGlEditor extends Component {
     /**
      * Public API methods for parent components
      */
-    
+
     /**
      * Clear all selections
      */
@@ -427,35 +423,25 @@ export class DeckGlEditor extends Component {
                         strict: false,
                     });
                     if (!isValid) {
-                        this.notificationService.add(
-                            _t('The imported file is not a valid GeoJSON.'),
-                            { type: 'danger' }
-                        );
+                        this.notificationService.add(_t('The imported file is not a valid GeoJSON.'), {
+                            type: 'danger',
+                        });
                         resolve(false);
                         return;
                     }
                     // Update the data and re-render
-                    this.notificationService.add(
-                        _t('GeoJSON file imported successfully.'),
-                        { type: 'success' }
-                    );
+                    this.notificationService.add(_t('GeoJSON file imported successfully.'), { type: 'success' });
                     const totalArea = calculateFeaturesTotalArea(geojson.features);
                     await this.props.saveFeatures(geojson, totalArea);
                     resolve(true);
                 } catch (error) {
                     console.error('Error parsing imported GeoJSON file:', error);
-                    this.notificationService.add(
-                        _t('Failed to parse the imported GeoJSON file.'),
-                        { type: 'danger' }
-                    );
+                    this.notificationService.add(_t('Failed to parse the imported GeoJSON file.'), { type: 'danger' });
                     resolve(false);
                 }
             };
             reader.onerror = () => {
-                this.notificationService.add(
-                    _t('Failed to read the imported GeoJSON file.'),
-                    { type: 'danger' }
-                );
+                this.notificationService.add(_t('Failed to read the imported GeoJSON file.'), { type: 'danger' });
                 resolve(false);
             };
             reader.readAsText(file);
@@ -515,9 +501,13 @@ export class DeckGlEditor extends Component {
         }
 
         try {
-            const polygonFeatures = this.props.dataGeoJson.features.filter(f => ['Polygon', 'MultiPolygon'].includes(f.geometry.type));
+            const polygonFeatures = this.props.dataGeoJson.features.filter((f) =>
+                ['Polygon', 'MultiPolygon'].includes(f.geometry.type)
+            );
             if (polygonFeatures.length === 0) {
-                this.notificationService.add(_t('No polygon features available to calculate area.'), { type: 'warning' });
+                this.notificationService.add(_t('No polygon features available to calculate area.'), {
+                    type: 'warning',
+                });
                 return;
             }
             const totalArea = calculateFeaturesTotalArea(polygonFeatures);
@@ -563,5 +553,4 @@ export class DeckGlEditor extends Component {
             }
         }
     }
-
 }

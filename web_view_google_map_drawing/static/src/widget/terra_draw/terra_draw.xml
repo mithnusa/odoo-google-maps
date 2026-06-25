@@ -9,40 +9,40 @@
             <t t-if="state.isMapReady">
                 <t t-if="props.readonly">
                     <!-- Conditional Rendering: DeckGL for complex features -->
-                    <DeckGlEditor 
-                        dataGeoJson="geoJson" 
-                        googleMap="googleMap" 
+                    <DeckGlEditor
+                        dataGeoJson="geoJson"
+                        googleMap="googleMap"
                         record="props.record"
-                        saveFeatures.bind="handleSave" 
+                        saveFeatures.bind="handleSave"
                         saveFeaturesTotalArea.bind="handleSaveFeatureTotalArea"
                         readonly="props.readonly"
                         renderingMode="state.renderingMode"/>
                 </t>
                 <t t-elif="!props.readonly &amp;&amp; state.renderingMode === 'terra-draw'">
                     <!-- Conditional Rendering: Terra Draw for simple features -->
-                    <TerraDrawToolsUI 
-                        dataGeoJson="geoJson" 
-                        googleMap="googleMap" 
-                        saveFeatures.bind="handleSave" 
+                    <TerraDrawToolsUI
+                        dataGeoJson="geoJson"
+                        googleMap="googleMap"
+                        saveFeatures.bind="handleSave"
                         record="props.record"
                         renderingMode="state.renderingMode"/>
                 </t>
                 <t t-elif="!props.readonly &amp;&amp; state.renderingMode === 'deckgl'">
                     <!-- Conditional Rendering: DeckGL for complex features -->
-                    <DeckGlEditor 
-                        dataGeoJson="geoJson" 
-                        googleMap="googleMap" 
-                        record="props.record" 
+                    <DeckGlEditor
+                        dataGeoJson="geoJson"
+                        googleMap="googleMap"
+                        record="props.record"
                         saveFeatures.bind="handleSave"
                         saveFeaturesTotalArea.bind="handleSaveFeatureTotalArea"
                         renderingMode="state.renderingMode"
                         readonly="props.readonly"/>
                 </t>
                 <t t-else="">
-                    <DeckGlEditor 
-                        dataGeoJson="geoJson" 
-                        googleMap="googleMap" 
-                        record="props.record" 
+                    <DeckGlEditor
+                        dataGeoJson="geoJson"
+                        googleMap="googleMap"
+                        record="props.record"
                         saveFeatures.bind="handleSave"
                         saveFeaturesTotalArea.bind="handleSaveFeatureTotalArea"
                         renderingMode="state.renderingMode"
