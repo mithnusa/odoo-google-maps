@@ -77,12 +77,34 @@ export class GoogleMapStreetViewSideBySideDialog extends Component {
             this._locationMarker = null;
         }
         if (this.panorama) {
+            // Stop active tile fetching before removing. Without setVisible(false)
+            // the panorama keeps requesting imagery tiles even after the dialog
+            // closes, which causes 429s on rapid open/close cycles.
+            this.panorama.setVisible(false);
+            if (this.googleMap) {
+                // Break the MVC binding created by map.setStreetView(panorama).
+                // Without this, both objects stay alive in the Maps API internals
+                // even after we null our references.
+                this.googleMap.setStreetView(null);
+            }
             google.maps.event.clearInstanceListeners(this.panorama);
+            this.panorama.unbindAll();
             this.panorama = null;
         }
         if (this.googleMap) {
             google.maps.event.clearInstanceListeners(this.googleMap);
+            this.googleMap.unbindAll();
             this.googleMap = null;
+        }
+        // Remove the canvas elements so the browser can release their WebGL
+        // contexts immediately rather than waiting for GC. Without this, rapid
+        // open/close cycles exhaust the browser's WebGL context limit (~16) and
+        // cause subsequent map renders to go blank.
+        if (this.mapRef.el) {
+            this.mapRef.el.innerHTML = '';
+        }
+        if (this.streetViewRef.el) {
+            this.streetViewRef.el.innerHTML = '';
         }
     }
 
