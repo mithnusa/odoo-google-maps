@@ -112,15 +112,12 @@ export class GoogleMapStreetViewSideBySideDialog extends Component {
         if (this.googleMap || this._initInProgress) return;
         try {
             this._initInProgress = true;
-            const [
-                { Map },
-                { StreetViewPanorama, StreetViewService, StreetViewStatus },
-                { AdvancedMarkerElement },
-            ] = await Promise.all([
-                this.apiLoader.importLibrary('maps'),
-                this.apiLoader.importLibrary('streetView'),
-                this.apiLoader.importLibrary('marker'),
-            ]);
+            const [{ Map }, { StreetViewPanorama, StreetViewService, StreetViewStatus }, { AdvancedMarkerElement }] =
+                await Promise.all([
+                    this.apiLoader.importLibrary('maps'),
+                    this.apiLoader.importLibrary('streetView'),
+                    this.apiLoader.importLibrary('marker'),
+                ]);
 
             if (!this._isMounted) return;
 
@@ -142,9 +139,8 @@ export class GoogleMapStreetViewSideBySideDialog extends Component {
             // (the Promise-based API rejects for any non-OK status, which would
             // be caught by the outer catch and wrongly show an error notification).
             const svStatus = await new Promise((resolve) => {
-                new StreetViewService().getPanorama(
-                    { location: position, radius: 50 },
-                    (_data, status) => resolve(status)
+                new StreetViewService().getPanorama({ location: position, radius: 50 }, (_data, status) =>
+                    resolve(status)
                 );
             });
 
@@ -190,11 +186,7 @@ export class GoogleMapStreetViewSideBySideDialog extends Component {
         }
 
         if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
-            throw new Error(
-                _t(
-                    'Latitude must be between -90 and 90, and longitude must be between -180 and 180.'
-                )
-            );
+            throw new Error(_t('Latitude must be between -90 and 90, and longitude must be between -180 and 180.'));
         }
 
         if (zoom < 0 || zoom > 5) {
