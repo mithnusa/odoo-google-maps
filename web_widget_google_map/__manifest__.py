@@ -28,10 +28,12 @@ Provides:
     "depends": ["base_google_map"],
     "assets": {
         "web.assets_backend": [
-            "web_widget_google_map/static/src/components/geolocate/geolocate.js",
+            "web_widget_google_map/static/src/components/geolocate/geolocate.scss",
             "web_widget_google_map/static/src/components/geolocate/geolocate.xml",
-            "web_widget_google_map/static/src/components/search_places/search_places.js",
+            "web_widget_google_map/static/src/components/geolocate/geolocate.js",
+            "web_widget_google_map/static/src/components/search_places/search_places.scss",
             "web_widget_google_map/static/src/components/search_places/search_places.xml",
+            "web_widget_google_map/static/src/components/search_places/search_places.js",
             "web_widget_google_map/static/src/widgets/GoogleMap/google_map.scss",
             "web_widget_google_map/static/src/widgets/GoogleMap/google_map.js",
             "web_widget_google_map/static/src/widgets/GoogleMap/google_map.xml",
