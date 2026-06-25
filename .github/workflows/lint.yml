@@ -24,20 +24,25 @@ jobs:
         run: |
           pip install pylint "pylint-odoo>=9.0" "astroid>=3.0"
 
-      - name: Find all module paths
-        id: modules
-        run: |
-          modules=$(find . -maxdepth 2 -name "__manifest__.py" \
-            | xargs -I{} dirname {} \
-            | sort \
-            | tr '\n' ',')
-          echo "paths=$modules" >> $GITHUB_OUTPUT
-
       - name: Run pylint-odoo
+        shell: bash
         run: |
+          set -euo pipefail
+
+          mapfile -d '' modules < <(
+            find . -mindepth 2 -maxdepth 2 -name "__manifest__.py" -print0 \
+              | xargs -0 -n1 dirname \
+              | sort -zu
+          )
+
+          if [[ ${#modules[@]} -eq 0 ]]; then
+            echo "No Odoo modules found (no __manifest__.py discovered)."
+            exit 1
+          fi
+
           pylint \
             --load-plugins=pylint_odoo \
             --disable=all \
             --enable=odoolint \
             --disable=manifest-required-author,manifest-deprecated-key,manifest-version-format,attribute-string-redundant,translation-positional-used,missing-readme \
-            ${{ steps.modules.outputs.paths }}
+            "${modules[@]}"
