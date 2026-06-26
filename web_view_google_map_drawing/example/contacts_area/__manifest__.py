@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'Partner Area (Google Maps Drawing demo implementation)',
-    'version': '1.0.0',
+    'version': '19.0.1.0.0',
     'author': 'Yopi Angi',
     'license': 'LGPL-3',
     'maintainer': 'Yopi Angi<yopiangi@gmail.com>',
@@ -22,11 +22,7 @@ Partner Area
         'views/res_partner.xml',
         'wizard/geojson_upload_wizard_views.xml',
     ],
-    'assets': {
-        'web.assets_backend': [
-            'contacts_area/static/src/views/*'
-        ]
-    },
+    'assets': {'web.assets_backend': ['contacts_area/static/src/views/*']},
     'demo': [],
     'installable': True,
 }

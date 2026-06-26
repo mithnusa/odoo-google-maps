@@ -23,7 +23,7 @@ Provides:
     'website': 'https://github.com/mithnusa',
     'support': 'yopiangi@gmail.com',
     'category': 'Project',
-    'version': '1.0.4',
+    'version': '19.0.1.0.4',
     'depends': [
         'project',
         'web_view_google_map',

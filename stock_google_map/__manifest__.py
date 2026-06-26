@@ -20,7 +20,7 @@ Provides:
     'website': 'https://github.com/mithnusa',
     'support': 'yopiangi@gmail.com',
     'category': 'Inventory',
-    'version': '1.0.1',
+    'version': '19.0.1.0.1',
     'depends': ['sale_stock', 'stock_delivery', 'web_view_google_map'],
     'data': ['views/stock_picking.xml'],
     'installable': True,
