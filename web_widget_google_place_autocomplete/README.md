@@ -17,6 +17,7 @@ Adds a configurable autocomplete widget that can be applied to any Char field in
 - **Geolocation Storage**: Each mapping designates which Float fields receive the selected place's latitude and longitude
 - **Country Street Format**: Controls whether addresses are formatted as "Route + Number" or "Number + Route" per country
 - **No Manual Edit Mode**: An optional `no_manual_edit` option makes the input read-only, requiring users to select from suggestions
+- **Configuration Validation Warnings**: Inline alerts on the mapping form warn when required fetch fields (`addressComponents`, `location`) are missing from the configured fetch-field list
 - **Mapping Test Tool**: Built-in test on the mapping form lets administrators verify what data will be returned before deploying
 - **Quick Access Button**: Shortcut button next to the autocomplete field opens the mapping configuration (visible to Technical Feature users)
 

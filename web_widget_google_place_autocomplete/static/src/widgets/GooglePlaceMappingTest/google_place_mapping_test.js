@@ -89,10 +89,9 @@ export class GooglePlaceMappingTestField extends Component {
             });
         } catch (error) {
             console.error('Failed to populate values from Google Place:', { error, data });
-            this.notificationService.add(
-                _t('Failed to populate address fields from Google Place. Please try again.'),
-                { type: 'warning' }
-            );
+            this.notificationService.add(_t('Failed to populate address fields from Google Place. Please try again.'), {
+                type: 'warning',
+            });
         }
     }
 
@@ -116,9 +115,7 @@ export class GooglePlaceMappingTestField extends Component {
                 ? formatStringToArray(data.gplace_address_fetch_fields)
                 : [];
         } else {
-            config.fields = data.gplace_place_fetch_fields
-                ? formatStringToArray(data.gplace_place_fetch_fields)
-                : [];
+            config.fields = data.gplace_place_fetch_fields ? formatStringToArray(data.gplace_place_fetch_fields) : [];
         }
 
         config.resModel = record.resModel || '';
@@ -126,7 +123,7 @@ export class GooglePlaceMappingTestField extends Component {
     }
 
     reloadTestPlaceAutocomplete() {
-        return this.actionService.doAction({type: 'ir.actions.client', tag: 'reload'});
+        return this.actionService.doAction({ type: 'ir.actions.client', tag: 'reload' });
     }
 }
 

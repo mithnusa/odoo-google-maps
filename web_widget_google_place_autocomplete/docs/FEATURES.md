@@ -67,6 +67,15 @@
 
 ---
 
+### Configuration Validation Warnings
+**What it does**: Shows inline alert banners on the mapping configuration form when required fetch fields are missing from the configured list.
+
+**Why it matters**: A common misconfiguration is forgetting to include `addressComponents` or `location` in the fetch fields while having address or geolocation mappings defined. The warnings catch this at configuration time rather than silently returning empty data at runtime.
+
+**How it works**: Two computed fields — `is_address_component_missing` and `is_location_field_missing` — re-evaluate whenever the fetch fields or geolocation fields change. If `addressComponents` is absent while address mapping lines exist, a warning alert appears above the mapping sections. If `location` is absent while `latitude` or `longitude` fields are configured, a second alert is shown.
+
+---
+
 ### Mapping Test Tool
 **What it does**: A built-in test field on the mapping configuration form lets administrators search for a real place and see the exact parsed data that would be written to the record.
 
