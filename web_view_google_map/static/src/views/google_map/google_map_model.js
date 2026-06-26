@@ -6,7 +6,6 @@ import { Domain } from '@web/core/domain';
 import { parseRecord, generateColor } from './utils';
 import { gMapViewAttrsContextManager } from '../../helpers/view_attrs_context_manager';
 
-
 export class GoogleMapGroup extends Group {
     /**
      * Override

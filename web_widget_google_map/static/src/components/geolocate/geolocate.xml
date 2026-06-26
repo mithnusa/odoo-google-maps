@@ -1,13 +1,18 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" ?>
 <templates xml:space="preserve">
     <t t-name="web_widget_google_map.Geolocate">
-        <span></span>
+        <span />
     </t>
     <t t-name="web_widget_google_map.GeolocateBtn">
         <div id="custom-control-geolocate" class="button-geolocate-user">
             <div class="button_geolocate_user">
-                <button class="btn btn-sm btn-light rounded-5 shadow-sm" type="button" data-tooltip="Get Current location" aria-label="Get Current location">
-                    <i class="fa fa-location-arrow fa-2x text-700"></i>
+                <button
+                    class="btn btn-sm btn-light rounded-5 shadow-sm"
+                    type="button"
+                    data-tooltip="Get Current location"
+                    aria-label="Get Current location"
+                >
+                    <i class="fa fa-location-arrow fa-2x text-700" />
                 </button>
             </div>
         </div>
@@ -16,15 +21,19 @@
         <svg xmlns="http://www.w3.org/2000/svg" width="28" height="36" viewBox="0 0 28 36">
             <defs>
                 <radialGradient id="geoPin" cx="40%" cy="30%" r="65%">
-                    <stop offset="0%" stop-color="#5b9cf6"/>
-                    <stop offset="100%" stop-color="#1a56c4"/>
+                    <stop offset="0%" stop-color="#5b9cf6" />
+                    <stop offset="100%" stop-color="#1a56c4" />
                 </radialGradient>
                 <filter id="geoPinShadow" x="-25%" y="-10%" width="150%" height="145%">
-                    <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="rgba(0,0,0,0.30)"/>
+                    <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="rgba(0,0,0,0.30)" />
                 </filter>
             </defs>
-            <path d="M14 0C6.268 0 0 6.268 0 14c0 9.625 14 22 14 22S28 23.625 28 14C28 6.268 21.732 0 14 0z" fill="url(#geoPin)" filter="url(#geoPinShadow)"/>
-            <circle cx="14" cy="13" r="5" fill="white" opacity="0.92"/>
+            <path
+                d="M14 0C6.268 0 0 6.268 0 14c0 9.625 14 22 14 22S28 23.625 28 14C28 6.268 21.732 0 14 0z"
+                fill="url(#geoPin)"
+                filter="url(#geoPinShadow)"
+            />
+            <circle cx="14" cy="13" r="5" fill="white" opacity="0.92" />
         </svg>
     </t>
 </templates>

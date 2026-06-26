@@ -8,7 +8,7 @@ import { useService } from '@web/core/utils/hooks';
 import { user } from '@web/core/user';
 import { Domain } from '@web/core/domain';
 import { unique } from '@web/core/utils/arrays';
-import { FormViewDialog } from "@web/views/view_dialogs/form_view_dialog";
+import { FormViewDialog } from '@web/views/view_dialogs/form_view_dialog';
 import { download } from '@web/core/network/download';
 import { ConfirmationDialog } from '@web/core/confirmation_dialog/confirmation_dialog';
 import { omit } from '@web/core/utils/objects';
@@ -28,15 +28,7 @@ import { useExportRecords, useDeleteRecords } from '@web/views/view_hook';
 import { GoogleMapSearchBar } from './google_map_search_bar';
 import { GoogleMapStreetViewSideBySideDialog } from '@web_widget_google_map/widgets/GoogleMapStreetViewSideBySideDialog/google_map_street_view_side_by_side_dialog';
 
-import {
-    Component,
-    useRef,
-    onWillStart,
-    onWillPatch,
-    useState,
-    useSubEnv,
-    useEffect,
-} from '@odoo/owl';
+import { Component, useRef, onWillStart, onWillPatch, useState, useSubEnv, useEffect } from '@odoo/owl';
 
 const DEFAULT_NEARBY_RADIUS = 1000; // meters
 
@@ -83,9 +75,7 @@ export class GoogleMapController extends Component {
 
         this.activeActions = this.props.archInfo.activeActions;
         this.multiEdit = this.props.archInfo.multiEdit;
-        this.model = useState(
-            useModelWithSampleData(this.props.Model, this.modelParams, this.modelOptions)
-        );
+        this.model = useState(useModelWithSampleData(this.props.Model, this.modelParams, this.modelOptions));
 
         this.archiveEnabled =
             'active' in this.props.fields
@@ -158,9 +148,7 @@ export class GoogleMapController extends Component {
         this._onConfirmArchive = () => this.toggleArchiveState(true);
         this._onCancelArchive = () => {};
 
-        this.exportRecords = useExportRecords(this.env, this.props.context, () =>
-            this.getExportableFields()
-        );
+        this.exportRecords = useExportRecords(this.env, this.props.context, () => this.getExportableFields());
 
         this.deleteRecordsWithConfirmation = useDeleteRecords(this.model);
     }
@@ -363,7 +351,7 @@ export class GoogleMapController extends Component {
                 readonly: this.props.readonly,
                 onRecordSaved: async (record) => {
                     this.actionService.doAction({
-                        type: "ir.actions.act_window_close",
+                        type: 'ir.actions.act_window_close',
                     });
                     await record.load();
                     record.model.notify();
@@ -429,25 +417,26 @@ export class GoogleMapController extends Component {
     showNearbyRecords(record, searchRadius) {
         const { latitudeField, longitudeField } = this.archInfo;
         if (!latitudeField || !longitudeField) {
-            this.notificationService.add(
-                _t('This view is not configured with latitude and longitude fields.'),
-                { type: 'warning' }
-            );
+            this.notificationService.add(_t('This view is not configured with latitude and longitude fields.'), {
+                type: 'warning',
+            });
             return;
         }
         const lat = record.data[latitudeField];
         const lng = record.data[longitudeField];
         if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
-            this.notificationService.add(
-                _t('The selected record does not have valid geolocation data.'),
-                { type: 'warning' }
-            );
+            this.notificationService.add(_t('The selected record does not have valid geolocation data.'), {
+                type: 'warning',
+            });
             return;
         }
-        const radius = (Number.isFinite(searchRadius) && searchRadius > 0) ? searchRadius : DEFAULT_NEARBY_RADIUS;
+        const radius = Number.isFinite(searchRadius) && searchRadius > 0 ? searchRadius : DEFAULT_NEARBY_RADIUS;
         const { domain, boundingBox } = this._computeBoundingBoxDomain(lat, lng, radius);
         const viewTitle = this.archInfo.viewTitle || _t('Records');
-        const title =  _t('Nearby %(title)s (within %(radius)s km)', { title: viewTitle, radius: (radius / 1000).toFixed(1) });
+        const title = _t('Nearby %(title)s (within %(radius)s km)', {
+            title: viewTitle,
+            radius: (radius / 1000).toFixed(1),
+        });
         const context = {
             ...(this.props.context || record.context),
             is_nearby_search: true,
@@ -461,10 +450,9 @@ export class GoogleMapController extends Component {
     showGoogleStreetViewSideBySide(record) {
         const { latitudeField, longitudeField, sidebarTitleField } = this.archInfo;
         if (!latitudeField || !longitudeField) {
-            this.notificationService.add(
-                _t('This view is not configured with latitude and longitude fields.'),
-                { type: 'warning' }
-            );
+            this.notificationService.add(_t('This view is not configured with latitude and longitude fields.'), {
+                type: 'warning',
+            });
             return;
         }
 
@@ -506,26 +494,14 @@ export class GoogleMapController extends Component {
         let lngDomain;
         if (maxLng > 180) {
             // e.g. centre lng=179, maxLng=182 → lng >= 176 OR lng <= -178
-            lngDomain = Domain.or([
-                [[longitudeField, '>=', minLng]],
-                [[longitudeField, '<=', maxLng - 360]]
-            ]);
+            lngDomain = Domain.or([[[longitudeField, '>=', minLng]], [[longitudeField, '<=', maxLng - 360]]]);
         } else if (minLng < -180) {
             // e.g. centre lng=-179, minLng=-182  →  lng <= maxLng OR lng >= minLng+360
-            lngDomain = Domain.or([
-                [[longitudeField, '>=', minLng + 360]],
-                [[longitudeField, '<=', maxLng]]
-            ]);
+            lngDomain = Domain.or([[[longitudeField, '>=', minLng + 360]], [[longitudeField, '<=', maxLng]]]);
         } else {
-            lngDomain = Domain.and([
-                [[longitudeField, '>=', minLng]],
-                [[longitudeField, '<=', maxLng]]
-            ]);
+            lngDomain = Domain.and([[[longitudeField, '>=', minLng]], [[longitudeField, '<=', maxLng]]]);
         }
-        const latDomain = Domain.and([
-            [[latitudeField, '>=', minLat]],
-            [[latitudeField, '<=', maxLat]],
-        ]);
+        const latDomain = Domain.and([[[latitudeField, '>=', minLat]], [[latitudeField, '<=', maxLat]]]);
         return {
             domain: Domain.and([latDomain, lngDomain]).toList(),
             boundingBox: {
@@ -563,10 +539,7 @@ export class GoogleMapController extends Component {
      * @returns String
      */
     _getRecordName(record) {
-        if (
-            this.props.archInfo.sidebarTitleField &&
-            this.props.archInfo.sidebarTitleField in record.data
-        ) {
+        if (this.props.archInfo.sidebarTitleField && this.props.archInfo.sidebarTitleField in record.data) {
             return record.data[this.props.archInfo.sidebarTitleField];
         } else if ('name' in record.data) {
             return record.data.name;
@@ -588,16 +561,13 @@ export class GoogleMapController extends Component {
             if (this.env.isSmall) {
                 this.rootRef.el.scrollTop = 0;
             } else {
-                this.rootRef.el.querySelector(".o_content").scrollTop = 0;
+                this.rootRef.el.querySelector('.o_content').scrollTop = 0;
             }
         }
     }
 
     get modelParams() {
-        const { activeFields, fields } = extractFieldsFromArchInfo(
-            this.archInfo,
-            this.props.fields
-        );
+        const { activeFields, fields } = extractFieldsFromArchInfo(this.archInfo, this.props.fields);
 
         const groupByInfo = {};
         for (const fieldName in this.archInfo.groupBy.fields) {
@@ -614,7 +584,10 @@ export class GoogleMapController extends Component {
         };
 
         const viewConfig = this.viewMapConfig;
-        const groupsLimit = Number.isFinite(this.archInfo.groupsLimit) && this.archInfo.groupsLimit > 0 ? this.archInfo.groupsLimit : Number.MAX_SAFE_INTEGER;
+        const groupsLimit =
+            Number.isFinite(this.archInfo.groupsLimit) && this.archInfo.groupsLimit > 0
+                ? this.archInfo.groupsLimit
+                : Number.MAX_SAFE_INTEGER;
         return {
             config: modelConfig,
             state: this.props.state?.modelState,
@@ -637,12 +610,12 @@ export class GoogleMapController extends Component {
     getExportableFields() {
         return unique(
             this.props.archInfo.columns
-                .filter((col) => col.type === "field")
+                .filter((col) => col.type === 'field')
                 .filter((col) => !col.optional)
                 .filter((col) => !this.evalViewModifier(col.column_invisible, this.props.context))
                 .map((col) => this.props.fields[col.name])
                 .filter((field) => field.exportable !== false)
-                .filter((field) => field.type !== "properties")
+                .filter((field) => field.type !== 'properties')
         );
     }
 
@@ -661,10 +634,7 @@ export class GoogleMapController extends Component {
             .filter(([key, item]) => item.isAvailable === undefined || item.isAvailable())
             .sort(([k1, item1], [k2, item2]) => (item1.sequence || 0) - (item2.sequence || 0))
             .map(([key, item]) =>
-                Object.assign(
-                    { key, groupNumber: STATIC_ACTIONS_GROUP_NUMBER },
-                    omit(item, 'isAvailable')
-                )
+                Object.assign({ key, groupNumber: STATIC_ACTIONS_GROUP_NUMBER }, omit(item, 'isAvailable'))
             );
 
         return {
@@ -695,10 +665,7 @@ export class GoogleMapController extends Component {
 
     get modelOptions() {
         return {
-            lazy:
-                !this.env.config.isReloadingController &&
-                !this.env.inDialog &&
-                !!this.props.display.controlPanel,
+            lazy: !this.env.config.isReloadingController && !this.env.inDialog && !!this.props.display.controlPanel,
         };
     }
 
@@ -775,13 +742,7 @@ export class GoogleMapController extends Component {
     }
 
     get viewMapConfig() {
-        const {
-            latitudeField,
-            longitudeField,
-            sidebarTitleField,
-            sidebarSubtitleField,
-            __geoColor,
-        } = this.archInfo;
+        const { latitudeField, longitudeField, sidebarTitleField, sidebarSubtitleField, __geoColor } = this.archInfo;
 
         return {
             lat: latitudeField,

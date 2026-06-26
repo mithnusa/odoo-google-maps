@@ -77,12 +77,34 @@ export class GoogleMapStreetViewSideBySideDialog extends Component {
             this._locationMarker = null;
         }
         if (this.panorama) {
+            // Stop active tile fetching before removing. Without setVisible(false)
+            // the panorama keeps requesting imagery tiles even after the dialog
+            // closes, which causes 429s on rapid open/close cycles.
+            this.panorama.setVisible(false);
+            if (this.googleMap) {
+                // Break the MVC binding created by map.setStreetView(panorama).
+                // Without this, both objects stay alive in the Maps API internals
+                // even after we null our references.
+                this.googleMap.setStreetView(null);
+            }
             google.maps.event.clearInstanceListeners(this.panorama);
+            this.panorama.unbindAll();
             this.panorama = null;
         }
         if (this.googleMap) {
             google.maps.event.clearInstanceListeners(this.googleMap);
+            this.googleMap.unbindAll();
             this.googleMap = null;
+        }
+        // Remove the canvas elements so the browser can release their WebGL
+        // contexts immediately rather than waiting for GC. Without this, rapid
+        // open/close cycles exhaust the browser's WebGL context limit (~16) and
+        // cause subsequent map renders to go blank.
+        if (this.mapRef.el) {
+            this.mapRef.el.innerHTML = '';
+        }
+        if (this.streetViewRef.el) {
+            this.streetViewRef.el.innerHTML = '';
         }
     }
 
@@ -90,15 +112,12 @@ export class GoogleMapStreetViewSideBySideDialog extends Component {
         if (this.googleMap || this._initInProgress) return;
         try {
             this._initInProgress = true;
-            const [
-                { Map },
-                { StreetViewPanorama, StreetViewService, StreetViewStatus },
-                { AdvancedMarkerElement },
-            ] = await Promise.all([
-                this.apiLoader.importLibrary('maps'),
-                this.apiLoader.importLibrary('streetView'),
-                this.apiLoader.importLibrary('marker'),
-            ]);
+            const [{ Map }, { StreetViewPanorama, StreetViewService, StreetViewStatus }, { AdvancedMarkerElement }] =
+                await Promise.all([
+                    this.apiLoader.importLibrary('maps'),
+                    this.apiLoader.importLibrary('streetView'),
+                    this.apiLoader.importLibrary('marker'),
+                ]);
 
             if (!this._isMounted) return;
 
@@ -120,9 +139,8 @@ export class GoogleMapStreetViewSideBySideDialog extends Component {
             // (the Promise-based API rejects for any non-OK status, which would
             // be caught by the outer catch and wrongly show an error notification).
             const svStatus = await new Promise((resolve) => {
-                new StreetViewService().getPanorama(
-                    { location: position, radius: 50 },
-                    (_data, status) => resolve(status)
+                new StreetViewService().getPanorama({ location: position, radius: 50 }, (_data, status) =>
+                    resolve(status)
                 );
             });
 
@@ -168,11 +186,7 @@ export class GoogleMapStreetViewSideBySideDialog extends Component {
         }
 
         if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
-            throw new Error(
-                _t(
-                    'Latitude must be between -90 and 90, and longitude must be between -180 and 180.'
-                )
-            );
+            throw new Error(_t('Latitude must be between -90 and 90, and longitude must be between -180 and 180.'));
         }
 
         if (zoom < 0 || zoom > 5) {
@@ -184,7 +198,7 @@ export class GoogleMapStreetViewSideBySideDialog extends Component {
         }
 
         if (heading < 0 || heading >= 360) {
-            throw new Error(_t('Heading must be between 0 and 360.'));
+            throw new Error(_t('Heading must be between 0 (inclusive) and 360 (exclusive).'));
         }
     }
 }
