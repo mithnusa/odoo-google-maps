@@ -1,27 +1,31 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8" ?>
 <odoo>
     <record id="view_res_partner_area_form" model="ir.ui.view">
         <field name="name">view.res.partner.area.form</field>
         <field name="model">res.partner.area</field>
         <field name="arch" type="xml">
             <form string="Land">
-                <field name="gshape_geojson" widget="google_map_terra_draw" options="{'map_type_id': 'hybrid', 'default_zoom': 14, 'default_center': [-6.175664127601439, 106.82703162885998], 'field_area': 'gshape_area'}"/>
+                <field
+                    name="gshape_geojson"
+                    widget="google_map_terra_draw"
+                    options="{'map_type_id': 'hybrid', 'default_zoom': 14, 'default_center': [-6.175664127601439, 106.82703162885998], 'field_area': 'gshape_area'}"
+                />
                 <group>
                     <group>
-                        <field name="gshape_name" required="1" placeholder="Name"/>
-                        <field name="partner_id"/>
+                        <field name="gshape_name" required="1" placeholder="Name" />
+                        <field name="partner_id" />
                     </group>
                     <group>
-                        <label for="gshape_area"/>
+                        <label for="gshape_area" />
                         <div>
-                            <field name="gshape_area" class="oe_inline" nolabel="1"/>
+                            <field name="gshape_area" class="oe_inline" nolabel="1" />
                             <span>m</span>
                             <sup>2</sup>
                         </div>
-                        <field name="gshape_color" widget="color_picker"/>
+                        <field name="gshape_color" widget="color_picker" />
                     </group>
                 </group>
-                <field name="gshape_description" placeholder="Description"/>
+                <field name="gshape_description" placeholder="Description" />
             </form>
         </field>
     </record>
@@ -30,11 +34,11 @@
         <field name="model">res.partner.area</field>
         <field name="arch" type="xml">
             <list string="Land">
-                <field name="partner_id"/>
-                <field name="gshape_color" widget="color_picker" string=""/>
-                <field name="gshape_name"/>
-                <field name="gshape_area"/>
-                <field name="gshape_description"/>
+                <field name="partner_id" />
+                <field name="gshape_color" widget="color_picker" string="" />
+                <field name="gshape_name" />
+                <field name="gshape_area" />
+                <field name="gshape_description" />
             </list>
         </field>
     </record>
@@ -42,13 +46,20 @@
         <field name="name">view.res.partner.area.map</field>
         <field name="model">res.partner.area</field>
         <field name="arch" type="xml">
-            <google_map js_class="google_map_drawing" geojson="gshape_geojson" string="Land" color="gshape_color" sidebar_title="gshape_name" sidebar_subtitle="partner_id">
-                <field name="partner_id"/>
-                <field name="gshape_name"/>
-                <field name="gshape_area"/>
-                <field name="gshape_description"/>
-                <field name="gshape_geojson"/>
-                <field name="gshape_color"/>
+            <google_map
+                js_class="google_map_drawing"
+                geojson="gshape_geojson"
+                string="Land"
+                color="gshape_color"
+                sidebar_title="gshape_name"
+                sidebar_subtitle="partner_id"
+            >
+                <field name="partner_id" />
+                <field name="gshape_name" />
+                <field name="gshape_area" />
+                <field name="gshape_description" />
+                <field name="gshape_geojson" />
+                <field name="gshape_color" />
             </google_map>
         </field>
     </record>
@@ -63,6 +74,11 @@
         <field name="sequence">10</field>
     </record>
 
-    <menuitem id="menu_partner_area" name="Land" sequence="2" action="action_res_partner_area" parent="contacts.menu_contacts"/>
-
+    <menuitem
+        id="menu_partner_area"
+        name="Land"
+        sequence="2"
+        action="action_res_partner_area"
+        parent="contacts.menu_contacts"
+    />
 </odoo>

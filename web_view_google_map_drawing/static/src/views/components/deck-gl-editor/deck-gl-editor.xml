@@ -1,27 +1,33 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" ?>
 <templates xml:space="preserve">
     <div t-name="web_view_google_map_drawing.DeckGlEditor" class="deck-gl-editor">
         <!-- DeckGL Import/Export Toolbar -->
         <div class="o_deckgl_toolbar" t-ref="editor">
             <t t-if="!props.readonly">
-                <button id="import-geojson-button"
-                        class="mode-button"
-                        data-tooltip="Import GeoJSON"
-                        t-on-click.prevent="onClickImport">
-                    <span class="fa fa-upload fa-lg"></span>
+                <button
+                    id="import-geojson-button"
+                    class="mode-button"
+                    data-tooltip="Import GeoJSON"
+                    t-on-click.prevent="onClickImport"
+                >
+                    <span class="fa fa-upload fa-lg" />
                 </button>
-                <button id="export-geojson-button"
-                        class="mode-button"
-                        data-tooltip="Export GeoJSON"
-                        t-on-click.prevent="onClickExport"
-                        t-att-disabled="!hasDataToExport">
-                    <span class="fa fa-download fa-lg"></span>
+                <button
+                    id="export-geojson-button"
+                    class="mode-button"
+                    data-tooltip="Export GeoJSON"
+                    t-on-click.prevent="onClickExport"
+                    t-att-disabled="!hasDataToExport"
+                >
+                    <span class="fa fa-download fa-lg" />
                 </button>
-                <button id="calculate-area-button"
-                        class="mode-button"
-                        data-tooltip="Calculate Area"
-                        t-on-click.prevent="onClickCalculateArea">
-                    <span class="fa fa-calculator fa-lg"></span>
+                <button
+                    id="calculate-area-button"
+                    class="mode-button"
+                    data-tooltip="Calculate Area"
+                    t-on-click.prevent="onClickCalculateArea"
+                >
+                    <span class="fa fa-calculator fa-lg" />
                 </button>
             </t>
         </div>
