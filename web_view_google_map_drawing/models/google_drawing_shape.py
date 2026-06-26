@@ -9,7 +9,7 @@ class GoogleDrawingShape(models.AbstractModel):
     _rec_name = "gshape_name"
 
     gshape_name = fields.Char(
-        string="Name", default=lambda self: self.env_("New Shape")
+        string="Name", default=lambda self: self.env._("New Shape")
     )
     gshape_area = fields.Float(
         string="Area",
