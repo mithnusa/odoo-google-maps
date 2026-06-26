@@ -1,7 +1,7 @@
 import re
 
 from bs4 import BeautifulSoup
-from odoo import _, api, fields, models
+from odoo import api, fields, models
 from odoo.fields import Domain
 
 
@@ -170,7 +170,9 @@ class GoogleMapAddPlaceMixin(models.AbstractModel):
             for type_key in mapping:  # Follow mapping order
                 component = component_lookup.get(type_key)
                 if component:
-                    name_form = GOOGLE_PLACES_COMPONENT_FORM.get(type_key, "longText")
+                    name_form = GOOGLE_PLACES_COMPONENT_FORM.get(
+                        type_key, "longText"
+                    )
                     value = component.get(name_form)
                     if not value:
                         value = component.get(
@@ -217,7 +219,9 @@ class GoogleMapAddPlaceMixin(models.AbstractModel):
                     Domain("name", "=ilike", address["country_id"]),
                 ]
             )
-            country_id = self.env["res.country"].sudo().search(country_domain, limit=1)
+            country_id = (
+                self.env["res.country"].sudo().search(country_domain, limit=1)
+            )
             address["country_id"] = country_id.id if country_id else False
 
         # Resolve state_id: search by name within the resolved country
@@ -233,7 +237,9 @@ class GoogleMapAddPlaceMixin(models.AbstractModel):
                     [state_domain, Domain("country_id", "=", country_id.id)]
                 )
             state_id = (
-                self.env["res.country.state"].sudo().search(state_domain, limit=1)
+                self.env["res.country.state"]
+                .sudo()
+                .search(state_domain, limit=1)
             )
             address["state_id"] = state_id.id if state_id else False
 
@@ -276,17 +282,27 @@ class GoogleMapAddPlaceMixin(models.AbstractModel):
                 [("gplace_id", "=", place_id)], limit=1
             )
             if record_id:
-                model_description = self.env[self._name]._description or _("Record")
+                model_description = self.env[
+                    self._name
+                ]._description or self.env._("Record")
                 return {
                     "type": "ir.actions.act_window",
-                    "name": _("%s exists: %s", model_description, record_id.display_name),
+                    "name": self.env._(
+                        "%s exists: %s",
+                        model_description,
+                        record_id.display_name,
+                    ),
                     "res_model": self._name,
                     "view_mode": "form",
                     "view_id": False,
                     "views": [(False, "form")],
                     "target": "new",
                     "res_id": record_id.id,
-                    "context": dict(self.env.context, is_from_google_maps=True),
+                    "context": dict(
+                        self.env.context,
+                        model_description=model_description,
+                        is_from_google_maps=True,
+                    ),
                 }
 
         values = self.default_get(self.GPLACE_USED_FIELDS)
@@ -312,19 +328,27 @@ class GoogleMapAddPlaceMixin(models.AbstractModel):
             values[odoo_fields["website"]] = place_website
 
         place_phone = place.get("internationalPhoneNumber")
-        if odoo_fields.get("phone") and place_phone and isinstance(place_phone, str):
+        if (
+            odoo_fields.get("phone")
+            and place_phone
+            and isinstance(place_phone, str)
+        ):
             values[odoo_fields["phone"]] = place_phone
 
         # address
         if address_components:
             adr_format_address = place.get("adrFormatAddress")
             adr_components = self._parse_adr_format_address(adr_format_address)
-            address_values = self._mapping_address(address_components, adr_components)
+            address_values = self._mapping_address(
+                address_components, adr_components
+            )
             values.update(address_values)
 
         # geolocation
         if location:
-            geo_values = self._prepare_geolocation_fields(odoo_fields, location)
+            geo_values = self._prepare_geolocation_fields(
+                odoo_fields, location
+            )
             values.update(geo_values)
 
         default_values = {}
@@ -334,16 +358,23 @@ class GoogleMapAddPlaceMixin(models.AbstractModel):
         if place_id:
             default_values["default_gplace_id"] = place_id
 
-        model_description = self.env[self._name]._description or _("Record")
+        model_description = self.env[self._name]._description or self.env._(
+            "Record"
+        )
         return {
             "type": "ir.actions.act_window",
-            "name": _("New %s", model_description),
+            "name": self.env._("New %s", model_description),
             "res_model": self._name,
             "view_mode": "form",
             "view_id": False,
             "views": [(False, "form")],
             "target": "new",
-            "context": dict(self.env.context, is_from_google_maps=True, **default_values),
+            "context": dict(
+                self.env.context,
+                is_from_google_maps=True,
+                model_description=model_description,
+                **default_values
+            ),
         }
 
     @api.model
@@ -370,7 +401,9 @@ class GoogleMapAddPlaceMixin(models.AbstractModel):
             popup (target: "new"), either for the existing or a new record
         """
         place_id = geocoding.get("place_id")
-        model_description = self.env[self._name]._description or _("Record")
+        model_description = self.env[self._name]._description or self.env._(
+            "Record"
+        )
         if place_id:
             record_id = self.env[self._name].search(
                 [("gplace_id", "=", place_id)], limit=1
@@ -378,13 +411,22 @@ class GoogleMapAddPlaceMixin(models.AbstractModel):
             if record_id:
                 return {
                     "type": "ir.actions.act_window",
-                    "name": _("%s exists: %s", model_description, record_id.display_name),
+                    "name": self.env._(
+                        "%s exists: %s",
+                        model_description,
+                        record_id.display_name,
+                    ),
                     "res_model": self._name,
                     "view_mode": "form",
                     "view_id": False,
                     "views": [(False, "form")],
                     "target": "new",
                     "res_id": record_id.id,
+                    "context": dict(
+                        self.env.context,
+                        model_description=model_description,
+                        is_from_google_maps=True,
+                    ),
                 }
 
         values = self.default_get(self.GPLACE_USED_FIELDS)
@@ -395,12 +437,16 @@ class GoogleMapAddPlaceMixin(models.AbstractModel):
         # address
         if address_components:
             adr_components = self._parse_formatted_address(formatted_address)
-            address_values = self._mapping_address(address_components, adr_components)
+            address_values = self._mapping_address(
+                address_components, adr_components
+            )
             values.update(address_values)
 
         # geolocation
         if location:
-            geo_values = self._prepare_geolocation_fields(odoo_fields, location)
+            geo_values = self._prepare_geolocation_fields(
+                odoo_fields, location
+            )
             values.update(geo_values)
 
         default_values = {}
@@ -412,13 +458,15 @@ class GoogleMapAddPlaceMixin(models.AbstractModel):
 
         return {
             "type": "ir.actions.act_window",
-            "name": _("Reverse Geocoded Location"),
+            "name": self.env._("Reverse Geocoded Location"),
             "res_model": self._name,
             "view_mode": "form",
             "view_id": False,
             "views": [(False, "form")],
             "target": "new",
-            "context": dict(self.env.context, is_from_google_maps=True, **default_values),
+            "context": dict(
+                self.env.context, is_from_google_maps=True, **default_values
+            ),
         }
 
     @api.model
@@ -446,7 +494,9 @@ class GoogleMapAddPlaceMixin(models.AbstractModel):
         soup = BeautifulSoup(adr_format_address, "html.parser")
         components = {}
         for span in soup.find_all("span"):
-            class_name = span.get("class", [None])[0]  # Get the first class name
+            class_name = span.get("class", [None])[
+                0
+            ]  # Get the first class name
             if class_name:
                 components[class_name] = span.get_text(strip=True)
 
@@ -557,7 +607,8 @@ class GoogleMapAddPlaceMixin(models.AbstractModel):
             match = re.search(r"\b(\d{3,10})\b", segment)
             if match:
                 name = (
-                    segment[: match.start()].strip() or segment[match.end() :].strip()
+                    segment[: match.start()].strip()
+                    or segment[match.end() :].strip()
                 )
                 return name, match.group(1)
             return segment, None

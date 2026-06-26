@@ -93,4 +93,4 @@
 
 **Why it matters**: Keeps the map in sync with the database without requiring the user to manually refresh.
 
-**How it works**: The `onSave` callback reloads the map view's root record set and triggers a re-render. A notification with an "Open" button is shown so the user can navigate directly to the saved record.
+**How it works**: The `onSave` callback reloads the map view's root record set and triggers a re-render. A model-aware notification is shown — for example, "Contact has been created successfully" or "Lead has been updated successfully" — with an "Open" button so the user can navigate directly to the saved record.
