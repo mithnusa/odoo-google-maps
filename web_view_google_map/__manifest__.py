@@ -39,8 +39,6 @@ Provides:
         'web.assets_backend': [
             'web_view_google_map/static/src/views/google_map/google_map_view.scss',
             'web_view_google_map/static/src/views/google_map/google_map_sidebar.scss',
-            'web_view_google_map/static/src/views/google_map/components/geolocate/geolocate.scss',
-            'web_view_google_map/static/src/views/google_map/components/search_places/search_places.scss',
             'web_view_google_map/static/src/fields/x2many/google_map_x2many_fields.scss',
             'web_view_google_map/static/src/helpers/view_attrs_context_manager.js',
             'web_view_google_map/static/src/views/google_map/utils.js',
