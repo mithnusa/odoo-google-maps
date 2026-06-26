@@ -50,7 +50,7 @@ export class BaseGoogleMapComponent extends Component {
         // Google Maps API Loader
         this.apiLoader = useGoogleMapsAPILoader(
             (...args) => this.handleOnApiLoaderSuccess(...args),
-            (...args) => this.handleOnApiLoaderError(...args),
+            (...args) => this.handleOnApiLoaderError(...args)
         );
 
         // Lifecycle hooks
@@ -61,7 +61,7 @@ export class BaseGoogleMapComponent extends Component {
             (mapEl, loaderStatus) => {
                 this.handleApiLoaderUseEffect(mapEl, loaderStatus);
             },
-            () => [this.mapDivElement(), this.state.loaderStatus],
+            () => [this.mapDivElement(), this.state.loaderStatus]
         );
 
         // Network status detection
@@ -104,11 +104,9 @@ export class BaseGoogleMapComponent extends Component {
         const values = { isMapReady };
         if (status) {
             values.loaderStatus = status;
-            values.isError = [
-                LOADER_STATUS.FAILED,
-                LOADER_STATUS.AUTH_FAILURE,
-                LOADER_STATUS.NETWORK_ERROR,
-            ].includes(status);
+            values.isError = [LOADER_STATUS.FAILED, LOADER_STATUS.AUTH_FAILURE, LOADER_STATUS.NETWORK_ERROR].includes(
+                status
+            );
         }
 
         // Update ARIA attributes for accessibility
@@ -197,7 +195,7 @@ export class BaseGoogleMapComponent extends Component {
      * Can be overridden by child classes for custom initialization
      * @protected
      * @param {*} mapEl
-     * @param {*} options 
+     * @param {*} options
      * @returns Google Maps instance
      */
     async initializeGoogleMap(mapEl, options) {
@@ -472,10 +470,9 @@ export class BaseGoogleMapComponent extends Component {
         }
 
         if (!settings.map_id) {
-            this.notificationService.add(
-                _t('Missing Map ID. Some features may not work properly.'),
-                { type: 'warning' }
-            );
+            this.notificationService.add(_t('Missing Map ID. Some features may not work properly.'), {
+                type: 'warning',
+            });
         }
 
         return settings;
@@ -539,9 +536,7 @@ export class BaseGoogleMapComponent extends Component {
             case LOADER_ERROR_TYPES.TIMEOUT:
                 return _t('Google Maps loading timed out. Please try again.');
             default:
-                return _t(
-                    'Failed to load Google Maps. Please refresh the page or contact support.'
-                );
+                return _t('Failed to load Google Maps. Please refresh the page or contact support.');
         }
     }
 

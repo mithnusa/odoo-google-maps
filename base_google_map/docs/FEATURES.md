@@ -34,7 +34,7 @@
 
 **Why it matters**: Some countries require maps to display borders and place names according to local regulations. Setting the correct region ensures compliance.
 
-**How it works**: Choose from any country as the region. The region code is passed to the Google Maps API on load. Clearing the language setting also clears the region, as the two are related.
+**How it works**: Choose from any country as the region. The region code is passed to the Google Maps API on load. This setting is only visible after a Language is selected — the two are related, and a region without a language has no effect.
 
 ---
 
