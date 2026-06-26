@@ -29,10 +29,11 @@ jobs:
         run: |
           set -euo pipefail
 
-          mapfile -d '' modules < <(
+          mapfile -t modules < <(
             find . -mindepth 2 -maxdepth 2 -name "__manifest__.py" -print0 \
               | xargs -0 -n1 dirname \
-              | sort -zu
+              | sed 's|^\./||' \
+              | sort -u
           )
 
           if [[ ${#modules[@]} -eq 0 ]]; then
