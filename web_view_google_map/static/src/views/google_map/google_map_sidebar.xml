@@ -1,32 +1,55 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" ?>
 <templates xml:space="preserve">
     <t t-name="web_view_google_map.RecordItem">
         <tr t-att-class="{ 'table-info': props.allowSelectors &amp;&amp; record.selected }">
             <t t-set="_showMarker" t-value="showMarker ?? true" />
             <t t-if="props.allowSelectors">
                 <td style="width: 20px;">
-                    <CheckBox disabled="!props.handleCanSelectRecord" value="record.selected" onChange.alike="() => this.selectRecord(record)"/>
+                    <CheckBox
+                        disabled="!props.handleCanSelectRecord"
+                        value="record.selected"
+                        onChange.alike="() => this.selectRecord(record)"
+                    />
                 </td>
             </t>
             <td class="o_sidebar_content_cell">
-                <div class="d-flex gap-2 align-items-center cursor-pointer" t-on-click="() => fnPinPointInMap(record.resId)">
+                <div
+                    class="d-flex gap-2 align-items-center cursor-pointer"
+                    t-on-click="() => fnPinPointInMap(record.resId)"
+                >
                     <div class="o_map_sidebar_record" t-att-data-tooltip="data?.other?.title">
-                        <Field id="props.title" name="props.title" record="record" readonly="true"/>
+                        <Field id="props.title" name="props.title" record="record" readonly="true" />
                     </div>
                 </div>
-                <t t-call="{{ constructor.recordExtraTemplate }}"/>
+                <t t-call="{{ constructor.recordExtraTemplate }}" />
             </td>
             <td>
                 <div class="d-flex align-items-center justify-content-center">
                     <span class="pe-1" t-if="_showMarker">
-                        <i class="fa fa-map-marker" aria-hidden="true" t-attf-style="color: #{data?.other?.__geoColor || 'red'};" />
+                        <i
+                            class="fa fa-map-marker"
+                            aria-hidden="true"
+                            t-attf-style="color: #{data?.other?.__geoColor || 'red'};"
+                        />
                     </span>
-                    <button type="button" class="btn btn-sm btn-link" data-role="action-show-nearby" data-tooltip="Nearby" t-on-click="() => props.showNearbyRecords(record)">
-                        <i class="fa fa-location-arrow" aria-hidden="true"/>
+                    <button
+                        type="button"
+                        class="btn btn-sm btn-link"
+                        data-role="action-show-nearby"
+                        data-tooltip="Nearby"
+                        t-on-click="() => props.showNearbyRecords(record)"
+                    >
+                        <i class="fa fa-location-arrow" aria-hidden="true" />
                     </button>
-                    <t t-call="{{ constructor.recordActionsTemplate }}"/>
-                    <button type="button" class="btn btn-sm btn-link" data-role="open-record" data-tooltip="Open" t-on-click.prevent="() => fnOpenRecord(record)">
-                        <i class="fa fa-lg fa-angle-right" aria-hidden="true"/>
+                    <t t-call="{{ constructor.recordActionsTemplate }}" />
+                    <button
+                        type="button"
+                        class="btn btn-sm btn-link"
+                        data-role="open-record"
+                        data-tooltip="Open"
+                        t-on-click.prevent="() => fnOpenRecord(record)"
+                    >
+                        <i class="fa fa-lg fa-angle-right" aria-hidden="true" />
                     </button>
                 </div>
             </td>
@@ -45,22 +68,32 @@
                         t-attf-data-bs-target="#collapseGroup_#{ group.key }"
                         t-att-aria-expanded="group.group.records.length ? 'true' : 'false'"
                         t-attf-aria-controls="collapseGroup_#{ group.key }"
-                        t-on-click.prevent="(ev) => this.handleGroupCollapse(ev, group.key)">
+                        t-on-click.prevent="(ev) => this.handleGroupCollapse(ev, group.key)"
+                    >
                         <div class="d-flex align-items-center o_map_sidebar_group">
                             <t t-set="title" t-value="getGroupTitle(group)" />
                             <span class="me-2">
-                                <i class="fa fa-caret-right" aria-hidden="true"/>
-                                <i class="fa fa-caret-down" aria-hidden="true"/>
+                                <i class="fa fa-caret-right" aria-hidden="true" />
+                                <i class="fa fa-caret-down" aria-hidden="true" />
                             </span>
-                            <span class="ps-1 pe-1" t-esc="title" t-att-data-tooltip="title"/>
+                            <span class="ps-1 pe-1" t-esc="title" t-att-data-tooltip="title" />
                         </div>
                     </button>
                     <div t-if="group.group.count" class="d-flex align-items-center justify-content-center">
                         <span class="me-1">
-                            <i class="fa fa-map-marker" aria-hidden="true" t-attf-style="color: #{group.group.groupColor || 'red'};" />
+                            <i
+                                class="fa fa-map-marker"
+                                aria-hidden="true"
+                                t-attf-style="color: #{group.group.groupColor || 'red'};"
+                            />
                         </span>
-                        <button type="button" class="btn btn-sm btn-link" data-tooltip="Open" t-on-click="() => this.actionShowGroupRecords(group)">
-                            <i class="fa fa-lg fa-angle-double-right" aria-hidden="true"/>
+                        <button
+                            type="button"
+                            class="btn btn-sm btn-link"
+                            data-tooltip="Open"
+                            t-on-click="() => this.actionShowGroupRecords(group)"
+                        >
+                            <i class="fa fa-lg fa-angle-double-right" aria-hidden="true" />
                         </button>
                     </div>
                 </div>
@@ -68,7 +101,10 @@
         </tr>
         <tr>
             <td class="o_sidebar_content_cell" colspan="99" style="padding: 0; border: 0;">
-                <div t-att-class="{ 'collapse': true, 'show': !!group.group.records.length }" t-attf-id="collapseGroup_#{ group.key }">
+                <div
+                    t-att-class="{ 'collapse': true, 'show': !!group.group.records.length }"
+                    t-attf-id="collapseGroup_#{ group.key }"
+                >
                     <t t-if="group.group.records.length">
                         <table class="table table-sm table-hover table-striped mb-0">
                             <tbody>
@@ -81,9 +117,13 @@
                                 </t>
                                 <tr t-if="group.group.count > group.group.records.length">
                                     <td colspan="99">
-                                        <div class="text-center cursor-pointer" role="button" t-on-click.prevent="() => this.actionShowGroupRecords(group)">
+                                        <div
+                                            class="text-center cursor-pointer"
+                                            role="button"
+                                            t-on-click.prevent="() => this.actionShowGroupRecords(group)"
+                                        >
                                             <span class="me-2">see more</span>
-                                            <i class="fa fa-fw fa-lg fa-angle-double-right" aria-hidden="true"/>
+                                            <i class="fa fa-fw fa-lg fa-angle-double-right" aria-hidden="true" />
                                         </div>
                                     </td>
                                 </tr>
@@ -130,26 +170,26 @@
         Override `recordExtraTemplate` in a sub-class to inject extra fields
         (amount, stage, etc.) without touching the RecordItem template.
     -->
-    <t t-name="web_view_google_map.RecordItemExtra"/>
+    <t t-name="web_view_google_map.RecordItemExtra" />
     <!--
         Empty slot rendered inside the actions <td>, between the Nearby button
         and the Open button.  Override `recordActionsTemplate` in a sub-class
         to inject extra action buttons (e.g. View Tasks) without touching the
         RecordItem template.
     -->
-    <t t-name="web_view_google_map.RecordActionsTemplate"/>
+    <t t-name="web_view_google_map.RecordActionsTemplate" />
 
     <t t-name="web_view_google_map.GoogleMapSidebar">
         <div class="o_map_sidebar" t-ref="root">
             <div class="mt-2 mx-1">
                 <div class="d-flex">
                     <t t-if="props.allowSelectors">
-                        <CheckBox value="props.handleSelectAll" onChange.bind="props.handleToggleSelection"/>
+                        <CheckBox value="props.handleSelectAll" onChange.bind="props.handleToggleSelection" />
                     </t>
                     <h3 t-if="props.header" t-esc="props.header" />
                     <small class="ms-2 text-muted">
                         <span t-att-data-tooltip="geolocationInfoTooltip">
-                            <i class="fa fa-info" aria-hidden="true"/>
+                            <i class="fa fa-info" aria-hidden="true" />
                         </span>
                     </small>
                 </div>

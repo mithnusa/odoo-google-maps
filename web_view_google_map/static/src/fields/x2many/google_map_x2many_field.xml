@@ -1,11 +1,17 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" ?>
 <templates xml:space="preserve">
     <t t-name="web_view_google_map.X2ManyFieldGoogleMap" t-inherit="web.X2ManyField" t-inherit-mode="primary">
         <xpath expr="//ListRenderer" position="after">
-            <GoogleMapRenderer t-elif="props.viewMode === 'google_map'" t-props="rendererProps"/>
+            <GoogleMapRenderer t-elif="props.viewMode === 'google_map'" t-props="rendererProps" />
         </xpath>
         <xpath expr="//div[@t-ref='buttons']" position="inside">
-            <button type="button" class="btn btn-secondary" t-if="props.viewMode === 'google_map'" data-tooltip="Center Map" t-on-click.prevent="() => this.centerMap()">
+            <button
+                type="button"
+                class="btn btn-secondary"
+                t-if="props.viewMode === 'google_map'"
+                data-tooltip="Center Map"
+                t-on-click.prevent="() => this.centerMap()"
+            >
                 <span>Center Map</span>
             </button>
         </xpath>

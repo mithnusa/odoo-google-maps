@@ -198,7 +198,7 @@ export class GoogleMapStreetViewSideBySideDialog extends Component {
         }
 
         if (heading < 0 || heading >= 360) {
-            throw new Error(_t('Heading must be between 0 and 360.'));
+            throw new Error(_t('Heading must be between 0 (inclusive) and 360 (exclusive).'));
         }
     }
 }

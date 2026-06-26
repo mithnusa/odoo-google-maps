@@ -1,26 +1,47 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" ?>
 <templates xml:space="preserve">
     <t t-name="web_widget_google_map.GoogleMapWidget">
         <div class="d-flex flex-column" t-if="!props.invisible">
             <div class="o_google_map_widget" t-if="iframeSrc">
-                <iframe loading="lazy" t-att-width="props.width" t-att-height="props.height" frameborder="0" style="border:0" referrerpolicy="no-referrer-when-downgrade" t-att-src="iframeSrc" allowfullscreen="allowfullscreen"></iframe>
+                <iframe
+                    loading="lazy"
+                    t-att-width="props.width"
+                    t-att-height="props.height"
+                    frameborder="0"
+                    style="border:0"
+                    referrerpolicy="no-referrer-when-downgrade"
+                    t-att-src="iframeSrc"
+                    allowfullscreen="allowfullscreen"
+                />
             </div>
             <button type="button" class="btn btn-light" t-on-click="handleOnEdit" t-if="!props.readonly">Edit</button>
         </div>
     </t>
     <t t-name="web_widget_google_map.GeolocationEditDialog">
         <Dialog size="'xl'" title="props.title" modalRef="modalRef">
-        <div class="alert alert-info text-center">Drag the marker to update the location</div>
-        <div class="o_google_map_form" >
-            <div class="o_google_map_renderer">
-                <div class="o_google_map_view" t-ref="map"></div>
-                <GoogleMapSearchPlaces googleMap="googleMap" t-if="state.isMapReady"/>
+            <div class="alert alert-info text-center">Drag the marker to update the location</div>
+            <div class="o_google_map_form">
+                <div class="o_google_map_renderer">
+                    <div class="o_google_map_view" t-ref="map" />
+                    <GoogleMapSearchPlaces googleMap="googleMap" t-if="state.isMapReady" />
+                </div>
             </div>
-        </div>
-        <t t-set-slot="footer">
-            <button class="btn" t-att-class="props.confirmClass" t-on-click="_confirm" t-esc="props.confirmLabel" data-hotkey="q"/>
-            <button t-if="props.cancel" class="btn btn-secondary" t-on-click="_cancel" t-esc="props.cancelLabel" data-hotkey="x"/>
-        </t>
+            <t t-set-slot="footer">
+                <button
+                    class="btn"
+                    t-att-class="props.confirmClass"
+                    t-on-click="_confirm"
+                    t-esc="props.confirmLabel"
+                    data-hotkey="q"
+                />
+                <button
+                    t-if="props.cancel"
+                    class="btn btn-secondary"
+                    t-on-click="_cancel"
+                    t-esc="props.cancelLabel"
+                    data-hotkey="x"
+                />
+            </t>
         </Dialog>
     </t>
 </templates>
