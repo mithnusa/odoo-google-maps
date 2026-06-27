@@ -156,7 +156,7 @@ Adds a Google Map view to the Sales application, available for Quotations, Order
 
 ### Inventory
 
-**[stock_google_map](stock_google_map/README.md)** `19.0.1.0.1`
+**[stock_google_map](stock_google_map/README.md)** `19.0.1.0.2`
 
 Adds a Google Map view to the Inventory application, covering Deliveries, Ready to Transfer, Waiting Transfer, Late Transfers, Backorders, and All Operations. Each transfer appears as a marker at the delivery address, with coordinates pulled automatically from the linked partner.
 
