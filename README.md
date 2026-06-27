@@ -141,7 +141,7 @@ Adds a Google Map view to the CRM application, available in All Leads, My Activi
 
 Enables click-to-create on the CRM map. Clicking a named Google Place opens a new lead form pre-filled with the business name, address, phone, website, and an auto-generated opportunity name. Clicking an empty location reverse-geocodes the coordinate and fills in the address. Duplicate detection prevents creating two leads for the same Google Place.
 
-**[crm_google_autocomplete](crm_google_autocomplete/README.md)** `19.0.1.0.3`
+**[crm_google_autocomplete](crm_google_autocomplete/README.md)** `19.0.1.0.4`
 
 Adds Google Places autocomplete to the Lead and Opportunity form. Typing in the company name suggests matching businesses from Google; typing in the street suggests addresses. Works in both the quick-entry dialog and the full lead form. Selecting a suggestion fills in the address and geolocation coordinates automatically.
 
