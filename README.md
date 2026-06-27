@@ -148,7 +148,7 @@ Adds Google Places autocomplete to the Lead and Opportunity form. Typing in the 
 
 ### Sales
 
-**[sale_google_map](sale_google_map/README.md)** `19.0.1.0.13`
+**[sale_google_map](sale_google_map/README.md)** `19.0.1.0.14`
 
 Adds a Google Map view to the Sales application, available for Quotations, Orders, Orders to Invoice, Orders to Upsell, and Customers. Records are grouped by customer, with one marker per customer showing their avatar, name, total number of orders, and combined order value.
 

@@ -1,36 +1,53 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" ?>
 <templates xml:space="preserve">
     <t t-name="sale_google_map.GroupItem" t-inherit="web_view_google_map.GroupItem" t-inherit-mode="primary">
-        <xpath expr="//div[contains(@t-attf-id, 'collapseGroup_')]" position="replace"/>
+        <xpath expr="//div[contains(@t-attf-id, 'collapseGroup_')]" position="replace" />
         <xpath expr="//button[@data-bs-toggle='collapse']" position="replace">
             <div class="ps-1 cursor-pointer o_map_sidebar_group" t-on-click="() => fnPinPointInMap(group.group.id)">
                 <t t-set="title" t-value="(group.group.displayName || 'None') + ' (' + group.group.count + ')' " />
-                <t t-set="totalAmount" t-value="getTotalAmount(group.group)"/>
-                <t t-set="avatar_url" t-value="this.getAvatarUrl(group)"/>
+                <t t-set="totalAmount" t-value="getTotalAmount(group.group)" />
+                <t t-set="avatar_url" t-value="this.getAvatarUrl(group)" />
                 <div class="d-flex align-items-center gap-2">
                     <t t-if="avatar_url">
-                        <img loading="lazy" t-att-src="avatar_url" class="o_avatar rounded" alt="Avatar" height="24" width="24" style="height: 24px; width: 24px;"/>
+                        <img
+                            loading="lazy"
+                            t-att-src="avatar_url"
+                            class="o_avatar rounded"
+                            alt="Avatar"
+                            height="24"
+                            width="24"
+                            style="height: 24px; width: 24px;"
+                        />
                     </t>
                     <div class="d-flex flex-column">
-                        <span t-out="title" t-att-data-tooltip="title"/>
-                        <small class="smaller font-monospace" t-out="totalAmount" t-att-data-tooltip="totalAmount"/>
+                        <span t-out="title" t-att-data-tooltip="title" />
+                        <small class="smaller font-monospace" t-out="totalAmount" t-att-data-tooltip="totalAmount" />
                     </div>
                 </div>
             </div>
         </xpath>
         <xpath expr="//div[@t-if='group.group.count']/button" position="before">
             <t t-if="group.group.records &amp;&amp; group.group.records.length > 0">
-                <button type="button" class="btn btn-sm btn-link" data-tooltip="Nearby" t-on-click="() => props.showNearbyRecords(group.group.records[0])">
+                <button
+                    type="button"
+                    class="btn btn-sm btn-link"
+                    data-tooltip="Nearby"
+                    t-on-click="() => props.showNearbyRecords(group.group.records[0])"
+                >
                     <i class="fa fa-location-arrow" />
                     <span class="visually-hidden">Nearby</span>
                 </button>
             </t>
         </xpath>
     </t>
-    <t t-name="sale_google_map.GoogleMapSidebar" t-inherit="web_view_google_map.GoogleMapSidebar" t-inherit-mode="primary">
-        <xpath expr="//t[@t-if='props.allowSelectors']" position="replace"/>
+    <t
+        t-name="sale_google_map.GoogleMapSidebar"
+        t-inherit="web_view_google_map.GoogleMapSidebar"
+        t-inherit-mode="primary"
+    >
+        <xpath expr="//t[@t-if='props.allowSelectors']" position="replace" />
         <xpath expr="//div[@t-ref='root']" position="attributes">
-            <attribute name="class" add="sale_google_map" separator=" "/>
+            <attribute name="class" add="sale_google_map" separator=" " />
         </xpath>
     </t>
 </templates>

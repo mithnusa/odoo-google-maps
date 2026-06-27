@@ -77,13 +77,15 @@ export class GoogleMapSidebarSaleOrder extends GoogleMapSidebar {
             this.uiService.block();
             for (let i = 0; i < groups.length; i += BATCH_SIZE) {
                 const batch = groups.slice(i, i + BATCH_SIZE);
-                await Promise.all(batch.map(async ({ group }) => {
-                    try {
-                        await this.props.toggleGroup(group);
-                    } catch (error) {
-                        console.error('Error toggling group:', error);
-                    }
-                }));
+                await Promise.all(
+                    batch.map(async ({ group }) => {
+                        try {
+                            await this.props.toggleGroup(group);
+                        } catch (error) {
+                            console.error('Error toggling group:', error);
+                        }
+                    })
+                );
             }
         } catch (error) {
             console.error('Error toggling group:', error);
