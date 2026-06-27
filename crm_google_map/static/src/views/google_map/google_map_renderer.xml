@@ -1,47 +1,118 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" ?>
 <templates xml:space="preserve">
     <t t-name="crm_google_map.MarkerInfoWindow">
         <div t-attf-class="crm_lead marker-drop-animation #{ isSelected ? 'selected-marker' : '' }">
             <div class="marker-icon">
-                <i class="fa fa-handshake-o fa-lg" t-attf-style="color: {{ markerColor || 'red' }};"/>
+                <span t-if="title" class="d-block marker-icon-title mb-1" t-att-data-tooltip="title">
+                    <small class="font-sans-serif" t-out="title" />
+                </span>
+                <i class="fa fa-circle fa-fw small" t-attf-style="color: {{ markerColor || 'red' }};" />
+                <small t-if="stage" class="font-sans-serif" t-out="stage" />
+                <span t-if="expectedRevenue" class="d-block mt-1">
+                    <i class="fa fa-dollar fa-fw small text-muted" />
+                    <small class="font-monospace" t-out="expectedRevenue" />
+                </span>
             </div>
             <div class="marker-content">
-                <div class="mb-1 lead-title">
-                    <div>
-                        <h5 class="mb-0" t-out="title"/>
-                        <button type="button" class="btn btn-sm btn-link" data-tooltip="Open">
-                            <i class="fa fa-angle-right fa-lg"/>
-                        </button>
-                    </div>
-                    <t t-if="stage">
-                        <span class="badge bg-info-light rounded-pill" t-out="stage"/>
-                    </t>
-                    <t t-if="subTitle">
-                        <small class="text-muted mt-1" t-out="subTitle"/>
-                    </t>
+                <div class="lead-title">
+                    <h4 id="title" class="mb-0" t-out="title" />
+                    <button id="show-record" class="btn btn-link btn-sm" type="button" data-tooltip="Open">
+                        <i class="fa fa-expand" />
+                    </button>
                 </div>
-                <div class="contact-salesperson">
-                    <span t-if="partnerName" class="mt-1 mb-0 col-5" data-tooltip="Contact">
-                        <i class="fa fa-address-card-o text-600 d-block"></i>
-                        <span t-out="partnerName"/>
-                    </span>
-                    <span t-if="salespersonName" class="mt-1 mb-0 col-5" data-tooltip="Salesperson">
-                        <i class="fa fa-user-o text-600 d-block"></i>
-                        <span t-out="salespersonName"/>
-                    </span>
+                <hr class="my-2 text-600" />
+                <div id="action-buttons" class="btn-group mt-2" role="group" aria-label="Action buttons">
+                    <button
+                        id="show-scheduled-activities"
+                        class="btn btn-sm btn-light"
+                        type="button"
+                        data-tooltip="Show scheduled activities"
+                    >
+                        <i class="fa fa-clock-o" />
+                    </button>
+                    <button
+                        id="open-schedule-activity"
+                        class="btn btn-sm btn-light"
+                        type="button"
+                        data-tooltip="Schedule an activity"
+                    >
+                        <i class="fa fa-plus" />
+                    </button>
+                    <button id="show-nearby" class="btn btn-sm btn-light" type="button" data-tooltip="Nearby">
+                        <i class="fa fa-location-arrow" />
+                    </button>
+                    <button id="show-street-view" class="btn btn-sm btn-light" type="button" data-tooltip="Street View">
+                        <i class="fa fa-street-view" />
+                    </button>
                 </div>
-                <div class="additional-info">
-                    <div class="col-4 text-center" t-if="expectedRevenue" data-tooltip="Expected Revenue">
-                        <i class="fa fa-dollar d-block text-600"></i>
-                        <span class="font-monospace" t-out="expectedRevenue"/>
+                <div class="d-flex flex-wrap gap-2 mt-2 pt-2 mb-2 pb-1">
+                    <div
+                        t-if="subTitle"
+                        class="flex-fill align-content-around px-2 py-1"
+                        style="white-space: pre-line; text-align: left; align-items: baseline; gap: 0.25rem;"
+                        data-tooltip="Address"
+                    >
+                        <i class="fa fa-map-pin fa-fw" t-attf-style="color: {{ markerColor || 'red' }};" />
+                        <span class="small" t-out="subTitle" />
                     </div>
-                    <div class="col-3 text-center" t-if="probability" data-tooltip="Probability">
-                        <i class="fa fa-percent d-block text-600"></i>
-                        <span class="font-sans-serif" t-out="probability"/>%
+                    <div t-if="stage" class="flex-fill align-content-around text-center px-2 py-1" data-tooltip="Stage">
+                        <i class="fa fa-circle d-block" t-attf-style="color: {{ markerColor || 'red' }};" />
+                        <span class="small" t-out="stage" />
                     </div>
-                    <div class="col-3 text-center" t-if="dateDeadline" data-tooltip="Expected Closing">
-                        <i class="fa fa-calendar d-block text-600"></i>
-                        <span class="font-sans-serif" t-out="dateDeadline"/>
+                    <div
+                        t-if="partnerName"
+                        class="flex-fill align-content-around text-center px-2 py-1"
+                        data-tooltip="Company Name"
+                    >
+                        <i class="fa fa-building-o d-block" t-attf-style="color: {{ markerColor || 'red' }};" />
+                        <span class="small" t-out="partnerName" />
+                    </div>
+                    <div
+                        t-if="contactName"
+                        class="flex-fill align-content-around text-center px-2 py-1"
+                        data-tooltip="Contact"
+                    >
+                        <i class="fa fa-address-card-o d-block" t-attf-style="color: {{ markerColor || 'red' }};" />
+                        <span class="small" t-out="contactName" />
+                    </div>
+                    <div t-if="phone" class="flex-fill align-content-around text-center px-2 py-1" data-tooltip="Phone">
+                        <i class="fa fa-phone d-block" t-attf-style="color: {{ markerColor || 'red' }};" />
+                        <span class="small" t-out="phone" />
+                    </div>
+                    <div
+                        t-if="salespersonName"
+                        class="flex-fill align-content-around text-center px-2 py-1"
+                        data-tooltip="Salesperson"
+                    >
+                        <i class="fa fa-user-o d-block" t-attf-style="color: {{ markerColor || 'red' }};" />
+                        <span class="small" t-out="salespersonName" />
+                    </div>
+                    <div
+                        t-if="expectedRevenue"
+                        class="flex-fill align-content-around text-center px-2 py-1"
+                        data-tooltip="Expected Revenue"
+                    >
+                        <i class="fa fa-dollar d-block" t-attf-style="color: {{ markerColor || 'red' }};" />
+                        <span class="font-monospace small" t-out="expectedRevenue" />
+                    </div>
+                    <div
+                        t-if="probability"
+                        class="flex-fill align-content-around text-center px-2 py-1"
+                        data-tooltip="Probability"
+                    >
+                        <i class="fa fa-percent d-block" t-attf-style="color: {{ markerColor || 'red' }};" />
+                        <span class="small">
+                            <t t-out="probability" />
+                            %
+                        </span>
+                    </div>
+                    <div
+                        t-if="dateDeadline"
+                        class="flex-fill align-content-around text-center px-2 py-1"
+                        data-tooltip="Expected Closing"
+                    >
+                        <i class="fa fa-calendar d-block" t-attf-style="color: {{ markerColor || 'red' }};" />
+                        <span class="small" t-out="dateDeadline" />
                     </div>
                 </div>
             </div>

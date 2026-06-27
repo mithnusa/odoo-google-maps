@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" ?>
 <templates xml:space="preserve">
     <!--
         Extra content rendered below the record title in the sidebar.
@@ -7,11 +7,17 @@
     <t t-name="crm_google_map.RecordItemExtra">
         <div class="o_crm_sidebar_extra d-flex align-items-center mt-1">
             <div class="o_crm_sidebar_amount d-flex align-items-center">
-                <i class="fa fa-dollar text-muted me-1"/>
-                <Field id="'expected_revenue'" name="'expected_revenue'" record="record" readonly="true" class="'smaller font-monospace'"/>
+                <i class="fa fa-dollar text-muted me-1" />
+                <Field
+                    id="'expected_revenue'"
+                    class="'smaller font-monospace disabled'"
+                    name="'expected_revenue'"
+                    record="record"
+                    readonly="true"
+                />
             </div>
             <div class="o_crm_sidebar_stage pe-none">
-                <Field id="'stage_id'" name="'stage_id'" record="record" readonly="true" class="'disabled'"/>
+                <Field id="'stage_id'" class="'disabled'" name="'stage_id'" record="record" readonly="true" />
             </div>
         </div>
     </t>

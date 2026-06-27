@@ -5,6 +5,8 @@ import { formatNumber } from '@web_view_google_map/views/google_map/utils';
 import { GoogleMapRenderer } from '@web_view_google_map/views/google_map/google_map_renderer';
 import { GoogleMapSidebarCRM } from './google_map_sidebar';
 
+const { DateTime } = luxon;
+
 /**
  * Configuration constants for CRM lead marker behavior and styling
  */
@@ -15,13 +17,18 @@ const CRM_MARKER_CONFIG = {
             INFO_ICON: 'fa fa-info-circle ms-1 text-info float-end',
         },
         Z_INDEX: {
-            DEFAULT: null,
-            HOVER: 1000,
+            DEFAULT: null, // Default z-index for markers, will be set by Google Maps API
+            HOVER: 9999,
         },
     },
 };
 
 export class GoogleMapRendererCRM extends GoogleMapRenderer {
+    static props = {
+        ...GoogleMapRenderer.props,
+        openRecordScheduleActivity: Function,
+        showRecordScheduledActivity: Function,
+    };
     static components = {
         ...GoogleMapRenderer.components,
         Sidebar: GoogleMapSidebarCRM,
@@ -32,9 +39,9 @@ export class GoogleMapRendererCRM extends GoogleMapRenderer {
      * @override
      */
     prepareInfoWindowValues(record) {
-        let values = super.prepareInfoWindowValues(record);
+        const values = super.prepareInfoWindowValues(record);
         const lang = (user.context.lang || 'en_US').replace('_', '-');
-        const { other = {} } = record.dataView;
+        const { other = {} } = record.dataView || {};
         const {
             expectedRevenue,
             probability,
@@ -44,18 +51,30 @@ export class GoogleMapRendererCRM extends GoogleMapRenderer {
             title,
             subTitle,
             stageId,
+            contactName,
+            partnerName,
+            phone,
         } = other;
 
-        values.expectedRevenue = expectedRevenue
-            ? formatNumber(expectedRevenue, 2, user.context.lang)
-            : false;
+        values.expectedRevenue = expectedRevenue ? formatNumber(expectedRevenue, 2, user.context.lang) : false;
         values.probability = probability || 0;
-        values.dateDeadline = dateDeadline ? dateDeadline.toLocaleString(lang) : false;
-        values.partnerName = partnerId || false;
+        values.contactName = partnerId || contactName || false;
+        values.phone = phone || false;
         values.salespersonName = userId || false;
+        values.partnerName = partnerName || false;
         values.title = title || _t('Lead');
-        values.subTitle = subTitle || '';
+        values.subTitle = this.formatAddressForInfoWindow(values.title, subTitle || '');
         values.stage = stageId || false;
+        if (dateDeadline) {
+            const deadlineDateTime = DateTime.fromISO(dateDeadline);
+            if (deadlineDateTime.isValid) {
+                values.dateDeadline = deadlineDateTime.setLocale(lang).toLocaleString(DateTime.DATE_MED);
+            } else {
+                values.dateDeadline = false;
+            }
+        } else {
+            values.dateDeadline = false;
+        }
         return values;
     }
 
@@ -87,20 +106,20 @@ export class GoogleMapRendererCRM extends GoogleMapRenderer {
         values.markerColor = elementValues.color || 'red';
         values.isSelected = record.selected;
         const content = renderToString(this.constructor.templateInfoWindow, values);
-        const divContent = new DOMParser()
-            .parseFromString(content, 'text/html')
-            .querySelector('div');
+        const divContent = new DOMParser().parseFromString(content, 'text/html').querySelector('div');
 
-        const openButtonElement = divContent.querySelector('.lead-title button');
-        if (openButtonElement) {
-            const eventHandler = (ev) => {
-                ev.stopPropagation();
-                this.props.showRecord(record);
-            };
-            openButtonElement.style.cursor = 'pointer';
-            openButtonElement.addEventListener('click', eventHandler);
-            this._storeElementEventListener(openButtonElement, 'click', eventHandler);
-        }
+        this._bindMarkerButton(divContent, '.lead-title #show-record', () => this.props.showRecord(record));
+        this._bindMarkerButton(divContent, '#action-buttons #open-schedule-activity', () =>
+            this.props.openRecordScheduleActivity(record)
+        );
+        this._bindMarkerButton(divContent, '#action-buttons #show-scheduled-activities', () =>
+            this.props.showRecordScheduledActivity(record)
+        );
+        this._bindMarkerButton(divContent, '#action-buttons #show-nearby', () => this.searchNearbyRecords(record));
+        this._bindMarkerButton(divContent, '#action-buttons #show-street-view', () =>
+            this.props.showGoogleStreetViewSideBySide(record)
+        );
+
         return divContent;
     }
 
@@ -111,11 +130,20 @@ export class GoogleMapRendererCRM extends GoogleMapRenderer {
      * @returns {boolean} True if record is valid
      */
     _isValidRecordForMarkerElement(record) {
-        if (!record || !record.dataView) {
-            console.warn('Invalid record data for marker creation:', record);
-            return false;
-        }
-        return true;
+        return !!(record && record.dataView);
+    }
+
+    _bindMarkerButton(container, selector, handler) {
+        const el = container.querySelector(selector);
+        if (!el) return;
+        el.style.cursor = 'pointer';
+        const wrappedHandler = (ev) => {
+            ev.preventDefault();
+            ev.stopPropagation();
+            handler();
+        };
+        el.addEventListener('click', wrappedHandler);
+        this._storeElementEventListener(el, 'click', wrappedHandler);
     }
 
     /**
@@ -156,7 +184,7 @@ export class GoogleMapRendererCRM extends GoogleMapRenderer {
      */
     async _createNewMarker(record, geolocation, data, elementValues) {
         const marker = await this._buildCRMMarker(record, geolocation, data, elementValues);
-        this._setupCRMMarkerMetadata(marker, record, geolocation, elementValues);
+        this._setupMarkerMetadata(marker, record, geolocation, elementValues);
         this._handleCRMMarkerPositioning(marker);
         this._updateMapBounds(marker);
 
@@ -178,21 +206,74 @@ export class GoogleMapRendererCRM extends GoogleMapRenderer {
         options.content = this._createMarkerElement(record, elementValues);
 
         const advMarkerElement = new AdvancedMarkerElement(options);
-        const clickListener = advMarkerElement.addListener('gmp-click', () => {
-            this.toggleMarkerHighlight(advMarkerElement);
-        });
-        this._storeMarkerEventListener(record.resId, 'gmp-click', clickListener);
+        this.addMarkerMouseEventHandler(record, advMarkerElement);
         return advMarkerElement;
     }
 
-    toggleMarkerHighlight(markerView) {
-        if (markerView.content.classList.contains('highlight')) {
-            markerView.content.classList.remove('highlight');
-            markerView.zIndex = CRM_MARKER_CONFIG.VISUAL.Z_INDEX.DEFAULT;
+    addMarkerMouseEventHandler(record, marker) {
+        const clickListener = marker.addListener('gmp-click', () => {
+            this.toggleMarkerHighlight(marker);
+        });
+        this._storeMarkerEventListener(record.resId, 'gmp-click', clickListener);
+
+        const hoverHandlers = this._hoverMarkerHighlight(marker);
+        Object.entries(hoverHandlers).forEach(([event, handler]) => {
+            marker.content.addEventListener(event, handler);
+            this._storeElementEventListener(marker.content, event, handler);
+        });
+    }
+
+    toggleMarkerHighlight(marker) {
+        if (marker.content.classList.contains('highlight')) {
+            marker.content.classList.remove('highlight');
         } else {
-            markerView.content.classList.add('highlight');
-            markerView.zIndex = CRM_MARKER_CONFIG.VISUAL.Z_INDEX.HOVER;
+            marker.content.classList.add('highlight');
+            this._panToFitExpandedMarker(marker);
         }
+    }
+
+    _panToFitExpandedMarker(marker) {
+        // Read rect after class is applied but before the transition frame starts.
+        // The synchronous getBoundingClientRect() call forces a layout reflow,
+        // giving us the final expanded dimensions before any CSS transition runs.
+        const markerRect = marker.content.getBoundingClientRect();
+        const mapRect = this.googleMap.getDiv().getBoundingClientRect();
+        const PADDING = 16;
+
+        let panX = 0;
+        let panY = 0;
+
+        if (markerRect.top < mapRect.top) {
+            panY = markerRect.top - mapRect.top - PADDING;
+        }
+        if (markerRect.left < mapRect.left) {
+            panX = markerRect.left - mapRect.left - PADDING;
+        } else if (markerRect.right > mapRect.right) {
+            panX = markerRect.right - mapRect.right + PADDING;
+        }
+
+        if (panX !== 0 || panY !== 0) {
+            this.googleMap.panBy(panX, panY);
+        }
+    }
+
+    _hoverMarkerHighlight(marker) {
+        const handleMouseEnter = () => {
+            marker.zIndex = CRM_MARKER_CONFIG.VISUAL.Z_INDEX.HOVER;
+            marker.content.classList.add('marker-hover-animation');
+        };
+
+        const handleMouseLeave = () => {
+            marker.zIndex = CRM_MARKER_CONFIG.VISUAL.Z_INDEX.DEFAULT;
+            marker.content.classList.remove('marker-hover-animation');
+        };
+
+        return {
+            mouseenter: handleMouseEnter,
+            mouseleave: handleMouseLeave,
+            touchstart: handleMouseEnter,
+            touchend: handleMouseLeave,
+        };
     }
 
     /**
@@ -207,33 +288,7 @@ export class GoogleMapRendererCRM extends GoogleMapRenderer {
             position: geolocation,
             map: this.googleMap,
             collisionBehavior: google.maps.CollisionBehavior.REQUIRED_AND_HIDES_OPTIONAL,
-            title: data.title || '',
         };
-    }
-
-    /**
-     * Setup marker metadata and relationships for CRM leads
-     * @private
-     * @param {Object} marker The marker to setup
-     * @param {Object} record The record data
-     * @param {Object} geolocation Position data
-     * @param {Object} elementValues Marker element values
-     */
-    _setupCRMMarkerMetadata(marker, record, geolocation, elementValues) {
-        marker._odooRecord = record;
-        marker._markerOptionValues = marker.options;
-        marker._elementValues = elementValues;
-        marker._isShifted = false;
-        marker._originalPosition = {
-            lat: geolocation.lat,
-            lng: geolocation.lng,
-        };
-
-        // Establish bidirectional relationship
-        record._marker = marker;
-
-        // Store in cache
-        this.cache.set(record.resId, marker);
     }
 
     /**
@@ -262,66 +317,6 @@ export class GoogleMapRendererCRM extends GoogleMapRenderer {
                 "This marker has been adjusted slightly so it doesn't overlap with others. The line points to its original location."
             )
         );
-        content.querySelector('h5').append(indicator);
-    }
-
-    /**
-     * @override
-     */
-    _handleAfterZoomAtMarker(marker) {
-        super._handleAfterZoomAtMarker(marker);
-        this._triggerMarkerHoverEffect(marker);
-    }
-
-    /**
-     * Trigger hover effect on marker
-     * @private
-     * @param {Object} marker The marker to apply hover effect to
-     */
-    _triggerMarkerHoverEffect(marker) {
-        const content = marker?.content;
-        if (!content) {
-            return;
-        }
-
-        // Clear any existing timeout to prevent conflicts
-        if (marker._hoverTimeout) {
-            clearTimeout(marker._hoverTimeout);
-        }
-
-        const mouseEnterEvent = new MouseEvent('mouseenter', {
-            view: window,
-            bubbles: true,
-            cancelable: true,
-        });
-
-        const mouseLeaveEvent = new MouseEvent('mouseleave', {
-            view: window,
-            bubbles: true,
-            cancelable: true,
-        });
-
-        // Trigger hover effect
-        content.dispatchEvent(mouseEnterEvent);
-
-        // Schedule automatic hover removal
-        marker._hoverTimeout = setTimeout(() => {
-            // Check if marker still exists and is valid
-            if (content.isConnected) {
-                content.dispatchEvent(mouseLeaveEvent);
-            }
-            delete marker._hoverTimeout;
-        }, 1000);
-    }
-
-    /**
-     * @override
-     */
-    _cleanUpMarker(id, marker) {
-        if (marker._hoverTimeout) {
-            clearTimeout(marker._hoverTimeout);
-            delete marker._hoverTimeout;
-        }
-        super._cleanUpMarker(id, marker);
+        content.querySelector('#title').append(indicator);
     }
 }
