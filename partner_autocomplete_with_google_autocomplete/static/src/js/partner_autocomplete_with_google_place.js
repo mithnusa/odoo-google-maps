@@ -3,10 +3,12 @@ import { _t } from '@web/core/l10n/translation';
 import { useService } from '@web/core/utils/hooks';
 import { exprToBoolean } from '@web/core/utils/strings';
 import { useState, useRef, onWillUnmount, onWillUpdateProps, useEffect } from '@odoo/owl';
-import { PartnerAutoCompleteCharField, partnerAutoCompleteCharField } from '@partner_autocomplete/js/partner_autocomplete_fieldchar';
+import {
+    PartnerAutoCompleteCharField,
+    partnerAutoCompleteCharField,
+} from '@partner_autocomplete/js/partner_autocomplete_fieldchar';
 import { useGooglePlaceAutocompleteMapping } from '@web_widget_google_place_autocomplete/hooks/use_google_place_autocomplete_mapping';
 import { GooglePlaceAutocompleteElement } from '@web_widget_google_place_autocomplete/component/google_place_autocomplete';
-
 
 /**
  * Extends Odoo's built-in `PartnerAutoCompleteCharField` with Google Place
@@ -27,8 +29,7 @@ import { GooglePlaceAutocompleteElement } from '@web_widget_google_place_autocom
  * @extends PartnerAutoCompleteCharField
  */
 export class PartnerAutoCompleteCharFieldWithGooglePlace extends PartnerAutoCompleteCharField {
-    static template =
-        'partner_autocomplete_with_google_autocomplete.PartnerAutoCompleteCharFieldWithGooglePlace';
+    static template = 'partner_autocomplete_with_google_autocomplete.PartnerAutoCompleteCharFieldWithGooglePlace';
     static components = {
         ...PartnerAutoCompleteCharField.components,
         GooglePlaceAutocompleteElement,
@@ -64,7 +65,9 @@ export class PartnerAutoCompleteCharFieldWithGooglePlace extends PartnerAutoComp
                     this.inputRef.el.setAttribute('readonly', 'readonly');
                     this.inputRef.el.setAttribute(
                         'data-tooltip',
-                        _t('This field is read-only because manual edits are disabled. Please use the Google Place Autocomplete to update the value.')
+                        _t(
+                            'This field is read-only because manual edits are disabled. Please use the Google Place Autocomplete to update the value.'
+                        )
                     );
                 }
                 return () => {
@@ -131,10 +134,9 @@ export class PartnerAutoCompleteCharFieldWithGooglePlace extends PartnerAutoComp
             this.closeGoogleAutocomplete();
         } catch (error) {
             console.error('Failed to populate values from Google Place:', { error, data });
-            this.notificationService.add(
-                _t('Failed to populate values from Google Place. Please try again.'),
-                { type: 'warning' }
-            );
+            this.notificationService.add(_t('Failed to populate values from Google Place. Please try again.'), {
+                type: 'warning',
+            });
         }
     }
 
@@ -165,7 +167,7 @@ export class PartnerAutoCompleteCharFieldWithGooglePlace extends PartnerAutoComp
             return changes;
         } catch (error) {
             console.error('Error preparing values:', { error, values });
-            return {}
+            return {};
         }
     }
 
@@ -264,9 +266,7 @@ export class PartnerAutoCompleteCharFieldWithGooglePlace extends PartnerAutoComp
         }
         if (this.props.mappingMode && !['address', 'places'].includes(this.props.mappingMode)) {
             this.notificationService.add(
-                _t(
-                    `Invalid mapping mode: "${this.props.mappingMode}" for Google Place Autocomplete widget`
-                ),
+                _t(`Invalid mapping mode: "${this.props.mappingMode}" for Google Place Autocomplete widget`),
                 { type: 'warning' }
             );
         }
@@ -287,7 +287,4 @@ export const partnerAutoCompleteCharFieldWithGooglePlace = {
 
 registry
     .category('fields')
-    .add(
-        'field_partner_autocomplete_with_google_place',
-        partnerAutoCompleteCharFieldWithGooglePlace
-    );
+    .add('field_partner_autocomplete_with_google_place', partnerAutoCompleteCharFieldWithGooglePlace);
