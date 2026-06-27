@@ -124,7 +124,7 @@ Enables click-to-create on the Contacts map. Clicking a named Google Place opens
 
 Adds Google Places autocomplete to the Contact form. Typing in the partner name field suggests matching businesses and places from Google; typing in the street field suggests addresses. Selecting a suggestion fills in the address, country, phone, website, and map coordinates automatically. The required field mappings are created on installation — no manual setup needed.
 
-**[partner_autocomplete_with_google_autocomplete](partner_autocomplete_with_google_autocomplete/README.md)** `19.0.1.0.5`
+**[partner_autocomplete_with_google_autocomplete](partner_autocomplete_with_google_autocomplete/README.md)** `19.0.1.0.6`
 
 Enhances the Contact name field with a Google Places panel alongside Odoo's built-in partner autocomplete. A toggle lets the user switch between Odoo's database suggestions and Google Places results on the same input. Applied automatically to all contact forms — no view customization required.
 
@@ -164,7 +164,7 @@ Adds a Google Map view to the Inventory application, covering Deliveries, Ready 
 
 ### Project
 
-**[project_google_map](project_google_map/README.md)** `19.0.1.0.4`
+**[project_google_map](project_google_map/README.md)** `19.0.1.0.5`
 
 Adds Google Map views for Projects and Tasks. Project markers show task counts and completion statistics. The project form gains an embedded satellite map. Task maps are scoped per project and use status-based color coding — on track, at risk, off track, on hold, and done — configurable per project.
 

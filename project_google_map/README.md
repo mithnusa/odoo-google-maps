@@ -32,7 +32,6 @@ Extends the standard Project app with site location support for both projects an
 
 - `project`
 - `web_view_google_map`
-- `web_widget_google_map`
 
 ## Installation
 
@@ -58,6 +57,5 @@ Extends the standard Project app with site location support for both projects an
 
 ## Related Modules
 
-- `web_view_google_map`: Provides the Google Map view type used by this module
+- `web_view_google_map`: Provides the Google Map view type and embedded map widget used by this module
 - `base_google_map`: Core module that manages the Google API Key configuration
-- `web_widget_google_map`: Provides the embedded Google Map widget used in project and task forms

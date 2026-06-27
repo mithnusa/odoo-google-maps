@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" ?>
 <templates xml:space="preserve">
     <!--
         Extra action button rendered inside the actions <td> of the sidebar
@@ -6,8 +6,14 @@
         Injected via GoogleMapSidebarProject.recordActionsTemplate.
     -->
     <t t-name="project_google_map.RecordActionsTemplate">
-        <button type="button" class="btn btn-sm btn-link" id="action-view-task" data-tooltip="View Tasks" t-on-click="() => props.onActionViewTask(record)">
-            <i class="fa fa-list-ul"/>
+        <button
+            type="button"
+            class="btn btn-sm btn-link"
+            id="action-view-task"
+            data-tooltip="View Tasks"
+            t-on-click="() => props.onActionViewTask(record)"
+        >
+            <i class="fa fa-list-ul" />
         </button>
     </t>
 </templates>
