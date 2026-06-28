@@ -21,7 +21,7 @@ Provides:
     "website": "https://github.com/mithnusa",
     "support": "yopiangi@gmail.com",
     "category": "Tools",
-    "version": "1.0.3",
+    "version": "19.0.1.0.4",
     "depends": [
         "web_view_google_map",
     ],
@@ -32,7 +32,4 @@ Provides:
             "base_google_map_add_place/static/src/components/in_map_click_add_place/in_map_click_add_place.scss",
         ],
     },
-    "installable": True,
-    "application": False,
-    "auto_install": False,
 }
