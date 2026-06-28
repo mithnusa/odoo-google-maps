@@ -1,11 +1,14 @@
 # -*- coding: utf-8 -*-
 from ast import literal_eval
+import logging
 import math
 import time
 
-from odoo import _, api, fields, models
+from odoo import api, fields, models
 from odoo.fields import Domain
 from odoo.exceptions import UserError
+
+_logger = logging.getLogger(__name__)
 
 
 class ResPartner(models.Model):
@@ -105,7 +108,9 @@ class ResPartner(models.Model):
                 ("country_id", "!=", False),
                 ("partner_latitude", "=", False),
                 ("partner_longitude", "=", False),
-                "|", "|", "|",
+                "|",
+                "|",
+                "|",
                 ("city", "!=", False),
                 ("zip", "!=", False),
                 ("street", "!=", False),
@@ -115,28 +120,43 @@ class ResPartner(models.Model):
         )
         geo_provider_id = self.env["base.geocoder"]._get_provider()
         openstreetmap_provider_id = self.env.ref(
-            "base_geolocalize.geoprovider_open_street", raise_if_not_found=False
+            "base_geolocalize.geoprovider_open_street",
+            raise_if_not_found=False,
         )
-        if (
+        is_openstreetmap_provider = (
             openstreetmap_provider_id
             and geo_provider_id
-            and geo_provider_id.tech_name == openstreetmap_provider_id.tech_name
-        ):
-            # Need to add pause between partner to avoid hitting API rate limits
-            for partner in partner_ids:
-                partner.geo_localize()
-                if self.env.context.get("from_cron"):
-                    self.env.cr.commit()  # Commit after the geolocalization to avoid long transactions
-                time.sleep(1)  # Sleep for 1 second between geolocalization calls
-        else:
-            partner_ids.geo_localize()
+            and geo_provider_id.tech_name
+            == openstreetmap_provider_id.tech_name
+        )
+        for partner in partner_ids:
+            try:
+                with self.env.cr.savepoint():
+                    partner.geo_localize()
+            except Exception:
+                _logger.warning(
+                    "Failed to geolocalize partner %s: %s",
+                    partner.id,
+                    partner.display_name,
+                    exc_info=True,
+                )
+
+            if is_openstreetmap_provider:
+                # Need to add pause between partner to avoid hitting API rate limits
+                time.sleep(
+                    1
+                )  # Sleep for 1 second between geolocalization calls
 
         return True
 
     def action_nearby_search(self):
         self.ensure_one()
         if not self.partner_latitude and not self.partner_longitude:
-            raise UserError(_("This contact does not have geolocation coordinates."))
+            raise UserError(
+                self.env._(
+                    "This contact does not have geolocation coordinates."
+                )
+            )
 
         radius_meters = (
             self.env["ir.config_parameter"]
@@ -170,7 +190,7 @@ class ResPartner(models.Model):
                 "nearby_bounding_box": bounding_box,
             }
         )
-        title = _("Nearby Contacts (within %.1f km)", radius / 1000)
+        title = self.env._("Nearby Contacts (within %.1f km)", radius / 1000)
         action.update(
             {
                 "domain": domain,

@@ -1,10 +1,10 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" ?>
 <odoo>
     <record id="view_res_partner_form_inherit_google_autocomplete" model="ir.ui.view">
         <field name="name">res.partner.form.inherit.google.autocomplete</field>
         <field name="model">res.partner</field>
-        <field name="inherit_id" ref="base.view_partner_form"/>
-        <field name="priority">999</field>
+        <field name="inherit_id" ref="base.view_partner_form" />
+        <field name="priority" eval="999" />
         <field name="arch" type="xml">
             <xpath expr="//h1/field[1]" position="attributes">
                 <attribute name="widget">gplace_autocomplete_el</attribute>

@@ -15,7 +15,7 @@ Adds the `google_map` view type to Contacts so you can see all your contacts pin
 - **Marker Color Customization**: Each contact can have a custom marker color set via a color picker on the contact form
 - **Nearby Contacts Search**: "Nearby Contacts" button on the contact form opens the map filtered to contacts within a configurable radius of that contact's location
 - **Embedded Map in Contact Form**: The Geolocation page of the contact form shows an embedded map at the contact's coordinates
-- **Automatic Geocoding Cron**: A scheduled job (enabled by default, runs every 12 hours) that automatically geocodes up to 80 contacts per run that have a country and at least one address field but no coordinates
+- **Automatic Geocoding Cron**: A scheduled job (enabled by default, runs every 12 hours) that automatically geocodes up to 80 contacts per run that have a country and at least one address field but no coordinates; failures are isolated per contact so one bad record never aborts the whole batch
 
 ## Dependencies
 
