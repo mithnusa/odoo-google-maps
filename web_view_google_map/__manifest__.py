@@ -60,8 +60,5 @@ Provides:
             "web_view_google_map/static/src/views/google_map/google_map_view.dark.scss",
         ],
     },
-    "installable": True,
-    "application": False,
-    "auto_install": False,
     "uninstall_hook": "_uninstall_view_google_map",
 }
