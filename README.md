@@ -117,7 +117,7 @@ Shared foundation for click-to-create workflows on map views. Provides the serve
 
 Adds a Google Map view to the Contacts application. Partners appear as color-coded markers; clicking one opens the contact card. Each contact form gains a Geolocation tab with an embedded map, a one-click geocode button, a marker color picker, and a nearby partners search. An optional background cron job can geocode all contacts automatically.
 
-**[contacts_google_map_add_place](contacts_google_map_add_place/README.md)** `19.0.1.0.2`
+**[contacts_google_map_add_place](contacts_google_map_add_place/README.md)** `19.0.1.0.3`
 
 Enables click-to-create on the Contacts map. Clicking a named Google Place opens a partner creation form pre-filled with name, address, phone, and website from Google's data. Clicking an empty spot reverse-geocodes the coordinate and pre-fills the address. If a contact with the same Google Place already exists, that record opens instead of creating a duplicate.
 
