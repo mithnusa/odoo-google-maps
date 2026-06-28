@@ -18,7 +18,6 @@ export class GoogleMapStreetViewSideBySideDialog extends Component {
     };
     static defaultProps = {
         title: _t('Street View'),
-        heading: 34,
         pitch: 10,
         zoom: 0,
     };
@@ -112,12 +111,17 @@ export class GoogleMapStreetViewSideBySideDialog extends Component {
         if (this.googleMap || this._initInProgress) return;
         try {
             this._initInProgress = true;
-            const [{ Map }, { StreetViewPanorama, StreetViewService, StreetViewStatus }, { AdvancedMarkerElement }] =
-                await Promise.all([
-                    this.apiLoader.importLibrary('maps'),
-                    this.apiLoader.importLibrary('streetView'),
-                    this.apiLoader.importLibrary('marker'),
-                ]);
+            const [
+                { Map },
+                { StreetViewPanorama, StreetViewService, StreetViewStatus },
+                { AdvancedMarkerElement },
+                { spherical },
+            ] = await Promise.all([
+                this.apiLoader.importLibrary('maps'),
+                this.apiLoader.importLibrary('streetView'),
+                this.apiLoader.importLibrary('marker'),
+                this.apiLoader.importLibrary('geometry'),
+            ]);
 
             if (!this._isMounted) return;
 
@@ -138,9 +142,12 @@ export class GoogleMapStreetViewSideBySideDialog extends Component {
             // Use the callback form to avoid Promise rejection on ZERO_RESULTS
             // (the Promise-based API rejects for any non-OK status, which would
             // be caught by the outer catch and wrongly show an error notification).
-            const svStatus = await new Promise((resolve) => {
-                new StreetViewService().getPanorama({ location: position, radius: 50 }, (_data, status) =>
-                    resolve(status)
+            // We also capture panoLatLng here: the camera lands on the nearest road,
+            // not exactly on `position`, so we compute heading from camera → target
+            // instead of using a hardcoded default.
+            const { svStatus, panoLatLng } = await new Promise((resolve) => {
+                new StreetViewService().getPanorama({ location: position, radius: 50 }, (data, status) =>
+                    resolve({ svStatus: status, panoLatLng: data?.location?.latLng ?? null })
                 );
             });
 
@@ -152,9 +159,14 @@ export class GoogleMapStreetViewSideBySideDialog extends Component {
                 return;
             }
 
+            // If the caller supplied an explicit heading use it; otherwise point
+            // from the panorama camera toward the target location.
+            const effectiveHeading =
+                heading !== undefined ? heading : panoLatLng ? spherical.computeHeading(panoLatLng, position) : 0;
+
             const panorama = new StreetViewPanorama(this.streetViewRef.el, {
                 position,
-                pov: { heading, pitch },
+                pov: { heading: effectiveHeading, pitch },
                 zoom,
             });
 
@@ -181,8 +193,12 @@ export class GoogleMapStreetViewSideBySideDialog extends Component {
             throw new Error(_t('Invalid latitude or longitude values.'));
         }
 
-        if (!Number.isFinite(heading) || !Number.isFinite(pitch) || !Number.isFinite(zoom)) {
-            throw new Error(_t('Invalid heading, pitch, or zoom values.'));
+        if (heading !== undefined && !Number.isFinite(heading)) {
+            throw new Error(_t('Invalid heading value.'));
+        }
+
+        if (!Number.isFinite(pitch) || !Number.isFinite(zoom)) {
+            throw new Error(_t('Invalid pitch or zoom values.'));
         }
 
         if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
@@ -197,7 +213,7 @@ export class GoogleMapStreetViewSideBySideDialog extends Component {
             throw new Error(_t('Pitch must be between -90 and 90.'));
         }
 
-        if (heading < 0 || heading >= 360) {
+        if (heading !== undefined && (heading < 0 || heading >= 360)) {
             throw new Error(_t('Heading must be between 0 (inclusive) and 360 (exclusive).'));
         }
     }
