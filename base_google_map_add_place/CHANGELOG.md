@@ -1,5 +1,16 @@
 # Change Log
 
+## 19.0.1.0.4
+
+### Improved
+
+- **Model-aware notifications** (`in_map_click_add_place.js`): Post-save notifications now include the model name — "Contact has been created successfully" instead of the generic "Record created/updated successfully". The `model_description` is now passed in the action context from both `action_in_map_google_place_create` and `action_in_map_google_place_from_reverse_geocode` (all form-open paths), and extracted by the JS component to build the notification message.
+- **Python — Odoo 19 translations** (`google_map_add_place.py`): `_()` module-level import replaced with `self.env._()` calls throughout; removed unused `_` import.
+- **Python — Black format** (`google_map_add_place.py`): Reformatted with Black (line length 79).
+- **JS code style** (`in_map_click_add_place.js`): Trailing commas and destructuring formatting made consistent with Prettier.
+- **XML format** (`in_map_click_add_place.xml`): Reformatted with self-closing tags and multi-line attribute layout.
+- **`__manifest__.py`**: Removed explicit `installable`, `application`, and `auto_install` keys — these are Odoo defaults and were redundant.
+
 ## 1.0.3
 
 ### Improved

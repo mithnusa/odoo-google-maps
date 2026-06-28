@@ -105,7 +105,7 @@ Adds an embedded Google Map to any Odoo form. Shows the record's saved location 
 
 A configurable Google Places autocomplete widget for any Odoo text field. When a user picks a suggestion from the dropdown, it fills whichever Odoo fields are configured in the mapping — name, street, city, zip, country, phone, website, coordinates, and more. Includes a built-in test tool to verify mappings without leaving the settings screen.
 
-**[base_google_map_add_place](base_google_map_add_place/README.md)** `19.0.1.0.3`
+**[base_google_map_add_place](base_google_map_add_place/README.md)** `19.0.1.0.4`
 
 Shared foundation for click-to-create workflows on map views. Provides the server-side logic and map overlay that lets users click any location on the map to open a pre-filled record creation form. Application modules build on this; you don't need to install it directly.
 

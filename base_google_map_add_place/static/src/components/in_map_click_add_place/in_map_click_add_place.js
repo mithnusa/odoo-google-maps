@@ -76,17 +76,11 @@ export class InMapClickAddPlace extends Component {
         if (!this.props.googleMap) return;
 
         if (!this._placeClickListener) {
-            this._placeClickListener = this.props.googleMap.addListener(
-                'click',
-                this._boundClickListener
-            );
+            this._placeClickListener = this.props.googleMap.addListener('click', this._boundClickListener);
         }
 
         if (!this._mapIdleAddPlaceIndicatorListener) {
-            const content = renderToString(
-                'base_google_map_add_place.PlaceCreationIndicator',
-                {}
-            );
+            const content = renderToString('base_google_map_add_place.PlaceCreationIndicator', {});
             this._indicatorElement = new DOMParser().parseFromString(content, 'text/html').querySelector('div');
             this._indicatorElement.querySelector('button').addEventListener('click', this._boundButtonClickListener);
             this.props.googleMap.controls[google.maps.ControlPosition.RIGHT_TOP].push(this._indicatorElement);
@@ -214,37 +208,28 @@ export class InMapClickAddPlace extends Component {
         });
 
         const placeData = place.toJSON();
-        const {
-            addressComponents,
-            displayName,
-            location,
-            websiteURI,
-            internationalPhoneNumber,
-            adrFormatAddress,
-        } = placeData; // Destructure to ensure place details are fetched
+        const { addressComponents, displayName, location, websiteURI, internationalPhoneNumber, adrFormatAddress } =
+            placeData; // Destructure to ensure place details are fetched
 
-        const action = await this.ormService.call(
-            this.env.model.config.resModel,
-            'action_in_map_google_place_create',
-            [
-                {
-                    placeId,
-                    addressComponents,
-                    displayName,
-                    location,
-                    websiteURI,
-                    internationalPhoneNumber,
-                    adrFormatAddress,
-                },
-            ]
-        );
+        const action = await this.ormService.call(this.env.model.config.resModel, 'action_in_map_google_place_create', [
+            {
+                placeId,
+                addressComponents,
+                displayName,
+                location,
+                websiteURI,
+                internationalPhoneNumber,
+                adrFormatAddress,
+            },
+        ]);
         if (action && action.type === 'ir.actions.act_window') {
             // reload the view to reflect the newly created partner after the quick create form is closed
             const mode = !action.res_id ? 'create' : 'write';
+            const modelName = action.context?.model_description;
             this.actionService.doAction(action, {
                 props: {
                     onSave: (record, _params) => {
-                        this._handleOnSave(record, mode);
+                        this._handleOnSave(record, mode, modelName);
                     },
                 },
             });
@@ -288,10 +273,11 @@ export class InMapClickAddPlace extends Component {
             );
             if (action && action.type === 'ir.actions.act_window') {
                 const mode = !action.res_id ? 'create' : 'write';
+                const modelName = action.context?.model_description;
                 this.actionService.doAction(action, {
                     props: {
                         onSave: (record, _params) => {
-                            this._handleOnSave(record, mode);
+                            this._handleOnSave(record, mode, modelName);
                         },
                     },
                 });
@@ -324,15 +310,16 @@ export class InMapClickAddPlace extends Component {
      * @returns {Promise<void>}
      * @private
      */
-    async _handleOnSave(record, mode) {
+    async _handleOnSave(record, mode, modelName) {
         if (record.resId) {
+            const model_name = modelName || _t('record');
             this.actionService.doAction({ type: 'ir.actions.act_window_close' });
 
             await this.env.model.root.load();
             this.env.model.notify();
 
             if (mode === 'create') {
-                this.notificationService.add(_t('Record created successfully'), {
+                this.notificationService.add(_t('%(model_name)s has been created successfully', { model_name }), {
                     type: 'info',
                     autocloseDelay: 5000,
                     sticky: false,
@@ -346,7 +333,7 @@ export class InMapClickAddPlace extends Component {
                     ],
                 });
             } else if (mode === 'write') {
-                this.notificationService.add(_t('Record updated successfully'), {
+                this.notificationService.add(_t('%(model_name)s has been updated successfully', { model_name }), {
                     type: 'info',
                     autocloseDelay: 5000,
                     sticky: false,
@@ -417,8 +404,7 @@ export class InMapClickAddPlace extends Component {
         const centerLng = center.lng();
 
         // Euclidean distance on lat/lng — sufficient at this scale
-        const dist = (pos) =>
-            (pos.lat - centerLat) ** 2 + (pos.lng - centerLng) ** 2;
+        const dist = (pos) => (pos.lat - centerLat) ** 2 + (pos.lng - centerLng) ** 2;
 
         let nearest = null;
         let nearestDist = Infinity;
