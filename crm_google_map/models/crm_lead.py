@@ -238,7 +238,9 @@ class CrmLead(models.Model):
                 with self.env.cr.savepoint():
                     lead.geo_localize()
             except Exception:
-                _logger.warning("Error geolocalizing lead %s", lead.id, exc_info=True)
+                _logger.warning(
+                    "Error geolocalizing lead %s", lead.id, exc_info=True
+                )
 
             if is_openstreetmap_provider:
                 time.sleep(

@@ -15,7 +15,7 @@ Partner Area
         "contacts_google_map",
         "web_view_google_map_drawing",
     ],
-    "website": "",
+    "website": "https://www.mithnusa.com",
     "data": [
         "security/ir.model.access.csv",
         "views/res_partner_area.xml",
@@ -23,6 +23,4 @@ Partner Area
         "wizard/geojson_upload_wizard_views.xml",
     ],
     "assets": {"web.assets_backend": ["contacts_area/static/src/views/*"]},
-    "demo": [],
-    "installable": True,
 }
