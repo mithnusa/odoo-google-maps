@@ -1,6 +1,5 @@
 import { registry } from '@web/core/registry';
 import { _t } from '@web/core/l10n/translation';
-import { sprintf } from '@web/core/utils/strings';
 import { useService } from '@web/core/utils/hooks';
 import { standardWidgetProps } from '@web/views/widgets/standard_widget_props';
 import { rpc } from '@web/core/network/rpc';
@@ -8,7 +7,7 @@ import { Component, onWillStart, useRef, useEffect, useState, onWillUnmount, use
 
 import { ConfirmationDialog } from '@web/core/confirmation_dialog/confirmation_dialog';
 import { useGoogleMapsAPILoader } from '@base_google_map/utils/loader_google_map';
-import { GoogleMapSearchPlaces } from '@web_view_google_map/views/google_map/components/search_places/search_places';
+import { GoogleMapSearchPlaces } from '../../components/search_places/search_places';
 
 /**
  * Dialog component for editing geolocation coordinates with an interactive Google Map.
@@ -58,10 +57,9 @@ class GeolocationEditDialog extends ConfirmationDialog {
                 this.state.isGoogleLoaded = true;
             },
             (error) => {
-                console.error(' Error loading Google Maps API: ', error);
                 this.state.isGoogleLoaded = false;
                 this.notificationService.add(
-                    sprintf(_t('Failed to load Google Maps API.\n%s'), error.message || error),
+                    _t('Failed to load Google Maps API.\n%(err)s', { err: error.message || error }),
                     { type: 'danger' }
                 );
             }
@@ -129,9 +127,8 @@ class GeolocationEditDialog extends ConfirmationDialog {
             this.googleMap = googleMap;
             await this.onMapReady(googleMap);
         } catch (error) {
-            console.error('Error initializing Google Map:', error);
             this.notificationService.add(
-                sprintf(_t('Failed to initialize Google Map.\n%s'), error.message || error),
+                _t('Failed to initialize Google Map.\n%(err)s', { err: error.message || error }),
                 { type: 'danger' }
             );
         } finally {
@@ -188,9 +185,8 @@ class GeolocationEditDialog extends ConfirmationDialog {
                 if (this.googleMap.getZoom() < 16) this.googleMap.setZoom(16);
             });
         } catch (error) {
-            console.error('Error loading Google Maps API:', error);
             this.notificationService.add(
-                sprintf(_t('Failed to load Google Maps API.\n%s'), error.message || error),
+                _t('Failed to load Google Maps API.\n%(err)s', { err: error.message || error }),
                 { type: 'danger' }
             );
             return;
@@ -338,7 +334,6 @@ export class GoogleMapWidget extends Component {
         try {
             return this.props.record.data[this.props.lat] || 0.0;
         } catch (e) {
-            console.error(e);
             return 0.0;
         }
     }
@@ -352,7 +347,6 @@ export class GoogleMapWidget extends Component {
         try {
             return this.props.record.data[this.props.lng] || 0.0;
         } catch (e) {
-            console.error(e);
             return 0.0;
         }
     }
@@ -450,10 +444,7 @@ export class GoogleMapWidget extends Component {
         if (!this.props.lat || !this.props.lng) {
             throw new Error("Widget google_map: 'lat' and 'lng' props are required.");
         }
-        if (
-            !this.props.record.fields[this.props.lat] ||
-            !this.props.record.fields[this.props.lng]
-        ) {
+        if (!this.props.record.fields[this.props.lat] || !this.props.record.fields[this.props.lng]) {
             throw new Error(
                 `Widget google_map: fields '${this.props.lat}' and '${this.props.lng}' must be present in the view.`
             );

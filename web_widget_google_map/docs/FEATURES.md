@@ -45,4 +45,40 @@
 
 **Why it matters**: Finding a precise location by name is faster than manually panning the map, especially for new or unfamiliar addresses.
 
-**How it works**: The dialog reuses the `GoogleMapSearchPlaces` component from `web_view_google_map`. Selecting a result from the autocomplete pans the map to that location, after which the user can fine-tune the marker position by dragging before saving.
+**How it works**: The dialog reuses the `GoogleMapSearchPlaces` component. Selecting a result from the autocomplete pans the map to that location, after which the user can fine-tune the marker position by dragging before saving.
+
+---
+
+## Shared Map Components
+
+These components are bundled in this module and re-exported for use by `web_view_google_map`'s map view. They are not directly visible as form widget features but are part of the shared frontend foundation.
+
+### Geolocation Button (`GoogleMapGeolocate`)
+
+**What it does**: Adds a floating geolocation button to any Google Map instance. Clicking it shows the user's current position as a custom marker and zooms the map to that location.
+
+**Why it matters**: Lets users instantly orient themselves relative to their map data — useful in field workflows where the user's physical location is the starting point for exploration.
+
+**How it works**: The component injects a custom button into the map's `RIGHT_BOTTOM` control area via `google.maps.controls`. On click it calls the browser Geolocation API (`enableHighAccuracy: true`, 10 s timeout). On success an `AdvancedMarkerElement` with an SVG pin is placed at the returned coordinates and an info window labelled "Your location" opens on click. Specific `GeolocationPositionError` codes (permission denied, position unavailable, timeout) map to distinct user-facing notification messages. The button DOM element and all event listeners are cleaned up in `onWillUnmount`.
+
+---
+
+### Place Search (`GoogleMapSearchPlaces`)
+
+**What it does**: Adds a Google Places autocomplete search box to any Google Map instance. Selecting a result pans the map to the location and shows a search-marker info window with the place name and address.
+
+**Why it matters**: Lets users navigate a large map to any address or landmark by name, without panning manually or knowing the coordinates in advance.
+
+**How it works**: The component renders a `<gmp-place-autocomplete>` element (`PlaceAutocompleteElement`, Places API New) into the map's `TOP_RIGHT` control area once the map fires its first `idle` event. It respects `restrict_language`, `autocomplete_restrict_country`, and `region` settings from `base_google_map`. The current map bounds are passed as `locationRestriction` and updated on every `bounds_changed` event. On selection a `fetchFields` call retrieves `displayName`, `formattedAddress`, and `location`; the map then pans (or fits the viewport) and an orange pin marker with an info window is placed at the result. All listeners and DOM nodes are removed in `onWillUnmount`.
+
+---
+
+## Street View
+
+### Street View Side-by-Side Dialog
+
+**What it does**: Opens an XL dialog displaying a Google Map on the left panel and Google Street View on the right panel for the same coordinates.
+
+**Why it matters**: Lets users visually verify a record's exact location using street-level imagery alongside the standard map, without leaving the form.
+
+**How it works**: `GoogleMapStreetViewSideBySideDialog` loads the `maps` and `marker` libraries in parallel (Street View classes are part of `maps`). Before initialising the panorama it calls `StreetViewService.getPanorama()` to check imagery coverage within 50 metres of the coordinates. If coverage is confirmed (`StreetViewStatus.OK`) the panorama is created and linked to the map via `map.setStreetView()`. If no imagery is available the right panel is replaced by a styled placeholder and an `AdvancedMarkerElement` is placed on the map to indicate the exact position. Configurable `heading`, `pitch`, and `zoom` props control the initial Street View point-of-view.

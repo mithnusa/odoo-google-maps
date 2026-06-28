@@ -1,0 +1,220 @@
+import { Component, useRef, useEffect, onWillUnmount, useState } from '@odoo/owl';
+import { Dialog } from '@web/core/dialog/dialog';
+import { useService } from '@web/core/utils/hooks';
+import { _t } from '@web/core/l10n/translation';
+import { useGoogleMapsAPILoader } from '@base_google_map/utils/loader_google_map';
+
+export class GoogleMapStreetViewSideBySideDialog extends Component {
+    static template = 'web_widget_google_map.GoogleMapStreetViewSideBySideDialog';
+    static components = { Dialog };
+    static props = {
+        close: Function,
+        lat: Number,
+        lng: Number,
+        title: { type: String, optional: true },
+        heading: { type: Number, optional: true },
+        pitch: { type: Number, optional: true },
+        zoom: { type: Number, optional: true },
+    };
+    static defaultProps = {
+        title: _t('Street View'),
+        pitch: 10,
+        zoom: 0,
+    };
+
+    setup() {
+        this.mapRef = useRef('map');
+        this.streetViewRef = useRef('streetView');
+        this.notificationService = useService('notification');
+        this._isMounted = true;
+        this.googleMap = null;
+        this.panorama = null;
+        this._locationMarker = null;
+        this._initInProgress = false;
+
+        this.state = useState({ isGoogleLoaded: false, streetViewAvailable: true });
+
+        this.apiLoader = useGoogleMapsAPILoader(
+            () => {
+                this.state.isGoogleLoaded = true;
+            },
+            (error) => {
+                this.state.isGoogleLoaded = false;
+                this.notificationService.add(
+                    _t('Failed to load Google Maps API.\n%(err)s', { err: error.message || error }),
+                    { type: 'danger' }
+                );
+            }
+        );
+
+        useEffect(
+            (isGoogleLoaded, mapEl, streetViewEl) => {
+                if (isGoogleLoaded && mapEl && streetViewEl) {
+                    this.initializeMapAndStreetView();
+                }
+            },
+            () => [this.state.isGoogleLoaded, this.mapRef.el, this.streetViewRef.el]
+        );
+
+        onWillUnmount(() => {
+            this._isMounted = false;
+            this._cleanup();
+        });
+
+        try {
+            this._validateProps();
+        } catch (error) {
+            this.notificationService.add(error.message, { type: 'danger' });
+            Promise.resolve().then(() => this.props.close());
+            return;
+        }
+    }
+
+    _cleanup() {
+        if (this._locationMarker) {
+            this._locationMarker.map = null;
+            this._locationMarker = null;
+        }
+        if (this.panorama) {
+            // Stop active tile fetching before removing. Without setVisible(false)
+            // the panorama keeps requesting imagery tiles even after the dialog
+            // closes, which causes 429s on rapid open/close cycles.
+            this.panorama.setVisible(false);
+            if (this.googleMap) {
+                // Break the MVC binding created by map.setStreetView(panorama).
+                // Without this, both objects stay alive in the Maps API internals
+                // even after we null our references.
+                this.googleMap.setStreetView(null);
+            }
+            google.maps.event.clearInstanceListeners(this.panorama);
+            this.panorama.unbindAll();
+            this.panorama = null;
+        }
+        if (this.googleMap) {
+            google.maps.event.clearInstanceListeners(this.googleMap);
+            this.googleMap.unbindAll();
+            this.googleMap = null;
+        }
+        // Remove the canvas elements so the browser can release their WebGL
+        // contexts immediately rather than waiting for GC. Without this, rapid
+        // open/close cycles exhaust the browser's WebGL context limit (~16) and
+        // cause subsequent map renders to go blank.
+        if (this.mapRef.el) {
+            this.mapRef.el.innerHTML = '';
+        }
+        if (this.streetViewRef.el) {
+            this.streetViewRef.el.innerHTML = '';
+        }
+    }
+
+    async initializeMapAndStreetView() {
+        if (this.googleMap || this._initInProgress) return;
+        try {
+            this._initInProgress = true;
+            const [
+                { Map },
+                { StreetViewPanorama, StreetViewService, StreetViewStatus },
+                { AdvancedMarkerElement },
+                { spherical },
+            ] = await Promise.all([
+                this.apiLoader.importLibrary('maps'),
+                this.apiLoader.importLibrary('streetView'),
+                this.apiLoader.importLibrary('marker'),
+                this.apiLoader.importLibrary('geometry'),
+            ]);
+
+            if (!this._isMounted) return;
+
+            const settings = this.apiLoader.getSettings();
+            const { lat, lng, heading, pitch, zoom } = this.props;
+            const position = { lat, lng };
+
+            // Always create the map so the left panel is usable regardless.
+            const map = new Map(this.mapRef.el, {
+                center: position,
+                mapId: settings.map_id,
+                zoom: 14,
+            });
+            this.googleMap = map;
+
+            // Check coverage before creating the panorama.
+            // StreetViewPanorama silently renders black when no imagery exists.
+            // Use the callback form to avoid Promise rejection on ZERO_RESULTS
+            // (the Promise-based API rejects for any non-OK status, which would
+            // be caught by the outer catch and wrongly show an error notification).
+            // We also capture panoLatLng here: the camera lands on the nearest road,
+            // not exactly on `position`, so we compute heading from camera → target
+            // instead of using a hardcoded default.
+            const { svStatus, panoLatLng } = await new Promise((resolve) => {
+                new StreetViewService().getPanorama({ location: position, radius: 50 }, (data, status) =>
+                    resolve({ svStatus: status, panoLatLng: data?.location?.latLng ?? null })
+                );
+            });
+
+            if (!this._isMounted) return;
+
+            if (svStatus !== StreetViewStatus.OK) {
+                this.state.streetViewAvailable = false;
+                this._locationMarker = new AdvancedMarkerElement({ map, position });
+                return;
+            }
+
+            // If the caller supplied an explicit heading use it; otherwise point
+            // from the panorama camera toward the target location.
+            const effectiveHeading =
+                heading !== undefined ? heading : panoLatLng ? spherical.computeHeading(panoLatLng, position) : 0;
+
+            const panorama = new StreetViewPanorama(this.streetViewRef.el, {
+                position,
+                pov: { heading: effectiveHeading, pitch },
+                zoom,
+            });
+
+            map.setStreetView(panorama);
+            this.panorama = panorama;
+        } catch (error) {
+            this.notificationService.add(
+                _t('Failed to initialize Street View.\n%(err)s', { err: error.message || error }),
+                { type: 'danger' }
+            );
+        } finally {
+            this._initInProgress = false;
+        }
+    }
+
+    get streetViewUnavailableText() {
+        return _t('Street View is not available for this location.');
+    }
+
+    _validateProps() {
+        const { lat, lng, heading, pitch, zoom } = this.props;
+
+        if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+            throw new Error(_t('Invalid latitude or longitude values.'));
+        }
+
+        if (heading !== undefined && !Number.isFinite(heading)) {
+            throw new Error(_t('Invalid heading value.'));
+        }
+
+        if (!Number.isFinite(pitch) || !Number.isFinite(zoom)) {
+            throw new Error(_t('Invalid pitch or zoom values.'));
+        }
+
+        if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+            throw new Error(_t('Latitude must be between -90 and 90, and longitude must be between -180 and 180.'));
+        }
+
+        if (zoom < 0 || zoom > 5) {
+            throw new Error(_t('Panorama zoom level must be between 0 and 5.'));
+        }
+
+        if (pitch < -90 || pitch > 90) {
+            throw new Error(_t('Pitch must be between -90 and 90.'));
+        }
+
+        if (heading !== undefined && (heading < 0 || heading >= 360)) {
+            throw new Error(_t('Heading must be between 0 (inclusive) and 360 (exclusive).'));
+        }
+    }
+}

@@ -4,7 +4,7 @@ import { useService } from '@web/core/utils/hooks';
 import { renderToString } from '@web/core/utils/render';
 
 export class GoogleMapGeolocate extends Component {
-    static template = 'web_view_google_map.Geolocate';
+    static template = 'web_widget_google_map.Geolocate';
     static props = ['googleMap'];
 
     setup() {
@@ -20,7 +20,6 @@ export class GoogleMapGeolocate extends Component {
         onWillUnmount(() => {
             this._cleanup();
         });
-
     }
 
     /**
@@ -31,14 +30,10 @@ export class GoogleMapGeolocate extends Component {
     _onMounted() {
         if (this.props.googleMap && !this.geolocateBtn) {
             this.infoWindow = new google.maps.InfoWindow();
-            const content = renderToString('web_view_google_map.GeolocateBtn', {});
-            this.geolocateBtn = new DOMParser()
-                .parseFromString(content, 'text/html')
-                .querySelector('div');
+            const content = renderToString('web_widget_google_map.GeolocateBtn', {});
+            this.geolocateBtn = new DOMParser().parseFromString(content, 'text/html').querySelector('div');
 
-            this.props.googleMap.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(
-                this.geolocateBtn
-            );
+            this.props.googleMap.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(this.geolocateBtn);
 
             this.geolocateBtn.addEventListener('click', this._boundGeolocation);
         }
@@ -66,7 +61,6 @@ export class GoogleMapGeolocate extends Component {
 
             this._geolocationSuccess(position);
         } catch (error) {
-            console.warn('Geolocation error:', error);
             this._geolocationFailed(error);
         }
     }
@@ -83,10 +77,8 @@ export class GoogleMapGeolocate extends Component {
         if (!this.marker) {
             const { AdvancedMarkerElement } = await this.env.apiLoader.importLibrary('marker');
 
-            const markerContent = renderToString('web_view_google_map.GeolocateMarker', {});
-            const content = new DOMParser()
-                .parseFromString(markerContent, 'text/html')
-                .querySelector('svg');
+            const markerContent = renderToString('web_widget_google_map.GeolocateMarker', {});
+            const content = new DOMParser().parseFromString(markerContent, 'text/html').querySelector('svg');
 
             this.marker = new AdvancedMarkerElement({
                 map: this.props.googleMap,
@@ -118,7 +110,7 @@ export class GoogleMapGeolocate extends Component {
         const content = document.createElement('div');
         content.classList.add('infoWindow', 'p-3', 'mt-3');
         content.innerText = _t('Your location');
-        
+
         this.infoWindow.setOptions({ content });
         this.infoWindow.open(this.props.googleMap, this.marker);
     }
@@ -135,7 +127,9 @@ export class GoogleMapGeolocate extends Component {
         if (typeof error.code === 'number') {
             switch (error.code) {
                 case 1: // PERMISSION_DENIED
-                    message = _t('Geolocation is disabled. Please enable it in your browser settings if you want browser to detect your location.');
+                    message = _t(
+                        'Geolocation is disabled. Please enable it in your browser settings if you want browser to detect your location.'
+                    );
                     break;
                 case 2: // POSITION_UNAVAILABLE
                     message = _t('Location information is unavailable.');
