@@ -1,4 +1,5 @@
-from odoo import _, api, models
+from odoo import api, models
+
 
 class CrmLead(models.Model):
     _name = "crm.lead"
@@ -40,11 +41,17 @@ class CrmLead(models.Model):
     def action_in_map_google_place_create(self, place):
         action = super().action_in_map_google_place_create(place)
         # For lead creation, set the opportunity name to "<Place Name>'s opportunity" by default
-        if not action.get("res_id") and action.get("context", {}).get("default_gplace_id"):
+        if not action.get("res_id") and action.get("context", {}).get(
+            "default_gplace_id"
+        ):
             #  Set default name
             place_display_name = place.get("displayName")
             field_name = self._get_mapping_odoo_fields().get("name")
-            if place_display_name and action["context"].get(f"default_{field_name}"):
+            if place_display_name and action["context"].get(
+                f"default_{field_name}"
+            ):
                 name_value = action["context"][f"default_{field_name}"]
-                action["context"]["default_name"] = _("%s's opportunity", name_value)
+                action["context"]["default_name"] = self.env._(
+                    "%s's opportunity", name_value
+                )
         return action
