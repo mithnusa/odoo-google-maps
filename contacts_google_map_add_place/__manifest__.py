@@ -19,10 +19,10 @@ Provides:
 """,
     "license": "LGPL-3",
     "author": "Yopi Angi",
-    "website": "https://github.com/mithnusa",
+    "website": "https://www.mithnusa.com",
     "support": "yopiangi@gmail.com",
     "category": "Tools",
-    "version": "1.0.2",
+    "version": "19.0.1.0.3",
     "depends": [
         "web_view_google_map",
         "base_google_map_add_place",
@@ -34,7 +34,4 @@ Provides:
             "contacts_google_map_add_place/static/src/views/google_map/google_map_renderer.xml",
         ],
     },
-    "installable": True,
-    "application": False,
-    "auto_install": False,
 }
