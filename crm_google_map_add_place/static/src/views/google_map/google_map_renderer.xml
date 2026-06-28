@@ -1,8 +1,12 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" ?>
 <templates xml:space="preserve">
-    <t t-name="crm_google_map_add_place.GoogleMapRenderer" t-inherit="web_view_google_map.GoogleMapRenderer" t-inherit-mode="primary">
+    <t
+        t-name="crm_google_map_add_place.GoogleMapRenderer"
+        t-inherit="web_view_google_map.GoogleMapRenderer"
+        t-inherit-mode="primary"
+    >
         <xpath expr="//InMapSearchPlaces" position="after">
-            <InMapClickAddPlace googleMap="googleMap" t-if="state.isMapReady"/>
+            <InMapClickAddPlace googleMap="googleMap" t-if="state.isMapReady" />
         </xpath>
     </t>
 </templates>
