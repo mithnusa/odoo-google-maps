@@ -3,7 +3,6 @@
     "bracketSpacing": true,
     "endOfLine": "lf",
     "htmlWhitespaceSensitivity": "css",
-    "xmlWhitespaceSensitivity": "ignore",
     "insertPragma": false,
     "jsxSingleQuote": false,
     "printWidth": 120,
@@ -14,5 +13,13 @@
     "singleQuote": true,
     "tabWidth": 4,
     "trailingComma": "es5",
-    "useTabs": false
+    "useTabs": false,
+    "overrides": [
+        {
+            "files": ["*.xml"],
+            "options": {
+                "xmlWhitespaceSensitivity": "ignore"
+            }
+        }
+    ]
 }
