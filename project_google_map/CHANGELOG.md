@@ -1,5 +1,18 @@
 # Change Log
 
+## 19.0.1.0.5
+
+### Changed
+
+- **Dependency**: Removed `web_widget_google_map` from module dependencies — the embedded satellite map in project and task forms is now rendered by `web_view_google_map`.
+
+### Improved
+
+- **Python — Black format** (`__init__.py`, `models/project_project.py`): Reformatted long `env.ref(...)` calls and field definitions to multi-line style.
+- **JS code style** (`google_map_renderer.js`): Reformatted `_actionViewTasks` `.call(...).then(...)` chain.
+- **XML format** (all XML files): Self-closing tags, multi-line attribute layout for `<google_map>`, `<button>`, `<widget>`, and `<t t-name=...>` elements; trailing newline added.
+- **Manifest**: Version normalized to `19.0.1.0.5`; removed `installable`, `application`, `auto_install` keys.
+
 ## 1.0.4
 
 ### Improved
