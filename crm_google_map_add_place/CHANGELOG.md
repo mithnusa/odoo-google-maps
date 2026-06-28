@@ -1,5 +1,14 @@
 # Change Log
 
+## 19.0.1.0.2
+
+### Improved
+
+- **Python — Odoo 19 translations** (`models/crm_lead.py`): Replaced module-level `_()` import with `self.env._()` calls; removed `_` from the `odoo` import.
+- **Python — Black format** (`models/crm_lead.py`): Reformatted long `if` conditions to multi-line style.
+- **XML format** (`google_map_renderer.xml`): Multi-line attribute layout for `<t t-name=...>`; self-closing `<InMapClickAddPlace />`; XML declaration spacing.
+- **Manifest**: Version normalized to `19.0.1.0.2`; removed `installable`, `application`, `auto_install` keys.
+
 ## 1.0.1
 
 ### Improved
