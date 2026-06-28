@@ -32,7 +32,7 @@ export async function loadMarkerClustererAssets() {
     if (window.MarkerClusterer) {
         return Promise.resolve();
     }
-    return loadJS('/web_view_google_map/static/src/libs/markerclusterer/v_2_6_2/index.min.js');
+    return loadJS('/web_view_google_map/static/lib/markerclusterer/v_2_6_2/index.min.js');
 }
 
 /**
@@ -46,7 +46,7 @@ export function formatNumber(num, decimals = 2, locale = 'en-US') {
         return '';
     }
 
-    const toLocale = locale ? locale.replace('_', '-') : (navigator.language || 'en-US');
+    const toLocale = locale ? locale.replace('_', '-') : navigator.language || 'en-US';
     try {
         const value = num.toLocaleString(toLocale, {
             minimumFractionDigits: decimals,
@@ -82,7 +82,10 @@ export function processColor(color) {
     if (color !== undefined && color !== null) {
         if (typeof color === 'number') {
             markerColor = getHexColorPicker(color);
-        } else if (typeof color === 'string' && /(?:#|0x)(?:[a-f0-9]{3}|[a-f0-9]{6})\b|(?:rgb|hsl)a?\([^\)]*\)/gi.test(color)) {
+        } else if (
+            typeof color === 'string' &&
+            /(?:#|0x)(?:[a-f0-9]{3}|[a-f0-9]{6})\b|(?:rgb|hsl)a?\([^\)]*\)/gi.test(color)
+        ) {
             markerColor = color;
         }
         if (!markerColor) {
@@ -125,12 +128,9 @@ export function hexToRgba(hex, alpha = 1.0, defaultColor = DEFAULT_COLOR_RGBA) {
         alpha = Math.max(0, Math.min(1, alpha));
     }
     const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-    return result ? [
-        parseInt(result[1], 16),
-        parseInt(result[2], 16),
-        parseInt(result[3], 16),
-        Math.round(alpha * 255)
-    ] : fallback; // Default fill color RGBA
+    return result
+        ? [parseInt(result[1], 16), parseInt(result[2], 16), parseInt(result[3], 16), Math.round(alpha * 255)]
+        : fallback; // Default fill color RGBA
 }
 
 export function parseRecord(record, viewConfig = {}, isGrouped = false) {
@@ -144,9 +144,7 @@ export function parseRecord(record, viewConfig = {}, isGrouped = false) {
                 value = (record.data[fieldName] || {}).display_name || '';
                 break;
             case 'selection': {
-                const selection = record.fields[fieldName].selection.find(
-                    (s) => s[0] === record.data[fieldName]
-                );
+                const selection = record.fields[fieldName].selection.find((s) => s[0] === record.data[fieldName]);
                 value = selection ? selection[1] : '';
                 break;
             }
@@ -221,10 +219,12 @@ export function parseRecord(record, viewConfig = {}, isGrouped = false) {
     return { geolocation, other };
 }
 
-
 export function getRecordDataView(record, viewAttrs) {
     let dataView = record.dataView || {};
-    if (Object.values(dataView?.other || {}).filter(val => val !== null && val !== undefined && val !== '').length <= 0) {
+    if (
+        Object.values(dataView?.other || {}).filter((val) => val !== null && val !== undefined && val !== '').length <=
+        0
+    ) {
         dataView = parseRecord(record, viewAttrs);
     }
     return dataView;
@@ -271,9 +271,7 @@ export function normalizeColor(color) {
     }
 
     // Match both rgb(...) and rgba(...) — handles transparent and alpha colors
-    const rgbMatch = computedColor.match(
-        /^rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*[\d.]+)?\)$/
-    );
+    const rgbMatch = computedColor.match(/^rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*[\d.]+)?\)$/);
     if (rgbMatch) {
         const r = parseInt(rgbMatch[1]);
         const g = parseInt(rgbMatch[2]);
@@ -377,10 +375,7 @@ function formatColorOutput(r, g, b, opacity) {
         return `rgba(${r}, ${g}, ${b}, ${alpha})`;
     }
 
-    return '#' + ((1 << 24) + (r << 16) + (g << 8) + b)
-        .toString(16)
-        .slice(1)
-        .toUpperCase();
+    return '#' + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1).toUpperCase();
 }
 
 /**
@@ -399,17 +394,11 @@ function adjustColorBrightness(color, amount, opacity, direction) {
     const adjustG = calculateAdjustmentValue(g, amount, direction);
     const adjustB = calculateAdjustmentValue(b, amount, direction);
 
-    const newR = direction === 'darken'
-        ? Math.max(0, Math.round(r - adjustR))
-        : Math.min(255, Math.round(r + adjustR));
+    const newR = direction === 'darken' ? Math.max(0, Math.round(r - adjustR)) : Math.min(255, Math.round(r + adjustR));
 
-    const newG = direction === 'darken'
-        ? Math.max(0, Math.round(g - adjustG))
-        : Math.min(255, Math.round(g + adjustG));
+    const newG = direction === 'darken' ? Math.max(0, Math.round(g - adjustG)) : Math.min(255, Math.round(g + adjustG));
 
-    const newB = direction === 'darken'
-        ? Math.max(0, Math.round(b - adjustB))
-        : Math.min(255, Math.round(b + adjustB));
+    const newB = direction === 'darken' ? Math.max(0, Math.round(b - adjustB)) : Math.min(255, Math.round(b + adjustB));
 
     return formatColorOutput(newR, newG, newB, opacity);
 }
@@ -442,7 +431,6 @@ export function lightenColor(color, amount = 50, opacity = null) {
     return adjustColorBrightness(color, amount, opacity, 'lighten');
 }
 
-
 export function generateUUID() {
     if (typeof crypto.randomUUID === 'function') {
         return crypto.randomUUID();
@@ -451,7 +439,7 @@ export function generateUUID() {
     const bytes = crypto.getRandomValues(new Uint8Array(16));
     bytes[6] = (bytes[6] & 0x0f) | 0x40;
     bytes[8] = (bytes[8] & 0x3f) | 0x80;
-    const hex = Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('');
+    const hex = Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
     return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
 }
 
@@ -669,9 +657,7 @@ export class AdvancedMarkerBoxSelector {
 
         // Remove from tracking array
         this.eventListeners = this.eventListeners.filter(
-            listener => !(listener.target === target &&
-                         listener.event === event &&
-                         listener.handler === handler)
+            (listener) => !(listener.target === target && listener.event === event && listener.handler === handler)
         );
     }
 
@@ -686,9 +672,8 @@ export class AdvancedMarkerBoxSelector {
 
         // Don't start if clicking on Google Maps controls or markers
         const target = e.target;
-        if (target.closest('.gm-control-active') ||
-            target.closest('.marker-pin') ||
-            target.closest('.gm-style-mtc')) return;
+        if (target.closest('.gm-control-active') || target.closest('.marker-pin') || target.closest('.gm-style-mtc'))
+            return;
 
         this.startSelection(e.clientX, e.clientY, e);
     }
@@ -704,9 +689,8 @@ export class AdvancedMarkerBoxSelector {
 
         // Don't start if touching on controls or marker
         const target = e.target;
-        if (target.closest('.gm-control-active') ||
-            target.closest('.marker-pin') ||
-            target.closest('.gm-style-mtc')) return;
+        if (target.closest('.gm-control-active') || target.closest('.marker-pin') || target.closest('.gm-style-mtc'))
+            return;
 
         const touch = e.touches[0];
         this.startSelection(touch.clientX, touch.clientY, e);
