@@ -1,6 +1,5 @@
 import { _t } from '@web/core/l10n/translation';
 import { user } from '@web/core/user';
-import { sprintf } from '@web/core/utils/strings';
 import { GoogleMapRenderer } from '@web_view_google_map/views/google_map/google_map_renderer';
 import { formatNumber } from '@web_view_google_map/views/google_map/utils';
 import { GoogleMapSidebarSaleOrder } from './google_map_sidebar';
@@ -101,7 +100,7 @@ export class GoogleMapRendererSaleOrder extends GoogleMapRenderer {
 
         const { aggregates, count } = group;
         const amountTotal = aggregates.amount_total || 0;
-        const displayName = sprintf('%s (%s)', group.displayName || _t('Customer'), count);
+        const displayName = _t('%(name)s (%(count)s)', { name: group.displayName || _t('Customer'), count });
         const formattedAmount = formatNumber(amountTotal, 2, user.context.lang);
 
         const container = this._createMarkerContainer(group.groupColor);
