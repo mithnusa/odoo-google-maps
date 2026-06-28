@@ -121,7 +121,7 @@ Adds a Google Map view to the Contacts application. Partners appear as color-cod
 
 Enables click-to-create on the Contacts map. Clicking a named Google Place opens a partner creation form pre-filled with name, address, phone, and website from Google's data. Clicking an empty spot reverse-geocodes the coordinate and pre-fills the address. If a contact with the same Google Place already exists, that record opens instead of creating a duplicate.
 
-**[contacts_google_autocomplete](contacts_google_autocomplete/README.md)** `19.0.1.0.2`
+**[contacts_google_autocomplete](contacts_google_autocomplete/README.md)** `19.0.1.0.3`
 
 Adds Google Places autocomplete to the Contact form. Typing in the partner name field suggests matching businesses and places from Google; typing in the street field suggests addresses. Selecting a suggestion fills in the address, country, phone, website, and map coordinates automatically. The required field mappings are created on installation — no manual setup needed.
 
