@@ -21,9 +21,6 @@ export class GoogleMapRendererContactAvatar extends GoogleMapRenderer {
      * @override
      */
     get sidebarProps() {
-        return Object.assign(
-            { fieldAvatar: this.props.archInfo.sidebarAvatarField },
-            super.sidebarProps
-        );
+        return Object.assign({}, super.sidebarProps, { fieldAvatar: this.props.archInfo.sidebarAvatarField });
     }
 }
