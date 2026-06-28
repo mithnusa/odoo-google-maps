@@ -36,11 +36,11 @@ The suite is organized into three layers. Each layer builds on the one below —
 
 ### Layer 2 — View Framework, Widgets & Click-to-Create
 
+`web_widget_google_map` adds an interactive map to any Odoo form. It shows the record's location and lets users update it by dragging a marker or searching for a place — without navigating away from the form.
+
 `web_view_google_map` is the map view engine. It handles record display on the map, marker clustering, box selection, nearby search, place search, geolocation, grouped markers, and dark mode. All application map modules build on this.
 
 `web_view_google_map_drawing` extends the map view with tools to draw and edit geographic shapes — polygons, rectangles, and freehand areas. Shapes are stored as GeoJSON and support server-side spatial filtering. All rendering libraries are bundled locally; no CDN needed.
-
-`web_widget_google_map` adds an interactive map to any Odoo form. It shows the record's location and lets users update it by dragging a marker or searching for a place — without navigating away from the form.
 
 `web_widget_google_place_autocomplete` adds a configurable Google Places autocomplete widget to any Odoo text field. When a user picks a suggestion, it automatically fills whichever Odoo fields are configured in the mapping — name, address, city, country, phone, website, coordinates, and more.
 
@@ -52,12 +52,14 @@ Application modules consume the framework to deliver specific functionality. The
 
 ```mermaid
 graph LR
-    base_google_map --> web_view_google_map
     base_google_map --> web_widget_google_map
     base_google_map --> web_widget_google_place_autocomplete
-    base_google_map --> base_google_map_add_place
+
+    web_widget_google_map --> web_view_google_map
+    base_google_map --> web_view_google_map
 
     web_view_google_map --> web_view_google_map_drawing
+    web_view_google_map --> base_google_map_add_place
     web_view_google_map --> contacts_google_map
     web_view_google_map --> crm_google_map
     web_view_google_map --> sale_google_map
@@ -68,6 +70,8 @@ graph LR
 
     web_widget_google_place_autocomplete --> contacts_google_autocomplete
     web_widget_google_place_autocomplete --> crm_google_autocomplete
+
+    crm_google_map --> crm_google_autocomplete
 
     contacts_google_autocomplete --> partner_autocomplete_with_google_autocomplete
 
@@ -84,27 +88,27 @@ graph LR
 
 ### Infrastructure
 
-**[base_google_map](base_google_map/README.md)** `19.0.1.0.12`
+**[base_google_map](base_google_map/README.md)** [`19.0.1.0.12`](base_google_map/CHANGELOG.md)
 
 The required foundation for every other module in this suite. Adds a Google Maps section to General Settings where you enter your API Key, Map ID, and preferences for language, region, color scheme, and nearby search radius. All other modules load the Google Maps script through this one.
 
-**[web_view_google_map](web_view_google_map/README.md)** `19.0.1.0.26`
+**[web_view_google_map](web_view_google_map/README.md)** [`19.0.1.0.26`](web_view_google_map/CHANGELOG.md)
 
 The core map view module. Adds a `google_map` view type alongside list, kanban, and form. Features a record sidebar, marker clustering for dense data, box selection to pick multiple records at once, nearby search, in-map place search, a geolocation button to center the map on your location, grouped markers, dark mode, and a Street View side-by-side button in every marker info window.
 
-**[web_view_google_map_drawing](web_view_google_map_drawing/README.md)** `19.0.1.0.22`
+**[web_view_google_map_drawing](web_view_google_map_drawing/README.md)** [`19.0.1.0.22`](web_view_google_map_drawing/CHANGELOG.md)
 
 Extends the map view with geographic drawing tools. Users can draw polygons, rectangles, and freehand shapes directly on the map. Shapes are stored as GeoJSON on the record and support server-side filtering so you can query which records fall inside a drawn area. Built on [Terra Draw](https://terradraw.io/) and [Deck.gl](https://deck.gl/); all libraries are bundled locally.
 
-**[web_widget_google_map](web_widget_google_map/README.md)** `19.0.1.0.6`
+**[web_widget_google_map](web_widget_google_map/README.md)** [`19.0.1.0.6`](web_widget_google_map/CHANGELOG.md)
 
 Adds an embedded Google Map to any Odoo form. Shows the record's saved location and lets users update it visually — by dragging a marker or typing a place name — without leaving the form. A Street View side-by-side dialog lets users verify the exact location with street-level imagery alongside the standard map; it falls back gracefully when no Street View coverage is available.
 
-**[web_widget_google_place_autocomplete](web_widget_google_place_autocomplete/README.md)** `19.0.1.0.9`
+**[web_widget_google_place_autocomplete](web_widget_google_place_autocomplete/README.md)** [`19.0.1.0.9`](web_widget_google_place_autocomplete/CHANGELOG.md)
 
 A configurable Google Places autocomplete widget for any Odoo text field. When a user picks a suggestion from the dropdown, it fills whichever Odoo fields are configured in the mapping — name, street, city, zip, country, phone, website, coordinates, and more. Includes a built-in test tool to verify mappings without leaving the settings screen.
 
-**[base_google_map_add_place](base_google_map_add_place/README.md)** `19.0.1.0.4`
+**[base_google_map_add_place](base_google_map_add_place/README.md)** [`19.0.1.0.4`](base_google_map_add_place/CHANGELOG.md)
 
 Shared foundation for click-to-create workflows on map views. Provides the server-side logic and map overlay that lets users click any location on the map to open a pre-filled record creation form. Application modules build on this; you don't need to install it directly.
 
@@ -112,19 +116,19 @@ Shared foundation for click-to-create workflows on map views. Provides the serve
 
 ### Contacts
 
-**[contacts_google_map](contacts_google_map/README.md)** `19.0.1.0.11`
+**[contacts_google_map](contacts_google_map/README.md)** [`19.0.1.0.11`](contacts_google_map/CHANGELOG.md)
 
 Adds a Google Map view to the Contacts application. Partners appear as color-coded markers; clicking one opens the contact card. Each contact form gains a Geolocation tab with an embedded map, a one-click geocode button, a marker color picker, and a nearby partners search. An optional background cron job can geocode all contacts automatically.
 
-**[contacts_google_map_add_place](contacts_google_map_add_place/README.md)** `19.0.1.0.3`
+**[contacts_google_map_add_place](contacts_google_map_add_place/README.md)** [`19.0.1.0.3`](contacts_google_map_add_place/CHANGELOG.md)
 
 Enables click-to-create on the Contacts map. Clicking a named Google Place opens a partner creation form pre-filled with name, address, phone, and website from Google's data. Clicking an empty spot reverse-geocodes the coordinate and pre-fills the address. If a contact with the same Google Place already exists, that record opens instead of creating a duplicate.
 
-**[contacts_google_autocomplete](contacts_google_autocomplete/README.md)** `19.0.1.0.3`
+**[contacts_google_autocomplete](contacts_google_autocomplete/README.md)** [`19.0.1.0.3`](contacts_google_autocomplete/CHANGELOG.md)
 
 Adds Google Places autocomplete to the Contact form. Typing in the partner name field suggests matching businesses and places from Google; typing in the street field suggests addresses. Selecting a suggestion fills in the address, country, phone, website, and map coordinates automatically. The required field mappings are created on installation — no manual setup needed.
 
-**[partner_autocomplete_with_google_autocomplete](partner_autocomplete_with_google_autocomplete/README.md)** `19.0.1.0.6`
+**[partner_autocomplete_with_google_autocomplete](partner_autocomplete_with_google_autocomplete/README.md)** [`19.0.1.0.6`](partner_autocomplete_with_google_autocomplete/CHANGELOG.md)
 
 Enhances the Contact name field with a Google Places panel alongside Odoo's built-in partner autocomplete. A toggle lets the user switch between Odoo's database suggestions and Google Places results on the same input. Applied automatically to all contact forms — no view customization required.
 
@@ -132,15 +136,15 @@ Enhances the Contact name field with a Google Places panel alongside Odoo's buil
 
 ### CRM
 
-**[crm_google_map](crm_google_map/README.md)** `19.0.1.0.11`
+**[crm_google_map](crm_google_map/README.md)** [`19.0.1.0.11`](crm_google_map/CHANGELOG.md)
 
 Adds a Google Map view to the CRM application, available in All Leads, My Activities, Opportunities, Pipeline, and Forecast. Each lead appears as a color-coded marker showing stage, address, company, contact, phone, salesperson, expected revenue, win probability, and closing date. Activity scheduling is available directly from each marker's info window. The lead form gains a Geolocation tab with an embedded map preview, a geocode button, and a marker color picker.
 
-**[crm_google_map_add_place](crm_google_map_add_place/README.md)** `19.0.1.0.2`
+**[crm_google_map_add_place](crm_google_map_add_place/README.md)** [`19.0.1.0.2`](crm_google_map_add_place/CHANGELOG.md)
 
 Enables click-to-create on the CRM map. Clicking a named Google Place opens a new lead form pre-filled with the business name, address, phone, website, and an auto-generated opportunity name. Clicking an empty location reverse-geocodes the coordinate and fills in the address. Duplicate detection prevents creating two leads for the same Google Place.
 
-**[crm_google_autocomplete](crm_google_autocomplete/README.md)** `19.0.1.0.4`
+**[crm_google_autocomplete](crm_google_autocomplete/README.md)** [`19.0.1.0.4`](crm_google_autocomplete/CHANGELOG.md)
 
 Adds Google Places autocomplete to the Lead and Opportunity form. Typing in the company name suggests matching businesses from Google; typing in the street suggests addresses. Works in both the quick-entry dialog and the full lead form. Selecting a suggestion fills in the address and geolocation coordinates automatically.
 
@@ -148,7 +152,7 @@ Adds Google Places autocomplete to the Lead and Opportunity form. Typing in the 
 
 ### Sales
 
-**[sale_google_map](sale_google_map/README.md)** `19.0.1.0.14`
+**[sale_google_map](sale_google_map/README.md)** [`19.0.1.0.14`](sale_google_map/CHANGELOG.md)
 
 Adds a Google Map view to the Sales application, available for Quotations, Orders, Orders to Invoice, Orders to Upsell, and Customers. Records are grouped by customer, with one marker per customer showing their avatar, name, total number of orders, and combined order value.
 
@@ -156,7 +160,7 @@ Adds a Google Map view to the Sales application, available for Quotations, Order
 
 ### Inventory
 
-**[stock_google_map](stock_google_map/README.md)** `19.0.1.0.2`
+**[stock_google_map](stock_google_map/README.md)** [`19.0.1.0.2`](stock_google_map/CHANGELOG.md)
 
 Adds a Google Map view to the Inventory application, covering Deliveries, Ready to Transfer, Waiting Transfer, Late Transfers, Backorders, and All Operations. Each transfer appears as a marker at the delivery address, with coordinates pulled automatically from the linked partner.
 
@@ -164,9 +168,9 @@ Adds a Google Map view to the Inventory application, covering Deliveries, Ready 
 
 ### Project
 
-**[project_google_map](project_google_map/README.md)** `19.0.1.0.5`
+**[project_google_map](project_google_map/README.md)** [`19.0.1.0.5`](project_google_map/CHANGELOG.md)
 
-Adds Google Map views for Projects and Tasks. Project markers show task counts and completion statistics. The project form gains an embedded satellite map. Task maps are scoped per project and use status-based color coding — on track, at risk, off track, on hold, and done — configurable per project.
+Adds Google Map views for Projects and Tasks. Project markers are automatically color-coded by health status — on track, at risk, off track, on hold, and done — and include a "View Tasks" shortcut to jump directly to that project's tasks. The project form gains an embedded satellite map. Task markers can be individually color-coded using a color picker.
 
 ---
 
@@ -181,7 +185,6 @@ Sign up at [Google Cloud Console](https://console.cloud.google.com/) and create 
 | Maps JavaScript API | Map rendering |
 | Places API (New) | Address autocomplete and place search |
 | Geocoding API | Coordinate-to-address and address-to-coordinate lookup |
-| Maps Embed API | Embedded map widget on forms |
 
 → [Get a Google Maps API Key](https://developers.google.com/maps/documentation/javascript/get-api-key)
 
@@ -243,6 +246,19 @@ An internet connection is required at runtime. Map tiles, geocoding, and places 
 
 ---
 
+## License
+
+This project is licensed under the [GNU Lesser General Public License v3.0 (LGPL-3)](https://www.gnu.org/licenses/lgpl-3.0.html).
+
+LGPL-3 permits use in commercial Odoo deployments. You can install and use these modules in a proprietary Odoo instance without it affecting the license of your own code. If you modify or distribute the modules themselves, those changes must be made available under LGPL-3.
+
+---
+
 ## Notes
 
-Bug reports and questions are welcome — please open an issue or start a discussion. If you need to integrate Google Maps into your own Odoo module, feel free to reach out by email.
+Bug reports and feature requests are welcome.
+
+→ [Report a bug or request a feature](https://github.com/mithnusa/odoo-google-maps/issues)
+→ [Start a discussion](https://github.com/mithnusa/odoo-google-maps/discussions)
+
+If you need to integrate Google Maps into your own Odoo module, feel free to reach out by [email](mailto:yopiangi@gmail.com).
