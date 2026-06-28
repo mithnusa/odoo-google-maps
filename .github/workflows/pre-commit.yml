@@ -1,0 +1,51 @@
+name: Pre-commit
+
+on:
+  push:
+    branches: ["19.0", "19.0-*"]
+  pull_request:
+    branches: ["19.0"]
+
+jobs:
+  pre-commit:
+    name: Run pre-commit checks
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install pre-commit
+        run: |
+          pip install pre-commit
+
+      - name: Run pre-commit (pull request)
+        if: github.event_name == 'pull_request'
+        run: |
+          pre-commit run \
+            --from-ref "${{ github.event.pull_request.base.sha }}" \
+            --to-ref "${{ github.event.pull_request.head.sha }}"
+
+      - name: Run pre-commit (push)
+        if: github.event_name == 'push'
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          # On first push to a branch, event.before can be all zeros.
+          if [[ "${{ github.event.before }}" == "0000000000000000000000000000000000000000" ]]; then
+            pre-commit run --all-files
+          else
+            pre-commit run \
+              --from-ref "${{ github.event.before }}" \
+              --to-ref "${{ github.sha }}"
+          fi
+        env:
+          SKIP: no-commit-to-branch
