@@ -21,7 +21,7 @@ Provides:
     'website': 'https://github.com/mithnusa',
     'support': 'yopiangi@gmail.com',
     'category': 'Extra Tools',
-    'version': '1.0.11',
+    'version': '19.0.1.0.12',
     'depends': ['web', 'base_geolocalize'],
     'data': [
         'data/google_map.xml',
@@ -33,7 +33,4 @@ Provides:
             'base_google_map/static/src/utils/base_google_map.js',
         ],
     },
-    'installable': True,
-    'application': False,
-    'auto_install': False,
 }

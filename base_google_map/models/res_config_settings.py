@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from odoo import api, fields, models, _
+from odoo import api, fields, models
 
 
 GMAPS_LANG_LOCALIZATION = [
@@ -92,9 +92,10 @@ class ResConfigSettings(models.TransientModel):
 
     @api.model
     def get_region_selection(self):
-        country_ids = self.env['res.country'].search([])
-        values = [(country.code, country.name) for country in country_ids]
-        return values
+        countries = self.env['res.country'].search_read(
+            [], ['code', 'name'], order='name'
+        )
+        return [(country['code'], country['name']) for country in countries]
 
     google_maps_view_api_key = fields.Char(
         string='Google Maps View Api Key',
@@ -150,14 +151,22 @@ class ResConfigSettings(models.TransientModel):
         string='Color Scheme',
         config_parameter='base_google_map.color_scheme',
     )
-    is_web_google_map_installed = fields.Boolean(string="Is the 'Web View Google Map' Module Installed")
+    is_web_google_map_installed = fields.Boolean(
+        string="Is the 'Web View Google Map' Module Installed"
+    )
 
     @api.depends('google_autocomplete_country_restriction_str')
     def _compute_country_restriction(self):
         for setting in self:
             if setting.google_autocomplete_country_restriction_str:
-                country_codes = setting.google_autocomplete_country_restriction_str.split(',')
-                setting.google_autocomplete_country_restriction = self.env['res.country'].search([('code', 'in', country_codes)])
+                country_codes = (
+                    setting.google_autocomplete_country_restriction_str.split(
+                        ','
+                    )
+                )
+                setting.google_autocomplete_country_restriction = self.env[
+                    'res.country'
+                ].search([('code', 'in', country_codes)])
             else:
                 setting.google_autocomplete_country_restriction = False
 
@@ -175,7 +184,18 @@ class ResConfigSettings(models.TransientModel):
     @api.model
     def get_values(self):
         res = super(ResConfigSettings, self).get_values()
-        module_web_view_google_map = self.env['ir.module.module']._get('web_view_google_map')
-        is_web_google_map_installed = bool(module_web_view_google_map.state == 'installed')
+        module_web_view_google_map = self.env['ir.module.module']._get(
+            'web_view_google_map'
+        )
+        is_web_google_map_installed = bool(
+            module_web_view_google_map.state == 'installed'
+        )
         res.update(is_web_google_map_installed=is_web_google_map_installed)
+
+        region = (
+            self.env['ir.config_parameter']
+            .sudo()
+            .get_param('base_google_map.region_localization')
+        )
+        res.update(google_maps_region_localization=region)
         return res

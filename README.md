@@ -85,7 +85,7 @@ graph LR
 
 ### Infrastructure
 
-**[base_google_map](base_google_map/README.md)** `19.0.1.0.11`
+**[base_google_map](base_google_map/README.md)** `19.0.1.0.12`
 
 The required foundation for every other module in this suite. Adds a Google Maps section to General Settings where you enter your API Key, Map ID, and preferences for language, region, color scheme, and nearby search radius. All other modules load the Google Maps script through this one.
 
