@@ -1,6 +1,14 @@
 <!-- markdownlint-disable MD024 -->
 # Change Log
 
+## 19.0.1.0.14
+
+### Improved
+
+- **JS code style** (`google_map_renderer.js`, `google_map_sidebar.js`): Normalized import quotes to single quotes; removed redundant parentheses in `sprintf` call; reformatted multi-line `notificationService.add(...)` and `Promise.all(batch.map(...))` calls; removed trailing blank lines.
+- **XML format** (all XML files): Self-closing tags, multi-line attribute layout for `<google_map>`, `<img>`, `<button>`, and `<t t-name=...>` elements.
+- **Manifest**: Website URL updated to `https://www.mithnusa.com`; version normalized to `19.0.1.0.14`; removed `installable`, `application`, `auto_install` keys.
+
 ## 19.0.1.0.13
 
 ### Improved
