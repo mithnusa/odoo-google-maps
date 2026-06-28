@@ -12,11 +12,21 @@
 ---
 
 ### CRM-Specific Marker Design
-**What it does**: Displays each lead or opportunity as a custom marker showing the lead name, stage badge, contact name, salesperson, expected revenue, probability, and expected closing date.
+**What it does**: Displays each lead or opportunity as a custom marker showing the lead name, stage badge, address, company name, contact name, phone, salesperson, expected revenue, probability, and expected closing date.
 
 **Why it matters**: Key deal information is visible directly on the map without needing to open each record individually.
 
-**How it works**: Each marker renders a styled card using the lead's data. Clicking a marker highlights it and reveals the full detail card. Markers can be color-coded using a configurable marker color field on each lead.
+**How it works**: Each marker renders a styled card using the lead's data. Clicking a marker highlights it and reveals a full detail grid with icon indicators and tooltips for each field. Markers can be color-coded using a configurable marker color field on each lead.
+
+---
+
+### Activity Scheduling from Map
+
+**What it does**: Each lead's info window provides two action buttons — one to schedule a new activity and one to view all existing scheduled activities for that lead.
+
+**Why it matters**: Sales teams can log follow-ups and check pending tasks directly from the map without navigating into the lead form.
+
+**How it works**: The "Schedule an Activity" button opens a `mail.activity` creation form pre-filled with the lead's context. The "Show Scheduled Activities" button opens a read-only list of activities for that lead. Both actions open in a dialog without leaving the map view.
 
 ---
 

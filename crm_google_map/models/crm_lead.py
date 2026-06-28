@@ -1,10 +1,14 @@
 from collections import defaultdict
 import time
+import logging
 
-from odoo import _, api, fields, models
+from odoo import api, fields, models
 from odoo.fields import Domain
 from odoo.addons.base.models.res_partner import ADDRESS_FIELDS
 from odoo.addons.crm.models.crm_lead import PARTNER_ADDRESS_FIELDS_TO_SYNC
+
+
+_logger = logging.getLogger(__name__)
 
 
 def _lead_address_matches_partner(lead, partner):
@@ -29,7 +33,7 @@ def _lead_address_matches_partner(lead, partner):
 
 
 class CrmLead(models.Model):
-    _inherit = 'crm.lead'
+    _inherit = "crm.lead"
 
     @api.model
     def _get_default_address_format(self):
@@ -38,8 +42,8 @@ class CrmLead(models.Model):
     def _display_address_depends(self):
         # field dependencies of method _display_address()
         return self._formatting_address_fields() + [
-            'country_id',
-            'state_id',
+            "country_id",
+            "state_id",
         ]
 
     def _get_address_format(self):
@@ -49,15 +53,15 @@ class CrmLead(models.Model):
         )
 
     @api.depends(
-        'partner_id',
-        'partner_id.partner_latitude',
-        'partner_id.partner_longitude',
-        'street',
-        'street2',
-        'city',
-        'zip',
-        'state_id',
-        'country_id',
+        "partner_id",
+        "partner_id.partner_latitude",
+        "partner_id.partner_longitude",
+        "street",
+        "street2",
+        "city",
+        "zip",
+        "state_id",
+        "country_id",
     )
     def _compute_customer_geo(self):
         for lead in self:
@@ -89,15 +93,8 @@ class CrmLead(models.Model):
         """Returns the list of address fields usable to format addresses."""
         return self._address_fields()
 
-    def update_address(self, vals):
-        addr_vals = {
-            key: vals[key] for key in self._address_fields() if key in vals
-        }
-        if addr_vals:
-            return super().write(addr_vals)
-
     def _get_country_name(self):
-        return self.country_id.name or ''
+        return self.country_id.name or ""
 
     def _prepare_display_address(self, without_company=False):
         # get the information that will be injected into the display format
@@ -106,21 +103,21 @@ class CrmLead(models.Model):
         args = defaultdict(
             str,
             {
-                'state_code': self.state_id.code or '',
-                'state_name': self.state_id.name or '',
-                'country_code': self.country_id.code or '',
-                'country_name': self._get_country_name(),
+                "state_code": self.state_id.code or "",
+                "state_name": self.state_id.name or "",
+                "country_code": self.country_id.code or "",
+                "country_name": self._get_country_name(),
             },
         )
         for field in self._formatting_address_fields():
-            args[field] = getattr(self, field) or ''
+            args[field] = getattr(self, field) or ""
         if without_company:
-            args['company_name'] = ''
+            args["company_name"] = ""
 
         return address_format, args
 
     def _display_address(self, without_company=False):
-        '''copied from res.partner'''
+        """copied from res.partner"""
         address_format, args = self._prepare_display_address(without_company)
         return address_format % args
 
@@ -130,27 +127,27 @@ class CrmLead(models.Model):
             lead.customer_address = lead._display_address()
 
     customer_latitude = fields.Float(
-        string='Customer latitude',
+        string="Customer latitude",
         digits=(10, 7),
-        compute='_compute_customer_geo',
+        compute="_compute_customer_geo",
         readonly=False,
         store=True,
     )
     customer_longitude = fields.Float(
-        string='Customer longitude',
+        string="Customer longitude",
         digits=(10, 7),
-        compute='_compute_customer_geo',
+        compute="_compute_customer_geo",
         readonly=False,
         store=True,
     )
     customer_address = fields.Char(
-        compute='_compute_customer_address', string='Complete Address'
+        compute="_compute_customer_address",
+        string="Complete Address",
     )
-    marker_color = fields.Integer(string='Marker color')
 
     @api.model
-    def _geo_localize(self, street='', zip='', city='', state='', country=''):
-        geo_obj = self.env['base.geocoder']
+    def _geo_localize(self, street="", zip="", city="", state="", country=""):
+        geo_obj = self.env["base.geocoder"]
         search = geo_obj.geo_query_address(
             street=street,
             zip=zip,
@@ -168,7 +165,7 @@ class CrmLead(models.Model):
 
     def geo_localize(self):
         lead_not_geo_localized = self.env[self._name]
-        for lead in self.with_context(lang='en_US'):
+        for lead in self.with_context(lang="en_US"):
             result = self._geo_localize(
                 lead.street,
                 lead.zip,
@@ -180,55 +177,74 @@ class CrmLead(models.Model):
             if result:
                 lead.write(
                     {
-                        'customer_latitude': result[0],
-                        'customer_longitude': result[1],
+                        "customer_latitude": result[0],
+                        "customer_longitude": result[1],
                     }
                 )
             else:
                 lead_not_geo_localized |= lead
         if lead_not_geo_localized:
-            self.env.user._bus_send('simple_notification', {
-                'type': 'danger',
-                'title': _('Warning'),
-                'message': _('No match found for %(lead_names)s address(es).',
-                             lead_names=', '.join(lead_not_geo_localized.mapped('display_name')))
-            })
+            self.env.user._bus_send(
+                "simple_notification",
+                {
+                    "type": "danger",
+                    "title": self.env._("Warning"),
+                    "message": self.env._(
+                        "No match found for %(lead_names)s address(es).",
+                        lead_names=", ".join(
+                            lead_not_geo_localized.mapped("display_name")
+                        ),
+                    ),
+                },
+            )
 
         return True
 
     @api.model
     def action_cron_geolocalize(self):
-        has_address = Domain.OR([
-            Domain("city", "!=", False),
-            Domain("zip", "!=", False),
-            Domain("street", "!=", False),
-            Domain("street2", "!=", False),
-        ])
+        has_address = Domain.OR(
+            [
+                Domain("city", "!=", False),
+                Domain("zip", "!=", False),
+                Domain("street", "!=", False),
+                Domain("street2", "!=", False),
+            ]
+        )
         lead_ids = self.env[self._name].search(
-            Domain.AND([
-                Domain("country_id", "!=", False),
-                Domain("customer_latitude", "=", 0.0),
-                Domain("customer_longitude", "=", 0.0),
-                has_address,
-            ]),
+            Domain.AND(
+                [
+                    Domain("country_id", "!=", False),
+                    Domain("customer_latitude", "=", 0.0),
+                    Domain("customer_longitude", "=", 0.0),
+                    has_address,
+                ]
+            ),
             limit=80,
         )
         geo_provider_id = self.env["base.geocoder"]._get_provider()
         openstreetmap_provider_id = self.env.ref(
-            "base_geolocalize.geoprovider_open_street", raise_if_not_found=False
+            "base_geolocalize.geoprovider_open_street",
+            raise_if_not_found=False,
         )
-        if (
+        is_openstreetmap_provider = (
             openstreetmap_provider_id
             and geo_provider_id
-            and geo_provider_id.tech_name == openstreetmap_provider_id.tech_name
-        ):
-            # Need to add pause between lead to avoid hitting API rate limits
-            for lead in lead_ids:
-                lead.geo_localize()
-                if self.env.context.get("from_cron"):
-                    self.env.cr.commit()  # Commit after the geolocalization to avoid long transactions
-                time.sleep(1)  # Sleep for 1 second between geolocalization calls
-        else:
-            lead_ids.geo_localize()
+            and geo_provider_id.tech_name
+            == openstreetmap_provider_id.tech_name
+        )
+        # Need to add pause between lead to avoid hitting API rate limits
+        for lead in lead_ids:
+            try:
+                with self.env.cr.savepoint():
+                    lead.geo_localize()
+            except Exception:
+                _logger.warning(
+                    "Error geolocalizing lead %s", lead.id, exc_info=True
+                )
+
+            if is_openstreetmap_provider:
+                time.sleep(
+                    1
+                )  # Sleep for 1 second between geolocalization calls
 
         return True

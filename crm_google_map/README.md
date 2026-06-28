@@ -11,7 +11,8 @@ Adds the `google_map` view type to the Leads, Opportunities, My Activities, Pipe
 ## Key Features
 
 - **Google Map View**: Adds a Map view to Leads, Opportunities, My Activities, Pipeline, and Forecast menus, alongside the existing list, kanban, and calendar views
-- **CRM Marker Cards**: Each marker displays the lead name, stage, linked contact, salesperson, expected revenue, probability, and expected closing date — visible directly on the map without opening the record
+- **CRM Marker Cards**: Each marker displays the lead name, stage, address, company, contact, phone, salesperson, expected revenue, probability, and expected closing date — visible directly on the map without opening the record
+- **Activity Scheduling from Map**: Each lead's info window includes buttons to schedule a new activity or view a list of existing scheduled activities, all without leaving the map view
 - **Marker Color Customization**: Each lead has a configurable marker color, set via a color picker on the lead form's Geolocation tab
 - **Overlap Handling**: When multiple leads share the same address, markers are slightly offset so each remains individually clickable; an indicator icon flags shifted markers
 - **Sidebar with CRM Details**: The map sidebar lists all leads in the current view with their expected revenue and pipeline stage shown beneath each entry
@@ -23,7 +24,6 @@ Adds the `google_map` view type to the Leads, Opportunities, My Activities, Pipe
 
 - `crm`
 - `web_view_google_map`
-- `web_widget_google_map`
 
 ## Installation
 
@@ -41,6 +41,5 @@ Adds the `google_map` view type to the Leads, Opportunities, My Activities, Pipe
 ## Related Modules
 
 - `web_view_google_map`: Provides the core Google Map view type
-- `web_widget_google_map`: Provides the embedded map widget used on the lead form
 - `crm_google_map_add_place`: Adds click-to-create leads directly from the map
 - `crm_google_autocomplete`: Adds Google Places autocomplete to the Lead form
