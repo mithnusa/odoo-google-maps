@@ -20,10 +20,10 @@ Provides:
 """,
     'license': 'LGPL-3',
     'author': 'Yopi Angi',
-    'website': 'https://github.com/mithnusa',
+    'website': 'https://www.mithnusa.com',
     'support': 'yopiangi@gmail.com',
     'category': 'Sales/CRM',
-    'version': '1.0.10',
+    'version': '19.0.1.0.11',
     'depends': [
         'base_geolocalize',
         'contacts',
@@ -45,7 +45,4 @@ Provides:
             'contacts_google_map/static/src/views/google_map/google_map_view.js',
         ],
     },
-    'installable': True,
-    'application': False,
-    'auto_install': False,
 }

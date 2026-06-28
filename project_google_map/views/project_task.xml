@@ -37,9 +37,15 @@
                         />
                         <label for="site_latitude" string="Geo Location" class="o_form_label" />
                         <div>
-                            <span>Lat: <field name="site_latitude" nolabel="1" class="oe_inline" /></span>
+                            <span>
+                                Lat:
+                                <field name="site_latitude" nolabel="1" class="oe_inline" />
+                            </span>
                             <br />
-                            <span>Long: <field name="site_longitude" nolabel="1" class="oe_inline" /></span>
+                            <span>
+                                Long:
+                                <field name="site_longitude" nolabel="1" class="oe_inline" />
+                            </span>
                         </div>
                         <field name="marker_color" widget="color_picker" />
                     </group>
