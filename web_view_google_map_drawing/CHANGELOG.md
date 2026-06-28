@@ -1,5 +1,14 @@
 # Change Log
 
+## 19.0.1.0.22
+
+### Improved
+
+- **i18n placeholders** (`terra-tools-ui.js`, `terra_draw.js`): Replaced `sprintf(_t('…%s'), val)` with the named-placeholder form `_t('…%(key)s', { key: val })`; removed unused `sprintf` imports.
+- **Python — Black format + Odoo 19 translations** (`models/fields.py`, `models/google_drawing_shape.py`, `models/ir_ui_view.py`): Reformatted with Black (line length 79); `_()` module-level import replaced with `self.env._()` calls throughout, aligning with Odoo 19 translation conventions.
+- **`google_map_deckgl_renderer.js`**: Removed unused `user` import; miscellaneous code-style cleanup.
+- **Test coverage** (`tests/test_field_json_searchable.py`): Expanded `SearchableJson` operator tests — added cases for `json_contains`, `json_not_contains`, edge values, and multi-feature GeoJSON payloads.
+
 ## 19.0.1.0.21
 
 ### Improved
@@ -358,7 +367,7 @@ Small improvements on the SCSS.
   - Point coordinates with directional indicators (N/S, E/W)
   - LineString length and point count
   - Polygon area and perimeter
-  - Rectangle area and perimeter  
+  - Rectangle area and perimeter
   - Circle area, radius, and circumference
   - Number formatting with locale support
 - **Terra Draw Integration**: Complete integration with Terra Draw library for advanced drawing capabilities

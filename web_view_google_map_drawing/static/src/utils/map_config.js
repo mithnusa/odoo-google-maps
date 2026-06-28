@@ -1,5 +1,3 @@
-
-
 /**
  * Deck.gl configuration constants
  */
@@ -15,12 +13,12 @@ export const DECKGL_CONFIG = {
     },
 };
 
-/** 
+/**
  * Stroke configuration constants
  */
-export const STROKE_CONFIG = { 
+export const STROKE_CONFIG = {
     DEFAULT_WIDTH: 2, // Default stroke width in pixels
-    HOVER_WIDTH: 4,   // Stroke width on hover in pixels
+    HOVER_WIDTH: 4, // Stroke width on hover in pixels
 };
 
 /**

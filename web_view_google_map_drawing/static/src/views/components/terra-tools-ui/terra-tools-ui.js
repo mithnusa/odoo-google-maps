@@ -1,16 +1,7 @@
 import { _t } from '@web/core/l10n/translation';
-import { sprintf } from '@web/core/utils/strings';
 import { useService } from '@web/core/utils/hooks';
-import { ConfirmationDialog } from "@web/core/confirmation_dialog/confirmation_dialog";
-import {
-    Component,
-    useEffect,
-    useState,
-    useRef,
-    onWillStart,
-    onWillDestroy,
-    onWillUpdateProps,
-} from '@odoo/owl';
+import { ConfirmationDialog } from '@web/core/confirmation_dialog/confirmation_dialog';
+import { Component, useEffect, useState, useRef, onWillStart, onWillDestroy, onWillUpdateProps } from '@odoo/owl';
 import { generateUUID } from '@web_view_google_map/views/google_map/utils';
 import {
     loadTerraDrawAssets,
@@ -25,7 +16,6 @@ import {
 import { analyzeFeaturePerformance, createEditableFeature } from '../../../utils/geometry_performance_utils';
 import { UploadGeoJsonFileDialog } from '../upload_geojson_dialog/upload_geojson_dialog';
 
-
 export const MODE_BUTTONS = {
     'select-mode': 'select',
     'point-mode': 'point',
@@ -39,9 +29,9 @@ export const MODE_BUTTONS = {
 
 /**
  * Terra Draw Tools UI Component
- * 
+ *
  * Provides an interactive drawing interface using Terra Draw library integrated with Google Maps.
- * 
+ *
  * Core Features:
  * - Drawing tools: Point, LineString, Polygon, Rectangle, Circle, Freehand
  * - Feature selection and editing with performance optimization
@@ -49,13 +39,13 @@ export const MODE_BUTTONS = {
  * - Keyboard shortcuts for efficient operation
  * - Asynchronous feature processing to prevent UI blocking
  * - Complex geometry handling with simplification options
- * 
+ *
  * Performance Enhancements:
  * - Chunked processing of large feature sets (50 features per chunk)
  * - Feature complexity analysis and performance warnings
  * - Automatic simplification for extremely complex features
  * - Memory-efficient cleanup on component destruction
- * 
+ *
  * @extends Component
  */
 export class TerraDrawToolsUI extends Component {
@@ -90,15 +80,18 @@ export class TerraDrawToolsUI extends Component {
         this.eventProjectionChanges = null;
         this.initTimeout = null;
 
-        useEffect(() => {
-            // Capture the bound handler in the closure so the cleanup removes
-            // exactly this listener, not whatever this.handleKeydown points to
-            // at cleanup time (which would be a different render's binding).
-            const handler = this._handleKeyboardShortcuts.bind(this);
-            this.handleKeydown = handler;
-            document.addEventListener('keydown', handler);
-            return () => document.removeEventListener('keydown', handler);
-        }, () => []);
+        useEffect(
+            () => {
+                // Capture the bound handler in the closure so the cleanup removes
+                // exactly this listener, not whatever this.handleKeydown points to
+                // at cleanup time (which would be a different render's binding).
+                const handler = this._handleKeyboardShortcuts.bind(this);
+                this.handleKeydown = handler;
+                document.addEventListener('keydown', handler);
+                return () => document.removeEventListener('keydown', handler);
+            },
+            () => []
+        );
 
         onWillStart(async () => {
             try {
@@ -130,7 +123,12 @@ export class TerraDrawToolsUI extends Component {
 
         useEffect(
             () => {
-                if (this.props.googleMap && this.toolsUiRef.el && window.terraDraw && this.props.renderingMode === 'terra-draw') {
+                if (
+                    this.props.googleMap &&
+                    this.toolsUiRef.el &&
+                    window.terraDraw &&
+                    this.props.renderingMode === 'terra-draw'
+                ) {
                     this.initTerraDraw().catch((error) => {
                         console.error('Failed to initialize Terra Draw:', error);
                         this.notificationService.add(
@@ -190,10 +188,10 @@ export class TerraDrawToolsUI extends Component {
             this.state.isRestoring = true;
 
             const geometryToMode = {
-                'Point': 'point',
-                'LineString': 'linestring',
-                'Polygon': 'polygon',
-                'MultiPolygon': 'polygon'
+                Point: 'point',
+                LineString: 'linestring',
+                Polygon: 'polygon',
+                MultiPolygon: 'polygon',
             };
 
             // Process features asynchronously to prevent UI blocking
@@ -205,7 +203,7 @@ export class TerraDrawToolsUI extends Component {
             }
 
             this.setSelectedFeatureId(null);
-            await new Promise(resolve => setTimeout(resolve, TERRA_DRAW_CONFIG.RESTORE_DELAY));
+            await new Promise((resolve) => setTimeout(resolve, TERRA_DRAW_CONFIG.RESTORE_DELAY));
 
             // Fit map to bounds of loaded features
             this._fitMapToBounds(geoJson.features);
@@ -217,16 +215,17 @@ export class TerraDrawToolsUI extends Component {
             // back to the features array we already have — this guarantees the
             // baseline is never empty when features were loaded, which prevents
             // the first undo from wiping the map.
-            const snapshot = this.terraDrawInstance.getSnapshot().filter(
-                f => !f.properties?.midPoint && !f.properties?.selectionPoint
-            );
+            const snapshot = this.terraDrawInstance
+                .getSnapshot()
+                .filter((f) => !f.properties?.midPoint && !f.properties?.selectionPoint);
             const baseline = snapshot.length > 0 ? snapshot : features;
             const getSnapshotForUndo = this._actionProcessSnapshotForUndo(baseline);
             this.history = [getSnapshotForUndo];
             this.redoHistory = [];
         } catch (error) {
-            console.error('Failed to load existing features:', error);
-            this.notificationService.add(_t('Failed to load existing features'), { type: 'danger' });
+            this.notificationService.add(_t('Failed to load existing features.\n%(err)s', { err: error.message }), {
+                type: 'danger',
+            });
         } finally {
             this.state.isRestoring = false;
             this._loadingData = false;
@@ -244,68 +243,73 @@ export class TerraDrawToolsUI extends Component {
     async _processGeoJsonFeaturesAsync(geoJsonFeatures, geometryToMode) {
         const CHUNK_SIZE = 50; // Process 50 features at a time
         const processedFeatures = [];
-        
+
         for (let i = 0; i < geoJsonFeatures.length; i += CHUNK_SIZE) {
             const chunk = geoJsonFeatures.slice(i, i + CHUNK_SIZE);
-            
-            const chunkResults = chunk.map((feature) => {
-                const plainFeature = JSON.parse(JSON.stringify(feature));
 
-                // Terra Draw doesn't support polygons with holes (interior rings)
-                const isPolygonWithHoles = plainFeature.geometry.type === 'Polygon' &&
-                                          plainFeature.geometry.coordinates.length > 1;
-                const isMultiPolygon = plainFeature.geometry.type === 'MultiPolygon';
+            const chunkResults = chunk
+                .map((feature) => {
+                    const plainFeature = JSON.parse(JSON.stringify(feature));
 
-                if (isPolygonWithHoles) {
-                    return null; // Skip - will be rendered by DeckGL
-                }
+                    // Terra Draw doesn't support polygons with holes (interior rings)
+                    const isPolygonWithHoles =
+                        plainFeature.geometry.type === 'Polygon' && plainFeature.geometry.coordinates.length > 1;
+                    const isMultiPolygon = plainFeature.geometry.type === 'MultiPolygon';
 
-                if (isMultiPolygon) {
-                    const multiPolygonFeatures = [];
-                    plainFeature.geometry.coordinates.forEach((_polygonCoords) => {
-                        if (_polygonCoords.length > 1) return; // Skip parts with holes
+                    if (isPolygonWithHoles) {
+                        return null; // Skip - will be rendered by DeckGL
+                    }
 
-                        const polygonCoords = normalizeCoordinates(_polygonCoords, TERRA_DRAW_CONFIG.COORDINATE_PRECISION);
-                        multiPolygonFeatures.push({
-                            type: 'Feature',
-                            id: generateUUID(),
-                            geometry: { type: 'Polygon', coordinates: polygonCoords },
-                            properties: {
-                                mode: 'polygon',
-                                ...plainFeature.properties,
-                            }
+                    if (isMultiPolygon) {
+                        const multiPolygonFeatures = [];
+                        plainFeature.geometry.coordinates.forEach((_polygonCoords) => {
+                            if (_polygonCoords.length > 1) return; // Skip parts with holes
+
+                            const polygonCoords = normalizeCoordinates(
+                                _polygonCoords,
+                                TERRA_DRAW_CONFIG.COORDINATE_PRECISION
+                            );
+                            multiPolygonFeatures.push({
+                                type: 'Feature',
+                                id: generateUUID(),
+                                geometry: { type: 'Polygon', coordinates: polygonCoords },
+                                properties: {
+                                    mode: 'polygon',
+                                    ...plainFeature.properties,
+                                },
+                            });
                         });
-                    });
-                    return multiPolygonFeatures;
-                } else {
-                    // Always generate a fresh UUID — the Google Maps adapter batches
-                    // renders via RAF, so reusing an ID that was just deleted by
-                    // clear() in the same RAF batch suppresses the create silently.
-                    plainFeature.id = generateUUID();
+                        return multiPolygonFeatures;
+                    } else {
+                        // Always generate a fresh UUID — the Google Maps adapter batches
+                        // renders via RAF, so reusing an ID that was just deleted by
+                        // clear() in the same RAF batch suppresses the create silently.
+                        plainFeature.id = generateUUID();
 
-                    plainFeature.geometry.coordinates = normalizeCoordinates(
-                        plainFeature.geometry.coordinates,
-                        TERRA_DRAW_CONFIG.COORDINATE_PRECISION
-                    );
+                        plainFeature.geometry.coordinates = normalizeCoordinates(
+                            plainFeature.geometry.coordinates,
+                            TERRA_DRAW_CONFIG.COORDINATE_PRECISION
+                        );
 
-                    plainFeature.properties = {
-                        mode: geometryToMode[plainFeature.geometry.type],
-                        ...plainFeature.properties,
-                    };
-                    return plainFeature;
-                }
-            }).filter(Boolean); // Remove null values
-            
+                        plainFeature.properties = {
+                            mode: geometryToMode[plainFeature.geometry.type],
+                            ...plainFeature.properties,
+                        };
+                        return plainFeature;
+                    }
+                })
+                .filter(Boolean); // Remove null values
+
             // Flatten array in case of MultiPolygon features
             const flattenedChunk = chunkResults.flat();
             processedFeatures.push(...flattenedChunk);
-            
+
             // Yield control to prevent UI blocking (only if more chunks to process)
             if (i + CHUNK_SIZE < geoJsonFeatures.length) {
-                await new Promise(resolve => setTimeout(resolve, 0));
+                await new Promise((resolve) => setTimeout(resolve, 0));
             }
         }
-        
+
         return processedFeatures;
     }
 
@@ -321,20 +325,23 @@ export class TerraDrawToolsUI extends Component {
         // Show warning for very complex and extremely complex features
         if (analysis.complexity === 'very_complex' || analysis.complexity === 'extremely_complex') {
             this.notificationService.add(
-                sprintf(_t('⚠️ Complex feature detected (%s vertices). Click the simplify button to improve editing performance.'), analysis.vertexCount),
+                _t(
+                    '⚠️ Complex feature detected (%(vertex_count)s vertices). Click the simplify button to improve editing performance.',
+                    { vertex_count: analysis.vertexCount }
+                ),
                 { type: 'warning' }
             );
         } else if (analysis.complexity === 'complex') {
             this.notificationService.add(
-                sprintf(_t('Complex feature (%s vertices). Use the simplify button if editing is slow.'), analysis.vertexCount),
+                _t('Complex feature (%(vertex_count)s vertices). Use the simplify button if editing is slow.', {
+                    vertex_count: analysis.vertexCount,
+                }),
                 { type: 'info' }
             );
         }
 
         return analysis.canEdit;
     }
-
-
 
     /**
      * Group related polygon parts from MultiPolygon features
@@ -343,11 +350,11 @@ export class TerraDrawToolsUI extends Component {
      */
     getFeatureGroups() {
         if (!this.terraDrawInstance) return {};
-        
+
         const features = this.terraDrawInstance.getSnapshot();
         const groups = {};
-        
-        features.forEach(feature => {
+
+        features.forEach((feature) => {
             const metadata = feature.properties?._metadata || {};
             if (metadata.originalId) {
                 const originalId = metadata.originalId;
@@ -363,11 +370,9 @@ export class TerraDrawToolsUI extends Component {
                 groups[originalId].parts.push(feature);
             }
         });
-        
+
         return groups;
     }
-
-
 
     /**
      * Fit the map view to contain all the given features
@@ -380,8 +385,10 @@ export class TerraDrawToolsUI extends Component {
 
         try {
             // Calculate bounds using simple min/max (much faster than creating LatLng objects)
-            let minLat = Infinity, maxLat = -Infinity;
-            let minLng = Infinity, maxLng = -Infinity;
+            let minLat = Infinity,
+                maxLat = -Infinity;
+            let minLng = Infinity,
+                maxLng = -Infinity;
 
             for (const feature of features) {
                 this._updateBoundsFromCoordinates(feature.geometry, (lng, lat) => {
@@ -396,8 +403,8 @@ export class TerraDrawToolsUI extends Component {
             if (minLat !== Infinity) {
                 const { LatLngBounds } = await this.env.apiLoader.importLibrary('core');
                 const bounds = new LatLngBounds(
-                    { lat: minLat, lng: minLng },  // SW corner
-                    { lat: maxLat, lng: maxLng }   // NE corner
+                    { lat: minLat, lng: minLng }, // SW corner
+                    { lat: maxLat, lng: maxLng } // NE corner
                 );
                 this.props.googleMap.fitBounds(bounds);
             }
@@ -464,7 +471,8 @@ export class TerraDrawToolsUI extends Component {
         }
 
         // Handle different keyboard shortcuts
-        if (event.ctrlKey || event.metaKey) { // Support both Ctrl (PC) and Cmd (Mac)
+        if (event.ctrlKey || event.metaKey) {
+            // Support both Ctrl (PC) and Cmd (Mac)
             switch (event.key.toLowerCase()) {
                 case 'z':
                     if (event.shiftKey) {
@@ -477,19 +485,19 @@ export class TerraDrawToolsUI extends Component {
                         this._actionUndo();
                     }
                     break;
-                
+
                 case 'y':
                     // Ctrl+Y or Cmd+Y - Redo (alternative)
                     event.preventDefault();
                     this._actionRedo();
                     break;
-                
+
                 case 's':
                     // Ctrl+S or Cmd+S - Save manually
                     event.preventDefault();
                     this._actionSaveManually();
                     break;
-                
+
                 case 'e':
                     // Ctrl+E or Cmd+E - Simplify selected feature for editing
                     event.preventDefault();
@@ -505,49 +513,49 @@ export class TerraDrawToolsUI extends Component {
                     event.preventDefault();
                     this._actionDeleteSelectedFeature();
                     break;
-                
+
                 case 'Escape':
                     // Escape - Switch to select mode
                     event.preventDefault();
                     this.setActiveMode('select-mode');
                     break;
-                
+
                 // Quick mode switching shortcuts
                 case '1':
                     event.preventDefault();
                     this.setActiveMode('select-mode');
                     break;
-                
+
                 case '2':
                     event.preventDefault();
                     this.setActiveMode('point-mode');
                     break;
-                
+
                 case '3':
                     event.preventDefault();
                     this.setActiveMode('linestring-mode');
                     break;
-                
+
                 case '4':
                     event.preventDefault();
                     this.setActiveMode('polygon-mode');
                     break;
-                
+
                 case '5':
                     event.preventDefault();
                     this.setActiveMode('rectangle-mode');
                     break;
-                
+
                 case '6':
                     event.preventDefault();
                     this.setActiveMode('circle-mode');
                     break;
-                
+
                 case '7':
                     event.preventDefault();
                     this.setActiveMode('freehand-mode');
                     break;
-                
+
                 case 'c':
                 case 'C':
                     // C - Clear all features
@@ -565,10 +573,9 @@ export class TerraDrawToolsUI extends Component {
      */
     onClickSetActiveMode(ev) {
         if (!this.terraDrawInstance) {
-            this.notificationService.add(
-                _t('Terra Draw is not initialized properly'),
-                { type: 'danger' }
-            );
+            this.notificationService.add(_t('Terra Draw is not initialized properly'), {
+                type: 'danger',
+            });
             return;
         }
         const button = ev.currentTarget;
@@ -583,10 +590,9 @@ export class TerraDrawToolsUI extends Component {
      */
     onClickActionButton(ev) {
         if (!this.terraDrawInstance) {
-            this.notificationService.add(
-                _t('Terra Draw is not initialized properly'),
-                { type: 'danger' }
-            );
+            this.notificationService.add(_t('Terra Draw is not initialized properly'), {
+                type: 'danger',
+            });
             return;
         }
         const action = ev.currentTarget.id;
@@ -622,10 +628,7 @@ export class TerraDrawToolsUI extends Component {
         this.dialogService.add(UploadGeoJsonFileDialog, {
             confirm: (file) => {
                 if (!file) {
-                    this.notificationService.add(
-                        _t('No file was uploaded.'),
-                        { type: 'danger' }
-                    );
+                    this.notificationService.add(_t('No file was uploaded.'), { type: 'danger' });
                     return false;
                 }
                 return new Promise((resolve) => {
@@ -633,35 +636,35 @@ export class TerraDrawToolsUI extends Component {
                     reader.onload = async (e) => {
                         try {
                             const geojson = JSON.parse(e.target.result);
-                            const isValid = validateGeoJson(geojson, { requireFeatures: true, validateGeometry: true, strict: false });
+                            const isValid = validateGeoJson(geojson, {
+                                requireFeatures: true,
+                                validateGeometry: true,
+                                strict: false,
+                            });
                             if (!isValid) {
-                                this.notificationService.add(
-                                    _t('The imported file is not a valid GeoJSON.'),
-                                    { type: 'danger' }
-                                );
+                                this.notificationService.add(_t('The imported file is not a valid GeoJSON.'), {
+                                    type: 'danger',
+                                });
                                 resolve(false);
                                 return;
                             }
-                            this.notificationService.add(
-                                _t('GeoJSON file imported successfully.'),
-                                { type: 'success' }
-                            );
+                            this.notificationService.add(_t('GeoJSON file imported successfully.'), {
+                                type: 'success',
+                            });
                             const totalArea = calculateFeaturesTotalArea(geojson.features);
                             await this.props.saveFeatures(geojson, totalArea);
                             resolve(true);
                         } catch (error) {
-                            console.error('Error parsing imported GeoJSON file:', error);
                             this.notificationService.add(
-                                _t('Failed to parse the imported GeoJSON file.'),
+                                _t('Failed to parse the imported GeoJSON file.\n%(err)s', { err: error.message }),
                                 { type: 'danger' }
                             );
                             resolve(false);
                         }
                     };
                     reader.onerror = (e) => {
-                        console.error('Error reading imported GeoJSON file: ', e);
                         this.notificationService.add(
-                            _t('Failed to read the imported GeoJSON file.'),
+                            _t('Failed to read the imported GeoJSON file.\n%(err)s', { err: e.target.error.message }),
                             { type: 'danger' }
                         );
                         resolve(false);
@@ -680,25 +683,19 @@ export class TerraDrawToolsUI extends Component {
      */
     _actionDownloadGeoJSON() {
         if (!this.terraDrawInstance) {
-            this.notificationService.add(
-                _t('Terra Draw is not initialized properly'),
-                { type: 'danger' }
-            );
+            this.notificationService.add(_t('Terra Draw is not initialized properly'), {
+                type: 'danger',
+            });
             return;
         }
 
         const features = this.terraDrawInstance.getSnapshot();
 
         // Filter out system features (midpoints, selection points)
-        const exportFeatures = features.filter(
-            (f) => !f.properties?.midPoint && !f.properties?.selectionPoint
-        );
+        const exportFeatures = features.filter((f) => !f.properties?.midPoint && !f.properties?.selectionPoint);
 
         if (exportFeatures.length === 0) {
-            this.notificationService.add(
-                _t('No data available to export.'),
-                { type: 'warning' }
-            );
+            this.notificationService.add(_t('No data available to export.'), { type: 'warning' });
             return;
         }
 
@@ -729,16 +726,11 @@ export class TerraDrawToolsUI extends Component {
             document.body.removeChild(link);
             URL.revokeObjectURL(url);
 
-            this.notificationService.add(
-                _t('GeoJSON exported successfully.'),
-                { type: 'success' }
-            );
+            this.notificationService.add(_t('GeoJSON exported successfully.'), { type: 'success' });
         } catch (error) {
-            console.error('Error exporting GeoJSON:', error);
-            this.notificationService.add(
-                _t('Failed to export GeoJSON file.'),
-                { type: 'danger' }
-            );
+            this.notificationService.add(_t('Failed to export GeoJSON file.\n%(err)s', { err: error.message }), {
+                type: 'danger',
+            });
         }
     }
 
@@ -765,11 +757,9 @@ export class TerraDrawToolsUI extends Component {
         try {
             await this._saveChanges();
         } catch (error) {
-            console.error('Manual save failed:', error);
-            this.notificationService.add(
-                sprintf(_t('Failed to save changes: %s'), error.message),
-                { type: 'danger' }
-            );
+            this.notificationService.add(_t('Failed to save changes: %(err)s', { err: error.message }), {
+                type: 'danger',
+            });
         }
     }
 
@@ -796,7 +786,7 @@ export class TerraDrawToolsUI extends Component {
             console.warn('TerraDraw not initialized');
             return;
         }
-        
+
         try {
             if (this.state.selectedFeatureId) {
                 // Delete selected feature
@@ -805,10 +795,10 @@ export class TerraDrawToolsUI extends Component {
             } else {
                 // Delete last feature as fallback
                 const features = this.terraDrawInstance.getSnapshot();
-                const nonSystemFeatures = features.filter(f => 
-                    !f.properties?.midPoint && !f.properties?.selectionPoint
+                const nonSystemFeatures = features.filter(
+                    (f) => !f.properties?.midPoint && !f.properties?.selectionPoint
                 );
-                
+
                 if (nonSystemFeatures.length > 0) {
                     const lastFeature = nonSystemFeatures[nonSystemFeatures.length - 1];
                     this.terraDrawInstance.removeFeatures([lastFeature.id]);
@@ -818,7 +808,6 @@ export class TerraDrawToolsUI extends Component {
                 }
             }
         } catch (error) {
-            console.error('Error deleting feature:', error);
             this.notificationService.add(_t('Failed to delete feature'), { type: 'danger' });
         }
     }
@@ -848,7 +837,6 @@ export class TerraDrawToolsUI extends Component {
             await this._restoreSnapshot(snapshotToRestore);
             this.notificationService.add(_t('Undo completed'), { type: 'success' });
         } catch (error) {
-            console.error('Error during undo:', error);
             this.notificationService.add(_t('Undo failed'), { type: 'danger' });
         }
     }
@@ -878,7 +866,6 @@ export class TerraDrawToolsUI extends Component {
             await this._restoreSnapshot(snapshotToRestore);
             this.notificationService.add(_t('Redo completed'), { type: 'success' });
         } catch (error) {
-            console.error('Error during redo:', error);
             this.notificationService.add(_t('Redo failed'), { type: 'danger' });
         }
     }
@@ -908,7 +895,7 @@ export class TerraDrawToolsUI extends Component {
                 });
                 this.terraDrawInstance.addFeatures(freshFeatures);
             }
-            await new Promise(resolve => setTimeout(resolve, TERRA_DRAW_CONFIG.UNDO_RESTORE_DELAY));
+            await new Promise((resolve) => setTimeout(resolve, TERRA_DRAW_CONFIG.UNDO_RESTORE_DELAY));
         } finally {
             this.state.isRestoring = false;
         }
@@ -922,8 +909,7 @@ export class TerraDrawToolsUI extends Component {
      */
     isMultiPolygonPart(feature) {
         const metadata = feature?.properties?._metadata || {};
-        return metadata.originalType === 'MultiPolygon' && 
-               typeof metadata.partIndex === 'number';
+        return metadata.originalType === 'MultiPolygon' && typeof metadata.partIndex === 'number';
     }
 
     /**
@@ -934,16 +920,18 @@ export class TerraDrawToolsUI extends Component {
      */
     getMultiPolygonParts(originalId) {
         if (!this.terraDrawInstance) return [];
-        
+
         const features = this.terraDrawInstance.getSnapshot();
-        return features.filter(f => {
-            const metadata = f.properties?._metadata || {};
-            return metadata.originalId === originalId && this.isMultiPolygonPart(f);
-        }).sort((a, b) => {
-            const aIndex = a.properties._metadata?.partIndex || 0;
-            const bIndex = b.properties._metadata?.partIndex || 0;
-            return aIndex - bIndex;
-        });
+        return features
+            .filter((f) => {
+                const metadata = f.properties?._metadata || {};
+                return metadata.originalId === originalId && this.isMultiPolygonPart(f);
+            })
+            .sort((a, b) => {
+                const aIndex = a.properties._metadata?.partIndex || 0;
+                const bIndex = b.properties._metadata?.partIndex || 0;
+                return aIndex - bIndex;
+            });
     }
 
     /**
@@ -1099,7 +1087,11 @@ export class TerraDrawToolsUI extends Component {
 
             this.terraDrawInstance.start();
             this.terraDrawInstance.on('ready', () => {
-                const isGeoJsonValid = validateGeoJson(this.props.dataGeoJson, { requireFeatures: true, validateGeometry: true, strict: true });
+                const isGeoJsonValid = validateGeoJson(this.props.dataGeoJson, {
+                    requireFeatures: true,
+                    validateGeometry: true,
+                    strict: true,
+                });
                 if (isGeoJsonValid) {
                     // loadRecordData sets this.history = [baseline] after addFeatures
                     this.loadRecordData(this.props.dataGeoJson);
@@ -1108,7 +1100,6 @@ export class TerraDrawToolsUI extends Component {
                     // drawn feature can be undone (guards require history.length > 1)
                     this.history = [[]];
                     this.redoHistory = [];
-                    console.warn('⚠️ No dataGeoJson available on Terra Draw ready event');
                 }
                 this.setActiveMode('select-mode');
                 this.terraDrawInstance.on('select', this.onDrawSelect.bind(this));
@@ -1150,29 +1141,25 @@ export class TerraDrawToolsUI extends Component {
             }, 2000); // 2 second fallback
         }
     }
-    
+
     /**
      * Simplify the currently selected feature for better performance
      * @public
      */
     async simplifySelectedFeature() {
         if (!this.state.selectedFeatureId || !this.terraDrawInstance) {
-            this.notificationService.add(
-                _t('No feature selected for simplification'),
-                { type: 'warning' }
-            );
+            this.notificationService.add(_t('No feature selected for simplification'), {
+                type: 'warning',
+            });
             return;
         }
 
         try {
             const features = this.terraDrawInstance.getSnapshot();
-            const selectedFeature = features.find(f => f.id === this.state.selectedFeatureId);
+            const selectedFeature = features.find((f) => f.id === this.state.selectedFeatureId);
 
             if (!selectedFeature) {
-                this.notificationService.add(
-                    _t('Selected feature not found'),
-                    { type: 'error' }
-                );
+                this.notificationService.add(_t('Selected feature not found'), { type: 'error' });
                 return;
             }
 
@@ -1183,7 +1170,10 @@ export class TerraDrawToolsUI extends Component {
             // Check if simplification is needed based on complexity
             if (complexity === 'simple' || complexity === 'moderate') {
                 this.notificationService.add(
-                    sprintf(_t('Feature is already simple enough for editing (%s vertices, complexity: %s)'), originalVertexCount, complexity),
+                    _t(
+                        'Feature is already simple enough for editing (%(vertex_count)s vertices, complexity: %(complexity)s)',
+                        { vertex_count: originalVertexCount, complexity }
+                    ),
                     { type: 'info' }
                 );
                 return;
@@ -1191,15 +1181,22 @@ export class TerraDrawToolsUI extends Component {
 
             // Show different messages based on complexity level
             const complexityMessages = {
-                'complex': sprintf(_t('Simplifying complex feature with %s vertices...'), originalVertexCount),
-                'very_complex': sprintf(_t('Simplifying very complex feature with %s vertices. This may take a moment...'), originalVertexCount),
-                'extremely_complex': sprintf(_t('Simplifying extremely complex feature with %s vertices. Please wait...'), originalVertexCount)
+                complex: _t('Simplifying complex feature with %(vertex_count)s vertices...', {
+                    vertex_count: originalVertexCount,
+                }),
+                very_complex: _t(
+                    'Simplifying very complex feature with %(vertex_count)s vertices. This may take a moment...',
+                    { vertex_count: originalVertexCount }
+                ),
+                extremely_complex: _t(
+                    'Simplifying extremely complex feature with %(vertex_count)s vertices. Please wait...',
+                    { vertex_count: originalVertexCount }
+                ),
             };
 
-            this.notificationService.add(
-                complexityMessages[complexity] || _t('Simplifying feature...'),
-                { type: 'info' }
-            );
+            this.notificationService.add(complexityMessages[complexity] || _t('Simplifying feature...'), {
+                type: 'info',
+            });
 
             const editableResult = createEditableFeature(selectedFeature);
 
@@ -1223,28 +1220,31 @@ export class TerraDrawToolsUI extends Component {
                 }, 100);
 
                 const iterationsInfo = editableResult.iterations ? ` in ${editableResult.iterations} iteration(s)` : '';
-                const successMessage = sprintf(_t('Feature simplified successfully %s! Complexity: %s. Vertex reduction: %s % (%s → %s vertices)'),
-                    iterationsInfo,
-                    complexity,
-                    editableResult.reductionRatio.toFixed(1),
-                    editableResult.originalVertexCount,
-                    editableResult.simplifiedVertexCount
+                const successMessage = _t(
+                    'Feature simplified successfully %(iteration)s! Complexity: %(complexity)s. Vertex reduction: %(ratio)s % (%(ori_vertex)s → %(simplify_vertex)s vertices)',
+                    {
+                        iteration: iterationsInfo,
+                        complexity: complexity,
+                        ratio: editableResult.reductionRatio.toFixed(1),
+                        ori_vertex: editableResult.originalVertexCount,
+                        simplify_vertex: editableResult.simplifiedVertexCount,
+                    }
                 );
 
                 this.notificationService.add(successMessage, { type: 'success' });
             } else {
                 this.notificationService.add(
-                    sprintf(_t('Could not simplify feature. Complexity: %s (%s vertices). Feature may already be at minimum complexity.'), complexity, originalVertexCount),
+                    _t(
+                        'Could not simplify feature. Complexity: %(complexity)s (%(vertex_count)s vertices). Feature may already be at minimum complexity.',
+                        { complexity, vertex_count: originalVertexCount }
+                    ),
                     { type: 'info' }
                 );
             }
-
         } catch (error) {
-            console.error('Error simplifying feature:', error);
-            this.notificationService.add(
-                sprintf(_t('Failed to simplify feature: %s'), error.message),
-                { type: 'danger' }
-            );
+            this.notificationService.add(_t('Failed to simplify feature: %(err)s', { err: error.message }), {
+                type: 'danger',
+            });
         }
     }
 
@@ -1258,38 +1258,36 @@ export class TerraDrawToolsUI extends Component {
         try {
             // STEP 1: Get feature data BEFORE selection
             const features = this.terraDrawInstance.getSnapshot();
-            const targetFeature = features.find(f => f.id === id);
-            
+            const targetFeature = features.find((f) => f.id === id);
+
             if (!targetFeature) {
                 console.warn('Feature not found for selection:', id);
                 return;
             }
-            
+
             // STEP 2: Analyze performance BEFORE selecting with error handling
             let analysis;
             try {
                 analysis = analyzeFeaturePerformance(targetFeature);
-                
+
                 // Validate that analysis has required properties
                 if (!analysis || typeof analysis.vertexCount !== 'number') {
-                    console.warn('Invalid analysis result, using fallback:', analysis);
                     analysis = {
                         vertexCount: 0,
                         complexity: 'simple',
                         canEdit: true,
                         isVeryComplex: false,
-                        recommendedAction: 'normal_operation'
+                        recommendedAction: 'normal_operation',
                     };
                 }
-            } catch (analysisError) {
-                console.error('Error analyzing feature performance:', analysisError);
+            } catch (_analysisError) {
                 // Use safe fallback analysis
                 analysis = {
                     vertexCount: 0,
                     complexity: 'simple',
                     canEdit: true,
                     isVeryComplex: false,
-                    recommendedAction: 'normal_operation'
+                    recommendedAction: 'normal_operation',
                 };
             }
 
@@ -1302,19 +1300,16 @@ export class TerraDrawToolsUI extends Component {
             } else {
                 // STEP 4: Proceed with normal selection
                 this.setSelectedFeatureId(id);
-                
+
                 // STEP 5: Show performance feedback to user
                 this._checkEditingPerformance(targetFeature);
             }
-
         } catch (error) {
             this.setSelectedFeatureId(null);
             this.setActiveMode('select-mode');
-            console.error('Error in onDrawSelect:', error);
-            this.notificationService.add(
-                _t('Failed to select feature due to complexity'),
-                { type: 'danger' }
-            );
+            this.notificationService.add(_t('Failed to select feature due to complexity'), {
+                type: 'danger',
+            });
         } finally {
             this.uiService.unblock();
         }
@@ -1329,10 +1324,13 @@ export class TerraDrawToolsUI extends Component {
      */
     async _handleComplexFeatureSelection(id, analysis) {
         this.dialogService.add(ConfirmationDialog, {
-            title: _t("⚠️ Very Complex Feature"),
-            body: sprintf(_t('This feature has %s vertices and may cause performance issues.\nWould you like to simplify it for better editing performance?'), analysis.vertexCount),
-            confirmLabel: _t("Yes, simplify the feature"),
-            cancelLabel: _t("No, keep original"),
+            title: _t('⚠️ Very Complex Feature'),
+            body: _t(
+                'This feature has %(vertex_count)s vertices and may cause performance issues.\nWould you like to simplify it for better editing performance?',
+                { vertex_count: analysis.vertexCount }
+            ),
+            confirmLabel: _t('Yes, simplify the feature'),
+            cancelLabel: _t('No, keep original'),
             confirm: async () => {
                 this.setSelectedFeatureId(id);
                 this.simplifySelectedFeature();
@@ -1344,7 +1342,7 @@ export class TerraDrawToolsUI extends Component {
             dismiss: () => {
                 this.setSelectedFeatureId(id);
                 this.terraDrawInstance.selectFeature(id);
-            }
+            },
         });
     }
 
@@ -1410,11 +1408,9 @@ export class TerraDrawToolsUI extends Component {
             await this.props.saveFeatures(geoJson, totalArea);
             this._fitMapToBounds(features);
         } catch (error) {
-            console.error('Save failed:', error);
-            this.notificationService.add(
-                sprintf(_t('Failed to save changes: %s'), error.message), 
-                { type: 'danger' }
-            );
+            this.notificationService.add(_t('Failed to save changes: %(err)s', { err: error.message }), {
+                type: 'danger',
+            });
         } finally {
             this.state.isSaving = false;
             this.uiService.unblock();
@@ -1456,19 +1452,17 @@ export class TerraDrawToolsUI extends Component {
             { name: 'Circle', creator: () => this._createTerraDrawCircleMode() },
             { name: 'Freehand', creator: () => this._createTerraDrawFreehandMode() },
         ];
-        
+
         modeCreators.forEach(({ name, creator }) => {
             try {
                 modes.push(creator());
             } catch (error) {
-                console.error(`Failed to create ${name} mode:`, error);
-                this.notificationService.add(
-                    sprintf(_t('Failed to initialize drawing mode %s'), name),
-                    { type: 'warning' }
-                );
+                this.notificationService.add(_t('Failed to initialize drawing mode %(mode)s', { mode: name }), {
+                    type: 'warning',
+                });
             }
         });
-        
+
         return modes;
     }
 
@@ -1640,19 +1634,19 @@ export class TerraDrawToolsUI extends Component {
         );
         return new window.terraDraw.TerraDrawFreehandMode(opt);
     }
-    
+
     /**
      * Clean up all resources when the component is destroyed
-     * 
+     *
      * Performs comprehensive cleanup of manually managed resources:
      * - Clears pending timeouts to prevent execution after component destruction
      * - Removes document and Google Maps event listeners to prevent memory leaks
      * - Stops Terra Draw instance and removes all its event listeners
      * - Clears history arrays and object references
-     * 
+     *
      * Note: OWL useState and component refs are automatically managed by the framework
      * and do not require manual cleanup.
-     * 
+     *
      * @private
      */
     _cleanUp() {
@@ -1661,18 +1655,18 @@ export class TerraDrawToolsUI extends Component {
             clearTimeout(this.debounceTimeout);
             this.debounceTimeout = null;
         }
-        
+
         if (this.initTimeout) {
             clearTimeout(this.initTimeout);
             this.initTimeout = null;
         }
-        
+
         // Remove keyboard event listener
         if (this.handleKeydown) {
             document.removeEventListener('keydown', this.handleKeydown);
             this.handleKeydown = null;
         }
-        
+
         // Remove Google Maps event listeners
         if (this.eventProjectionChanges) {
             try {
@@ -1682,7 +1676,7 @@ export class TerraDrawToolsUI extends Component {
             }
             this.eventProjectionChanges = null;
         }
-        
+
         // Clean up Terra Draw instance
         if (this.terraDrawInstance) {
             try {
@@ -1691,7 +1685,7 @@ export class TerraDrawToolsUI extends Component {
                 this.terraDrawInstance.off('select');
                 this.terraDrawInstance.off('deselect');
                 this.terraDrawInstance.off('change');
-                
+
                 // Clear all features and stop the instance
                 this.terraDrawInstance.clear();
                 this.terraDrawInstance.stop();
@@ -1701,7 +1695,7 @@ export class TerraDrawToolsUI extends Component {
                 this.terraDrawInstance = null;
             }
         }
-        
+
         // Clear history arrays
         if (this.history) {
             this.history.length = 0;
@@ -1709,9 +1703,8 @@ export class TerraDrawToolsUI extends Component {
         if (this.redoHistory) {
             this.redoHistory.length = 0;
         }
-        
+
         // Clear bounds
         this.latLngBounds = null;
     }
-
 }

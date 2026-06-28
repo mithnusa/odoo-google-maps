@@ -1,23 +1,16 @@
 import { registry } from '@web/core/registry';
 import { _t } from '@web/core/l10n/translation';
-import { sprintf } from '@web/core/utils/strings';
 import { standardFieldProps } from '@web/views/fields/standard_field_props';
-import {
-    useRef,
-    useSubEnv,
-    useState,
-    onWillUpdateProps,
-} from '@odoo/owl';
+import { useRef, useSubEnv, useState, onWillUpdateProps } from '@odoo/owl';
 
 import { BaseGoogleMapComponent } from '@base_google_map/utils/base_google_map';
-import { GoogleMapGeolocate } from '@web_view_google_map/views/google_map/components/geolocate/geolocate';
-import { GoogleMapSearchPlaces } from '@web_view_google_map/views/google_map/components/search_places/search_places';
+import { GoogleMapGeolocate } from '@web_widget_google_map/components/geolocate/geolocate';
+import { GoogleMapSearchPlaces } from '@web_widget_google_map/components/search_places/search_places';
 
 import { TerraDrawToolsUI } from '../../views/components/terra-tools-ui/terra-tools-ui';
 import { DeckGlEditor } from '../../views/components/deck-gl-editor/deck-gl-editor';
 import { MAP_OPTIONS } from '../../utils/map_config';
 import { analyzeDatasetPerformance } from '../../utils/geometry_performance_utils';
-
 
 export class GoogleMapTerraDrawField extends BaseGoogleMapComponent {
     static template = 'web_view_google_map_drawing.GoogleMapTerraDrawField';
@@ -191,7 +184,7 @@ export class GoogleMapTerraDrawField extends BaseGoogleMapComponent {
             if (feature.geometry.type === 'Polygon') {
                 return feature.geometry.coordinates.length > 1;
             } else if (feature.geometry.type === 'MultiPolygon') {
-                return feature.geometry.coordinates.some(polygon => polygon.length > 1);
+                return feature.geometry.coordinates.some((polygon) => polygon.length > 1);
             }
             return false;
         });
@@ -201,7 +194,7 @@ export class GoogleMapTerraDrawField extends BaseGoogleMapComponent {
             return this._hasAltitude(feature.geometry);
         });
 
-        this.state.renderingMode = (hasPolygonsWithHoles || has3DCoordinates) ? 'deckgl' : 'terra-draw';
+        this.state.renderingMode = hasPolygonsWithHoles || has3DCoordinates ? 'deckgl' : 'terra-draw';
     }
 
     /**
@@ -233,12 +226,14 @@ export class GoogleMapTerraDrawField extends BaseGoogleMapComponent {
     validateProps() {
         if (this.props.fieldsArea && this.props.record.fields[this.props.fieldsArea] === undefined) {
             this.notificationService.add(
-                sprintf(_t('The field area "%s" does not exist on the model "%s". Please check the field configuration.'), this.props.fieldsArea, this.props.record.model),
-                { type: 'warning'}
+                _t(
+                    'The field area "%(field_name)s" does not exist on the model "%(model_name)s". Please check the field configuration.',
+                    { field_name: this.props.fieldsArea, model_name: this.props.record.model }
+                ),
+                { type: 'warning' }
             );
         }
     }
-
 }
 
 export const googleMapTerraDrawField = {

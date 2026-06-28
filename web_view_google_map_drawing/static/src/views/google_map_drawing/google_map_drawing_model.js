@@ -18,13 +18,7 @@ export class GoogleMapDrawingModel extends GoogleMapModel {
         ) {
             result = Domain.and([
                 [[this.viewConfig.geoJsonField, '!=', null]],
-                [
-                    [
-                        this.viewConfig.geoJsonField,
-                        'json_ne',
-                        { type: 'FeatureCollection', features: [] },
-                    ],
-                ],
+                [[this.viewConfig.geoJsonField, 'json_ne', { type: 'FeatureCollection', features: [] }]],
             ]).toList({}); // Filter out null and empty FeatureCollection
         }
         this._mapDomainCache = result;
