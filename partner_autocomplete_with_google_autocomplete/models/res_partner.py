@@ -11,6 +11,8 @@ class ResPartner(models.Model):
 
         if view_type == 'form':
             for node in arch.xpath("//field[@name='name']"):
-                node.set('widget', 'field_partner_autocomplete_with_google_place')
+                node.set(
+                    'widget', 'field_partner_autocomplete_with_google_place'
+                )
 
         return arch, view

@@ -19,10 +19,10 @@ Provides:
 """,
     'license': 'LGPL-3',
     'author': 'Yopi Angi',
-    'website': 'https://github.com/mithnusa',
+    'website': 'https://www.mithnusa.com',
     'support': 'yopiangi@gmail.com',
     'category': 'Extra Tools',
-    'version': '1.0.5',
+    'version': '19.0.1.0.6',
     'depends': ['partner_autocomplete', 'contacts_google_autocomplete'],
     'assets': {
         'web.assets_backend': [
@@ -31,7 +31,4 @@ Provides:
             'partner_autocomplete_with_google_autocomplete/static/src/js/partner_autocomplete_with_google_place.xml',
         ],
     },
-    'installable': True,
-    'application': False,
-    'auto_install': False,
 }
