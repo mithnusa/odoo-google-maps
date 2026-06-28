@@ -1,5 +1,14 @@
 # Change Log
 
+## 19.0.1.0.4
+
+### Improved
+
+- **Python — Black format** (`__init__.py`): Reformatted post-install hook with Black (line length 79); no logic changes.
+- **XML format** (`views/crm_lead_views.xml`): Reformatted with self-closing tags.
+- **`__manifest__.py`**: Removed explicit `installable`, `application`, and `auto_install` keys — these are Odoo defaults and were redundant.
+- **`CHANGELOG.md`**: Removed trailing whitespace and missing newline at end of file.
+
 ## 19.0.1.0.3
 
 ### Improved
@@ -24,7 +33,7 @@
 - **Performance Optimization**: Changed from `search()` to `search_count()` for existence checks in post-install hook
 - **Code Cleanup**: Removed unused variable assignments after mapping creation
 
-## 19.0.1.0.0   
+## 19.0.1.0.0
 A new module that combines the following modules from previous versions:
 - crm_gautocomplete_address_form
 - crm_gautocomplete_address_form_extended
