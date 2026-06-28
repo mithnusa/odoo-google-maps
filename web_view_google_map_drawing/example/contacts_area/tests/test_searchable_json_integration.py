@@ -10,6 +10,7 @@ against a real PostgreSQL JSONB column.
 Unit tests for the field class, wrapper classes, and domain optimization live in:
   web_view_google_map_drawing/tests/test_field_json_searchable.py
 """
+
 import unittest
 
 from odoo.tests.common import TransactionCase
@@ -39,16 +40,20 @@ class TestSearchableJsonIntegration(TransactionCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        if 'res.partner.area' not in cls.env:
-            raise unittest.SkipTest('contacts_area module is not installed')
-        cls.Model = cls.env['res.partner.area']
+        if "res.partner.area" not in cls.env:
+            raise unittest.SkipTest("contacts_area module is not installed")
+        cls.Model = cls.env["res.partner.area"]
 
     def _create(self, name, geojson):
-        return self.Model.create({'gshape_name': name, 'gshape_geojson': geojson})
+        return self.Model.create(
+            {"gshape_name": name, "gshape_geojson": geojson}
+        )
 
     def _search(self, extra_ids, *domain_parts):
         """Search restricted to the given record IDs to avoid pre-existing data."""
-        return self.Model.search([('id', 'in', extra_ids)] + list(domain_parts))
+        return self.Model.search(
+            [("id", "in", extra_ids)] + list(domain_parts)
+        )
 
     # -------------------------------------------------------------------------
     # Standard Odoo operators: = False / != False (NULL handling)
@@ -56,22 +61,22 @@ class TestSearchableJsonIntegration(TransactionCase):
 
     def test_eq_false_finds_null_records(self):
         """('gshape_geojson', '=', False) must return records where geojson IS NULL."""
-        null_rec = self._create('Null GeoJSON', False)
-        has_value = self._create('Has GeoJSON', POINT)
+        null_rec = self._create("Null GeoJSON", False)
+        has_value = self._create("Has GeoJSON", POINT)
         ids = [null_rec.id, has_value.id]
 
-        results = self._search(ids, ('gshape_geojson', '=', False))
+        results = self._search(ids, ("gshape_geojson", "=", False))
 
         self.assertIn(null_rec, results)
         self.assertNotIn(has_value, results)
 
     def test_ne_false_excludes_null_records(self):
         """('gshape_geojson', '!=', False) must exclude records where geojson IS NULL."""
-        null_rec = self._create('Null GeoJSON', False)
-        has_value = self._create('Has GeoJSON', POINT)
+        null_rec = self._create("Null GeoJSON", False)
+        has_value = self._create("Has GeoJSON", POINT)
         ids = [null_rec.id, has_value.id]
 
-        results = self._search(ids, ('gshape_geojson', '!=', False))
+        results = self._search(ids, ("gshape_geojson", "!=", False))
 
         self.assertNotIn(null_rec, results)
         self.assertIn(has_value, results)
@@ -82,22 +87,22 @@ class TestSearchableJsonIntegration(TransactionCase):
 
     def test_json_eq_finds_exact_match(self):
         """json_eq returns only records whose geojson equals the given value."""
-        rec = self._create('Point A', POINT)
-        other = self._create('Point B', POINT_OTHER)
+        rec = self._create("Point A", POINT)
+        other = self._create("Point B", POINT_OTHER)
         ids = [rec.id, other.id]
 
-        results = self._search(ids, ('gshape_geojson', 'json_eq', POINT))
+        results = self._search(ids, ("gshape_geojson", "json_eq", POINT))
 
         self.assertIn(rec, results)
         self.assertNotIn(other, results)
 
     def test_json_ne_excludes_matching_record(self):
         """json_ne excludes the exact match but includes different values."""
-        rec = self._create('Point A', POINT)
-        other = self._create('Point B', POINT_OTHER)
+        rec = self._create("Point A", POINT)
+        other = self._create("Point B", POINT_OTHER)
         ids = [rec.id, other.id]
 
-        results = self._search(ids, ('gshape_geojson', 'json_ne', POINT))
+        results = self._search(ids, ("gshape_geojson", "json_ne", POINT))
 
         self.assertNotIn(rec, results)
         self.assertIn(other, results)
@@ -108,10 +113,10 @@ class TestSearchableJsonIntegration(TransactionCase):
         PostgreSQL evaluates NULL != value as NULL (not TRUE), so without an
         explicit IS NULL guard these rows would be silently excluded.
         """
-        null_rec = self._create('No GeoJSON', False)
+        null_rec = self._create("No GeoJSON", False)
         ids = [null_rec.id]
 
-        results = self._search(ids, ('gshape_geojson', 'json_ne', POINT))
+        results = self._search(ids, ("gshape_geojson", "json_ne", POINT))
 
         self.assertIn(null_rec, results)
 
@@ -121,22 +126,32 @@ class TestSearchableJsonIntegration(TransactionCase):
 
     def test_json_contains_finds_matching_record(self):
         """json_contains returns records where the field contains the sub-object."""
-        rec = self._create('Feature Collection', FEATURE_COLLECTION_POINT)
-        other = self._create('Polygon', POLYGON)
+        rec = self._create("Feature Collection", FEATURE_COLLECTION_POINT)
+        other = self._create("Polygon", POLYGON)
         ids = [rec.id, other.id]
 
-        results = self._search(ids, ('gshape_geojson', 'json_contains', {'type': 'FeatureCollection'}))
+        results = self._search(
+            ids,
+            ("gshape_geojson", "json_contains", {"type": "FeatureCollection"}),
+        )
 
         self.assertIn(rec, results)
         self.assertNotIn(other, results)
 
     def test_json_not_contains_excludes_matching_record(self):
         """json_not_contains excludes records that do contain the sub-object."""
-        rec = self._create('Feature Collection', FEATURE_COLLECTION_POINT)
-        other = self._create('Polygon', POLYGON)
+        rec = self._create("Feature Collection", FEATURE_COLLECTION_POINT)
+        other = self._create("Polygon", POLYGON)
         ids = [rec.id, other.id]
 
-        results = self._search(ids, ('gshape_geojson', 'json_not_contains', {'type': 'FeatureCollection'}))
+        results = self._search(
+            ids,
+            (
+                "gshape_geojson",
+                "json_not_contains",
+                {"type": "FeatureCollection"},
+            ),
+        )
 
         self.assertNotIn(rec, results)
         self.assertIn(other, results)
@@ -147,10 +162,12 @@ class TestSearchableJsonIntegration(TransactionCase):
         PostgreSQL evaluates NULL @> value as NULL (not FALSE), so without an
         explicit IS NULL guard these rows would be silently excluded.
         """
-        null_rec = self._create('No GeoJSON', False)
+        null_rec = self._create("No GeoJSON", False)
         ids = [null_rec.id]
 
-        results = self._search(ids, ('gshape_geojson', 'json_not_contains', {'type': 'Point'}))
+        results = self._search(
+            ids, ("gshape_geojson", "json_not_contains", {"type": "Point"})
+        )
 
         self.assertIn(null_rec, results)
 
@@ -161,17 +178,24 @@ class TestSearchableJsonIntegration(TransactionCase):
             "features": [
                 {
                     "type": "Feature",
-                    "geometry": {"type": "Point", "coordinates": [106.45, -6.36]},
+                    "geometry": {
+                        "type": "Point",
+                        "coordinates": [106.45, -6.36],
+                    },
                     "properties": {"category": "landmark"},
                 }
             ],
         }
-        rec = self._create('Nested', nested)
+        rec = self._create("Nested", nested)
         ids = [rec.id]
 
         results = self._search(
             ids,
-            ('gshape_geojson', 'json_contains', {'features': [{'properties': {'category': 'landmark'}}]}),
+            (
+                "gshape_geojson",
+                "json_contains",
+                {"features": [{"properties": {"category": "landmark"}}]},
+            ),
         )
 
         self.assertIn(rec, results)
@@ -182,18 +206,25 @@ class TestSearchableJsonIntegration(TransactionCase):
 
     def test_multiple_records_filtered_by_type(self):
         """Each json_contains query returns only the records with the matching type."""
-        point_rec = self._create('Point', POINT)
-        polygon_rec = self._create('Polygon', POLYGON)
-        collection_rec = self._create('Collection', FEATURE_COLLECTION_EMPTY)
+        point_rec = self._create("Point", POINT)
+        polygon_rec = self._create("Polygon", POLYGON)
+        collection_rec = self._create("Collection", FEATURE_COLLECTION_EMPTY)
         ids = [point_rec.id, polygon_rec.id, collection_rec.id]
 
-        point_results = self._search(ids, ('gshape_geojson', 'json_contains', {'type': 'Point'}))
+        point_results = self._search(
+            ids, ("gshape_geojson", "json_contains", {"type": "Point"})
+        )
         self.assertEqual(point_results, point_rec)
 
-        polygon_results = self._search(ids, ('gshape_geojson', 'json_contains', {'type': 'Polygon'}))
+        polygon_results = self._search(
+            ids, ("gshape_geojson", "json_contains", {"type": "Polygon"})
+        )
         self.assertEqual(polygon_results, polygon_rec)
 
-        collection_results = self._search(ids, ('gshape_geojson', 'json_contains', {'type': 'FeatureCollection'}))
+        collection_results = self._search(
+            ids,
+            ("gshape_geojson", "json_contains", {"type": "FeatureCollection"}),
+        )
         self.assertEqual(collection_results, collection_rec)
 
     # -------------------------------------------------------------------------
@@ -207,10 +238,10 @@ class TestSearchableJsonIntegration(TransactionCase):
         order inside JSONB, so {'b': 2, 'a': 1} must equal {'a': 1, 'b': 2}.
         """
         stored = {"coordinates": [106.45, -6.36], "type": "Point"}
-        rec = self._create('Reversed Keys', stored)
+        rec = self._create("Reversed Keys", stored)
         ids = [rec.id]
 
-        results = self._search(ids, ('gshape_geojson', 'json_eq', POINT))
+        results = self._search(ids, ("gshape_geojson", "json_eq", POINT))
 
         self.assertIn(rec, results)
 
@@ -221,10 +252,10 @@ class TestSearchableJsonIntegration(TransactionCase):
         ('field', 'json_eq', False) maps to field::jsonb = 'false'::jsonb.
         These are semantically different — this test documents and protects that boundary.
         """
-        null_rec = self._create('Null GeoJSON', False)
+        null_rec = self._create("Null GeoJSON", False)
         ids = [null_rec.id]
 
-        results = self._search(ids, ('gshape_geojson', 'json_eq', False))
+        results = self._search(ids, ("gshape_geojson", "json_eq", False))
 
         self.assertNotIn(null_rec, results)
 
@@ -233,11 +264,11 @@ class TestSearchableJsonIntegration(TransactionCase):
 
         In PostgreSQL, any_jsonb @> '{}'::jsonb is TRUE for all non-NULL values.
         """
-        rec = self._create('Point', POINT)
-        null_rec = self._create('Null GeoJSON', False)
+        rec = self._create("Point", POINT)
+        null_rec = self._create("Null GeoJSON", False)
         ids = [rec.id, null_rec.id]
 
-        results = self._search(ids, ('gshape_geojson', 'json_contains', {}))
+        results = self._search(ids, ("gshape_geojson", "json_contains", {}))
 
         self.assertIn(rec, results)
         self.assertNotIn(null_rec, results)

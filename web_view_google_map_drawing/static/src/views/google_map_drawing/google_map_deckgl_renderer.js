@@ -2,21 +2,13 @@ import { _t } from '@web/core/l10n/translation';
 import { useService, useBus } from '@web/core/utils/hooks';
 import { debounce } from '@web/core/utils/timing';
 import { renderToString } from '@web/core/utils/render';
-import { user } from "@web/core/user";
-import {
-    useEffect,
-    useState,
-    useRef,
-    useSubEnv,
-    onPatched,
-    onWillStart,
-    onWillUpdateProps,
-} from '@odoo/owl';
+import { user } from '@web/core/user';
+import { useEffect, useState, useRef, useSubEnv, onPatched, onWillStart, onWillUpdateProps } from '@odoo/owl';
 import { isNull } from '@web/views/utils';
 import { BaseGoogleMapComponent } from '@base_google_map/utils/base_google_map';
-import { GoogleMapGeolocate } from '@web_view_google_map/views/google_map/components/geolocate/geolocate';
 import { getRecordDataView, hexToRgba, generateColor, darkenColor } from '@web_view_google_map/views/google_map/utils';
-import { GoogleMapSearchPlaces } from '@web_view_google_map/views/google_map/components/search_places/search_places';
+import { GoogleMapGeolocate } from '@web_widget_google_map/components/geolocate/geolocate';
+import { GoogleMapSearchPlaces } from '@web_widget_google_map/components/search_places/search_places';
 import { GoogleMapsDrawingSidebar } from './google_map_drawing_sidebar';
 import {
     formatAreaMeasurement,
@@ -27,7 +19,6 @@ import {
     loadTurfJSAssets,
 } from '../../utils/utils';
 import { DECKGL_CONFIG, STROKE_CONFIG } from '../../utils/map_config';
-
 
 /**
  * Deck.gl High-Performance Renderer Component
@@ -131,7 +122,6 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
         // Deck.gl instance and layers
         this.deckglOverlay = null;
 
-
         // Data management
         this.geoJsonData = new Map(); // Efficient feature storage
         this.featuresByRecordId = new Map(); // Index: recordId -> Set of featureIds (for O(1) related feature lookup)
@@ -167,7 +157,7 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
                     if (this._isDestroyed) return;
                     this.notificationService.add(
                         _t('Failed to load Deck.gl assets. Please refresh the page and try again.'),
-                        { type: 'danger', title: _t('Error'), }
+                        { type: 'danger', title: _t('Error') }
                     );
                 });
         });
@@ -178,8 +168,9 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
                     this._initializeDeckGLOverlay();
                     this.debounceRenderGeolocationData();
                 }
-            }, () => {
-                return [this.isMapAndAssetsLoaded()]
+            },
+            () => {
+                return [this.isMapAndAssetsLoaded()];
             }
         );
 
@@ -196,7 +187,6 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
         if (this.props.allowSelectors) {
             useBus(this.uiService.bus, 'google-map-center-map', this.centerMap);
         }
-
     }
 
     /**
@@ -362,7 +352,7 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
     _renderGroupedShapesOptimized(datas) {
         for (const { group } of datas) {
             try {
-                const batch = group.records.map(record => ({ record }));
+                const batch = group.records.map((record) => ({ record }));
                 this._processBatch(batch, group.groupColor);
             } catch {
                 // skip group if records fail to process
@@ -434,9 +424,7 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
                     id: featureId,
                     type: feature.type,
                     geometry: feature.geometry,
-                    properties: feature.properties
-                        ? { ...feature.properties, ...sharedProps }
-                        : sharedProps,
+                    properties: feature.properties ? { ...feature.properties, ...sharedProps } : sharedProps,
                     bounds: this._calculateFeatureBounds(feature.geometry),
                     visible: true,
                     selected: false,
@@ -445,7 +433,6 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
                 // Index feature by record ID for O(1) related feature lookup
                 recordFeatureIds.add(featureId);
             }
-
         } catch {
             // skip record if GeoJSON cannot be processed
         }
@@ -461,14 +448,17 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
             return { minX: 0, maxX: 0, minY: 0, maxY: 0 };
         }
 
-        let minX = Infinity, maxX = -Infinity;
-        let minY = Infinity, maxY = -Infinity;
+        let minX = Infinity,
+            maxX = -Infinity;
+        let minY = Infinity,
+            maxY = -Infinity;
 
         const { type, coordinates } = geometry;
 
         switch (type) {
             case 'Point': {
-                const lng = coordinates[0], lat = coordinates[1];
+                const lng = coordinates[0],
+                    lat = coordinates[1];
                 if (lng >= -180 && lng <= 180 && lat >= -90 && lat <= 90) {
                     minX = maxX = lng;
                     minY = maxY = lat;
@@ -478,7 +468,8 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
             case 'LineString':
             case 'MultiPoint':
                 for (const coord of coordinates) {
-                    const lng = coord[0], lat = coord[1];
+                    const lng = coord[0],
+                        lat = coord[1];
                     if (lng < minX) minX = lng;
                     if (lng > maxX) maxX = lng;
                     if (lat < minY) minY = lat;
@@ -489,7 +480,8 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
             case 'MultiLineString':
                 for (const ring of coordinates) {
                     for (const coord of ring) {
-                        const lng = coord[0], lat = coord[1];
+                        const lng = coord[0],
+                            lat = coord[1];
                         if (lng < minX) minX = lng;
                         if (lng > maxX) maxX = lng;
                         if (lat < minY) minY = lat;
@@ -501,7 +493,8 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
                 for (const polygon of coordinates) {
                     for (const ring of polygon) {
                         for (const coord of ring) {
-                            const lng = coord[0], lat = coord[1];
+                            const lng = coord[0],
+                                lat = coord[1];
                             if (lng < minX) minX = lng;
                             if (lng > maxX) maxX = lng;
                             if (lat < minY) minY = lat;
@@ -580,7 +573,7 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
                 case 'Point':
                     pointData.push({
                         ...feature,
-                        position: feature.geometry.coordinates
+                        position: feature.geometry.coordinates,
                     });
                     break;
                 case 'MultiPoint':
@@ -599,15 +592,14 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
                 filled: true,
                 stroked: true,
                 wrapLongitude: true,
-                getFillColor: d => featuresSelected.has(d.id)
-                    ? DECKGL_CONFIG.DEFAULT_COLORS.SELECTED_FILL
-                    : d.properties.fillColor,
-                getLineColor: d => featuresSelected.has(d.id)
-                    ? DECKGL_CONFIG.DEFAULT_COLORS.SELECTED_STROKE
-                    : d.properties.strokeColor,
-                getLineWidth: d => featuresSelected.has(d.id)
-                    ? STROKE_CONFIG.DEFAULT_WIDTH + 1
-                    : STROKE_CONFIG.DEFAULT_WIDTH,
+                getFillColor: (d) =>
+                    featuresSelected.has(d.id) ? DECKGL_CONFIG.DEFAULT_COLORS.SELECTED_FILL : d.properties.fillColor,
+                getLineColor: (d) =>
+                    featuresSelected.has(d.id)
+                        ? DECKGL_CONFIG.DEFAULT_COLORS.SELECTED_STROKE
+                        : d.properties.strokeColor,
+                getLineWidth: (d) =>
+                    featuresSelected.has(d.id) ? STROKE_CONFIG.DEFAULT_WIDTH + 1 : STROKE_CONFIG.DEFAULT_WIDTH,
                 lineWidthMinPixels: STROKE_CONFIG.DEFAULT_WIDTH,
                 lineWidthMaxPixels: STROKE_CONFIG.HOVER_WIDTH,
                 pickable: true,
@@ -622,10 +614,11 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
                 filled: false,
                 stroked: true,
                 wrapLongitude: true,
-                getLineColor: d => featuresSelected.has(d.id)
-                    ? DECKGL_CONFIG.DEFAULT_COLORS.SELECTED_STROKE
-                    : d.properties.strokeColor,
-                getLineWidth: d => featuresSelected.has(d.id) ? 4 : 3,
+                getLineColor: (d) =>
+                    featuresSelected.has(d.id)
+                        ? DECKGL_CONFIG.DEFAULT_COLORS.SELECTED_STROKE
+                        : d.properties.strokeColor,
+                getLineWidth: (d) => (featuresSelected.has(d.id) ? 4 : 3),
                 lineWidthUnits: 'pixels',
                 lineWidthMinPixels: 3,
                 lineWidthMaxPixels: 8,
@@ -638,19 +631,19 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
             new window.deck.ScatterplotLayer({
                 id: 'pointsLayer',
                 data: pointData,
-                getPosition: d => d.position,
+                getPosition: (d) => d.position,
                 getRadius: 6,
                 radiusUnits: 'pixels',
                 radiusMinPixels: 6,
                 radiusMaxPixels: 20,
                 stroked: true,
                 filled: true,
-                getFillColor: d => featuresSelected.has(d.id)
-                    ? DECKGL_CONFIG.DEFAULT_COLORS.SELECTED_FILL
-                    : d.properties.fillColor,
-                getLineColor: d => featuresSelected.has(d.id)
-                    ? DECKGL_CONFIG.DEFAULT_COLORS.SELECTED_STROKE
-                    : d.properties.strokeColor,
+                getFillColor: (d) =>
+                    featuresSelected.has(d.id) ? DECKGL_CONFIG.DEFAULT_COLORS.SELECTED_FILL : d.properties.fillColor,
+                getLineColor: (d) =>
+                    featuresSelected.has(d.id)
+                        ? DECKGL_CONFIG.DEFAULT_COLORS.SELECTED_STROKE
+                        : d.properties.strokeColor,
                 lineWidthMinPixels: 2,
                 lineWidthMaxPixels: 4,
                 pickable: true,
@@ -676,8 +669,10 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
         if (!this.isMapLoaded()) return;
 
         // Calculate bounds using min/max (much faster than extend() calls)
-        let minLat = Infinity, maxLat = -Infinity;
-        let minLng = Infinity, maxLng = -Infinity;
+        let minLat = Infinity,
+            maxLat = -Infinity;
+        let minLng = Infinity,
+            maxLng = -Infinity;
 
         // Check if there are selected records
         const selectedRecords = this.props.list?.selection || [];
@@ -685,7 +680,7 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
 
         if (hasSelection) {
             // Center only on selected records' features
-            const selectedRecordIds = new Set(selectedRecords.map(r => r.resId));
+            const selectedRecordIds = new Set(selectedRecords.map((r) => r.resId));
 
             for (const feature of this.geoJsonData.values()) {
                 const recordId = feature.properties?.odooId;
@@ -712,8 +707,8 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
         if (minLat !== Infinity) {
             const { LatLngBounds } = await this.apiLoader.importLibrary('core');
             const bounds = new LatLngBounds(
-                { lat: minLat, lng: minLng },  // SW corner
-                { lat: maxLat, lng: maxLng }   // NE corner
+                { lat: minLat, lng: minLng }, // SW corner
+                { lat: maxLat, lng: maxLng } // NE corner
             );
             this.googleMap.fitBounds(bounds);
         }
@@ -788,8 +783,7 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
         const { type, coordinates } = feature.geometry;
 
         // Check cache for features without related polygon area calculations
-        const hasRelatedPolygons = relatedFeatures.length > 0 &&
-            (type === 'Polygon' || type === 'MultiPolygon');
+        const hasRelatedPolygons = relatedFeatures.length > 0 && (type === 'Polygon' || type === 'MultiPolygon');
 
         if (!hasRelatedPolygons && this.measurementCache.has(feature.id)) {
             return this.measurementCache.get(feature.id);
@@ -835,9 +829,7 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
                     const lngDir = lng >= 0 ? 'E' : 'W';
                     measurements.coordinates = `${Math.abs(lat).toFixed(
                         MEASUREMENT_CONFIG.COORDINATE_PRECISION
-                    )}°${latDir}, ${Math.abs(lng).toFixed(
-                        MEASUREMENT_CONFIG.COORDINATE_PRECISION
-                    )}°${lngDir}`;
+                    )}°${latDir}, ${Math.abs(lng).toFixed(MEASUREMENT_CONFIG.COORDINATE_PRECISION)}°${lngDir}`;
                     measurements.display_name = [{ title: _t('Point'), value: measurements.coordinates }];
                     break;
                 }
@@ -864,7 +856,7 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
                     measurements.display_name = [
                         { title: _t('Area'), value: measurements.area },
                         { title: _t('Perimeter'), value: measurements.perimeter },
-                        { title: _t('Points'), value: measurements.points }
+                        { title: _t('Points'), value: measurements.points },
                     ];
                     if (displayTotalArea) {
                         measurements.display_name.splice(1, 0, { title: _t('Total Area'), value: displayTotalArea });
@@ -887,7 +879,7 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
                     measurements.display_name = [
                         { title: _t('Area'), value: measurements.area },
                         { title: _t('Perimeter'), value: measurements.perimeter },
-                        { title: _t('Points'), value: measurements.points }
+                        { title: _t('Points'), value: measurements.points },
                     ];
                     if (displayTotalArea) {
                         measurements.display_name.splice(1, 0, { title: _t('Total Area'), value: displayTotalArea });
@@ -930,7 +922,7 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
         const content = this._createInfoWindowContent(record);
         if (content) {
             this.markerInfoWindow.setContent(content);
-            this.markerInfoWindow.setPosition({lat: coordinate[1], lng: coordinate[0]});
+            this.markerInfoWindow.setPosition({ lat: coordinate[1], lng: coordinate[0] });
             this.markerInfoWindow.open(this.googleMap);
         }
     }
@@ -941,7 +933,7 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
      */
     _findRecordByFeature(feature) {
         const odooId = feature.properties.odooId;
-        return this.props.list.records.find(r => r.resId === odooId);
+        return this.props.list.records.find((r) => r.resId === odooId);
     }
 
     /**
@@ -984,7 +976,7 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
                     key: isNull(group.value) ? `group_key_${i}` : `${String(group.value)}_${i}`,
                 }));
         } else {
-            result = list.records.map(record => ({ record, key: record.id }));
+            result = list.records.map((record) => ({ record, key: record.id }));
         }
 
         // Cache the result
@@ -1107,7 +1099,7 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
                         };
                         return {
                             html: content,
-                            style
+                            style,
                         };
                     }
                     return null;
@@ -1133,9 +1125,7 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
         const content = this._generateInfoWindowHtml(record);
 
         try {
-            const divContent = new DOMParser()
-                .parseFromString(content, 'text/html')
-                .querySelector('div');
+            const divContent = new DOMParser().parseFromString(content, 'text/html').querySelector('div');
 
             if (!divContent) return null;
 
@@ -1163,9 +1153,9 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
 
     /**
      * Store element event listener for later cleanup
-     * @param {HTMLElement} element 
-     * @param {string} eventType 
-     * @param {Function} listener 
+     * @param {HTMLElement} element
+     * @param {string} eventType
+     * @param {Function} listener
      */
     _storeElementEventListener(element, eventType, listener) {
         if (!this._elementEventListeners.has(element)) {
@@ -1180,7 +1170,7 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
 
     /**
      * Remove all event listeners for an element
-     * @param {HTMLElement} element 
+     * @param {HTMLElement} element
      */
     _removeElementEventListeners(element) {
         const listeners = this._elementEventListeners.get(element);
@@ -1267,7 +1257,7 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
         if (!feature) return;
         const centerCoordinate = [
             (feature.bounds.minX + feature.bounds.maxX) / 2,
-            (feature.bounds.minY + feature.bounds.maxY) / 2
+            (feature.bounds.minY + feature.bounds.maxY) / 2,
         ];
         this._onFeatureClick({ object: feature, coordinate: centerCoordinate });
     }
@@ -1290,16 +1280,14 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
         if (!this.isMapLoaded() || !recordId) return;
         try {
             const featureIds = this.featuresByRecordId.get(recordId);
-            const features = featureIds
-                ? [...featureIds].map(id => this.geoJsonData.get(id)).filter(Boolean)
-                : [];
+            const features = featureIds ? [...featureIds].map((id) => this.geoJsonData.get(id)).filter(Boolean) : [];
 
             if (features.length > 0) {
                 const { LatLngBounds } = await this.apiLoader.importLibrary('core');
                 this.latLngBounds = new LatLngBounds();
 
                 // Extend bounds for all features
-                features.forEach(feature => {
+                features.forEach((feature) => {
                     const featureBounds = feature.bounds;
                     this.latLngBounds.extend({ lat: featureBounds.minY, lng: featureBounds.minX });
                     this.latLngBounds.extend({ lat: featureBounds.maxY, lng: featureBounds.maxX });
@@ -1314,10 +1302,9 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
                 }
             }
         } catch {
-            this.notificationService.add(
-                _t('Failed to center map on the selected record. Please try again.'),
-                { type: 'warning' }
-            );
+            this.notificationService.add(_t('Failed to center map on the selected record. Please try again.'), {
+                type: 'warning',
+            });
         }
     }
 
@@ -1457,10 +1444,7 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
         return new Promise((resolve, reject) => {
             const processBatch = async () => {
                 try {
-                    const batch = records.slice(
-                        processedCount,
-                        Math.min(processedCount + batchSize, totalRecords)
-                    );
+                    const batch = records.slice(processedCount, Math.min(processedCount + batchSize, totalRecords));
 
                     const batchPromises = batch.map((record) =>
                         record.toggleSelection(shouldSelect).then(() => {
@@ -1524,7 +1508,6 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
         this.debounceUpdateLayers();
     }
 
-
     /**
      * Cleanup resources
      * @private
@@ -1561,7 +1544,6 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
         for (const element of this._elementEventListeners.keys()) {
             this._removeElementEventListeners(element);
         }
-
 
         // Clean up Deck.gl overlay - clear layers first, then detach
         if (this.deckglOverlay) {

@@ -14,23 +14,23 @@
             z-index: 1000;
             max-width: 700px;
             opacity: 0.9;
-            
+
             .alert {
                 margin-bottom: 0;
                 padding: 6x;
                 font-size: 12px;
                 border-radius: 4px;
-                
+
                 strong {
                     font-weight: 600;
                 }
             }
-            
+
             @media (max-width: 768px) {
                 position: static;
                 max-width: none;
                 margin-bottom: 10px;
-                
+
                 .alert {
                     font-size: 11px;
                     padding: 6px 10px;

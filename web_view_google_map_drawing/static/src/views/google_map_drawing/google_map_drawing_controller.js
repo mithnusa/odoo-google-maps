@@ -1,6 +1,5 @@
 import { GoogleMapController } from '@web_view_google_map/views/google_map/google_map_controller';
 
-
 export class GoogleMapDrawingController extends GoogleMapController {
     get viewMapConfig() {
         const viewConfig = super.viewMapConfig;

@@ -22,6 +22,7 @@ Integration tests (end-to-end ORM search against a real JSONB column) live in:
   web_view_google_map_drawing/example/contacts_area/tests/test_searchable_json_integration.py
 They require the contacts_area module to be installed.
 """
+
 import json
 from unittest.mock import Mock
 
@@ -30,7 +31,13 @@ from odoo.tools import SQL
 from odoo.orm.domains import DomainCondition
 from odoo.tools.misc import OrderedSet
 
-from ..models.fields import SearchableJson, JsonValue, JsonContainsValue, _json_equal_optimization, _json_contains_optimization
+from ..models.fields import (
+    SearchableJson,
+    JsonValue,
+    JsonContainsValue,
+    _json_equal_optimization,
+    _json_contains_optimization,
+)
 
 
 class TestJsonValue(BaseCase):
@@ -99,9 +106,9 @@ class TestJsonValue(BaseCase):
         complex_value = {
             "geometry": {
                 "type": "Polygon",
-                "coordinates": [[[0, 0], [1, 1], [0, 1], [0, 0]]]
+                "coordinates": [[[0, 0], [1, 1], [0, 1], [0, 0]]],
             },
-            "properties": {"name": "Test"}
+            "properties": {"name": "Test"},
         }
         val1 = JsonValue(complex_value)
         val2 = JsonValue(complex_value.copy())
@@ -117,7 +124,9 @@ class TestJsonValue(BaseCase):
         with self.assertRaises(ValueError) as context:
             JsonValue({"date": datetime.now()})
 
-        self.assertIn("Domain value is not JSON-serializable", str(context.exception))
+        self.assertIn(
+            "Domain value is not JSON-serializable", str(context.exception)
+        )
 
 
 class TestJsonContainsValue(BaseCase):
@@ -164,61 +173,65 @@ class TestDomainOptimization(BaseCase):
 
     def test_json_eq_optimization(self):
         """Test json_eq operator optimization to 'in' operator."""
-        condition = DomainCondition('geojson', 'json_eq', {'type': 'Point'})
+        condition = DomainCondition("geojson", "json_eq", {"type": "Point"})
         mock_model = Mock()
 
         result = _json_equal_optimization(condition, mock_model)
 
-        self.assertEqual(result.operator, 'in')
+        self.assertEqual(result.operator, "in")
         self.assertIsInstance(result.value, OrderedSet)
         self.assertEqual(len(result.value), 1)
 
         # Check that value is wrapped in JsonValue
         wrapped_value = list(result.value)[0]
         self.assertIsInstance(wrapped_value, JsonValue)
-        self.assertEqual(wrapped_value.value, {'type': 'Point'})
+        self.assertEqual(wrapped_value.value, {"type": "Point"})
 
     def test_json_ne_optimization(self):
         """Test json_ne operator optimization to 'not in' operator."""
-        condition = DomainCondition('geojson', 'json_ne', {'type': 'Point'})
+        condition = DomainCondition("geojson", "json_ne", {"type": "Point"})
         mock_model = Mock()
 
         result = _json_equal_optimization(condition, mock_model)
 
-        self.assertEqual(result.operator, 'not in')
+        self.assertEqual(result.operator, "not in")
         self.assertIsInstance(result.value, OrderedSet)
 
     def test_json_contains_optimization(self):
         """Test json_contains operator optimization to 'in' operator with JsonContainsValue wrapper."""
-        condition = DomainCondition('geojson', 'json_contains', {'type': 'Point'})
+        condition = DomainCondition(
+            "geojson", "json_contains", {"type": "Point"}
+        )
         mock_model = Mock()
 
         result = _json_contains_optimization(condition, mock_model)
 
-        self.assertEqual(result.operator, 'in')
+        self.assertEqual(result.operator, "in")
         self.assertIsInstance(result.value, OrderedSet)
         self.assertEqual(len(result.value), 1)
 
         # Check that value is wrapped in JsonContainsValue
         wrapped_value = list(result.value)[0]
         self.assertIsInstance(wrapped_value, JsonContainsValue)
-        self.assertEqual(wrapped_value.value, {'type': 'Point'})
+        self.assertEqual(wrapped_value.value, {"type": "Point"})
 
     def test_json_not_contains_optimization(self):
         """Test json_not_contains operator optimization to 'not in' operator with JsonContainsValue wrapper."""
-        condition = DomainCondition('geojson', 'json_not_contains', {'type': 'Point'})
+        condition = DomainCondition(
+            "geojson", "json_not_contains", {"type": "Point"}
+        )
         mock_model = Mock()
 
         result = _json_contains_optimization(condition, mock_model)
 
-        self.assertEqual(result.operator, 'not in')
+        self.assertEqual(result.operator, "not in")
         self.assertIsInstance(result.value, OrderedSet)
         self.assertEqual(len(result.value), 1)
 
         # Check that value is wrapped in JsonContainsValue
         wrapped_value = list(result.value)[0]
         self.assertIsInstance(wrapped_value, JsonContainsValue)
-        self.assertEqual(wrapped_value.value, {'type': 'Point'})
+        self.assertEqual(wrapped_value.value, {"type": "Point"})
 
 
 class TestSearchableJsonField(BaseCase):
@@ -228,137 +241,184 @@ class TestSearchableJsonField(BaseCase):
         super().setUp()
         self.field = SearchableJson()
         self.mock_model = Mock()
-        self.mock_model._field_to_sql = Mock(return_value=SQL("test_table.geojson"))
+        self.mock_model._field_to_sql = Mock(
+            return_value=SQL("test_table.geojson")
+        )
         self.mock_query = Mock()
 
     def test_json_eq_sql_generation_with_wrapped_value(self):
         """Test SQL generation for 'in' operator with wrapped JsonValue."""
-        wrapped_value = JsonValue({'type': 'Point'})
+        wrapped_value = JsonValue({"type": "Point"})
         values = OrderedSet([wrapped_value])
 
         result = self.field._condition_to_sql(
-            'geojson', 'in', values, self.mock_model, 'test_table', self.mock_query
+            "geojson",
+            "in",
+            values,
+            self.mock_model,
+            "test_table",
+            self.mock_query,
         )
 
         self.assertIsInstance(result, SQL)
         # Check that SQL contains the field and JSON value
         sql_str = str(result)
-        self.assertIn('test_table.geojson', sql_str)
+        self.assertIn("test_table.geojson", sql_str)
 
     def test_json_ne_sql_generation_with_wrapped_value(self):
         """Test SQL generation for 'not in' operator with wrapped JsonValue."""
-        wrapped_value = JsonValue({'type': 'Point'})
+        wrapped_value = JsonValue({"type": "Point"})
         values = OrderedSet([wrapped_value])
 
         result = self.field._condition_to_sql(
-            'geojson', 'not in', values, self.mock_model, 'test_table', self.mock_query
+            "geojson",
+            "not in",
+            values,
+            self.mock_model,
+            "test_table",
+            self.mock_query,
         )
 
         self.assertIsInstance(result, SQL)
         sql_str = str(result)
-        self.assertIn('test_table.geojson', sql_str)
+        self.assertIn("test_table.geojson", sql_str)
         # NULL rows must be included in negation results (NULL != value = NULL, not TRUE)
-        self.assertIn('IS NULL', sql_str)
+        self.assertIn("IS NULL", sql_str)
 
     def test_json_contains_sql_generation(self):
         """Test SQL generation for 'in' operator with JsonContainsValue wrapper."""
-        wrapped_value = JsonContainsValue({'type': 'Point'})
+        wrapped_value = JsonContainsValue({"type": "Point"})
         values = OrderedSet([wrapped_value])
 
         result = self.field._condition_to_sql(
-            'geojson', 'in', values, self.mock_model, 'test_table', self.mock_query
+            "geojson",
+            "in",
+            values,
+            self.mock_model,
+            "test_table",
+            self.mock_query,
         )
 
         self.assertIsInstance(result, SQL)
         sql_str = str(result)
-        self.assertIn('@>', sql_str)
-        self.assertIn('::jsonb', sql_str)
+        self.assertIn("@>", sql_str)
+        self.assertIn("::jsonb", sql_str)
 
     def test_json_not_contains_sql_generation(self):
         """Test SQL generation for 'not in' operator with JsonContainsValue wrapper."""
-        wrapped_value = JsonContainsValue({'type': 'Point'})
+        wrapped_value = JsonContainsValue({"type": "Point"})
         values = OrderedSet([wrapped_value])
 
         result = self.field._condition_to_sql(
-            'geojson', 'not in', values, self.mock_model, 'test_table', self.mock_query
+            "geojson",
+            "not in",
+            values,
+            self.mock_model,
+            "test_table",
+            self.mock_query,
         )
 
         self.assertIsInstance(result, SQL)
         sql_str = str(result)
-        self.assertIn('NOT', sql_str)
-        self.assertIn('@>', sql_str)
-        self.assertIn('::jsonb', sql_str)
+        self.assertIn("NOT", sql_str)
+        self.assertIn("@>", sql_str)
+        self.assertIn("::jsonb", sql_str)
         # NULL rows must be included: NULL @> value = NULL, not FALSE
-        self.assertIn('IS NULL', sql_str)
+        self.assertIn("IS NULL", sql_str)
 
     def test_regular_value_not_in_includes_null_check(self):
         """Test that 'not in' with a plain (non-wrapped) value generates an IS NULL guard."""
-        values = OrderedSet(['test_string'])
+        values = OrderedSet(["test_string"])
 
         result = self.field._condition_to_sql(
-            'geojson', 'not in', values, self.mock_model, 'test_table', self.mock_query
+            "geojson",
+            "not in",
+            values,
+            self.mock_model,
+            "test_table",
+            self.mock_query,
         )
 
         self.assertIsInstance(result, SQL)
         sql_str = str(result)
         # NULL rows must be included: NULL != value = NULL, not TRUE
-        self.assertIn('IS NULL', sql_str)
+        self.assertIn("IS NULL", sql_str)
 
     def test_empty_in_operator_returns_false(self):
         """Test that empty 'in' operator returns SQL FALSE."""
         values = OrderedSet()
 
         result = self.field._condition_to_sql(
-            'geojson', 'in', values, self.mock_model, 'test_table', self.mock_query
+            "geojson",
+            "in",
+            values,
+            self.mock_model,
+            "test_table",
+            self.mock_query,
         )
 
         self.assertIsInstance(result, SQL)
         sql_str = str(result)
         # SQL object's __str__() wraps the SQL in "SQL('...')"
-        self.assertIn('FALSE', sql_str)
+        self.assertIn("FALSE", sql_str)
 
     def test_empty_not_in_operator_returns_true(self):
         """Test that empty 'not in' operator returns SQL TRUE."""
         values = OrderedSet()
 
         result = self.field._condition_to_sql(
-            'geojson', 'not in', values, self.mock_model, 'test_table', self.mock_query
+            "geojson",
+            "not in",
+            values,
+            self.mock_model,
+            "test_table",
+            self.mock_query,
         )
 
         self.assertIsInstance(result, SQL)
         sql_str = str(result)
         # SQL object's __str__() wraps the SQL in "SQL('...')"
-        self.assertIn('TRUE', sql_str)
+        self.assertIn("TRUE", sql_str)
 
     def test_multiple_values_in_operator(self):
         """Test SQL generation for 'in' with multiple values."""
-        val1 = JsonValue({'type': 'Point'})
-        val2 = JsonValue({'type': 'Polygon'})
+        val1 = JsonValue({"type": "Point"})
+        val2 = JsonValue({"type": "Polygon"})
         values = OrderedSet([val1, val2])
 
         result = self.field._condition_to_sql(
-            'geojson', 'in', values, self.mock_model, 'test_table', self.mock_query
+            "geojson",
+            "in",
+            values,
+            self.mock_model,
+            "test_table",
+            self.mock_query,
         )
 
         self.assertIsInstance(result, SQL)
         sql_str = str(result)
         # Should contain OR for multiple conditions
-        self.assertIn('OR', sql_str)
+        self.assertIn("OR", sql_str)
 
     def test_multiple_values_not_in_operator(self):
         """Test SQL generation for 'not in' with multiple values."""
-        val1 = JsonValue({'type': 'Point'})
-        val2 = JsonValue({'type': 'Polygon'})
+        val1 = JsonValue({"type": "Point"})
+        val2 = JsonValue({"type": "Polygon"})
         values = OrderedSet([val1, val2])
 
         result = self.field._condition_to_sql(
-            'geojson', 'not in', values, self.mock_model, 'test_table', self.mock_query
+            "geojson",
+            "not in",
+            values,
+            self.mock_model,
+            "test_table",
+            self.mock_query,
         )
 
         self.assertIsInstance(result, SQL)
         sql_str = str(result)
         # Should contain AND for multiple conditions
-        self.assertIn('AND', sql_str)
+        self.assertIn("AND", sql_str)
 
     def test_error_handling_for_non_serializable_in_sql(self):
         """Test that non-serializable values raise proper error in SQL generation."""
@@ -366,16 +426,23 @@ class TestSearchableJsonField(BaseCase):
 
         # This should raise an error during JsonContainsValue creation
         with self.assertRaises(ValueError) as context:
-            JsonContainsValue({'date': datetime.now()})
+            JsonContainsValue({"date": datetime.now()})
 
-        self.assertIn("Domain value is not JSON-serializable", str(context.exception))
+        self.assertIn(
+            "Domain value is not JSON-serializable", str(context.exception)
+        )
 
     def test_regular_value_without_json_marker(self):
         """Test SQL generation with regular values (not wrapped)."""
-        values = OrderedSet(['test_string'])
+        values = OrderedSet(["test_string"])
 
         result = self.field._condition_to_sql(
-            'geojson', 'in', values, self.mock_model, 'test_table', self.mock_query
+            "geojson",
+            "in",
+            values,
+            self.mock_model,
+            "test_table",
+            self.mock_query,
         )
 
         self.assertIsInstance(result, SQL)
@@ -401,15 +468,7 @@ class TestEdgeCases(BaseCase):
 
     def test_deeply_nested_structure(self):
         """Test handling of deeply nested JSON structures."""
-        nested = {
-            "level1": {
-                "level2": {
-                    "level3": {
-                        "level4": ["value"]
-                    }
-                }
-            }
-        }
+        nested = {"level1": {"level2": {"level3": {"level4": ["value"]}}}}
 
         json_val = JsonValue(nested)
         self.assertIsNotNone(json_val)
@@ -418,8 +477,8 @@ class TestEdgeCases(BaseCase):
     def test_special_characters_in_json(self):
         """Test handling of special characters in JSON strings."""
         special_chars = {
-            "name": "Test's \"special\" chars: <>&",
-            "unicode": "=🗺️ Map emoji"
+            "name": 'Test\'s "special" chars: <>&',
+            "unicode": "=🗺️ Map emoji",
         }
 
         json_val = JsonValue(special_chars)
@@ -427,21 +486,14 @@ class TestEdgeCases(BaseCase):
 
     def test_numeric_keys_handling(self):
         """Test handling of numeric values."""
-        numeric_data = {
-            "count": 42,
-            "decimal": 3.14159,
-            "negative": -10
-        }
+        numeric_data = {"count": 42, "decimal": 3.14159, "negative": -10}
 
         json_val = JsonValue(numeric_data)
         self.assertEqual(json_val.value, numeric_data)
 
     def test_boolean_values(self):
         """Test handling of boolean values in JSON."""
-        bool_data = {
-            "is_active": True,
-            "is_deleted": False
-        }
+        bool_data = {"is_active": True, "is_deleted": False}
 
         json_val = JsonValue(bool_data)
         self.assertEqual(json_val.value, bool_data)
@@ -453,13 +505,23 @@ class TestEdgeCases(BaseCase):
         mock_model._field_to_sql = Mock(return_value=SQL("test_table.geojson"))
         mock_query = Mock()
 
-        for operator in ('json_eq', 'json_ne', 'json_contains', 'json_not_contains'):
+        for operator in (
+            "json_eq",
+            "json_ne",
+            "json_contains",
+            "json_not_contains",
+        ):
             with self.assertRaises(AssertionError) as context:
                 field._condition_to_sql(
-                    'geojson', operator, 'value', mock_model, 'test_table', mock_query
+                    "geojson",
+                    operator,
+                    "value",
+                    mock_model,
+                    "test_table",
+                    mock_query,
                 )
             self.assertIn(
-                'reached _condition_to_sql without being rewritten',
+                "reached _condition_to_sql without being rewritten",
                 str(context.exception),
             )
 
@@ -479,12 +541,15 @@ class TestModuleReloadRobustness(BaseCase):
 
     def _stale_json_value(self, data):
         """Return an instance whose class is named JsonValue but has a different identity."""
+
         class JsonValue:
-            __slots__ = ('value', '_hash')
+            __slots__ = ("value", "_hash")
 
             def __init__(self, v):
                 self.value = v
-                self._hash = hash(json.dumps(v, sort_keys=True, separators=(',', ':')))
+                self._hash = hash(
+                    json.dumps(v, sort_keys=True, separators=(",", ":"))
+                )
 
             def __hash__(self):
                 return self._hash
@@ -493,12 +558,15 @@ class TestModuleReloadRobustness(BaseCase):
 
     def _stale_json_contains_value(self, data):
         """Return an instance whose class is named JsonContainsValue but has a different identity."""
+
         class JsonContainsValue:
-            __slots__ = ('value', '_hash')
+            __slots__ = ("value", "_hash")
 
             def __init__(self, v):
                 self.value = v
-                self._hash = hash(json.dumps(v, sort_keys=True, separators=(',', ':')))
+                self._hash = hash(
+                    json.dumps(v, sort_keys=True, separators=(",", ":"))
+                )
 
             def __hash__(self):
                 return self._hash
@@ -511,20 +579,20 @@ class TestModuleReloadRobustness(BaseCase):
 
     def test_eq_cross_identity_same_value(self):
         """Two JsonValue instances from different class objects are equal when their values match."""
-        real = JsonValue({'type': 'Point'})
-        stale = self._stale_json_value({'type': 'Point'})
+        real = JsonValue({"type": "Point"})
+        stale = self._stale_json_value({"type": "Point"})
         self.assertEqual(real, stale)
 
     def test_eq_cross_identity_different_value(self):
         """Two JsonValue instances from different class objects are not equal when values differ."""
-        real = JsonValue({'type': 'Point'})
-        stale = self._stale_json_value({'type': 'Polygon'})
+        real = JsonValue({"type": "Point"})
+        stale = self._stale_json_value({"type": "Polygon"})
         self.assertNotEqual(real, stale)
 
     def test_eq_does_not_mix_wrapper_kinds(self):
         """A stale JsonValue instance is not equal to a JsonContainsValue instance."""
-        real_contains = JsonContainsValue({'type': 'Point'})
-        stale_value = self._stale_json_value({'type': 'Point'})
+        real_contains = JsonContainsValue({"type": "Point"})
+        stale_value = self._stale_json_value({"type": "Point"})
         self.assertNotEqual(real_contains, stale_value)
 
     # ------------------------------------------------------------------
@@ -539,27 +607,32 @@ class TestModuleReloadRobustness(BaseCase):
     def test_dispatch_stale_json_value_generates_equality_sql(self):
         """_single_value_to_sql generates equality SQL for a stale JsonValue instance."""
         field, sql_field = self._make_field_and_sql()
-        stale = self._stale_json_value({'type': 'Point'})
+        stale = self._stale_json_value({"type": "Point"})
 
-        result = field._single_value_to_sql(sql_field, 'in', stale)
+        result = field._single_value_to_sql(sql_field, "in", stale)
 
         self.assertIsInstance(result, SQL)
         sql_str = str(result)
-        self.assertIn('::jsonb', sql_str)
-        self.assertNotIn('@>', sql_str)
+        self.assertIn("::jsonb", sql_str)
+        self.assertNotIn("@>", sql_str)
 
-    def test_dispatch_stale_json_contains_value_generates_containment_sql(self):
+    def test_dispatch_stale_json_contains_value_generates_containment_sql(
+        self,
+    ):
         """_single_value_to_sql generates @> SQL for a stale JsonContainsValue instance."""
         field, sql_field = self._make_field_and_sql()
-        stale = self._stale_json_contains_value({'type': 'Point'})
+        stale = self._stale_json_contains_value({"type": "Point"})
 
-        result = field._single_value_to_sql(sql_field, 'in', stale)
+        result = field._single_value_to_sql(sql_field, "in", stale)
 
         self.assertIsInstance(result, SQL)
-        self.assertIn('@>', str(result))
+        self.assertIn("@>", str(result))
 
-    def test_dispatch_impostor_missing_value_attr_does_not_raise_attribute_error(self):
+    def test_dispatch_impostor_missing_value_attr_does_not_raise_attribute_error(
+        self,
+    ):
         """An impostor class with the right name but no .value falls through without AttributeError."""
+
         class JsonValue:
             pass  # Same name as the real wrapper, but no .value attribute
 
@@ -567,11 +640,11 @@ class TestModuleReloadRobustness(BaseCase):
         impostor = JsonValue()
 
         try:
-            field._single_value_to_sql(sql_field, 'in', impostor)
+            field._single_value_to_sql(sql_field, "in", impostor)
         except AttributeError as exc:
             self.fail(
                 f"AttributeError raised — .value was accessed without guard: {exc}"
             )
-        except (ValueError, TypeError):
+        except (ValueError, TypeError):  # pylint: disable=except-pass
             pass  # Expected: falls through to plain path; _equality_sql re-raises TypeError
-                  # from json.dumps as ValueError — either is acceptable here
+            # from json.dumps as ValueError — either is acceptable here

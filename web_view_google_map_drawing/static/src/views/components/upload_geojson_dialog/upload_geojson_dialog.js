@@ -27,20 +27,14 @@ export class UploadGeoJsonFileDialog extends ConfirmationDialog {
         const fileInput = this.modalRef.el.querySelector('#geojson-file');
         if (fileInput.files.length === 0) {
             // Notify the user that no file was selected
-            this.notificationService.add(
-                _t('Please upload your GeoJSON file'),
-                { type: 'danger' }
-            );
+            this.notificationService.add(_t('Please upload your GeoJSON file'), { type: 'danger' });
             // Do not proceed with the confirmation
             return;
         }
         const file = fileInput.files[0];
         if (file.size > MAX_FILE_SIZE) {
             // Notify the user that the file is too large
-            this.notificationService.add(
-                _t('File size exceeds the maximum allowed size of 5MB'),
-                { type: 'danger' }
-            );
+            this.notificationService.add(_t('File size exceeds the maximum allowed size of 5MB'), { type: 'danger' });
             // Reset the file input
             fileInput.value = '';
             // Do not proceed with the confirmation
@@ -48,10 +42,9 @@ export class UploadGeoJsonFileDialog extends ConfirmationDialog {
         }
         if (!this._validateFile(file)) {
             // Notify the user that the file type is invalid
-            this.notificationService.add(
-                _t('Invalid file type. Please upload a valid GeoJSON file.'),
-                { type: 'danger' }
-            );
+            this.notificationService.add(_t('Invalid file type. Please upload a valid GeoJSON file.'), {
+                type: 'danger',
+            });
             // Reset the file input
             fileInput.value = '';
             // Do not proceed with the confirmation
