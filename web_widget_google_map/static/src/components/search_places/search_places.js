@@ -7,9 +7,8 @@ import { renderToString } from '@web/core/utils/render';
 const DEFAULT_ZOOM_LEVEL = 17;
 const INFO_WINDOW_MAX_WIDTH = '400px';
 
-
 export class GoogleMapSearchPlaces extends Component {
-    static template = 'web_view_google_map.SearchPlaces';
+    static template = 'web_widget_google_map.SearchPlaces';
     static props = ['googleMap'];
 
     setup() {
@@ -54,7 +53,9 @@ export class GoogleMapSearchPlaces extends Component {
                     let countryCodes = [];
                     if (Array.isArray(countries) || typeof countries === 'string') {
                         countryCodes = Array.isArray(countries) ? countries : [countries];
-                        countryCodes = countryCodes.map(code => code.trim()).filter(code => code !== '' && code.length === 2); // Basic validation for country codes
+                        countryCodes = countryCodes
+                            .map((code) => code.trim())
+                            .filter((code) => code !== '' && code.length === 2); // Basic validation for country codes
                     }
                     if (countryCodes.length) {
                         searchOptions.includedRegionCodes = countryCodes;
@@ -79,9 +80,7 @@ export class GoogleMapSearchPlaces extends Component {
                         this.searchRef.el.style.zIndex = 1;
                         this.searchRef.el.appendChild(this.placeAutocomplete);
 
-                        this.props.googleMap.controls[
-                            google.maps.ControlPosition.TOP_RIGHT
-                        ].push(this.searchRef.el);
+                        this.props.googleMap.controls[google.maps.ControlPosition.TOP_RIGHT].push(this.searchRef.el);
 
                         const markerContent = document.createElement('div');
                         markerContent.className = 'places-search-marker';
@@ -96,7 +95,6 @@ export class GoogleMapSearchPlaces extends Component {
                         this._boundHandlePlaceSelect = this.debouncedHandlePlaceSelect.bind(this);
                         this.placeAutocomplete.addEventListener('gmp-select', this._boundHandlePlaceSelect);
                     } catch (error) {
-                        console.error('Error initializing PlaceAutocompleteElement:', error);
                         this.notificationService.add(
                             _t(
                                 "Google Maps Places Autocomplete couldn't be created. You might need to check the Google Maps version and ensure that the Places API is enabled."
@@ -113,12 +111,10 @@ export class GoogleMapSearchPlaces extends Component {
 
                 this.boundsChangedListener = this.props.googleMap.addListener('bounds_changed', () => {
                     if (this.placeAutocomplete) {
-                        this.placeAutocomplete.locationRestriction =
-                            this.props.googleMap.getBounds();
+                        this.placeAutocomplete.locationRestriction = this.props.googleMap.getBounds();
                     }
                 });
             } catch (error) {
-                console.error(error);
                 this.notificationService.add(
                     _t('Something went wrong. See Javascript console for technical details. '),
                     {
@@ -154,11 +150,7 @@ export class GoogleMapSearchPlaces extends Component {
             }
             this.markerPlacesSearch.position = place.location;
         } catch (error) {
-            console.error('Error handling place select:', error);
-            this.notificationService.add(
-                _t('Failed to fetch Google place detail.'),
-                { type: 'warning' }
-            );
+            this.notificationService.add(_t('Failed to fetch Google place detail.'), { type: 'warning' });
         }
     }
 
@@ -185,7 +177,7 @@ export class GoogleMapSearchPlaces extends Component {
             this.markerPlacesSearch.map = null;
         });
     }
- 
+
     /**
      * Create the content for the info window
      * @param {Object} place - The place object containing displayName and formattedAddress
@@ -197,7 +189,7 @@ export class GoogleMapSearchPlaces extends Component {
         content.style.maxWidth = INFO_WINDOW_MAX_WIDTH;
 
         // Use template rendering with t-esc to safely escape HTML content
-        const htmlString = renderToString('web_view_google_map.SearchPlacesInfoWindow', {
+        const htmlString = renderToString('web_widget_google_map.SearchPlacesInfoWindow', {
             displayName: place.displayName,
             formattedAddress: place.formattedAddress,
         });

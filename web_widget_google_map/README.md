@@ -14,12 +14,13 @@ Adds a `google_map` widget for use in form views. It shows an embedded map at th
 - **Interactive Edit Dialog**: An edit button opens a dialog with a full interactive Google Map and a draggable marker for precise coordinate selection
 - **Draggable Marker**: Drag the marker anywhere on the map to pick new coordinates; the dialog updates on drop and writes the values to the record on save
 - **Place Search in Dialog**: A Google Places search box inside the dialog lets users navigate the map to a named location before dropping the marker
+- **Street View Side-by-Side Dialog (component)**: Provides `GoogleMapStreetViewSideBySideDialog`, an XL dialog that shows a Google Map on the left and Google Street View on the right; falls back to a marker-only map when no Street View imagery is available at the given coordinates
 - **Read-Only Mode**: When the form field is in read-only mode, the embedded map is shown without an edit button and the dialog marker is non-draggable
+- **Shared Map Components**: Bundles `GoogleMapGeolocate` (browser geolocation button) and `GoogleMapSearchPlaces` (in-map Google Places autocomplete) as reusable OWL components; these are consumed directly by `web_view_google_map`'s map view
 
 ## Dependencies
 
 - `base_google_map`
-- `web_view_google_map`
 
 ## Installation
 
@@ -33,4 +34,3 @@ Add the widget to any form view using `<widget name="google_map" lat="field_lati
 ## Related Modules
 
 - `base_google_map`: Provides the API key configuration and Google Maps JavaScript API loader
-- `web_view_google_map`: Provides the place search component reused by the edit dialog

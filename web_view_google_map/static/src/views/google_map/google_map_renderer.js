@@ -1,12 +1,4 @@
-import { 
-    useRef,
-    useState,
-    useSubEnv,
-    useEffect,
-    onPatched,
-    onWillUpdateProps,
-    onWillStart,
-} from '@odoo/owl';
+import { useRef, useState, useSubEnv, useEffect, onPatched, onWillUpdateProps, onWillStart } from '@odoo/owl';
 import { _t } from '@web/core/l10n/translation';
 import { renderToString } from '@web/core/utils/render';
 import { debounce } from '@web/core/utils/timing';
@@ -18,8 +10,8 @@ import { LOADER_STATUS } from '@base_google_map/utils/loader_google_map';
 import { KanbanRecord } from '@web/views/kanban/kanban_record';
 
 import { GoogleMapSidebar } from './google_map_sidebar';
-import { GoogleMapGeolocate } from './components/geolocate/geolocate';
-import { GoogleMapSearchPlaces } from './components/search_places/search_places';
+import { GoogleMapGeolocate } from '@web_widget_google_map/components/geolocate/geolocate';
+import { GoogleMapSearchPlaces } from '@web_widget_google_map/components/search_places/search_places';
 import {
     darkenColor,
     lightenColor,
@@ -80,7 +72,7 @@ const MARKER_CONFIG = {
         SELECTION_SIZE: 20,
         MARKER_SIZE: 100,
         IDLE_TIMEOUT: 10,
-    }
+    },
 };
 
 export class GoogleMapRenderer extends BaseGoogleMapComponent {
@@ -140,11 +132,14 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
         this.debounceRenderGeolocationData = debounce(this.renderGeolocationData.bind(this), 500);
         this.debounceSelectedMarkers = debounce(this.onSelectedMarkers.bind(this), 500);
 
-        useEffect(() => {
-            if (this.isMapLoaded() && !this._isSidebarAction) {
-                this.debounceRenderGeolocationData();
-            }
-        }, () => [this.state.isMapReady]);
+        useEffect(
+            () => {
+                if (this.isMapLoaded() && !this._isSidebarAction) {
+                    this.debounceRenderGeolocationData();
+                }
+            },
+            () => [this.state.isMapReady]
+        );
 
         useSubEnv({
             mapState: this.state,
@@ -189,10 +184,10 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
      * @param {Object} nextProps - The incoming props object containing the updated state
      * @param {Object} nextProps.list - The list data object
      * @param {boolean} nextProps.list.isGrouped - Whether the next state is grouped
-    */
-   onWillUpdatePropsRenderMarkers(nextProps) {
+     */
+    onWillUpdatePropsRenderMarkers(nextProps) {
         if (!this.isMapLoaded()) {
-           return;
+            return;
         }
 
         this._invalidateMarkerPositionIndex();
@@ -306,14 +301,8 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
             return;
         }
 
-        const {
-            FILL_OPACITY,
-            STROKE_WEIGHT,
-            DOT_REPEAT,
-            DOT_SCALE,
-            STROKE_COLOR,
-            STROKE_OPACITY
-        } = MARKER_CONFIG.NEARBY_SEARCH;
+        const { FILL_OPACITY, STROKE_WEIGHT, DOT_REPEAT, DOT_SCALE, STROKE_COLOR, STROKE_OPACITY } =
+            MARKER_CONFIG.NEARBY_SEARCH;
         this._nearbySearchCoverageRectangle = new google.maps.Rectangle({
             strokeColor: STROKE_COLOR,
             strokeOpacity: STROKE_OPACITY,
@@ -351,8 +340,14 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
 
         // Two midlines forming a crosshair at the center — marks the origin point used for the nearby search radius
         const polylinePaths = [
-            [{ lat: midLat, lng: west }, { lat: midLat, lng: east }],    // W → E
-            [{ lat: north, lng: midLng }, { lat: south, lng: midLng }],  // N → S
+            [
+                { lat: midLat, lng: west },
+                { lat: midLat, lng: east },
+            ], // W → E
+            [
+                { lat: north, lng: midLng },
+                { lat: south, lng: midLng },
+            ], // N → S
         ];
         this._nearbySearchCoveragePolylines = polylinePaths.map(
             (path) => new google.maps.Polyline({ ...polylineOptions, path })
@@ -368,14 +363,14 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
     onSelectedMarkers(selectedMarkers) {
         if (selectedMarkers.length === 0) {
             this.notificationService.add(
-                _t('No markers are currently selected. Please ensure the map is not tilted, try to zoom in closer, and try again'),
+                _t(
+                    'No markers are currently selected. Please ensure the map is not tilted, try to zoom in closer, and try again'
+                ),
                 { type: 'info' }
             );
             return;
         }
-        const records = selectedMarkers
-            .map((marker) => marker._odooRecord)
-            .filter((record) => !!record);
+        const records = selectedMarkers.map((marker) => marker._odooRecord).filter((record) => !!record);
         this._processSelectionInBatches(records, true);
     }
 
@@ -413,9 +408,7 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
 
         const currentProps = {
             isGrouped: list.isGrouped,
-            recordsIds: list.isGrouped
-                ? list.groups.map((group) => group.id)
-                : list.records.map((record) => record.id),
+            recordsIds: list.isGrouped ? list.groups.map((group) => group.id) : list.records.map((record) => record.id),
             length: list.isGrouped ? list.groups.length : list.records.length,
         };
 
@@ -483,12 +476,7 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
             const elementValues = this._createMarkerElementValues(other, markerColor);
 
             // Create new marker
-            const marker = await this._createNewMarker(
-                record,
-                geolocation,
-                other,
-                elementValues
-            );
+            const marker = await this._createNewMarker(record, geolocation, other, elementValues);
             this.mapBoxSelector?.addMarker(marker);
             return marker;
         } catch (error) {
@@ -638,7 +626,7 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
         }
         // Clean up user interaction listeners
         if (this._userInteractionListeners) {
-            this._userInteractionListeners.forEach(listener => {
+            this._userInteractionListeners.forEach((listener) => {
                 google.maps.event.removeListener(listener);
             });
             this._userInteractionListeners = null;
@@ -658,7 +646,7 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
         const listeners = [];
         const events = ['drag', 'click', 'dblclick', 'rightclick'];
 
-        events.forEach(eventName => {
+        events.forEach((eventName) => {
             const listener = google.maps.event.addListenerOnce(this.googleMap, eventName, callback);
             listeners.push(listener);
         });
@@ -710,7 +698,7 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
                 return;
             }
 
-            const cluster = this.markerClusterer.clusters.find(c => c.markers.includes(marker));
+            const cluster = this.markerClusterer.clusters.find((c) => c.markers.includes(marker));
             if (!cluster || cluster.markers.length === 1 || attempts >= maxAttempts) {
                 // Clean up listeners when operation completes
                 this._terminateAnyZoomOperations();
@@ -727,7 +715,7 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
             this._currentZoomOperation = google.maps.event.addListenerOnce(this.googleMap, 'idle', checkAndZoom);
         };
 
-        const cluster = this.markerClusterer.clusters.find(c => c.markers.includes(marker));
+        const cluster = this.markerClusterer.clusters.find((c) => c.markers.includes(marker));
         if (cluster && cluster.markers.length > 1) {
             checkAndZoom();
         } else {
@@ -790,11 +778,9 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
                 const progress = Math.min(elapsed / duration, 1);
 
                 // Easing function (ease-in-out)
-                const eased = progress < 0.5
-                    ? 2 * progress * progress
-                    : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+                const eased = progress < 0.5 ? 2 * progress * progress : 1 - Math.pow(-2 * progress + 2, 2) / 2;
 
-                const newZoom = startZoom + (zoomDiff * eased);
+                const newZoom = startZoom + zoomDiff * eased;
                 this.googleMap.setZoom(newZoom);
 
                 if (progress < 1) {
@@ -828,7 +814,6 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
         return this._processSelectionInBatches(recordsToUpdate, shouldSelect);
     }
 
-
     /**
      * Toggle selection of a record
      * @param {Object} record Record to toggle selection
@@ -844,7 +829,6 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
                 this.googleMap.panTo(record._marker.position);
             }
         });
-
     }
 
     //--------------------------------------------------------------------------
@@ -953,7 +937,6 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
     //--------------------------------------------------------------------------
     // Private Methods
     //--------------------------------------------------------------------------
-
 
     /**
      * Apply visual changes to a selected marker
@@ -1301,7 +1284,9 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
         } catch (error) {
             console.error(error);
             this.notificationService.add(
-                _t("Something went wrong. Marker Clusterer couldn't be created. See Javascript console for technical details."),
+                _t(
+                    "Something went wrong. Marker Clusterer couldn't be created. See Javascript console for technical details."
+                ),
                 { type: 'danger' }
             );
         }
@@ -1405,10 +1390,10 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
             lng: geolocation.lng,
         };
         marker._isShifted = false;
-        
+
         // Establish bidirectional relationship
         record._marker = marker;
-        
+
         // Store in cache
         this.cache.set(record.resId, marker);
     }
@@ -1420,10 +1405,7 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
      * @param {Object} record Record data
      */
     _attachMarkerEventListeners(marker, record) {
-        const clickListener = marker.addListener(
-            'gmp-click',
-            this._handleMarkerClick.bind(this, marker)
-        );
+        const clickListener = marker.addListener('gmp-click', this._handleMarkerClick.bind(this, marker));
         this._storeMarkerEventListener(record.resId, 'gmp-click', clickListener);
     }
 
@@ -1447,7 +1429,7 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
         }
 
         const overlapIndex = this._calculateOverlapIndex(marker);
-        
+
         if (overlapIndex > 0) {
             this._applyOverlapOffset(marker, overlapIndex);
             this._drawConnectionLine(marker);
@@ -1520,7 +1502,7 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
 
         // Calculate angle for circular distribution
         const angle = (overlapIndex * 2 * Math.PI) / (overlapIndex + 1);
-        
+
         // Calculate offset using polar coordinates
         const offsetLat = Math.sin(angle) * OFFSET_RADIUS;
         const offsetLng = Math.cos(angle) * OFFSET_RADIUS;
@@ -1568,18 +1550,17 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
         const { CONNECTION_LINE } = MARKER_CONFIG.VISUAL;
 
         return new google.maps.Polyline({
-            path: [
-                marker._originalPosition,
-                { lat: marker.position.lat, lng: marker.position.lng },
-            ],
+            path: [marker._originalPosition, { lat: marker.position.lat, lng: marker.position.lng }],
             strokeColor: CONNECTION_LINE.STROKE_COLOR,
             strokeOpacity: CONNECTION_LINE.STROKE_OPACITY,
             strokeWeight: CONNECTION_LINE.STROKE_WEIGHT,
-            icons: [{
-                icon: CONNECTION_LINE.SYMBOL,
-                offset: CONNECTION_LINE.ICON_OFFSET,
-                repeat: CONNECTION_LINE.ICON_REPEAT,
-            }],
+            icons: [
+                {
+                    icon: CONNECTION_LINE.SYMBOL,
+                    offset: CONNECTION_LINE.ICON_OFFSET,
+                    repeat: CONNECTION_LINE.ICON_REPEAT,
+                },
+            ],
             map: this.googleMap,
         });
     }
@@ -1642,9 +1623,9 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
 
     /**
      * Store element event listener for later cleanup
-     * @param {*} element 
-     * @param {*} eventType 
-     * @param {*} listener 
+     * @param {*} element
+     * @param {*} eventType
+     * @param {*} listener
      */
     _storeElementEventListener(element, eventType, listener) {
         if (!this._elementEventListeners.has(element)) {
@@ -1656,7 +1637,7 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
 
     /**
      * Remove all event listeners for an element
-     * @param {*} element 
+     * @param {*} element
      */
     _removeElementEventListeners(element) {
         const listeners = this._elementEventListeners.get(element);
@@ -1737,9 +1718,7 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
         const content = this._generateInfoWindowHtml(record, isShifted);
 
         try {
-            const divContent = new DOMParser()
-                .parseFromString(content, 'text/html')
-                .querySelector('div');
+            const divContent = new DOMParser().parseFromString(content, 'text/html').querySelector('div');
 
             if (!divContent) return null;
 
@@ -1802,7 +1781,7 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
         this._idleCallbackHandles.clear();
 
         // Remove all element event listeners
-        for (const [element, ] of this._elementEventListeners) {
+        for (const [element] of this._elementEventListeners) {
             this._removeElementEventListeners(element);
         }
 
