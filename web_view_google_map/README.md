@@ -22,12 +22,14 @@ Registers a new `google_map` view type alongside Odoo's standard list, form, and
 - **Nearby Records**: From any marker's info window or sidebar row, find other records within a configurable radius; a rectangle overlay shows the search area on the map
 - **Record Actions**: Open, archive, duplicate, delete, or export selected records from the action menu
 - **Google Maps Links**: Each marker info window includes direct links to open Google Maps navigation to that location and to view it on the Google Maps website
+- **Street View from Marker**: A Street View button in each marker info window opens a side-by-side dialog showing a Google Map alongside street-level imagery for that location; falls back gracefully when no coverage is available
 - **Embedded Map in Forms**: Embed a map inside a form view using the `google_map_one2many` or `google_map_many2many` field widget
 - **Dark Mode Support**: Map styles and sidebar automatically adapt to Odoo's dark mode
 
 ## Dependencies
 
 - `base_google_map`
+- `web_widget_google_map`
 
 ## Installation
 
@@ -43,6 +45,7 @@ Add `google_map` to the `view_mode` of any action for a model that has latitude 
 ## Related Modules
 
 - `base_google_map`: Core API key configuration and Google Maps JavaScript API loader
+- `web_widget_google_map`: Provides the Street View side-by-side dialog, the geolocation button component, and the in-map place search component consumed by this module
 - `web_view_google_map_drawing`: Extends the map view with drawing tools (polygons, shapes, areas)
 - `contacts_google_map`: Ready-made Google Maps view for the Contacts model
 - `crm_google_map`: Ready-made Google Maps view for CRM leads and opportunities

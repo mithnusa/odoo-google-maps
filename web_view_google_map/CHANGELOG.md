@@ -1,5 +1,23 @@
 # Change Log
 
+## 19.0.1.0.26
+
+### Added
+
+- **Street View Button in Info Window** (`google_map_renderer.xml`): Each marker info window now includes a "Street View Side by Side" button (fa-street-view) that opens `GoogleMapStreetViewSideBySideDialog` from `web_widget_google_map` — a side-by-side panel showing a Google Map on the left and Street View on the right. Falls back gracefully when no Street View imagery exists at the location.
+- **`showGoogleStreetViewSideBySide(record)`** (`google_map_controller.js`): New controller method that reads `lat`/`lng` from the record, validates coordinates, and opens the Street View dialog via `dialogService`. Shows a warning notification when the view lacks geolocation fields or the record has no valid coordinates.
+- **`formatAddressForInfoWindow(title, address)`** (`google_map_renderer.js`): New renderer method that formats the marker info window subtitle, removing redundant title prefix from the address string for cleaner display.
+
+### Improved
+
+- **Marker Overlap Spread**: `OFFSET_RADIUS` increased from `0.00009` to `0.0003` (~33 m at the equator) and `POSITION_TOLERANCE` from `0.000001` to `0.00001` (~1.1 m), improving separation for records geocoded to the same address. Connection line `strokeWeight` increased from 1 to 2 for better visibility.
+- **`ir_ui_view.py` — Black Format + Odoo 19 Translations**: Reformatted with Black (line length 79); `_()` import replaced with `self.env._()` calls throughout `_validate_tag_google_map`, aligning with Odoo 19 translation conventions.
+- **i18n placeholders**: `sprintf(_t('Nearby %s (within %s km)'), ...)` replaced with named-placeholder form `_t('Nearby %(title)s (within %(radius)s km)', {...})`.
+
+### Changed
+
+- **Dependencies**: Added `web_widget_google_map` to module dependencies — the Street View dialog and the `GoogleMapGeolocate`/`GoogleMapSearchPlaces` components are now sourced from that module.
+
 ## 19.0.1.0.25
 
 ### Added

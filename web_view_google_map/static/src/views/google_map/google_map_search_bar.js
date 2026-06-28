@@ -19,10 +19,7 @@ export class GoogleMapSearchBarMenu extends SearchBarMenu {
      */
     onGroupBySelected(item) {
         if (!item.isActive && this.groupByItems.some((v) => v.isActive)) {
-            this.notificationService.add(
-                _t('You can only have one active group at a time.'),
-                { type: 'warning' }
-            );
+            this.notificationService.add(_t('You can only have one active group at a time.'), { type: 'warning' });
             return;
         }
         super.onGroupBySelected(item);

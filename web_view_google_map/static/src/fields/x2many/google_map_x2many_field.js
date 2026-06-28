@@ -1,7 +1,7 @@
 import { registry } from '@web/core/registry';
 import { _t } from '@web/core/l10n/translation';
 import { x2ManyField, X2ManyField } from '@web/views/fields/x2many/x2many_field';
-import { onWillUnmount} from "@odoo/owl";
+import { onWillUnmount } from '@odoo/owl';
 import { gMapViewAttrsContextManager } from '../../helpers/view_attrs_context_manager';
 import { GoogleMapRenderer } from '../../views/google_map/google_map_renderer';
 

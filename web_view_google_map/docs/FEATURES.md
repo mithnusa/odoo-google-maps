@@ -46,7 +46,7 @@
 
 **Why it matters**: Stacked markers at the same location would be impossible to interact with individually without this spreading behavior.
 
-**How it works**: The renderer detects coordinate collisions and applies a small offset (approximately 10 meters) to each marker in a group. Clicking a spread marker zooms the map further in and draws a line connecting the marker back to the actual coordinate.
+**How it works**: The renderer detects coordinate collisions and applies a small offset (approximately 33 meters at the equator) to each marker in a group. Clicking a spread marker zooms the map further in and draws a line connecting the marker back to the actual coordinate.
 
 ---
 
@@ -76,7 +76,7 @@
 
 **Why it matters**: Lets users navigate the map to any address or landmark without leaving the view, making it easy to explore data in a specific area.
 
-**How it works**: Uses Google's `PlaceAutocompleteElement` (Places API New). The search respects the language and country restriction settings configured in `base_google_map`. Requires the **Places API (New)** to be enabled in Google Cloud Console and the "Enable Google Places Search" toggle to be on in settings.
+**How it works**: The `GoogleMapSearchPlaces` component (bundled in `web_widget_google_map`) is mounted inside the map view. It uses Google's `PlaceAutocompleteElement` (Places API New) and respects the language and country restriction settings configured in `base_google_map`. Requires the **Places API (New)** to be enabled in Google Cloud Console and the "Enable Google Places Search" toggle to be on in settings.
 
 ---
 
@@ -86,7 +86,7 @@
 
 **Why it matters**: Helps field users quickly orient themselves on the map relative to their nearby records.
 
-**How it works**: Clicking the button triggers the browser's Geolocation API. On success, an `AdvancedMarkerElement` is placed at the user's coordinates with an info window labelled "Your location". Requires browser location permission.
+**How it works**: The `GoogleMapGeolocate` component (bundled in `web_widget_google_map`) is mounted inside the map view. Clicking the button triggers the browser's Geolocation API. On success, an `AdvancedMarkerElement` is placed at the user's coordinates with an info window labelled "Your location". Requires browser location permission.
 
 ---
 
@@ -117,6 +117,16 @@
 **Why it matters**: Lets users jump directly from a record on the map to Google Maps for turn-by-turn navigation or to explore the surrounding area in detail.
 
 **How it works**: The marker info window template renders an `<a>` tag for navigation (`https://www.google.com/maps/dir/?api=1&destination=...`) and another for Google Maps search (`https://www.google.com/maps/search/?api=1&query=...`), both built from the record's latitude and longitude. Both links open in a new browser tab.
+
+---
+
+## Street View from Marker
+
+**What it does**: Each marker's info window includes a Street View button that opens a side-by-side dialog showing a Google Map on the left and Google Street View on the right for that record's location.
+
+**Why it matters**: Lets users verify a record's exact physical location using street-level imagery without leaving Odoo — useful for confirming delivery addresses, customer sites, or field locations.
+
+**How it works**: Clicking the Street View button in the info window calls `showGoogleStreetViewSideBySide()` on the controller, which validates the record's coordinates and opens `GoogleMapStreetViewSideBySideDialog` (from `web_widget_google_map`) via the dialog service. The dialog checks Street View coverage before rendering — when no imagery is available within 50 metres, the right panel shows an informational placeholder and the map panel displays a location marker instead.
 
 ---
 

@@ -1,7 +1,7 @@
 import { _t } from '@web/core/l10n/translation';
 import { Component } from '@odoo/owl';
 import { CheckBox } from '@web/core/checkbox/checkbox';
-import { Field } from "@web/views/fields/field";
+import { Field } from '@web/views/fields/field';
 
 export class GoogleMapSidebar extends Component {
     static template = 'web_view_google_map.GoogleMapSidebar';

@@ -25,18 +25,18 @@ import {
  */
 const MARKER_CONFIG = {
     OVERLAP: {
-        OFFSET_RADIUS: 0.00009, // ~10 meters at equator
-        POSITION_TOLERANCE: 0.000001, // Tolerance for position comparison
+        OFFSET_RADIUS: 0.0003, // ~33 meters at equator
+        POSITION_TOLERANCE: 0.00001, // ~1.1 meters — catches coordinates geocoded to the same address
     },
     VISUAL: {
         CONNECTION_LINE: {
             STROKE_COLOR: '#ee6060ff',
             STROKE_OPACITY: 0,
-            STROKE_WEIGHT: 1,
+            STROKE_WEIGHT: 2,
             SYMBOL: {
                 path: 'M 0,-1 0,1',
                 strokeOpacity: 0.6,
-                strokeWeight: 1,
+                strokeWeight: 2,
                 scale: 2,
             },
             ICON_OFFSET: '0',
@@ -90,6 +90,7 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
         showRecord: Function,
         showRecordsByDomain: Function,
         showNearbyRecords: Function,
+        showGoogleStreetViewSideBySide: Function,
         readonly: Boolean,
         list: Object,
         onAdd: { type: Function, optional: true },
@@ -927,11 +928,28 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
         const dataView = this.getRecordDataView(record);
         const { geolocation, other } = dataView;
 
+        const title = other.title || '';
+        const subTitle = other.subTitle || '';
         return {
             title: other.title || '',
             destination: geolocation ? `${geolocation.lat},${geolocation.lng}` : '',
-            subTitle: other.subTitle || '',
+            subTitle: this.formatAddressForInfoWindow(title, subTitle),
         };
+    }
+
+    formatAddressForInfoWindow(title, address) {
+        if (!address) return '';
+        let formattedAddress = address;
+        if (typeof formattedAddress === 'string') {
+            // Split subtitle into lines and trim whitespace
+            formattedAddress = formattedAddress
+                .trim()
+                .split('\n')
+                .map((line) => line.trim());
+            // Remove empty lines and lines that are the same as the title
+            formattedAddress = formattedAddress.filter((line) => line !== '' && line !== title).join('\n');
+        }
+        return formattedAddress;
     }
 
     //--------------------------------------------------------------------------
@@ -1382,6 +1400,7 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
      * @param {Object} elementValues Values for marker styling
      */
     _setupMarkerMetadata(marker, record, geolocation, elementValues) {
+        marker._recordId = record.id;
         marker._odooRecord = record;
         marker._markerOptionValues = marker.options;
         marker._elementValues = elementValues;
@@ -1479,7 +1498,7 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
      * @returns {boolean} True if markers are at same position
      */
     _areMarkersAtSameOriginalPosition(existingMarker, currentMarker, targetLat, targetLng) {
-        if (existingMarker === currentMarker || !existingMarker._originalPosition) {
+        if (existingMarker?._recordId === currentMarker?._recordId || !existingMarker?._originalPosition) {
             return false;
         }
 
@@ -1500,8 +1519,8 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
         const { lat: originalLat, lng: originalLng } = marker._originalPosition;
         const { OFFSET_RADIUS } = MARKER_CONFIG.OVERLAP;
 
-        // Calculate angle for circular distribution
-        const angle = (overlapIndex * 2 * Math.PI) / (overlapIndex + 1);
+        // Golden angle (137.5°) — optimal spread for any number of co-located markers
+        const angle = overlapIndex * (Math.PI * (3 - Math.sqrt(5)));
 
         // Calculate offset using polar coordinates
         const offsetLat = Math.sin(angle) * OFFSET_RADIUS;
@@ -1734,6 +1753,13 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
                 const eventHandler = this.searchNearbyRecords.bind(this, record);
                 nearbyButton.addEventListener('click', eventHandler);
                 this._storeElementEventListener(nearbyButton, 'click', eventHandler);
+            }
+
+            const streetViewButton = divContent.querySelector('[data-role="btn-open_street_view"]');
+            if (streetViewButton) {
+                const eventHandler = this.props.showGoogleStreetViewSideBySide.bind(this, record);
+                streetViewButton.addEventListener('click', eventHandler);
+                this._storeElementEventListener(streetViewButton, 'click', eventHandler);
             }
 
             return divContent;

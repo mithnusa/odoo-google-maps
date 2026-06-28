@@ -46,13 +46,7 @@ export class GoogleMapArchParser {
 
         visitXML(xmlDoc, (node) => {
             if (node.tagName === 'field') {
-                const fieldInfo = Field.parseFieldNode(
-                    node,
-                    models,
-                    modelName,
-                    'google_map',
-                    jsClass
-                );
+                const fieldInfo = Field.parseFieldNode(node, models, modelName, 'google_map', jsClass);
                 if (!(fieldInfo.name in fieldNextIds)) {
                     fieldNextIds[fieldInfo.name] = 0;
                 }
@@ -85,8 +79,8 @@ export class GoogleMapArchParser {
                     }
                 }
                 return false;
-            } else if (node.tagName === "groupby" && node.getAttribute("name")) {
-                const fieldName = node.getAttribute("name");
+            } else if (node.tagName === 'groupby' && node.getAttribute('name')) {
+                const fieldName = node.getAttribute('name');
                 const coModelName = fields[fieldName].relation;
                 const groupByArchInfo = groupListArchParser.parse(node, models, coModelName);
                 groupBy.buttons[fieldName] = groupByArchInfo.buttons;
@@ -94,10 +88,10 @@ export class GoogleMapArchParser {
                     fieldNodes: groupByArchInfo.fieldNodes,
                     fields: models[coModelName].fields,
                 };
-            } else if (node.tagName === "header") {
+            } else if (node.tagName === 'header') {
                 headerButtons = [...node.children].map((node) => ({
                     ...this.processButton(node),
-                    type: "button",
+                    type: 'button',
                     id: buttonId++,
                 }));
                 return false;
@@ -124,9 +118,7 @@ export class GoogleMapArchParser {
             exportXlsx: exprToBoolean(xmlDoc.getAttribute('export_xlsx'), true),
         };
         attrs.activeActions = activeActions;
-        attrs.multiEdit = activeActions.edit
-            ? exprToBoolean(node.getAttribute('multi_edit') || '')
-            : false;
+        attrs.multiEdit = activeActions.edit ? exprToBoolean(node.getAttribute('multi_edit') || '') : false;
 
         const limitAttr = node.getAttribute('limit');
         const parsedLimit = limitAttr ? parseInt(limitAttr, 10) : null;
@@ -136,13 +128,11 @@ export class GoogleMapArchParser {
         const parsedCountLimit = countLimitAttr ? parseInt(countLimitAttr, 10) : null;
         attrs.countLimit = Number.isFinite(parsedCountLimit) ? parsedCountLimit : this.defaultLimit;
 
-        const groupsLimitAttr = node.getAttribute("groups_limit");
+        const groupsLimitAttr = node.getAttribute('groups_limit');
         const parsedGroupsLimit = groupsLimitAttr ? parseInt(groupsLimitAttr, 10) : null;
         attrs.groupsLimit = Number.isFinite(parsedGroupsLimit) ? parsedGroupsLimit : null;
 
-        attrs.defaultOrder = stringToOrderBy(
-            xmlDoc.getAttribute('default_order') || null
-        );
+        attrs.defaultOrder = stringToOrderBy(xmlDoc.getAttribute('default_order') || null);
 
         // custom open action when clicking on record row
         const action = xmlDoc.getAttribute('action');
@@ -176,10 +166,7 @@ export class GoogleMapArchParser {
         const mapType = xmlDoc.getAttribute('map_type') || 'roadmap';
         attrs.mapType = mapType;
 
-        const disableMarkerCluster = exprToBoolean(
-            xmlDoc.getAttribute('disable_cluster_marker'),
-            false
-        );
+        const disableMarkerCluster = exprToBoolean(xmlDoc.getAttribute('disable_cluster_marker'), false);
         attrs.disableMarkerCluster = disableMarkerCluster;
 
         const defaultGroupBy = xmlDoc.getAttribute('default_group_by');
@@ -189,6 +176,5 @@ export class GoogleMapArchParser {
         if (attrs.defaultGroupBy && !Number.isFinite(attrs.groupsLimit)) {
             attrs.groupsLimit = this.defaultGroupsLimit;
         }
-
     }
 }
