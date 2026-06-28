@@ -28,13 +28,11 @@ export class GoogleMapRendererProject extends GoogleMapRenderer {
     }
 
     _actionViewTasks(record) {
-        this.env.model.orm
-            .call('project.project', 'action_view_tasks', [record.resId])
-            .then((action) => {
-                if (action) {
-                    this.actionService.doAction(action);
-                }
-            });
+        this.env.model.orm.call('project.project', 'action_view_tasks', [record.resId]).then((action) => {
+            if (action) {
+                this.actionService.doAction(action);
+            }
+        });
     }
 
     get sidebarProps() {

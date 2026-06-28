@@ -14,7 +14,9 @@ class ProjectProject(models.Model):
     site_longitude = fields.Float(
         related="partner_site_id.partner_longitude",
     )
-    marker_color = fields.Char(string="Marker Color", compute="_compute_marker_color")
+    marker_color = fields.Char(
+        string="Marker Color", compute="_compute_marker_color"
+    )
 
     @api.depends("last_update_status")
     def _compute_marker_color(self):
@@ -27,4 +29,6 @@ class ProjectProject(models.Model):
         }
         unknown_status = "#d2d3d4"
         for record in self:
-            record.marker_color = colors.get(record.last_update_status, unknown_status)
+            record.marker_color = colors.get(
+                record.last_update_status, unknown_status
+            )

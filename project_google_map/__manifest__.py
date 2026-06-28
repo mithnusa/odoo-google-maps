@@ -20,14 +20,13 @@ Provides:
 """,
     'license': 'LGPL-3',
     'author': 'Yopi Angi',
-    'website': 'https://github.com/mithnusa',
+    'website': 'https://www.mithnusa.com',
     'support': 'yopiangi@gmail.com',
     'category': 'Project',
-    'version': '1.0.4',
+    'version': '19.0.1.0.5',
     'depends': [
         'project',
         'web_view_google_map',
-        'web_widget_google_map',
     ],
     'data': [
         'views/project_project.xml',
@@ -44,7 +43,4 @@ Provides:
     },
     'post_init_hook': 'post_init_hook',
     'uninstall_hook': 'uninstall_hook',
-    'installable': True,
-    'application': False,
-    'auto_install': False,
 }
