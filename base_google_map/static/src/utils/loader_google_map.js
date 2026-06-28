@@ -13,8 +13,8 @@
  */
 
 import { onWillStart, onWillUnmount } from '@odoo/owl';
-import { _t } from "@web/core/l10n/translation";
-import { rpc } from "@web/core/network/rpc";
+import { _t } from '@web/core/l10n/translation';
+import { rpc } from '@web/core/network/rpc';
 
 /**
  * Default solution channel identifier for Google Maps API usage analytics.
@@ -43,7 +43,6 @@ const NETWORK_TIMEOUT = 10000;
  * @constant {number}
  */
 const MAX_RETRY_ATTEMPTS = 3;
-
 
 /**
  * Regular expression for detecting dangerous characters in user input.
@@ -112,7 +111,7 @@ export class GoogleMapsAPILoader {
             clearTimeout(this._notifyTimeout);
         }
         this._notifyTimeout = setTimeout(() => {
-            this.listeners.forEach(listener => {
+            this.listeners.forEach((listener) => {
                 try {
                     listener(this.loadingStatus);
                 } catch (error) {
@@ -141,13 +140,13 @@ export class GoogleMapsAPILoader {
         if (!params || typeof params !== 'object') {
             throw new Error('Invalid parameters: must be an object');
         }
-        
+
         const required = ['key'];
-        const missing = required.filter(key => !params[key]);
+        const missing = required.filter((key) => !params[key]);
         if (missing.length > 0) {
             throw new Error(`Missing required parameters: ${missing.join(', ')}`);
         }
-        
+
         // Validate API key format
         if (typeof params.key !== 'string' || params.key.length < 30) {
             throw new Error('Invalid API key format');
@@ -173,16 +172,16 @@ export class GoogleMapsAPILoader {
         try {
             const serializedParams = this.serializedParams(params);
             this.addListener(onLoadingStatusChangeFn);
-            
+
             if (window.google?.maps?.importLibrary === undefined) {
                 if (!this.serializedApiParams) {
                     this.serializedApiParams = serializedParams;
                 }
                 this.loadingStatus = LOADER_STATUS.LOADING;
                 this.notifyLoadingStatusListeners();
-                
+
                 await this._initImportLibraryWithRetry(params);
-                
+
                 this.loadingStatus = LOADER_STATUS.LOADED;
                 this.notifyLoadingStatusListeners();
             } else {
@@ -221,7 +220,7 @@ export class GoogleMapsAPILoader {
         } else {
             this.loadingStatus = LOADER_STATUS.FAILED;
         }
-        
+
         this.notifyLoadingStatusListeners();
     }
 
@@ -260,21 +259,40 @@ export class GoogleMapsAPILoader {
      */
     static loadGoogle(params) {
         const sanitizedParams = this.sanitizeParams(params);
-        (g => {
-            var h, a, k, p = "The Google Maps JavaScript API", c = "google", l = "importLibrary", q = "__ib__", m = document, b = window;
+        ((g) => {
+            let h,
+                a,
+                k,
+                p = 'The Google Maps JavaScript API',
+                c = 'google',
+                l = 'importLibrary',
+                q = '__ib__',
+                m = document,
+                b = window;
             b = b[c] || (b[c] = {});
-            var d = (b.maps || (b.maps = {})), r = new Set(), e = new URLSearchParams(), u = () => h || (h = new Promise((f, n) => {
-                a = m.createElement("script");
-                e.set("libraries", [...r] + "");
-                for (k in g) e.set(k.replace(/[A-Z]/g, t => "_" + t[0].toLowerCase()), g[k]);
-                e.set("callback", c + ".maps." + q);
-                a.src = `https://maps.${c}apis.com/maps/api/js?` + e;
-                d[q] = f;
-                a.onerror = () => h = n(Error(p + " could not load."));
-                a.nonce = m.querySelector("script[nonce]")?.nonce || "";
-                m.head.append(a);
-            }));
-            d[l] ? console.warn(p + " only loads once. Ignoring:", g) : d[l] = (f, ...n) => r.add(f) && u().then(() => d[l](f, ...n));
+            let d = b.maps || (b.maps = {}),
+                r = new Set(),
+                e = new URLSearchParams(),
+                u = () =>
+                    h ||
+                    (h = new Promise((f, n) => {
+                        a = m.createElement('script');
+                        e.set('libraries', [...r] + '');
+                        for (k in g)
+                            e.set(
+                                k.replace(/[A-Z]/g, (t) => '_' + t[0].toLowerCase()),
+                                g[k]
+                            );
+                        e.set('callback', c + '.maps.' + q);
+                        a.src = `https://maps.${c}apis.com/maps/api/js?` + e;
+                        d[q] = f;
+                        a.onerror = () => (h = n(Error(p + ' could not load.')));
+                        a.nonce = m.querySelector('script[nonce]')?.nonce || '';
+                        m.head.append(a);
+                    }));
+            d[l]
+                ? console.warn(p + ' only loads once. Ignoring:', g)
+                : (d[l] = (f, ...n) => r.add(f) && u().then(() => d[l](f, ...n)));
         })(sanitizedParams);
     }
 
@@ -319,7 +337,7 @@ export class GoogleMapsAPILoader {
                 if (this.isDebugMode) {
                     console.warn(`Google Maps API load attempt ${attempt + 1} failed, retrying in ${delay}ms...`);
                 }
-                await new Promise(resolve => setTimeout(resolve, delay));
+                await new Promise((resolve) => setTimeout(resolve, delay));
             }
         }
     }
@@ -333,10 +351,10 @@ export class GoogleMapsAPILoader {
         if (!window.google.maps) window.google.maps = {};
 
         if (window.google?.maps?.importLibrary === undefined) {
-            const settings = {...params};
+            const settings = { ...params };
             delete settings.status;
             delete settings.theme;
-            
+
             let cancelled = false;
 
             const timeoutPromise = new Promise((_, reject) => {
@@ -358,7 +376,7 @@ export class GoogleMapsAPILoader {
                 };
                 checkReady();
             });
-            
+
             await Promise.race([loadPromise, timeoutPromise]);
         }
     }
@@ -392,7 +410,6 @@ export class GoogleMapsAPILoader {
         this.isDebugMode = enabled;
     }
 }
-
 
 /**
  * Prepares and transforms Google Maps API settings from Odoo backend format to Google Maps API format.
@@ -556,7 +573,7 @@ async function fetchSettingsWithRetry() {
             if (GoogleMapsAPILoader.isDebugMode) {
                 console.warn(`Settings fetch attempt ${attempt + 1} failed, retrying in ${delay}ms...`, error.message);
             }
-            await new Promise(resolve => setTimeout(resolve, delay));
+            await new Promise((resolve) => setTimeout(resolve, delay));
         }
     }
 }
@@ -657,11 +674,7 @@ export async function fetchSettings() {
  *
  * }
  */
-export const useGoogleMapsAPILoader = (
-    onLoad = () => {},
-    onError = () => {}
-) => {
-
+export const useGoogleMapsAPILoader = (onLoad = () => {}, onError = () => {}) => {
     /**
      * Imports a Google Maps JavaScript API library with caching and timeout protection.
      *
@@ -714,10 +727,10 @@ export const useGoogleMapsAPILoader = (
             const timeoutPromise = new Promise((_, reject) => {
                 setTimeout(() => reject(new Error(`Library ${name} loading timeout`)), NETWORK_TIMEOUT);
             });
-            
+
             const loadPromise = window.google.maps.importLibrary(name);
             const res = await Promise.race([loadPromise, timeoutPromise]);
-            
+
             libraryCache.set(name, res);
             return res;
         } catch (error) {
@@ -824,7 +837,7 @@ export const useGoogleMapsAPILoader = (
             default:
                 return _t('Unknown status.');
         }
-    }
+    };
 
     return {
         importLibrary,

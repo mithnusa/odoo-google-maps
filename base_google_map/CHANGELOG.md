@@ -1,5 +1,23 @@
 # Change Log
 
+## 19.0.1.0.12
+
+### Fixed
+
+- **Region not saved/loaded**: `get_values()` now reads `base_google_map.region_localization` from `ir.config_parameter` and returns it with the settings response — the Region field no longer shows blank after a page reload.
+- **Region list not sorted**: `get_region_selection()` replaced `search([])` with `search_read([], ['code', 'name'], order='name')`, so the region dropdown is now alphabetically ordered.
+
+### Changed
+
+- **Region field visibility**: The Region setting in General Settings is now hidden until a language is selected (`invisible="not google_maps_lang_localization"`). The two settings are related; showing Region only when a language is configured reduces noise for users who don't need it.
+
+### Improved
+
+- **Python — Black format** (`controllers/controllers.py`, `models/res_config_settings.py`): Reformatted with Black (line length 79); removed unused `_` import from `res_config_settings.py`.
+- **XML format** (`data/google_map.xml`, `views/res_config_settings.xml`): Reformatted with self-closing tags; `noupdate="1"` moved from inner `<data>` to the `<odoo>` root element.
+- **JS code style** (`loader_google_map.js`, `base_google_map.js`): Quote style normalized to single quotes; trailing commas and arrow function parentheses made consistent; `loadGoogle` IIFE reformatted for readability; `getStatusLabel` method syntax corrected from `}` to `};`.
+- **`__manifest__.py`**: Removed explicit `installable`, `application`, and `auto_install` keys — these are Odoo defaults and were redundant.
+
 ## 19.0.1.0.11
 
 ### Removed
