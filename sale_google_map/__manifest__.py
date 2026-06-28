@@ -22,10 +22,10 @@ Provides:
 """,
     'license': 'LGPL-3',
     'author': 'Yopi Angi',
-    'website': 'https://github.com/mithnusa',
+    'website': 'https://www.mithnusa.com',
     'support': 'yopiangi@gmail.com',
     'category': 'Sales/Sales',
-    'version': '1.0.13',
+    'version': '19.0.1.0.14',
     'depends': ['sale_management', 'web_view_google_map'],
     'data': ['views/sale_order.xml', 'views/res_partner.xml'],
     'assets': {
@@ -38,7 +38,4 @@ Provides:
             'sale_google_map/static/src/views/google_map/google_map_view.js',
         ],
     },
-    'installable': True,
-    'application': False,
-    'auto_install': False,
 }
