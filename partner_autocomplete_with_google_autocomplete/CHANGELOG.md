@@ -1,5 +1,15 @@
 # Change Log
 
+## 19.0.1.0.6
+
+### Improved
+
+- **Python — Black format** (`models/res_partner.py`): Reformatted `node.set(...)` call to multi-line style.
+- **JS code style** (`partner_autocomplete_with_google_place.js`): Reformatted multi-line imports, `notificationService.add(...)`, and `registry.add(...)` calls; added missing semicolon on `return {}`.
+- **XML format** (`partner_autocomplete_with_google_place.xml`): Self-closing tags (`<div />`, `<i />`), multi-line attribute layout for `<t t-name=...>` and `<a>` elements, trailing newline added.
+- **SCSS** (`partner_autocomplete_with_google_place.scss`): Added missing newline at end of file.
+- **Manifest**: Version normalized to `19.0.1.0.6`; removed `installable`, `application`, `auto_install` keys.
+
 ## 19.0.1.0.5
 
 ### Improved
