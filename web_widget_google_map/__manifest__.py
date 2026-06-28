@@ -42,7 +42,4 @@ Provides:
             "web_widget_google_map/static/src/widgets/GoogleMapStreetViewSideBySideDialog/google_map_street_view_side_by_side_dialog.xml",
         ],
     },
-    "installable": True,
-    "application": False,
-    "auto_install": False,
 }
