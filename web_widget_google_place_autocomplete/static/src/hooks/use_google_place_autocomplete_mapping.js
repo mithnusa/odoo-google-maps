@@ -73,10 +73,9 @@ export function useGooglePlaceAutocompleteMapping(isTest = false) {
             });
         } catch (error) {
             console.error(error);
-            notificationService.add(
-                _t('Failed to retrieve mapping configuration. Please try again.'),
-                { type: 'danger' }
-            );
+            notificationService.add(_t('Failed to retrieve mapping configuration. Please try again.'), {
+                type: 'danger',
+            });
             return null;
         }
     }

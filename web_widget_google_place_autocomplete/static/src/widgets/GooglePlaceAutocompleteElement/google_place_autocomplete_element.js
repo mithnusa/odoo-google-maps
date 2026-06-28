@@ -55,7 +55,9 @@ export class GooglePlaceAutocompleteCharField extends CharField {
                     this.input.el.setAttribute('readonly', 'readonly');
                     this.input.el.setAttribute(
                         'data-tooltip',
-                        _t('This field is read-only because manual edits are disabled. Please use the Google Place Autocomplete to update the value.')
+                        _t(
+                            'This field is read-only because manual edits are disabled. Please use the Google Place Autocomplete to update the value.'
+                        )
                     );
                 }
                 return () => {
@@ -122,10 +124,9 @@ export class GooglePlaceAutocompleteCharField extends CharField {
             this.closeGoogleAutocomplete();
         } catch (error) {
             console.error('Failed to populate values from Google Place:', error);
-            this.notificationService.add(
-                _t('Failed to populate values from Google Place. Please try again.'),
-                { type: 'warning' }
-            );
+            this.notificationService.add(_t('Failed to populate values from Google Place. Please try again.'), {
+                type: 'warning',
+            });
         }
     }
 
@@ -240,9 +241,7 @@ export class GooglePlaceAutocompleteCharField extends CharField {
         }
         if (this.props.mappingMode && !['address', 'places'].includes(this.props.mappingMode)) {
             this.notificationService.add(
-                _t(
-                    `Invalid mapping mode: "${this.props.mappingMode}" for Google Place Autocomplete widget`
-                ),
+                _t(`Invalid mapping mode: "${this.props.mappingMode}" for Google Place Autocomplete widget`),
                 { type: 'warning' }
             );
         }

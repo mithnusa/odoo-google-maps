@@ -18,14 +18,8 @@
 import { _t } from '@web/core/l10n/translation';
 import { useService } from '@web/core/utils/hooks';
 import { sprintf } from '@web/core/utils/strings';
-import { debounce } from "@web/core/utils/timing";
-import {
-    Component,
-    useEffect,
-    useState,
-    useRef,
-    onWillUnmount,
-} from '@odoo/owl';
+import { debounce } from '@web/core/utils/timing';
+import { Component, useEffect, useState, useRef, onWillUnmount } from '@odoo/owl';
 import { useGoogleMapsAPILoader } from '@base_google_map/utils/loader_google_map';
 
 // Constants
@@ -222,7 +216,7 @@ export class GooglePlaceAutocompleteElement extends Component {
         elementId: String,
         callback: Function, // Callback function to handle selected place
         isTest: { type: Boolean, optional: true },
-        isCollapseOpen: { type: Boolean, optional: true }
+        isCollapseOpen: { type: Boolean, optional: true },
     };
 
     static defaultProps = {
@@ -549,10 +543,7 @@ export class GooglePlaceAutocompleteElement extends Component {
             clearTimeout(this.handleWidgetElTimeout);
             this.handleWidgetElTimeout = null;
         }
-        if (
-            this.placeAutocompleteEl &&
-            this.gAutocompleteRef.el.contains(this.placeAutocompleteEl)
-        ) {
+        if (this.placeAutocompleteEl && this.gAutocompleteRef.el.contains(this.placeAutocompleteEl)) {
             this.gAutocompleteRef.el.removeChild(this.placeAutocompleteEl);
             this.placeAutocompleteEl = null;
         }

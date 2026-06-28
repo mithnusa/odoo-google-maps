@@ -1,5 +1,30 @@
 # Change Log
 
+## 19.0.1.0.9
+
+### Added
+
+- **Configuration validation warnings**: Two new computed fields on `google.places.mapping` — `is_address_component_missing` (warns when `addressComponents` is absent from the fetch fields while address mapping lines exist) and `is_location_field_missing` (warns when `location` is absent from fetch fields while `latitude`/`longitude` fields are configured). Shown as inline alerts on the mapping form.
+- **`models/utils.py`**: New utility module with `safe_literal_eval` (replaces bare `ast.literal_eval` — validates against an expected type and raises descriptive errors) and `validate_component_list` (validates that a fetch-fields value is a list of non-empty strings). Used throughout `google_places_mapping.py` and covered by `test_utils.py`.
+- **Test suite** (`tests/`): Three new test files — `test_mapping_constraints.py` (address-line component validation, handling-mode rules, unique constraints), `test_parse_place.py` (`adjust_address_components`, `build_component_lookup`, `parse_geolocation`, `parse_place` end-to-end), `test_utils.py` (`safe_literal_eval` type checking, error handling).
+
+### Improved
+
+- **Mapping form** (`views/google_places_mapping_views.xml`):
+  - "Archived" ribbon on the form header.
+  - `code` field now uses `CopyClipboardChar` widget for one-click copying.
+  - Inline links to Google documentation next to `gplace_options`, fetch-fields, and address-type fields.
+  - `handling_mode`, `separator`, and `text_option` columns added to the address-line list (optional columns).
+  - Note added below address mapping explaining that `route`/`street_number` ordering is driven by the country's Street Format setting, with a direct link to the Countries list.
+  - `latitude` and `longitude` fields now displayed in a labelled group in the form view.
+  - Test widget (`GoogleMappingTest`) now shows a reminder to reload the page after saving changes.
+- **Mapping list view**: Added `sequence` drag handle, `mode`, `description`, and `active` toggle columns; new filters for Address mode, Places mode, and Archived records.
+- **`GooglePlaceAutocompleteElement`**: Mode label now shown above the autocomplete input — "Search Google Place" in `places` mode, "Search Google Address" in `address` mode.
+- **Mapping validation** (`@api.constrains`): `gplace_place_fetch_fields` and `gplace_address_fetch_fields` now validated using `validate_component_list`; duplicate-field detection across address and other mapping lines.
+- **Python — Odoo 19 translations** (`google_places_mapping.py`, line models): `_()` module-level import replaced with `self.env._()` calls; removed unused `_` and `ast` imports.
+- **Python — Black format** (all model files): Reformatted with Black (line length 79).
+- **`__manifest__.py`**: Removed explicit `installable`, `application`, and `auto_install` keys — these are Odoo defaults and were redundant.
+
 ## 19.0.1.0.8
 
 ### Improved

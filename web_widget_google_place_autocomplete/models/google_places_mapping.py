@@ -1,10 +1,10 @@
-import ast
 from collections import OrderedDict
 import secrets
 import logging
 
-from odoo import _, api, Command, fields, models
+from odoo import api, Command, fields, models
 from odoo.exceptions import ValidationError, UserError
+from .utils import safe_literal_eval, validate_component_list
 
 _logger = logging.getLogger(__name__)
 
@@ -27,12 +27,18 @@ class GooglePlacesMapping(models.Model):
     and Odoo model fields, enabling automatic population of Odoo records from
     Google Places autocomplete selections.
     """
+
     _name = 'google.places.mapping'
     _description = 'Google Places Mapping'
     _rec_name = 'code'
     _order = 'sequence asc, id desc'
 
-    @api.constrains('mode', 'gplace_options', 'gplace_place_fetch_fields', 'gplace_address_fetch_fields')
+    @api.constrains(
+        'mode',
+        'gplace_options',
+        'gplace_place_fetch_fields',
+        'gplace_address_fetch_fields',
+    )
     def _check_mappings(self):
         """Validate Google Places mapping configuration.
 
@@ -46,22 +52,36 @@ class GooglePlacesMapping(models.Model):
         """
         for record in self:
             if record.gplace_options:
-                gplace_options = record._safe_literal_eval(
+                gplace_options = safe_literal_eval(
                     record.gplace_options,
                     'Place Autocomplete Element Options',
-                    dict
+                    dict,
                 )
 
                 for key, value in gplace_options.items():
                     if not isinstance(key, str):
-                        raise ValidationError(_('Place Autocomplete Element Options keys must be string'))
+                        raise ValidationError(
+                            self.env._(
+                                'Place Autocomplete Element Options keys must be string'
+                            )
+                        )
                     if not key or not value:
-                        raise ValidationError(_('Place Autocomplete Element Options keys and values cannot be empty'))
+                        raise ValidationError(
+                            self.env._(
+                                'Place Autocomplete Element Options keys and values cannot be empty'
+                            )
+                        )
 
-            if record.mode == 'places':
-                record._validate_fetch_fields(record.gplace_place_fetch_fields, 'Place Fetch Fields')
-            elif record.mode == 'address':
-                record._validate_fetch_fields(record.gplace_address_fetch_fields, 'Address Fetch Fields')
+            if record.mode == 'places' and record.gplace_place_fetch_fields:
+                validate_component_list(
+                    record.gplace_place_fetch_fields, 'Place Fetch Fields'
+                )
+            elif (
+                record.mode == 'address' and record.gplace_address_fetch_fields
+            ):
+                validate_component_list(
+                    record.gplace_address_fetch_fields, 'Address Fetch Fields'
+                )
 
     @api.constrains('mapping_address_ids', 'mapping_other_ids')
     def _check_field_mappings(self):
@@ -74,12 +94,22 @@ class GooglePlacesMapping(models.Model):
             ValidationError: If duplicate field mappings are found
         """
         for record in self:
-            mapping_address_fields = record.mapping_address_ids.mapped('field_id').ids
-            mapping_other_fields = record.mapping_other_ids.mapped('field_id').ids
+            mapping_address_fields = record.mapping_address_ids.mapped(
+                'field_id'
+            ).ids
+            mapping_other_fields = record.mapping_other_ids.mapped(
+                'field_id'
+            ).ids
             # check make sure no duplicate field in address and other mappings
-            common_fields = set(mapping_address_fields) & set(mapping_other_fields)
+            common_fields = set(mapping_address_fields) & set(
+                mapping_other_fields
+            )
             if common_fields:
-                raise ValidationError(_('Duplicate field mapping found in Address and Other mappings. Please ensure each field is mapped only once.'))
+                raise ValidationError(
+                    self.env._(
+                        'Duplicate field mapping found in Address and Other mappings. Please ensure each field is mapped only once.'
+                    )
+                )
 
     def get_list_models(self):
         """Get list of models for model selection field.
@@ -87,13 +117,27 @@ class GooglePlacesMapping(models.Model):
         Returns:
             list: List of tuples with model technical names and descriptions
         """
-        models = self.env['ir.model'].sudo().search([
-            ('transient', '=', False),
-            ('abstract', '=', False),
-            ('model', 'not in', ['ir.actions.report', 'ir.actions.report.xml', 'ir.actions.report.template']),
-        ])
+        models = (
+            self.env['ir.model']
+            .sudo()
+            .search(
+                [
+                    ('transient', '=', False),
+                    ('abstract', '=', False),
+                    (
+                        'model',
+                        'not in',
+                        [
+                            'ir.actions.report',
+                            'ir.actions.report.xml',
+                            'ir.actions.report.template',
+                        ],
+                    ),
+                ]
+            )
+        )
         return [(model.model, model.name) for model in models]
-    
+
     def get_list_model_fields(self):
         """Get list of fields for field selection based on selected model.
 
@@ -103,15 +147,23 @@ class GooglePlacesMapping(models.Model):
         self.ensure_one()
         if not self.model_id:
             return []
-        fields = self.env['ir.model.fields'].sudo().search([
-            ('model_id', '=', self.model_id.id),
-            ('store', '=', True),
-            ('readonly', '=', False),
-            ('related', '=', False),
-        ])
+        fields = (
+            self.env['ir.model.fields']
+            .sudo()
+            .search(
+                [
+                    ('model_id', '=', self.model_id.id),
+                    ('store', '=', True),
+                    ('readonly', '=', False),
+                    ('related', '=', False),
+                ]
+            )
+        )
         return [(f'{field.id}_{field.name}', field.name) for field in fields]
 
-    place_id_test = fields.Char(string='Place ID Test') # field to facilitate testing in the UI
+    place_id_test = fields.Char(
+        string='Place ID Test'
+    )  # field to facilitate testing in the UI
     code = fields.Char(
         string='Code',
         required=True,
@@ -188,8 +240,13 @@ class GooglePlacesMapping(models.Model):
 
     # Constants for Google Places API component processing
     TEXT_SHORT = 'shortText'  # Short text format for address components (e.g., "CA" for California)
-    TEXT_LONG = 'longText'    # Long text format for address components (e.g., "California")
-    STREET_COMPONENTS = ['route', 'street_number', 'floor', 'room']  # Components that constitute a street address
+    TEXT_LONG = 'longText'  # Long text format for address components (e.g., "California")
+    STREET_COMPONENTS = [
+        'route',
+        'street_number',
+        'floor',
+        'room',
+    ]  # Components that constitute a street address
 
     # Relation constants for field processing
     COUNTRY_RELATION = 'res.country'
@@ -199,61 +256,13 @@ class GooglePlacesMapping(models.Model):
     RELATIONAL_FIELD_TYPES = ('many2one', 'many2many')
     TEXT_FIELD_TYPES = ('char', 'text')
 
-    @api.model
-    def _safe_literal_eval(self, text, field_name, expected_type=None):
-        """Safely parse AST literal with consistent error handling.
-
-        Args:
-            text (str): JSON string to parse
-            field_name (str): Human-readable field name for error messages
-            expected_type (type, optional): Expected type for validation
-
-        Returns:
-            object: Parsed object from AST literal evaluation
-
-        Raises:
-            ValidationError: If parsing fails or type validation fails
-        """
-        if not text:
-            return expected_type() if expected_type else None
-
-        try:
-            result = ast.literal_eval(text)
-            if expected_type and not isinstance(result, expected_type):
-                raise ValidationError(_('%s must be a %s.') % (field_name, expected_type.__name__))
-            return result
-        except (ValueError, SyntaxError, TypeError) as e:
-            raise ValidationError(_('%s must be a valid JSON string.\n%s') % (field_name, e))
-
-    @api.model
-    def _validate_fetch_fields(self, fetch_fields_text, field_name):
-        """Validate Google Places API fetch fields configuration.
-
-        Ensures fetch fields are properly formatted as a list of non-empty strings.
-        Used for both place fetch fields and address fetch fields validation.
-
-        Args:
-            fetch_fields_text (str): JSON string containing list of fetch fields
-            field_name (str): Human-readable field name for error messages
-
-        Raises:
-            ValidationError: If fetch fields are invalid or improperly formatted
-        """
-        if not fetch_fields_text:
-            return
-
-        fetch_fields = self._safe_literal_eval(fetch_fields_text, field_name, list)
-
-        if not fetch_fields:
-            raise ValidationError(_('%s list cannot be empty.') % field_name)
-
-        for field in fetch_fields:
-            if not isinstance(field, str):
-                raise ValidationError(_('%s must be a list of strings.') % field_name)
-            if not field:
-                raise ValidationError(_('%s cannot contain empty strings.') % field_name)
-
-    @api.depends('mode', 'gplace_place_fetch_fields', 'gplace_address_fetch_fields', 'latitude', 'longitude')
+    @api.depends(
+        'mode',
+        'gplace_place_fetch_fields',
+        'gplace_address_fetch_fields',
+        'latitude',
+        'longitude',
+    )
     def _compute_fields_component_missing(self):
         """Compute missing component indicators for UI display.
 
@@ -271,10 +280,19 @@ class GooglePlacesMapping(models.Model):
                 else:
                     fetch_fields_text = record.gplace_place_fetch_fields
 
-                fetch_fields = record._safe_literal_eval(fetch_fields_text, 'Fetch Fields', list) or []
+                fetch_fields = (
+                    safe_literal_eval(fetch_fields_text, 'Fetch Fields', list)
+                    or []
+                )
 
-                record.is_address_component_missing = 'addressComponents' not in fetch_fields
-                record.is_location_field_missing = bool('location' not in fetch_fields and record.latitude and record.longitude)
+                record.is_address_component_missing = (
+                    'addressComponents' not in fetch_fields
+                )
+                record.is_location_field_missing = bool(
+                    'location' not in fetch_fields
+                    and record.latitude
+                    and record.longitude
+                )
             except ValidationError:
                 record.is_address_component_missing = True
                 record.is_location_field_missing = True
@@ -295,21 +313,29 @@ class GooglePlacesMapping(models.Model):
         # Copy the address mapping
         if self.mapping_address_ids:
             default['mapping_address_ids'] = [
-                Command.create({
-                    'field_id': line.field_id.id,
-                    'gplace_component': line.gplace_component,
-                    'handling_mode': line.handling_mode,
-                    'separator': line.separator,
-                    'text_option': line.text_option,
-                }) for line in self.mapping_address_ids]
+                Command.create(
+                    {
+                        'field_id': line.field_id.id,
+                        'gplace_component': line.gplace_component,
+                        'handling_mode': line.handling_mode,
+                        'separator': line.separator,
+                        'text_option': line.text_option,
+                    }
+                )
+                for line in self.mapping_address_ids
+            ]
 
         # Copy the other mapping
         if self.mapping_other_ids:
             default['mapping_other_ids'] = [
-                Command.create({
-                    'field_id': line.field_id.id,
-                    'gplace_component': line.gplace_component,
-                }) for line in self.mapping_other_ids]
+                Command.create(
+                    {
+                        'field_id': line.field_id.id,
+                        'gplace_component': line.gplace_component,
+                    }
+                )
+                for line in self.mapping_other_ids
+            ]
 
         # Copy the geolocation fields
         if self.latitude:
@@ -325,10 +351,12 @@ class GooglePlacesMapping(models.Model):
         if not mode or not widget_res_model:
             return {}
 
-        mapping_id = self.sudo().search([
-            ('mode', '=', mode),
-            ('model_id.model', '=', widget_res_model),
-        ])
+        mapping_id = self.sudo().search(
+            [
+                ('mode', '=', mode),
+                ('model_id.model', '=', widget_res_model),
+            ]
+        )
 
         if not mapping_id:
             return {}
@@ -347,7 +375,7 @@ class GooglePlacesMapping(models.Model):
             code (str): Unique mapping code to retrieve configuration for
 
         Returns:
-            dict: Widget configuration with 
+            dict: Widget configuration with
                  - 'mapping_id'
                  - 'mapping_code'
                  - 'mapping_mode'
@@ -366,12 +394,15 @@ class GooglePlacesMapping(models.Model):
         if not mapping_id or (not is_mapping_test and not widget_res_model):
             return {}
 
-        if not is_mapping_test and mapping_id.model_id.model != widget_res_model:
+        if (
+            not is_mapping_test
+            and mapping_id.model_id.model != widget_res_model
+        ):
             return {}
 
         values = mapping_id._prepare_mapping_values()
         return values
-    
+
     def _prepare_mapping_values(self):
         self.ensure_one()
         try:
@@ -380,8 +411,13 @@ class GooglePlacesMapping(models.Model):
             else:
                 fetch_fields_text = self.gplace_address_fetch_fields
 
-            gplace_options = self._safe_literal_eval(self.gplace_options, 'Options', dict) or {}
-            gplace_fetch_fields = self._safe_literal_eval(fetch_fields_text, 'Property Fields', list) or []
+            gplace_options = (
+                safe_literal_eval(self.gplace_options, 'Options', dict) or {}
+            )
+            gplace_fetch_fields = (
+                safe_literal_eval(fetch_fields_text, 'Property Fields', list)
+                or []
+            )
 
             return {
                 'mapping_id': self.id,
@@ -428,7 +464,11 @@ class GooglePlacesMapping(models.Model):
 
         location = place.get('location') or {}
         geolocation = self.parse_geolocation(mapping_id, location)
-        other = self.parse_others(mapping_id, place) if mapping_id.mode == 'places' else {}
+        other = (
+            self.parse_others(mapping_id, place)
+            if mapping_id.mode == 'places'
+            else {}
+        )
 
         result = {
             'mode': mapping_id.mode,
@@ -437,9 +477,11 @@ class GooglePlacesMapping(models.Model):
             'other': other,
         }
         return result
-    
+
     @api.model
-    def adjust_address_components(self, address_components, street_address=None):
+    def adjust_address_components(
+        self, address_components, street_address=None
+    ):
         '''Adjust address components with additional street number data if provided.
         The goal is to ensure to fulfill the street_number from street_address if street_number is not present in address_components.
 
@@ -454,14 +496,19 @@ class GooglePlacesMapping(models.Model):
             return address_components
 
         # Convert address_components list to a dict for easy lookup
-        street_number_exists = any('street_number' in comp.get('types', []) for comp in address_components)
+        street_number_exists = any(
+            'street_number' in comp.get('types', [])
+            for comp in address_components
+        )
         if not street_number_exists and street_address.get('street_number'):
             # Add street_number component from street_address
-            address_components.append({
-                'types': ['street_number'],
-                'shortText': street_address.get('street_number', ''),
-                'longText': street_address.get('street_number', ''),
-            })
+            address_components.append(
+                {
+                    'types': ['street_number'],
+                    'shortText': street_address.get('street_number', ''),
+                    'longText': street_address.get('street_number', ''),
+                }
+            )
 
     @api.model
     def parse_others(self, mapping_id, place):
@@ -511,7 +558,10 @@ class GooglePlacesMapping(models.Model):
         field_mapping = {}
         for line in mapping_lines:
             try:
-                component = self._safe_literal_eval(line.gplace_component, f'Component for {line.field_id.name}')
+                component = safe_literal_eval(
+                    line.gplace_component,
+                    f'Component for {line.field_id.name}',
+                )
                 config = {
                     'type': line.field_id.ttype,
                     'relation': line.field_id.relation or False,
@@ -526,19 +576,27 @@ class GooglePlacesMapping(models.Model):
                 if include_text_option and hasattr(line, 'handling_mode'):
                     config['handling_mode'] = line.handling_mode or 'direct'
                     separator_name = line.separator or 'space'
-                    config['separator'] = SEPARATOR_SYMBOL.get(separator_name, ' ')
+                    config['separator'] = SEPARATOR_SYMBOL.get(
+                        separator_name, ' '
+                    )
 
                 field_mapping[line.field_id.name] = config
 
             except ValidationError as e:
-                _logger.warning('Invalid component configuration for field %s: %s', line.field_id.name, e)
+                _logger.warning(
+                    'Invalid component configuration for field %s: %s',
+                    line.field_id.name,
+                    e,
+                )
                 continue
         return field_mapping
 
     @api.model
     def _build_other_mapping(self, mapping_id):
         """Build field configuration mapping for other (non-address) fields."""
-        return self._build_field_mapping(mapping_id.mapping_other_ids, include_text_option=False)
+        return self._build_field_mapping(
+            mapping_id.mapping_other_ids, include_text_option=False
+        )
 
     @api.model
     def _process_other_field(self, field_config, place):
@@ -557,8 +615,12 @@ class GooglePlacesMapping(models.Model):
         component_key = field_config.get('component')
         component_value = place.get(component_key)
 
-        if field_config.get('type') in self.RELATIONAL_FIELD_TYPES and field_config.get('relation'):
-            return self._process_other_relational_field(field_config, component_value)
+        if field_config.get(
+            'type'
+        ) in self.RELATIONAL_FIELD_TYPES and field_config.get('relation'):
+            return self._process_other_relational_field(
+                field_config, component_value
+            )
         else:
             return component_value
 
@@ -566,12 +628,20 @@ class GooglePlacesMapping(models.Model):
     def _process_other_relational_field(self, field_config, component_value):
         """Process relational field (many2one/many2many) for other fields."""
         if not component_value:
-            return [(6, 0, [])] if field_config.get('type') == 'many2many' else False
+            return (
+                [(6, 0, [])]
+                if field_config.get('type') == 'many2many'
+                else False
+            )
 
         search_values = [component_value]
-        related_record = self._search_related_record(field_config.get('relation'), search_values)
+        related_record = self._search_related_record(
+            field_config.get('relation'), search_values
+        )
 
-        return self._format_relational_field_value(field_config.get('type'), related_record)
+        return self._format_relational_field_value(
+            field_config.get('type'), related_record
+        )
 
     @api.model
     def _format_relational_field_value(self, field_type, related_record):
@@ -611,8 +681,12 @@ class GooglePlacesMapping(models.Model):
         """
         result = {}
         if location and mapping_id:
-            lat_field = mapping_id.latitude and mapping_id.latitude.name or None
-            lng_field = mapping_id.longitude and mapping_id.longitude.name or None
+            lat_field = (
+                mapping_id.latitude and mapping_id.latitude.name or None
+            )
+            lng_field = (
+                mapping_id.longitude and mapping_id.longitude.name or None
+            )
             if lat_field and lng_field:
                 result[lat_field] = (location or {}).get('lat')
                 result[lng_field] = (location or {}).get('lng')
@@ -633,7 +707,13 @@ class GooglePlacesMapping(models.Model):
         Returns:
             dict: Parsed address field values mapped to Odoo field names
         """
-        if not mapping_id or not address_components or (address_components and not isinstance(address_components, list)):
+        if (
+            not mapping_id
+            or not address_components
+            or (
+                address_components and not isinstance(address_components, list)
+            )
+        ):
             return {}
 
         address_mapping = self._build_address_mapping(mapping_id)
@@ -646,38 +726,93 @@ class GooglePlacesMapping(models.Model):
 
         # Process fields in order: country -> state -> other relational -> text
         field_groups = [
-            ('country', {k: v for k, v in address_mapping.items()
-                        if v.get('relation') == self.COUNTRY_RELATION and v['type'] in self.RELATIONAL_FIELD_TYPES}),
-            ('state', {k: v for k, v in address_mapping.items()
-                      if v.get('relation') == self.STATE_RELATION and v['type'] in self.RELATIONAL_FIELD_TYPES}),
-            ('other_relational', {k: v for k, v in address_mapping.items()
-                                 if (v.get('relation') not in (self.COUNTRY_RELATION, self.STATE_RELATION) and
-                                     v['type'] in self.RELATIONAL_FIELD_TYPES and v['relation'])}),
-            ('text', {k: v for k, v in address_mapping.items() if v['type'] in self.TEXT_FIELD_TYPES})
+            (
+                'country',
+                {
+                    k: v
+                    for k, v in address_mapping.items()
+                    if v.get('relation') == self.COUNTRY_RELATION
+                    and v['type'] in self.RELATIONAL_FIELD_TYPES
+                },
+            ),
+            (
+                'state',
+                {
+                    k: v
+                    for k, v in address_mapping.items()
+                    if v.get('relation') == self.STATE_RELATION
+                    and v['type'] in self.RELATIONAL_FIELD_TYPES
+                },
+            ),
+            (
+                'other_relational',
+                {
+                    k: v
+                    for k, v in address_mapping.items()
+                    if (
+                        v.get('relation')
+                        not in (self.COUNTRY_RELATION, self.STATE_RELATION)
+                        and v['type'] in self.RELATIONAL_FIELD_TYPES
+                        and v['relation']
+                    )
+                },
+            ),
+            (
+                'text',
+                {
+                    k: v
+                    for k, v in address_mapping.items()
+                    if v['type'] in self.TEXT_FIELD_TYPES
+                },
+            ),
         ]
 
-        for group_type, fields in field_groups:
-            for field_name, field_config in fields.items():
+        for group_type, field in field_groups:
+            for field_name, field_config in field.items():
                 if not field_config['component']:
                     continue
 
-                field_value = self._process_field_by_group(group_type, field_config, component_lookup, country_id)
+                field_value = self._process_field_by_group(
+                    group_type, field_config, component_lookup, country_id
+                )
                 # Handle special processing for different field types
-                if group_type == 'text' and self._is_street_field(field_config['component']) and country_id:
-                    result_address[field_name] = self._format_street_address(field_value, country_id, field_config) if field_value else False
+                if (
+                    group_type == 'text'
+                    and self._is_street_field(field_config['component'])
+                    and country_id
+                ):
+                    result_address[field_name] = (
+                        self._format_street_address(
+                            field_value, country_id, field_config
+                        )
+                        if field_value
+                        else False
+                    )
                 elif group_type == 'text':
-                    result_address[field_name] = self._format_text_field_value(field_value, field_config) if field_value else ''
+                    result_address[field_name] = (
+                        self._format_text_field_value(
+                            field_value, field_config
+                        )
+                        if field_value
+                        else ''
+                    )
                 else:
-                    result_address[field_name] = field_value if field_value else False
+                    result_address[field_name] = (
+                        field_value if field_value else False
+                    )
 
                 # Update country context if found
                 if group_type == 'country' and field_value:
-                    country_id = self._extract_country_from_field_value(field_config, component_lookup)
+                    country_id = self._extract_country_from_field_value(
+                        field_config, component_lookup
+                    )
 
         return result_address
 
     @api.model
-    def _process_field_by_group(self, group_type, field_config, component_lookup, country_id=None):
+    def _process_field_by_group(
+        self, group_type, field_config, component_lookup, country_id=None
+    ):
         """Process field based on its group type.
 
         Args:
@@ -692,14 +827,20 @@ class GooglePlacesMapping(models.Model):
         if group_type == 'text':
             return self._process_text_field(field_config, component_lookup)
         elif group_type == 'state':
-            field_value, _ = self._process_relational_field(field_config, component_lookup, country_id)
+            field_value, _ = self._process_relational_field(
+                field_config, component_lookup, country_id
+            )
             return field_value
         else:  # country or other_relational
-            field_value, _ = self._process_relational_field(field_config, component_lookup)
+            field_value, _ = self._process_relational_field(
+                field_config, component_lookup
+            )
             return field_value
 
     @api.model
-    def _extract_country_from_field_value(self, field_config, component_lookup):
+    def _extract_country_from_field_value(
+        self, field_config, component_lookup
+    ):
         """Extract country record from field processing.
 
         Args:
@@ -714,8 +855,13 @@ class GooglePlacesMapping(models.Model):
             if not component:
                 continue
 
-            search_values = [component.get(self.TEXT_LONG), component.get(self.TEXT_SHORT)]
-            related_record = self._search_related_record(self.COUNTRY_RELATION, search_values)
+            search_values = [
+                component.get(self.TEXT_LONG),
+                component.get(self.TEXT_SHORT),
+            ]
+            related_record = self._search_related_record(
+                self.COUNTRY_RELATION, search_values
+            )
 
             if related_record:
                 return related_record[0]
@@ -725,7 +871,9 @@ class GooglePlacesMapping(models.Model):
     @api.model
     def _build_address_mapping(self, mapping_id):
         """Build field configuration mapping for address fields."""
-        return self._build_field_mapping(mapping_id.mapping_address_ids, include_text_option=True)
+        return self._build_field_mapping(
+            mapping_id.mapping_address_ids, include_text_option=True
+        )
 
     @api.model
     def _build_component_lookup(self, address_components):
@@ -773,7 +921,9 @@ class GooglePlacesMapping(models.Model):
                 return related_model.search(domain)
 
         except (AttributeError, KeyError) as e:
-            _logger.warning('Error searching related record for %s: %s', relation, e)
+            _logger.warning(
+                'Error searching related record for %s: %s', relation, e
+            )
 
         return None
 
@@ -802,17 +952,27 @@ class GooglePlacesMapping(models.Model):
 
             if search_domain:
                 # Build OR conditions for name/code searches within country
-                search_domain = ['|'] * (len(search_domain) - 1) + search_domain
-                final_domain = [('country_id', '=', country_context.id)] + search_domain
+                search_domain = ['|'] * (
+                    len(search_domain) - 1
+                ) + search_domain
+                final_domain = [
+                    ('country_id', '=', country_context.id)
+                ] + search_domain
                 return state_model.search(final_domain)
 
         except (AttributeError, KeyError) as e:
-            _logger.warning('Error searching state with country context for %s: %s', country_context.name, e)
+            _logger.warning(
+                'Error searching state with country context for %s: %s',
+                country_context.name,
+                e,
+            )
 
         return None
 
     @api.model
-    def _process_relational_field(self, field_config, component_lookup, country_context=None):
+    def _process_relational_field(
+        self, field_config, component_lookup, country_context=None
+    ):
         """Process relational fields (many2one/many2many) for address components.
 
         Searches for related records based on address component values using the
@@ -830,7 +990,9 @@ class GooglePlacesMapping(models.Model):
         """
         field_value = None
         country_record = None
-        handling_mode = field_config.get('handling_mode', 'fallback')  # Default to fallback for relational fields
+        handling_mode = field_config.get(
+            'handling_mode', 'fallback'
+        )  # Default to fallback for relational fields
         components = field_config.get('component', [])
 
         if handling_mode == 'direct':
@@ -845,16 +1007,28 @@ class GooglePlacesMapping(models.Model):
             if not component:
                 continue
 
-            search_values = [component.get(self.TEXT_LONG), component.get(self.TEXT_SHORT)]
+            search_values = [
+                component.get(self.TEXT_LONG),
+                component.get(self.TEXT_SHORT),
+            ]
 
             # For state fields, use country-specific search when country context is available
-            if field_config['relation'] == self.STATE_RELATION and country_context:
-                related_record = self._search_state_with_country(search_values, country_context)
+            if (
+                field_config['relation'] == self.STATE_RELATION
+                and country_context
+            ):
+                related_record = self._search_state_with_country(
+                    search_values, country_context
+                )
             else:
-                related_record = self._search_related_record(field_config['relation'], search_values)
+                related_record = self._search_related_record(
+                    field_config['relation'], search_values
+                )
 
             if related_record:
-                field_value = self._format_relational_field_value(field_config['type'], related_record)
+                field_value = self._format_relational_field_value(
+                    field_config['type'], related_record
+                )
                 if field_config['relation'] == self.COUNTRY_RELATION:
                     country_record = related_record[0]
                 break
@@ -879,19 +1053,29 @@ class GooglePlacesMapping(models.Model):
         handling_mode = field_config.get('handling_mode', 'direct')
         text_option = field_config.get('text_option', self.TEXT_SHORT)
         components = field_config.get('component', [])
-        
+
         if handling_mode == 'direct':
-            return self._process_direct_mapping(components, component_lookup, text_option)
+            return self._process_direct_mapping(
+                components, component_lookup, text_option
+            )
         elif handling_mode == 'fallback':
-            return self._process_fallback_mapping(components, component_lookup, text_option)
+            return self._process_fallback_mapping(
+                components, component_lookup, text_option
+            )
         elif handling_mode == 'concat':
-            return self._process_concat_mapping(components, component_lookup, text_option)
+            return self._process_concat_mapping(
+                components, component_lookup, text_option
+            )
         else:
             # Default to direct if unknown mode
-            return self._process_direct_mapping(components, component_lookup, text_option)
+            return self._process_direct_mapping(
+                components, component_lookup, text_option
+            )
 
     @api.model
-    def _process_direct_mapping(self, components, component_lookup, text_option):
+    def _process_direct_mapping(
+        self, components, component_lookup, text_option
+    ):
         """Process direct mapping - uses first component only.
 
         Args:
@@ -916,13 +1100,15 @@ class GooglePlacesMapping(models.Model):
 
         return {}
 
-    @api.model 
-    def _process_fallback_mapping(self, components, component_lookup, text_option):
+    @api.model
+    def _process_fallback_mapping(
+        self, components, component_lookup, text_option
+    ):
         """Process fallback mapping - uses first available component.
 
         Args:
             components (list): List of component types in priority order
-            component_lookup (dict): Component lookup table  
+            component_lookup (dict): Component lookup table
             text_option (str): Text option (shortText or longText)
 
         Returns:
@@ -934,18 +1120,20 @@ class GooglePlacesMapping(models.Model):
                 text_value = component.get(text_option) or ''
                 if text_value:
                     return {component_type: text_value}
-        
+
         return {}
 
     @api.model
-    def _process_concat_mapping(self, components, component_lookup, text_option):
+    def _process_concat_mapping(
+        self, components, component_lookup, text_option
+    ):
         """Process concatenate mapping - joins all available components.
-        
+
         Args:
             components (list): List of component types to concatenate
             component_lookup (dict): Component lookup table
             text_option (str): Text option (shortText or longText)
-            
+
         Returns:
             dict: Field parts for street fields, or str for regular fields
         """
@@ -1019,38 +1207,59 @@ class GooglePlacesMapping(models.Model):
             return ', '.join(str(v) for v in field_parts.values() if v)
 
         street_orderdict = OrderedDict()
-        if country_id and country_id.google_street_format == 'street_number_route':
-            street_orderdict['street_number'] = field_parts.get('street_number', '')
+        if (
+            country_id
+            and country_id.google_street_format == 'street_number_route'
+        ):
+            street_orderdict['street_number'] = field_parts.get(
+                'street_number', ''
+            )
             street_orderdict['route'] = field_parts.get('route', '')
-        elif country_id and country_id.google_street_format == 'route_street_number':
+        elif (
+            country_id
+            and country_id.google_street_format == 'route_street_number'
+        ):
             street_orderdict['route'] = field_parts.get('route', '')
-            street_orderdict['street_number'] = field_parts.get('street_number', '')
+            street_orderdict['street_number'] = field_parts.get(
+                'street_number', ''
+            )
         else:
             street_orderdict['route'] = field_parts.get('route', '')
-            street_orderdict['street_number'] = field_parts.get('street_number', '')
+            street_orderdict['street_number'] = field_parts.get(
+                'street_number', ''
+            )
 
         return self._format_text_field_value(street_orderdict, field_config)
 
-    def unlink(self):
-        """Override unlink to prevent deletion of mappings in use.
-
-        Prevents deletion of Google Places mapping records that are currently
+    @api.ondelete(at_uninstall=False)
+    def _unlink_ref_prevent_deletion(self):
+        """Prevents deletion of Google Places mapping records that are currently
         referenced by other records in the system.
 
         Raises:
             UserError: If any mapping is in use and cannot be deleted
         """
         for record in self:
-            referenced_in_views = self.env['ir.ui.view'].search_count([
-                ('model', '!=', self._name),
-                ('arch_db', 'like', 'gplace_autocomplete_el'),
-                '|', 
-                '|',
-                ('arch_db', 'like', record.code),
-                ('arch_db', 'like', "{'mapping_mode': 'places'}"),
-                ('arch_db', 'like', "{'mapping_mode': 'address'}")])
-            view_count = len(referenced_in_views)
+            referenced_in_view_ids = self.env['ir.ui.view'].search(
+                [
+                    ('model', '!=', self._name),
+                    ('arch_db', 'like', 'gplace_autocomplete_el'),
+                    '|',
+                    '|',
+                    ('arch_db', 'like', record.code),
+                    ('arch_db', 'like', "{'mapping_mode': 'places'}"),
+                    ('arch_db', 'like', "{'mapping_mode': 'address'}"),
+                ]
+            )
+            view_count = len(referenced_in_view_ids)
             if view_count > 0:
-                views_list = '\n - '.join(referenced_in_views.mapped('name'))
-                raise UserError(_('Cannot delete mapping "%s" as it is currently in use by the following views:\n - %s', record.code, views_list))
-        return super().unlink()
+                views_list = '\n - '.join(
+                    referenced_in_view_ids.mapped('name')
+                )
+                raise UserError(
+                    self.env._(
+                        'Cannot delete mapping "%s" as it is currently in use by the following views:\n - %s',
+                        record.code,
+                        views_list,
+                    )
+                )

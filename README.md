@@ -101,7 +101,7 @@ Extends the map view with geographic drawing tools. Users can draw polygons, rec
 
 Adds an embedded Google Map to any Odoo form. Shows the record's saved location and lets users update it visually — by dragging a marker or typing a place name — without leaving the form. A Street View side-by-side dialog lets users verify the exact location with street-level imagery alongside the standard map; it falls back gracefully when no Street View coverage is available.
 
-**[web_widget_google_place_autocomplete](web_widget_google_place_autocomplete/README.md)** `19.0.1.0.8`
+**[web_widget_google_place_autocomplete](web_widget_google_place_autocomplete/README.md)** `19.0.1.0.9`
 
 A configurable Google Places autocomplete widget for any Odoo text field. When a user picks a suggestion from the dropdown, it fills whichever Odoo fields are configured in the mapping — name, street, city, zip, country, phone, website, coordinates, and more. Includes a built-in test tool to verify mappings without leaving the settings screen.
 

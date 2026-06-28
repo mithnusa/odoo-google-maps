@@ -1,5 +1,6 @@
-from odoo import _, api, fields, models
+from odoo import api, fields, models
 from odoo.exceptions import ValidationError
+from .utils import safe_literal_eval
 
 
 class GooglePlacesMappingOtherLine(models.Model):
@@ -11,29 +12,15 @@ class GooglePlacesMappingOtherLine(models.Model):
         """Validate Google Places component configuration using shared validation logic."""
         for line in self:
             if line.gplace_component:
-                self._validate_component_string(line.gplace_component, 'Google Place Component')
-
-    def _validate_component_string(self, component_text, field_name):
-        """Validate component string format and content.
-
-        Args:
-            component_text (str): JSON string containing component
-            field_name (str): Human-readable field name for error messages
-
-        Raises:
-            ValidationError: If component is invalid
-        """
-        try:
-            # Use the shared validation logic from parent model
-            mapping_model = self.env['google.places.mapping']
-            component = mapping_model._safe_literal_eval(component_text, field_name, str)
-
-            if not component:
-                raise ValidationError(_('%s cannot be empty.') % field_name)
-
-        except ValidationError:
-            # Re-raise validation errors as-is
-            raise
+                component = safe_literal_eval(
+                    line.gplace_component, 'Google Place Component', str
+                )
+                if not component:
+                    raise ValidationError(
+                        self.env._(
+                            '%s cannot be empty.', 'Google Place Component'
+                        )
+                    )
 
     mapping_id = fields.Many2one(
         comodel_name='google.places.mapping',
@@ -41,7 +28,12 @@ class GooglePlacesMappingOtherLine(models.Model):
         required=True,
         ondelete='cascade',
     )
-    model_id = fields.Many2one(related='mapping_id.model_id', string='Model', store=True, readonly=True)
+    model_id = fields.Many2one(
+        related='mapping_id.model_id',
+        string='Model',
+        store=True,
+        readonly=True,
+    )
     field_id = fields.Many2one(
         'ir.model.fields',
         string='Field',
@@ -55,6 +47,11 @@ class GooglePlacesMappingOtherLine(models.Model):
         required=True,
         ondelete='cascade',
     )
-    gplace_component = fields.Text(string='Google Place Component', required=True)
+    gplace_component = fields.Text(
+        string='Google Place Component',
+        required=True,
+    )
 
-    _mapping_fields_unique = models.Constraint('UNIQUE(mapping_id, field_id)', 'Field must be unique per mapping')
+    _mapping_fields_unique = models.Constraint(
+        'UNIQUE(mapping_id, field_id)', 'Field must be unique per mapping'
+    )

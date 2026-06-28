@@ -11,7 +11,7 @@ configuration system for connecting the Google Places API (New) to any Odoo fiel
 
 Provides:
 
-- ``google.places.mapping`` model: unique ``code`` (SQL-unique), ``model_id``, ``mode`` (``places`` / ``address``), optional ``PlaceAutocompleteElement`` options (``gplace_options``), fetch-field lists, ``latitude`` / ``longitude`` Many2one fields pointing to ``ir.model.fields``, ``active``, ``sequence``; ``unlink`` override prevents deletion while the mapping is referenced in views
+- ``google.places.mapping`` model: unique ``code`` (SQL-unique), ``model_id``, ``mode`` (``places`` / ``address``), optional ``PlaceAutocompleteElement`` options (``gplace_options``), fetch-field lists, ``latitude`` / ``longitude`` Many2one fields pointing to ``ir.model.fields``, ``active``, ``sequence``; computed ``is_address_component_missing`` and ``is_location_field_missing`` warning flags shown as inline alerts on the mapping form; ``unlink`` override prevents deletion while the mapping is referenced in views
 - ``google.places.mapping.address.line``: maps a Google address component list to an Odoo field with ``text_option`` (``shortText`` / ``longText``), ``handling_mode`` (``direct`` / ``fallback`` / ``concat``), and ``separator`` (space, comma, hyphen, underscore, slash, new line); SQL-unique per mapping
 - ``google.places.mapping.other.line``: maps a single Google Places property key (e.g. ``displayName``, ``internationalPhoneNumber``) to any stored Odoo field; SQL-unique per mapping
 - ``google_street_format`` selection field on ``res.country`` (``route_street_number`` / ``street_number_route``); used in ``parse_place`` to assemble the street string in the correct order for each country
@@ -24,10 +24,10 @@ Provides:
 """,
     'license': 'LGPL-3',
     'author': 'Yopi Angi',
-    'website': 'https://github.com/mithnusa',
+    'website': 'https://www.mithnusa.com',
     'support': 'yopiangi@gmail.com',
     'category': 'Extra Tools',
-    'version': '1.0.8',
+    'version': '19.0.1.0.9',
     'depends': ['base_google_map'],
     'assets': {
         'web.assets_backend': [
@@ -47,7 +47,4 @@ Provides:
         'views/res_country.xml',
         'views/google_places_mapping_views.xml',
     ],
-    'installable': True,
-    'application': False,
-    'auto_install': False,
 }
