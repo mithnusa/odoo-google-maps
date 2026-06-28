@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" ?>
 <templates xml:space="preserve">
     <t t-name="web_widget_google_place_autocomplete.GooglePlacesMappingTestField">
         <div class="mb-2">
@@ -24,31 +24,31 @@
         <ul class="list-group list-group-flush">
             <li class="list-group-item">
                 <p class="fs-4 mb-1">
-                    <i class="fa fa-angle-right me-1"></i>
+                    <i class="fa fa-angle-right me-1" />
                     <span>Address</span>
                 </p>
-                <pre><t t-out="addressMappingResult"/></pre>
+                <pre t-out="addressMappingResult" />
             </li>
-            <li class="list-group-item" t-if="mode == 'places'">
+            <li t-if="mode == 'places'" class="list-group-item">
                 <p class="fs-4 mb-1">
-                    <i class="fa fa-angle-right me-1"></i>
+                    <i class="fa fa-angle-right me-1" />
                     <span>Other</span>
                 </p>
-                <pre><t t-out="otherMappingResult"/></pre>
+                <pre t-out="otherMappingResult" />
             </li>
             <li class="list-group-item">
                 <p class="fs-4 mb-1">
-                    <i class="fa fa-angle-right me-1"></i>
+                    <i class="fa fa-angle-right me-1" />
                     <span>Geolocation</span>
                 </p>
-                <pre><t t-out="geoLocationResult"/></pre>
+                <pre t-out="geoLocationResult" />
             </li>
             <li class="list-group-item">
                 <p class="fs-4 mb-1">
-                    <i class="fa fa-angle-right me-1"></i>
+                    <i class="fa fa-angle-right me-1" />
                     <span>Google Place JSON</span>
                 </p>
-                <pre><t t-out="placeDetailsResult"/></pre>
+                <pre t-out="placeDetailsResult" />
             </li>
         </ul>
     </t>

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="UTF-8" ?>
 <odoo>
     <record id="view_google_places_mapping_form" model="ir.ui.view">
         <field name="name">view.google.places.mapping.form</field>
@@ -6,68 +6,110 @@
         <field name="arch" type="xml">
             <form string="Google Places Mapping">
                 <sheet>
-                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
-                    <field name="id" invisible="1"/>
-                    <field name="is_address_component_missing" invisible="1"/>
-                    <field name="is_location_field_missing" invisible="1"/>
-                    <div class="alert alert-warning text-center" role="alert" invisible="not is_address_component_missing">
-                        <span>"addressComponents" is not configured in "Google Places Fetch Fields". This value is required for address mapping</span>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active" />
+                    <field name="id" invisible="1" />
+                    <field name="is_address_component_missing" invisible="1" />
+                    <field name="is_location_field_missing" invisible="1" />
+                    <div
+                        class="alert alert-warning text-center"
+                        role="alert"
+                        invisible="not is_address_component_missing"
+                    >
+                        <span>
+                            "addressComponents" is not configured in "Google Places Fetch Fields". This value is
+                            required for address mapping
+                        </span>
                     </div>
                     <div class="alert alert-warning text-center" role="alert" invisible="not is_location_field_missing">
-                        <span>"location" is not configured in "Google Places Property Fields". This value is required for latitude and longitude mapping</span>
+                        <span>
+                            "location" is not configured in "Google Places Property Fields". This value is required for
+                            latitude and longitude mapping
+                        </span>
                     </div>
                     <div class="alert alert-light text-center" role="alert" invisible="not id or not code">
-                        <field name="place_id_test" widget="GoogleMappingTest"/>
+                        <field name="place_id_test" widget="GoogleMappingTest" />
                         <p class="mb-0 fst-italic text-600" style="font-size:12px;">
                             <small>Please make sure to test before using the mapping</small>
-                            <br/>
-                            <small>When testing the mapping, please reload the page whenever the mapping is changed.</small>
+                            <br />
+                            <small>
+                                When testing the mapping, please reload the page whenever the mapping is changed.
+                            </small>
                         </p>
                     </div>
                     <div class="oe_title mb-2">
-                        <label for="code" class="oe_edit_only"/>
+                        <label for="code" class="oe_edit_only" />
                         <div>
                             <h1 class="mb-1">
-                                <field name="code" class="oe_inline" widget="CopyClipboardChar"/>
+                                <field name="code" class="oe_inline" widget="CopyClipboardChar" />
                             </h1>
-                            <field name="mode" widget="radio" options="{'horizontal': true}" nolabel="1"/>
+                            <field name="mode" widget="radio" options="{'horizontal': true}" nolabel="1" />
                         </div>
                     </div>
                     <group>
                         <group>
-                            <field name="model_id" options="{'no_create': True}"/>
-                            <field name="description"/>
+                            <field name="model_id" options="{'no_create': True}" />
+                            <field name="description" />
                         </group>
                         <group>
-                            <field name="active" widget="boolean_toggle"/>
+                            <field name="active" widget="boolean_toggle" />
                         </group>
                     </group>
                     <group>
                         <group string="Google Places Options">
-                            <label for="gplace_options" string=""/>
+                            <label for="gplace_options" string="" />
                             <div>
-                                <field name="gplace_options" widget="code" options="{'mode': 'python'}"/>
+                                <field name="gplace_options" widget="code" options="{'mode': 'python'}" />
                                 <small class="text-muted">
-                                    <span>Before configure the value please check this document first </span>
-                                    <a class="text-decoration-underline" href="https://developers.google.com/maps/documentation/places/web-service/place-autocomplete#supported-parameters" target="_blank">PlaceAutocompleteElementOptions interface</a>
+                                    <span>Before configure the value please check this document first</span>
+                                    <a
+                                        class="text-decoration-underline"
+                                        href="https://developers.google.com/maps/documentation/places/web-service/place-autocomplete#supported-parameters"
+                                        target="_blank"
+                                    >
+                                        PlaceAutocompleteElementOptions interface
+                                    </a>
                                 </small>
                             </div>
                         </group>
                         <group string="Google Places Property Fields">
-                            <label for="gplace_place_fetch_fields" string="" invisible="mode == 'address'"/>
+                            <label for="gplace_place_fetch_fields" string="" invisible="mode == 'address'" />
                             <div invisible="mode == 'address'">
-                                <field name="gplace_place_fetch_fields" widget="code" options="{'mode': 'python'}" required="1" invisible="mode == 'address'"/>
+                                <field
+                                    name="gplace_place_fetch_fields"
+                                    widget="code"
+                                    options="{'mode': 'python'}"
+                                    required="1"
+                                    invisible="mode == 'address'"
+                                />
                                 <small class="text-muted">
-                                    <span>Before configure the value please check this document first </span>
-                                    <a class="text-decoration-underline" href="https://developers.google.com/maps/documentation/javascript/place-class-data-fields" target="_blank">Place Class Data Fields</a>
+                                    <span>Before configure the value please check this document first</span>
+                                    <a
+                                        class="text-decoration-underline"
+                                        href="https://developers.google.com/maps/documentation/javascript/place-class-data-fields"
+                                        target="_blank"
+                                    >
+                                        Place Class Data Fields
+                                    </a>
                                 </small>
                             </div>
-                            <label for="gplace_address_fetch_fields" string="" invisible="mode == 'places'"/>
+                            <label for="gplace_address_fetch_fields" string="" invisible="mode == 'places'" />
                             <div invisible="mode == 'places'">
-                                <field name="gplace_address_fetch_fields" widget="code" options="{'mode': 'python'}" required="1" invisible="mode == 'places'"/>
+                                <field
+                                    name="gplace_address_fetch_fields"
+                                    widget="code"
+                                    options="{'mode': 'python'}"
+                                    required="1"
+                                    invisible="mode == 'places'"
+                                />
                                 <small class="text-muted">
-                                    <span>Before configure the value please check this document first </span>
-                                    <a class="text-decoration-underline" href="https://developers.google.com/maps/documentation/javascript/place-class-data-fields" target="_blank">Place Class Data Fields</a>
+                                    <span>Before configure the value please check this document first</span>
+                                    <a
+                                        class="text-decoration-underline"
+                                        href="https://developers.google.com/maps/documentation/javascript/place-class-data-fields"
+                                        target="_blank"
+                                    >
+                                        Place Class Data Fields
+                                    </a>
                                 </small>
                             </div>
                         </group>
@@ -78,31 +120,41 @@
                                 <div class="col-7">
                                     <p class="border-bottom pb-1">
                                         <span class="fs-4 fw-bold">Address Mapping</span>
-                                        <a href="https://developers.google.com/maps/documentation/javascript/place-types#address-types" target="_blank" class="ms-1"><i class="fa fa-question-circle-o" title="Documentation"/></a>
+                                        <a
+                                            href="https://developers.google.com/maps/documentation/javascript/place-types#address-types"
+                                            target="_blank"
+                                            class="ms-1"
+                                        >
+                                            <i class="fa fa-question-circle-o" title="Documentation" />
+                                        </a>
                                     </p>
                                     <field name="mapping_address_ids" nolabel="1" colspan="2">
                                         <list>
-                                            <field name="model_id" column_invisible="1"/>
-                                            <field name="field_id" options="{'no_create': True}"/>
-                                            <field name="gplace_component" widget="code" options="{'mode': 'python'}"/>
-                                            <field name="handling_mode" optional="show"/>
-                                            <field name="separator" optional="show"/>
-                                            <field name="text_option" optional="hide"/>
+                                            <field name="model_id" column_invisible="1" />
+                                            <field name="field_id" options="{'no_create': True}" />
+                                            <field name="gplace_component" widget="code" options="{'mode': 'python'}" />
+                                            <field name="handling_mode" optional="show" />
+                                            <field name="separator" optional="show" />
+                                            <field name="text_option" optional="hide" />
                                         </list>
                                         <form>
                                             <sheet>
                                                 <group>
-                                                    <field name="gplace_component" widget="code" options="{'mode': 'python'}"/>
+                                                    <field
+                                                        name="gplace_component"
+                                                        widget="code"
+                                                        options="{'mode': 'python'}"
+                                                    />
                                                 </group>
                                                 <group>
                                                     <group>
-                                                        <field name="model_id" invisible="1"/>
-                                                        <field name="field_id" options="{'no_create': True}"/>
+                                                        <field name="model_id" invisible="1" />
+                                                        <field name="field_id" options="{'no_create': True}" />
                                                     </group>
                                                     <group>
-                                                        <field name="handling_mode"/>
-                                                        <field name="separator" invisible="handling_mode != 'concat'"/>
-                                                        <field name="text_option"/>
+                                                        <field name="handling_mode" />
+                                                        <field name="separator" invisible="handling_mode != 'concat'" />
+                                                        <field name="text_option" />
                                                     </group>
                                                 </group>
                                             </sheet>
@@ -110,30 +162,46 @@
                                     </field>
                                     <p>
                                         <small class="text-muted">
-                                            <span>The format of "route" and "street_number" will be configured dynamically based on the address's country. Check the <a class="text-decoration-underline" href="/web#action=base.action_country&amp;model=res.country&amp;view_type=list">Country</a> setting if you want to change the order.</span>
+                                            <span>
+                                                The format of "route" and "street_number" will be configured dynamically
+                                                based on the address's country. Check the
+                                                <a
+                                                    class="text-decoration-underline"
+                                                    href="/web#action=base.action_country&amp;model=res.country&amp;view_type=list"
+                                                >
+                                                    Country
+                                                </a>
+                                                setting if you want to change the order.
+                                            </span>
                                         </small>
                                     </p>
                                 </div>
                                 <div class="col-5" invisible="mode != 'places'">
                                     <p class="border-bottom pb-1">
                                         <span class="fs-4 fw-bold">Other</span>
-                                        <a href="https://developers.google.com/maps/documentation/javascript/place-class-data-fields" target="_blank" class="ms-1"><i class="fa fa-question-circle-o" title="Documentation"/></a>
+                                        <a
+                                            href="https://developers.google.com/maps/documentation/javascript/place-class-data-fields"
+                                            target="_blank"
+                                            class="ms-1"
+                                        >
+                                            <i class="fa fa-question-circle-o" title="Documentation" />
+                                        </a>
                                     </p>
-                                    <field name="mapping_other_ids" nolabel="1"  colspan="2">
+                                    <field name="mapping_other_ids" nolabel="1" colspan="2">
                                         <list editable="top">
-                                            <field name="model_id" column_invisible="1"/>
-                                            <field name="field_id" options="{'no_create': True}"/>
-                                            <field name="gplace_component" widget="code" options="{'mode': 'python'}"/>
+                                            <field name="model_id" column_invisible="1" />
+                                            <field name="field_id" options="{'no_create': True}" />
+                                            <field name="gplace_component" widget="code" options="{'mode': 'python'}" />
                                         </list>
                                     </field>
                                 </div>
                             </div>
-                            <group >
+                            <group>
                                 <group string="Geolocation">
-                                    <label for="latitude" string="Latitude"/>
-                                    <field name="latitude" options="{'no_create': True}" nolabel="1"/>
-                                    <label for="longitude" string="Longitude"/>
-                                    <field name="longitude" options="{'no_create': True}" nolabel="1"/>
+                                    <label for="latitude" string="Latitude" />
+                                    <field name="latitude" options="{'no_create': True}" nolabel="1" />
+                                    <label for="longitude" string="Longitude" />
+                                    <field name="longitude" options="{'no_create': True}" nolabel="1" />
                                 </group>
                             </group>
                         </page>
@@ -143,16 +211,36 @@
                             <h2>References:</h2>
                             <ul>
                                 <li>
-                                    <a href="https://developers.google.com/maps/documentation/places/web-service/place-autocomplete" target="_blank">Places Autocomplete</a>
+                                    <a
+                                        href="https://developers.google.com/maps/documentation/places/web-service/place-autocomplete"
+                                        target="_blank"
+                                    >
+                                        Places Autocomplete
+                                    </a>
                                 </li>
                                 <li>
-                                    <a href="https://developers.google.com/maps/documentation/javascript/place-class-data-fields" target="_blank">Place Class Data Fields</a>
+                                    <a
+                                        href="https://developers.google.com/maps/documentation/javascript/place-class-data-fields"
+                                        target="_blank"
+                                    >
+                                        Place Class Data Fields
+                                    </a>
                                 </li>
                                 <li>
-                                    <a href="https://developers.google.com/maps/documentation/javascript/place-types" target="_blank">Place Types</a>
+                                    <a
+                                        href="https://developers.google.com/maps/documentation/javascript/place-types"
+                                        target="_blank"
+                                    >
+                                        Place Types
+                                    </a>
                                 </li>
                                 <li>
-                                    <a href="https://developers.google.com/maps/documentation/javascript/place-types#address-types" target="_blank">Address types and address component types</a>
+                                    <a
+                                        href="https://developers.google.com/maps/documentation/javascript/place-types#address-types"
+                                        target="_blank"
+                                    >
+                                        Address types and address component types
+                                    </a>
                                 </li>
                             </ul>
                         </div>
@@ -166,12 +254,12 @@
         <field name="model">google.places.mapping</field>
         <field name="arch" type="xml">
             <list string="Google Places Mappings">
-                <field name="sequence" widget="handle"/>
-                <field name="code"/>
-                <field name="model_id"/>
-                <field name="mode"/>
-                <field name="description"/>
-                <field name="active" widget="boolean_toggle"/>
+                <field name="sequence" widget="handle" />
+                <field name="code" />
+                <field name="model_id" />
+                <field name="mode" />
+                <field name="description" />
+                <field name="active" widget="boolean_toggle" />
             </list>
         </field>
     </record>
@@ -180,11 +268,11 @@
         <field name="model">google.places.mapping</field>
         <field name="arch" type="xml">
             <search string="Google Places Mappings">
-                <field name="code"/>
-                <field name="model_id"/>
-                <filter string="Address" name="filter_address" domain="[('mode', '=', 'address')]"/>
-                <filter string="Places" name="filter_places" domain="[('mode', '=', 'places')]"/>
-                <filter string="Archived" name="filter_active" domain="[('active', '=', False)]"/>
+                <field name="code" />
+                <field name="model_id" />
+                <filter string="Address" name="filter_address" domain="[('mode', '=', 'address')]" />
+                <filter string="Places" name="filter_places" domain="[('mode', '=', 'places')]" />
+                <filter string="Archived" name="filter_active" domain="[('active', '=', False)]" />
             </search>
         </field>
     </record>
@@ -193,9 +281,7 @@
         <field name="res_model">google.places.mapping</field>
         <field name="view_mode">list,form</field>
         <field name="help" type="html">
-            <p class="o_view_nocontent_smiling_face">
-                Define Google Places Mappings here.
-            </p>
+            <p class="o_view_nocontent_smiling_face">Define Google Places Mappings here.</p>
         </field>
     </record>
     <menuitem
@@ -204,5 +290,6 @@
         parent="base.menu_custom"
         sequence="90"
         action="action_google_places_mapping"
-        groups="base.group_no_one"/>
+        groups="base.group_no_one"
+    />
 </odoo>
