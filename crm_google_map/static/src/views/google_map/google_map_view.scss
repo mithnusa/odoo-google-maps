@@ -1,3 +1,9 @@
+// ─── Design tokens ───────────────────────────────────────────────────────────
+$marker-bg: light-dark(#ffffff, #000000);
+$marker-border-color: light-dark(rgba(140, 139, 139, 0.5), rgba(118, 116, 116, 0.5));
+$marker-radius: 8px;
+$marker-transition: 0.3s ease-out;
+
 @keyframes markerDrop {
     0% {
         opacity: 0;
@@ -18,25 +24,36 @@
             min-width: 50px;
             max-width: 400px;
             min-height: 45px;
-            border-radius: 50%;
+            border-radius: $marker-radius;
             cursor: pointer;
             text-align: center;
             padding: 5px;
             position: relative;
             transform: translateY(-8px);
-            box-shadow: 10px 8px 5px rgba(0, 0, 0, 0.2);
-            color: light-dark(black, #fafafa);
-            background-color: light-dark(#fafafa, black);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            color: light-dark(#000000, #fafafa);
+            background-color: $marker-bg;
             transition:
-                min-height 0.3s ease-out,
-                padding 0.3s ease-out,
-                border-radius 0.3s ease-out,
-                box-shadow 0.3s ease-out,
-                border 0.3s ease-out;
-            border: 1px solid light-dark(rgba(140, 139, 139, 0.5), rgba(118, 116, 116, 0.5));
+                min-height $marker-transition,
+                padding $marker-transition,
+                box-shadow $marker-transition,
+                border $marker-transition;
+            border: 1px solid $marker-border-color;
 
             .marker-icon {
-                font-size: 16px;
+                font-weight: 400;
+                padding: 4px;
+                margin-bottom: 2px;
+                word-break: break-word;
+                width: 150px;
+
+                .marker-icon-title {
+                    font-size: 0.85rem;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    white-space: nowrap;
+                    font-weight: 600;
+                }
             }
 
             .marker-content {
@@ -49,13 +66,6 @@
                     display: flex;
                     align-items: center;
                     justify-content: space-between;
-                    flex-direction: column;
-                    > div {
-                        display: flex;
-                        align-items: center;
-                        justify-content: center;
-                        gap: 8px;
-                    }
                 }
 
                 .contact-salesperson {
@@ -76,43 +86,46 @@
             }
 
             &.highlight {
-                padding: 12px;
-                width: auto;
+                padding: 10px;
                 min-height: 175px;
-                border-radius: 8px;
-                font-size: 14px;
-                z-index: 1000;
+                font-size: 0.875rem;
 
                 .marker-icon {
                     display: none;
                 }
+
                 .marker-content {
                     flex-wrap: wrap;
                     display: flex;
                     padding: 0 4px;
                 }
 
-                // Flat bottom in expanded state — tip sits flush at the edge,
-                // no upward shift needed
+                // Tip sits flush at the bottom edge in the expanded state
                 &:after {
                     transform: translate(-50%, -50%) rotate(45deg);
+                    top: 100%;
+                }
+
+                &.marker-hover-animation {
+                    box-shadow: 0 2px 20px 6px light-dark(rgba(0, 0, 0, 0.3), rgba(47, 47, 47, 0.5));
+                    border: 1.25px solid light-dark(rgba(0, 0, 0, 0.2), rgba(69, 68, 68, 0.2));
                 }
             }
 
-            // Tip — rotated square; right and bottom borders form the visible
-            // tip edges; top half is hidden under the parent's background.
-            // Shifted 1px up to close the gap left by the parent's border-bottom.
+            // Pointer tip — rotated square; right and bottom borders form the
+            // visible tip edges. Shifted 1px up to close the gap left by the
+            // parent's border-bottom.
             &:after {
                 content: "";
                 position: absolute;
                 left: 50%;
-                top: 100%;
+                top: 102%;
                 transform: translate(-50%, calc(-50% - 1px)) rotate(45deg);
                 width: 14px;
                 height: 14px;
-                background-color: light-dark(#fafafa, black);
-                border-right: 1px solid light-dark(rgba(140, 139, 139, 0.5), rgba(118, 116, 116, 0.5));
-                border-bottom: 1px solid light-dark(rgba(140, 139, 139, 0.5), rgba(118, 116, 116, 0.5));
+                background-color: $marker-bg;
+                border-right: 1px solid $marker-border-color;
+                border-bottom: 1px solid $marker-border-color;
             }
 
             &.marker-drop-animation {
@@ -121,7 +134,7 @@
             }
 
             &.marker-hover-animation {
-                box-shadow: 0px 2px 20px 6px light-dark(rgba(0, 0, 0, 0.3), rgba(47, 47, 47, 0.5));
+                box-shadow: 0 2px 20px 6px light-dark(rgba(0, 0, 0, 0.3), rgba(47, 47, 47, 0.5));
                 border: 1.25px solid light-dark(rgba(0, 0, 0, 0.75), rgba(150, 149, 149, 0.845));
             }
 

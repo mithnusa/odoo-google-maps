@@ -1,6 +1,31 @@
 <!-- markdownlint-disable MD024 -->
 # Change Log
 
+## 19.0.1.0.11
+
+### Added
+
+- **Activity scheduling from the map**: Two new action buttons in each lead's info window — "Show Scheduled Activities" opens a readonly list of the lead's activities in a dialog; "Schedule an Activity" opens the `mail.activity` form pre-filled with the lead's context. Implemented in `google_map_controller.js` (`openRecordScheduleActivity`, `showRecordScheduledActivity`) and a new `mail_activity_view_list_activities_readonly` view override.
+- **Richer info window**: The marker info window now displays a full detail grid: address, stage (with color indicator), company name, contact name, phone, salesperson, expected revenue, probability, and expected closing date — all with icon indicators and tooltips.
+- **More fields in map view**: Added `contact_name`, `partner_name`, `phone`, `stage_id`, `probability`, `date_deadline`, and `user_id` to the `<google_map>` view definition so they are available to the renderer without extra RPC calls.
+
+### Fixed
+
+- **Geocoding cron — per-lead error isolation** (`models/crm_lead.py`): Each lead is now geolocalized inside a `with self.env.cr.savepoint()` block; a failed geocoding is caught, logged as a warning, and skipped so the rest of the batch continues.
+
+### Changed
+
+- **Dependency**: Removed `web_widget_google_map` from module dependencies — the CRM map view no longer requires it directly. The embedded map widget on the lead form is now rendered by `web_view_google_map`.
+
+### Improved
+
+- **`_compute_customer_address`** (`models/crm_lead.py`): Now includes `state_code`, `state_name`, `country_code`, and `country_name` in the address context dict, enabling richer address formatting across more countries.
+- **Notification delivery** (`geo_localize`): "No match found" warning now sent via `self.env.user._bus_send("simple_notification", …)` instead of the previous mechanism.
+- **Python — Odoo 19 translations** (`models/crm_lead.py`): `_()` module-level import replaced with `self.env._()` calls; added `logging` import and `_logger` for geocoding warning output.
+- **Python — Black format** (`models/crm_lead.py`): Reformatted with Black (line length 79).
+- **XML format** (all XML files): Reformatted with self-closing tags and multi-line attribute layout.
+- **Manifest**: Quote style normalized to double quotes; removed `web_widget_google_map` dependency; removed `installable`, `application`, `auto_install` keys.
+
 ## 19.0.1.0.10
 
 ### Improved

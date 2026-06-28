@@ -65,7 +65,6 @@ graph LR
     web_view_google_map --> project_google_map
 
     web_widget_google_map --> contacts_google_map
-    web_widget_google_map --> crm_google_map
 
     web_widget_google_place_autocomplete --> contacts_google_autocomplete
     web_widget_google_place_autocomplete --> crm_google_autocomplete
@@ -93,7 +92,7 @@ The required foundation for every other module in this suite. Adds a Google Maps
 
 The core map view module. Adds a `google_map` view type alongside list, kanban, and form. Features a record sidebar, marker clustering for dense data, box selection to pick multiple records at once, nearby search, in-map place search, a geolocation button to center the map on your location, grouped markers, dark mode, and a Street View side-by-side button in every marker info window.
 
-**[web_view_google_map_drawing](web_view_google_map_drawing/README.md)** `19.0.1.0.21`
+**[web_view_google_map_drawing](web_view_google_map_drawing/README.md)** `19.0.1.0.22`
 
 Extends the map view with geographic drawing tools. Users can draw polygons, rectangles, and freehand shapes directly on the map. Shapes are stored as GeoJSON on the record and support server-side filtering so you can query which records fall inside a drawn area. Built on [Terra Draw](https://terradraw.io/) and [Deck.gl](https://deck.gl/); all libraries are bundled locally.
 
@@ -133,9 +132,9 @@ Enhances the Contact name field with a Google Places panel alongside Odoo's buil
 
 ### CRM
 
-**[crm_google_map](crm_google_map/README.md)** `19.0.1.0.10`
+**[crm_google_map](crm_google_map/README.md)** `19.0.1.0.11`
 
-Adds a Google Map view to the CRM application, available in All Leads, My Activities, Opportunities, Pipeline, and Forecast. Each lead appears as a color-coded marker showing stage, contact name, salesperson, expected revenue, win probability, and closing date. The lead form gains a Geolocation tab with an embedded map preview, a geocode button, and a marker color picker.
+Adds a Google Map view to the CRM application, available in All Leads, My Activities, Opportunities, Pipeline, and Forecast. Each lead appears as a color-coded marker showing stage, address, company, contact, phone, salesperson, expected revenue, win probability, and closing date. Activity scheduling is available directly from each marker's info window. The lead form gains a Geolocation tab with an embedded map preview, a geocode button, and a marker color picker.
 
 **[crm_google_map_add_place](crm_google_map_add_place/README.md)** `19.0.1.0.1`
 
