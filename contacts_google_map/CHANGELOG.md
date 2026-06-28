@@ -1,5 +1,20 @@
 # Change Log
 
+## 19.0.1.0.11
+
+### Fixed
+
+- **`sidebarProps` merge order** (`google_map_renderer.js`): Changed `Object.assign({ fieldAvatar }, super.sidebarProps)` to `Object.assign({}, super.sidebarProps, { fieldAvatar })` so base-class sidebar props are no longer silently overwritten if they share a key with the subclass addition.
+
+### Improved
+
+- **Geocoding cron — per-record error isolation** (`models/res_partner.py`): Each contact is now geolocalized inside a `with self.env.cr.savepoint()` block; a failed geocoding is caught, logged as a warning, and skipped so the rest of the batch continues. Previously a single error aborted the entire run.
+- **Geocoding cron — universal per-record loop**: All geocoding providers now use the per-partner loop (not just OpenStreetMap). The 1-second rate-limit pause is still applied only when OpenStreetMap is the active provider.
+- **Python — Odoo 19 translations** (`models/res_partner.py`): `_()` module-level import replaced with `self.env._()` calls; added `logging` import and `_logger` for cron warning output.
+- **Python — Black format** (`models/res_partner.py`): Reformatted with Black (line length 79).
+- **XML format** (`data/cron_contact_geolocalize.xml`, `views/res_partner.xml`, templates): Reformatted with self-closing tags; `noupdate="1"` moved to the `<odoo>` root element.
+- **`__manifest__.py`**: Removed explicit `installable`, `application`, and `auto_install` keys — these are Odoo defaults and were redundant.
+
 ## 19.0.1.0.9
 
 - [Improved] **Geocoding Cron — Address Filter**: Added OR filter on `city`, `zip`, `street`, and `street2` fields so only partners with at least one address component are queued for geocoding; prevents wasting API calls on contacts with only a country set

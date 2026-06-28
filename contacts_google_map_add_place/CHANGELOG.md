@@ -1,5 +1,13 @@
 # Change Log
 
+## 19.0.1.0.3
+
+### Improved
+
+- **Python — Black format** (`models/res_partner.py`): Added missing blank line between import and class definition.
+- **XML format** (`static/src/views/google_map/google_map_renderer.xml`): Reformatted with self-closing tags and multi-line template attributes.
+- **`__manifest__.py`**: Removed explicit `installable`, `application`, and `auto_install` keys — these are Odoo defaults and were redundant.
+
 ## 1.0.2
 
 ### Improved

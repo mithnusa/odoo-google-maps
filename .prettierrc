@@ -4,9 +4,8 @@
     "endOfLine": "lf",
     "htmlWhitespaceSensitivity": "css",
     "insertPragma": false,
-    "bracketSameLine": false,
     "jsxSingleQuote": false,
-    "printWidth": 100,
+    "printWidth": 120,
     "proseWrap": "always",
     "quoteProps": "as-needed",
     "requirePragma": false,
@@ -14,5 +13,13 @@
     "singleQuote": true,
     "tabWidth": 4,
     "trailingComma": "es5",
-    "useTabs": false
+    "useTabs": false,
+    "overrides": [
+        {
+            "files": ["*.xml"],
+            "options": {
+                "xmlWhitespaceSensitivity": "ignore"
+            }
+        }
+    ]
 }
