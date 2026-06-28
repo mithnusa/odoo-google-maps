@@ -61,7 +61,4 @@ Provides:
             "web_view_google_map_drawing/static/src/fields/x2many/google_map_drawing_x2many_field.js",
         ],
     },
-    "installable": True,
-    "application": False,
-    "auto_install": False,
 }
