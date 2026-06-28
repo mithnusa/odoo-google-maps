@@ -1,14 +1,21 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" ?>
 <odoo>
     <record id="view_stock_picking_google_map" model="ir.ui.view">
         <field name="name">view.stock.picking.google_map</field>
         <field name="model">stock.picking</field>
         <field name="arch" type="xml">
-            <google_map string="Locations" lat="partner_latitude" lng="partner_longitude" sidebar_title="name" sidebar_subtitle="partner_contact_address" color="teal">
-                <field name="partner_latitude"/>
-                <field name="partner_longitude"/>
-                <field name="name"/>
-                <field name="partner_contact_address"/>
+            <google_map
+                string="Locations"
+                lat="partner_latitude"
+                lng="partner_longitude"
+                sidebar_title="name"
+                sidebar_subtitle="partner_contact_address"
+                color="teal"
+            >
+                <field name="partner_latitude" />
+                <field name="partner_longitude" />
+                <field name="name" />
+                <field name="partner_contact_address" />
             </google_map>
         </field>
     </record>
