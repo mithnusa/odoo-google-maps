@@ -1,13 +1,25 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" ?>
 <templates xml:space="preserve">
-    <t t-name="contacts_google_map.RecordItemAvatar" t-inherit="web_view_google_map.RecordItem" t-inherit-mode="primary">
+    <t
+        t-name="contacts_google_map.RecordItemAvatar"
+        t-inherit="web_view_google_map.RecordItem"
+        t-inherit-mode="primary"
+    >
         <xpath expr="//div[hasclass('o_map_sidebar_record')]" position="attributes">
-            <attribute name="class" add="with_avatar" separator=" "/>
+            <attribute name="class" add="with_avatar" separator=" " />
         </xpath>
         <xpath expr="//div[hasclass('o_map_sidebar_record')]" position="before">
-            <t t-set="avatar_url" t-value="this.getAvatarUrl(record)"/>
+            <t t-set="avatar_url" t-value="this.getAvatarUrl(record)" />
             <t t-if="avatar_url">
-                <img loading="lazy" t-att-src="avatar_url" class="img img-fluid o_avatar rounded" alt="Avatar" height="24" width="24" style="height: 24px; width: 24px;"/>
+                <img
+                    loading="lazy"
+                    t-att-src="avatar_url"
+                    class="img img-fluid o_avatar rounded"
+                    alt="Avatar"
+                    height="24"
+                    width="24"
+                    style="height: 24px; width: 24px;"
+                />
             </t>
         </xpath>
     </t>

@@ -1,15 +1,24 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="UTF-8" ?>
 <odoo>
     <record id="view_res_partner_google_map" model="ir.ui.view">
         <field name="name">view.res.partner.google_map</field>
         <field name="model">res.partner</field>
         <field name="arch" type="xml">
-            <google_map string="Contacts" js_class="google_map_contact_avatar" lat="partner_latitude" color="marker_color" lng="partner_longitude" sidebar_title="display_name" sidebar_subtitle="contact_address" sidebar_avatar="avatar_128">
-                <field name="partner_latitude"/>
-                <field name="partner_longitude"/>
-                <field name="display_name"/>
-                <field name="contact_address"/>
-                <field name="marker_color"/>
+            <google_map
+                string="Contacts"
+                js_class="google_map_contact_avatar"
+                lat="partner_latitude"
+                color="marker_color"
+                lng="partner_longitude"
+                sidebar_title="display_name"
+                sidebar_subtitle="contact_address"
+                sidebar_avatar="avatar_128"
+            >
+                <field name="partner_latitude" />
+                <field name="partner_longitude" />
+                <field name="display_name" />
+                <field name="contact_address" />
+                <field name="marker_color" />
             </google_map>
         </field>
     </record>
@@ -17,32 +26,38 @@
         <field name="view_mode">list,kanban,form,google_map</field>
     </record>
     <record id="action_partner_form_view3" model="ir.actions.act_window.view">
-        <field eval="3" name="sequence"/>
+        <field eval="3" name="sequence" />
         <field name="view_mode">google_map</field>
-        <field name="view_id" ref="contacts_google_map.view_res_partner_google_map"/>
-        <field name="act_window_id" ref="base.action_partner_form"/>
+        <field name="view_id" ref="contacts_google_map.view_res_partner_google_map" />
+        <field name="act_window_id" ref="base.action_partner_form" />
     </record>
     <record id="contacts.action_contacts" model="ir.actions.act_window">
         <field name="view_mode">list,kanban,form,activity,google_map</field>
     </record>
     <record id="action_contacts_view_google_map" model="ir.actions.act_window.view">
-        <field name="sequence" eval="4"/>
+        <field name="sequence" eval="4" />
         <field name="view_mode">google_map</field>
-        <field name="view_id" ref="contacts_google_map.view_res_partner_google_map"/>
-        <field name="act_window_id" ref="contacts.action_contacts"/>
+        <field name="view_id" ref="contacts_google_map.view_res_partner_google_map" />
+        <field name="act_window_id" ref="contacts.action_contacts" />
     </record>
     <record id="view_crm_partner_geo_form_inherit" model="ir.ui.view">
         <field name="name">view.crm.partner.get.form.inherit</field>
         <field name="model">res.partner</field>
-        <field name="inherit_id" ref="base_geolocalize.view_crm_partner_geo_form"/>
-        <field name="priority">1000</field>
+        <field name="inherit_id" ref="base_geolocalize.view_crm_partner_geo_form" />
+        <field name="priority" eval="1000" />
         <field name="arch" type="xml">
             <xpath expr="//label[@for='date_localization']/.." position="inside">
-                <field name="marker_color" widget="color_picker"/>
+                <field name="marker_color" widget="color_picker" />
             </xpath>
             <xpath expr="//page[@name='geo_location']/group[1]/group[1]" position="after">
                 <group>
-                    <widget name="google_map" lat="partner_latitude" lng="partner_longitude" width="100%" height="400"/>
+                    <widget
+                        name="google_map"
+                        lat="partner_latitude"
+                        lng="partner_longitude"
+                        width="100%"
+                        height="400"
+                    />
                 </group>
             </xpath>
         </field>
@@ -50,11 +65,18 @@
     <record id="view_res_partner_form_inherit_nearby_search" model="ir.ui.view">
         <field name="name">view.res.partner.form.inherit.nearby.search</field>
         <field name="model">res.partner</field>
-        <field name="inherit_id" ref="base.view_partner_form"/>
-        <field name="priority">1000</field>
+        <field name="inherit_id" ref="base.view_partner_form" />
+        <field name="priority" eval="1000" />
         <field name="arch" type="xml">
             <xpath expr="//div[@name='button_box']" position="inside">
-                <button name="action_nearby_search" type="object" string="Nearby Contacts" icon="fa-location-arrow" class="btn-sm" invisible="not partner_latitude and not partner_longitude"/>
+                <button
+                    name="action_nearby_search"
+                    type="object"
+                    string="Nearby Contacts"
+                    icon="fa-location-arrow"
+                    class="btn-sm"
+                    invisible="not partner_latitude and not partner_longitude"
+                />
             </xpath>
         </field>
     </record>

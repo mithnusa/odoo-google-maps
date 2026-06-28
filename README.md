@@ -113,7 +113,7 @@ Shared foundation for click-to-create workflows on map views. Provides the serve
 
 ### Contacts
 
-**[contacts_google_map](contacts_google_map/README.md)** `19.0.1.0.10`
+**[contacts_google_map](contacts_google_map/README.md)** `19.0.1.0.11`
 
 Adds a Google Map view to the Contacts application. Partners appear as color-coded markers; clicking one opens the contact card. Each contact form gains a Geolocation tab with an embedded map, a one-click geocode button, a marker color picker, and a nearby partners search. An optional background cron job can geocode all contacts automatically.
 
