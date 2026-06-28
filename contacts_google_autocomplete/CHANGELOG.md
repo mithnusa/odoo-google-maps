@@ -1,5 +1,14 @@
 # Change Log
 
+## 19.0.1.0.3
+
+### Improved
+
+- **Python — Black format** (`__init__.py`): Reformatted post-install hook with Black (line length 79); no logic changes.
+- **XML format** (`views/res_partner_views.xml`): Reformatted with self-closing tags; `priority` attribute now uses `eval="999"` for explicit integer evaluation.
+- **`__manifest__.py`**: Removed explicit `installable`, `application`, and `auto_install` keys — these are Odoo defaults and were redundant.
+- **`CHANGELOG.md`**: Removed trailing whitespace from `19.0.1.0.0` section.
+
 ## 19.0.1.0.2
 
 ### Improved
@@ -18,7 +27,7 @@
 - **Code Quality**: Removed trailing whitespace for cleaner code
 
 ## 19.0.1.0.0
-A new module that combines the following modules from previous versions:     
+A new module that combines the following modules from previous versions:
 - contacts_gautocomplete_address_form
 - contacts_gautocomplete_address_form_extended
 - contacts_gautocomplete_places
