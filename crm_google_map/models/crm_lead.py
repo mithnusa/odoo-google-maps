@@ -7,7 +7,6 @@ from odoo.fields import Domain
 from odoo.addons.base.models.res_partner import ADDRESS_FIELDS
 from odoo.addons.crm.models.crm_lead import PARTNER_ADDRESS_FIELDS_TO_SYNC
 
-
 _logger = logging.getLogger(__name__)
 
 
