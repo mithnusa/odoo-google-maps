@@ -2,7 +2,7 @@ exclude: "static/(lib|img)/|tests"
 
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v5.0.0
+    rev: v6.0.0
     hooks:
       - id: trailing-whitespace
       - id: end-of-file-fixer
@@ -19,21 +19,21 @@ repos:
       - id: no-commit-to-branch
         args: ["--branch", "main", "--branch", "master", "--branch", "19.0"]
 
-  - repo: https://github.com/psf/black
-    rev: 24.10.0
+  - repo: https://github.com/psf/black-pre-commit-mirror
+    rev: 26.5.1
     hooks:
       - id: black
         args: ["--line-length=79", "--skip-string-normalization"]
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.11.0   # bump to latest
+    rev: v0.15.20   # bump to latest
     hooks:
       - id: ruff
         args: ["--fix", "--ignore=F401"]
         # F401 per-file-ignores configured in pyproject.toml
 
   - repo: https://github.com/pre-commit/mirrors-prettier
-    rev: v3.1.0
+    rev: v4.0.0-alpha.8
     hooks:
       - id: prettier
         name: prettier (javascript)
@@ -43,7 +43,7 @@ repos:
         args: ["--print-width=120"]
 
   - repo: https://github.com/pre-commit/mirrors-prettier
-    rev: v2.7.1
+    rev: v4.0.0-alpha.8
     hooks:
       - id: prettier
         name: prettier (xml)
@@ -73,7 +73,7 @@ repos:
       - id: oca-checks-po
 
   - repo: https://github.com/pre-commit/mirrors-eslint
-    rev: v9.39.1
+    rev: v10.6.0
     hooks:
       - id: eslint
         files: \.js$
