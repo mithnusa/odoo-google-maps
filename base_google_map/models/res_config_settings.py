@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 from odoo import api, fields, models
 
-
 GMAPS_LANG_LOCALIZATION = [
     ('af', 'Afrikaans'),
     ('sq', 'Albanian'),
