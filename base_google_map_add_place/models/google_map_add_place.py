@@ -4,7 +4,6 @@ from bs4 import BeautifulSoup
 from odoo import api, fields, models
 from odoo.fields import Domain
 
-
 GOOGLE_PLACES_COMPONENT_FORM = {
     "street_number": "longText",
     "route": "longText",
