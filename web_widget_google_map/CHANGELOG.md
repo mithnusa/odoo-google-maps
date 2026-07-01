@@ -1,5 +1,14 @@
 # Change Log
 
+## 19.0.1.0.7
+
+### Improved
+
+- **`GoogleMapGeolocate` — Pre-flight Permission Check**: Added an early `navigator.permissions.query({ name: 'geolocation' })` check before calling `getCurrentPosition`; when `state === 'denied'` the component now shows an actionable notification immediately instead of waiting for the browser's silent error callback
+- **`GoogleMapGeolocate` — `PERMISSION_DENIED` Error Message**: Updated the case-1 error message to match the new pre-flight wording: `"Location access is blocked. Click the lock icon in your browser address bar, allow location access, then try again."`
+- **`geolocate.scss` — Button Spacing & Color**: Reduced `margin-bottom` from `8px` to `2px`; simplified padding to `6px`; removed explicit `opacity` and `cursor` overrides; added `color: #1a56c4` to match the blue geolocation icon style
+- **`geolocate.xml` — Icon Class**: Removed `text-700` class from the `fa-location-arrow` icon, letting it inherit color from the button's CSS
+
 ## 19.0.1.0.6
 
 ### Added
