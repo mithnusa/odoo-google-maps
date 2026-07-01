@@ -1,5 +1,16 @@
 # Change Log
 
+## 19.0.1.0.6
+
+### Changed
+
+- **`post_init_hook` → XML Data File**: Replaced the Python `post_init_hook` that imperatively appended `google_map` to action `view_mode` strings with a declarative `data/ir_actions_act_window.xml` file. The XML approach re-applies the view mode on every module update, surviving upgrades of the `project` module that would otherwise reset `view_mode` to its default.
+- **Removed `post_init_hook`**: `post_init_hook` function and its manifest entry removed; view mode injection is now handled entirely by the data file.
+
+### Improved
+
+- **`uninstall_hook` — Extended Coverage**: Added cleanup for 2 additional task actions (`project.action_view_all_task`, `project.action_view_my_task`) that were previously missing from the uninstall cleanup.
+
 ## 19.0.1.0.5
 
 ### Changed

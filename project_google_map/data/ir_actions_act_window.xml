@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+    Appends the "google_map" view mode to standard Project and Task window
+    actions. Declared in a data file (not a post_init_hook) so that it is
+    re-applied on every module update, surviving project module upgrades.
+-->
+<odoo>
+    <!-- Project actions -->
+    <record id="project.open_view_project_all" model="ir.actions.act_window">
+        <field name="view_mode">kanban,list,form,google_map</field>
+    </record>
+
+    <record id="project.open_view_project_all_group_stage" model="ir.actions.act_window">
+        <field name="view_mode">kanban,list,form,calendar,activity,google_map</field>
+    </record>
+
+    <record id="project.open_view_project_all_config" model="ir.actions.act_window">
+        <field name="view_mode">list,kanban,form,google_map</field>
+    </record>
+
+    <record id="project.open_view_project_all_config_group_stage" model="ir.actions.act_window">
+        <field name="view_mode">list,kanban,form,calendar,activity,google_map</field>
+    </record>
+
+    <!-- Task actions -->
+    <record id="project.act_project_project_2_project_task_all" model="ir.actions.act_window">
+        <field name="view_mode">kanban,list,form,calendar,pivot,graph,activity,google_map</field>
+    </record>
+
+    <record id="project.action_view_all_task" model="ir.actions.act_window">
+        <field name="view_mode">list,kanban,form,calendar,activity,pivot,graph,google_map</field>
+    </record>
+
+    <record id="project.action_view_my_task" model="ir.actions.act_window">
+        <field name="view_mode">kanban,list,form,calendar,activity,pivot,graph,google_map</field>
+    </record>
+</odoo>

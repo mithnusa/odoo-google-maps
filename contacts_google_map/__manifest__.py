@@ -28,7 +28,6 @@ Provides:
         'base_geolocalize',
         'contacts',
         'web_view_google_map',
-        'web_widget_google_map',
     ],
     'data': [
         'data/cron_contact_geolocalize.xml',
