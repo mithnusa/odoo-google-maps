@@ -23,12 +23,13 @@ Provides:
     'website': 'https://www.mithnusa.com',
     'support': 'yopiangi@gmail.com',
     'category': 'Project',
-    'version': '19.0.1.0.5',
+    'version': '19.0.1.0.6',
     'depends': [
         'project',
         'web_view_google_map',
     ],
     'data': [
+        'data/ir_actions_act_window.xml',
         'views/project_project.xml',
         'views/project_task.xml',
     ],
@@ -41,6 +42,5 @@ Provides:
             'project_google_map/static/src/views/google_map/google_map_view.js',
         ],
     },
-    'post_init_hook': 'post_init_hook',
     'uninstall_hook': 'uninstall_hook',
 }

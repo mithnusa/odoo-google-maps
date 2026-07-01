@@ -68,8 +68,6 @@ graph LR
     web_view_google_map --> stock_google_map
     web_view_google_map --> project_google_map
 
-    web_widget_google_map --> contacts_google_map
-
     web_widget_google_place_autocomplete --> contacts_google_autocomplete
     web_widget_google_place_autocomplete --> crm_google_autocomplete
 
@@ -170,7 +168,7 @@ Adds a Google Map view to the Inventory application, covering Deliveries, Ready 
 
 ### Project
 
-**[project_google_map](project_google_map/README.md)** [`19.0.1.0.5`](project_google_map/CHANGELOG.md)
+**[project_google_map](project_google_map/README.md)** [`19.0.1.0.6`](project_google_map/CHANGELOG.md)
 
 Adds Google Map views for Projects and Tasks. Project markers are automatically color-coded by health status — on track, at risk, off track, on hold, and done — and include a "View Tasks" shortcut to jump directly to that project's tasks. The project form gains an embedded satellite map. Task markers can be individually color-coded using a color picker.
 
