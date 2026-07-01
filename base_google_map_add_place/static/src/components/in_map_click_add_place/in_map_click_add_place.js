@@ -33,8 +33,13 @@ export class InMapClickAddPlace extends Component {
     static props = ['googleMap'];
 
     /**
-     * Initialises OWL services, pre-binds event handler references so they
-     * can be properly removed on cleanup, and registers lifecycle hooks.
+     * Initialises OWL services, pre-binds event handler references, and
+     * registers lifecycle hooks.
+     *
+     * All listener callbacks are bound once here and stored as instance fields
+     * (`_bound*`) so the exact same function reference can be passed to both
+     * `addEventListener` and `removeEventListener` — arrow-function callbacks
+     * defined inline at call-site cannot be removed later.
      *
      * @returns {void}
      */
@@ -54,6 +59,8 @@ export class InMapClickAddPlace extends Component {
         this._indicatorElement = null;
         // Store bound reference for button click listener to properly clean it up
         this._boundButtonClickListener = this.actionZoomInMap.bind(this);
+        // Store reference to the geocoder singleton for reuse
+        this._geocoder = null;
 
         onMounted(() => {
             this._onMounted();
@@ -65,9 +72,10 @@ export class InMapClickAddPlace extends Component {
     }
 
     /**
-     * Called by OWL after component is mounted. Registers the map click listener and
-     * injects the add-place indicator control into the map's RIGHT_TOP corner
-     * exactly once — subsequent renders are no-ops thanks to the null-checks.
+     * Called by OWL after the component is mounted. Registers the map `click`
+     * listener and injects the add-place indicator control into the map's
+     * {@link controlPosition} corner. Guards prevent double-registration if the
+     * method is somehow called more than once.
      *
      * @returns {void}
      * @private
@@ -83,7 +91,7 @@ export class InMapClickAddPlace extends Component {
             const content = renderToString('base_google_map_add_place.PlaceCreationIndicator', {});
             this._indicatorElement = new DOMParser().parseFromString(content, 'text/html').querySelector('div');
             this._indicatorElement.querySelector('button').addEventListener('click', this._boundButtonClickListener);
-            this.props.googleMap.controls[google.maps.ControlPosition.RIGHT_TOP].push(this._indicatorElement);
+            this.props.googleMap.controls[this.controlPosition].push(this._indicatorElement);
             this._mapIdleAddPlaceIndicatorListener = this.props.googleMap.addListener(
                 'idle',
                 this._boundMapClickableAddPlaceIndicatorListener
@@ -93,52 +101,48 @@ export class InMapClickAddPlace extends Component {
 
     /**
      * Updates the add-place indicator button style based on the current map
-     * zoom level. Triggered on every Google Maps `idle` event.
+     * zoom level. Bound to the Google Maps `idle` event so it runs after every
+     * pan or zoom settles.
      *
-     * - Zoom >= {@link ZOOM_THRESHOLD}: switches the button to `btn-success`
-     *   with an `animate` class, signalling that map clicks will create a place.
-     * - Zoom < {@link ZOOM_THRESHOLD}: reverts to `btn-light` without animation,
-     *   signalling that map clicks are inactive.
+     * Active state (zoom >= {@link ZOOM_THRESHOLD}): `btn-success` + `animate`.
+     * Inactive state (zoom < {@link ZOOM_THRESHOLD}): `btn-light`, no animation.
+     *
+     * Uses {@link _indicatorElement} directly instead of scanning the controls
+     * array — the reference is captured at mount time, so no DOM search is needed.
+     * `classList.toggle(cls, bool)` handles add/remove idempotently, avoiding
+     * redundant `contains()` guards.
      *
      * @returns {void}
      * @private
      */
     _handleMapClickableAddPlaceIndicator() {
-        if (!this.props.googleMap) return;
+        if (!this.props.googleMap || !this._indicatorElement) return;
 
-        const zoomLevel = this.props.googleMap.getZoom();
-        this.props.googleMap.controls[google.maps.ControlPosition.RIGHT_TOP].forEach((element) => {
-            if (element.id === 'custom-control-add-places-indicator') {
-                let button = element.querySelector('button');
-                if (zoomLevel >= ZOOM_THRESHOLD) {
-                    if (button.classList.contains('btn-light')) {
-                        button.classList.remove('btn-light');
-                        button.classList.add('btn-success', 'animate');
-                    }
-                } else {
-                    button.classList.remove('animate', 'btn-success');
-                    if (!button.classList.contains('btn-light')) {
-                        button.classList.add('btn-light');
-                    }
-                }
-            }
-        });
+        const isActive = this.props.googleMap.getZoom() >= ZOOM_THRESHOLD;
+        const button = this._indicatorElement.querySelector('button');
+        button.classList.toggle('btn-light', !isActive);
+        button.classList.toggle('btn-success', isActive);
+        button.classList.toggle('animate', isActive);
     }
 
     /**
-     * Handles Google Maps `click` events. Ignores clicks when the current
-     * zoom level is below {@link ZOOM_THRESHOLD}.
+     * Handles Google Maps `click` events.
+     *
+     * Silently ignores clicks when zoom < {@link ZOOM_THRESHOLD}. When zoomed
+     * in, the Shift key must be held to confirm intent — without it an info
+     * notification prompts the user and the click is discarded. This two-step
+     * guard prevents accidental record creation during normal map navigation.
      *
      * Delegates to:
-     * - {@link _getPlaceDetails} when the click targets a known Google Place
-     *   (i.e. `event.placeId` is set).
+     * - {@link _getPlaceDetails} when the click targets a named Google Place
+     *   (`event.placeId` is set).
      * - {@link _getPlaceReverseGeocode} when the click targets empty map space.
      *
-     * Errors in either delegate are caught here and surfaced as warning
+     * Errors from either delegate are caught here and surfaced as error
      * notifications so the map remains usable.
      *
      * @param {google.maps.MapMouseEvent} event - The map click event.
-     * @param {google.maps.LatLng} event.latLng - The geographic coordinate that was clicked.
+     * @param {google.maps.LatLng} event.latLng - The geographic coordinate clicked.
      * @param {string} [event.placeId] - The Place ID of the clicked feature, if any.
      * @returns {Promise<void>}
      * @private
@@ -147,42 +151,53 @@ export class InMapClickAddPlace extends Component {
         if (!this.props.googleMap) return;
 
         const zoomLevel = this.props.googleMap.getZoom();
-        if (zoomLevel >= ZOOM_THRESHOLD) {
-            if (event.placeId) {
-                try {
-                    await this._getPlaceDetails(event);
-                } catch (error) {
-                    console.error('Error fetching place details:', error);
-                    this.notificationService.add(_t('Failed to retrieve place details.'), {
-                        type: 'warning',
-                    });
-                }
-            } else {
-                try {
-                    await this._getPlaceReverseGeocode(event);
-                } catch (error) {
-                    console.error('Error performing reverse geocoding:', error);
-                    this.notificationService.add(_t('Failed to retrieve place information.'), {
-                        type: 'warning',
-                    });
-                }
+        if (zoomLevel < ZOOM_THRESHOLD) return;
+
+        // Shift key must be held to add a place when zoomed out, to avoid accidental clicks
+        if (!event.domEvent.shiftKey) {
+            this.notificationService.add(_t('Hold Shift key and click to add a place.'), {
+                type: 'info',
+                autocloseDelay: 3000,
+                sticky: false,
+            });
+            return;
+        }
+
+        if (event.placeId) {
+            try {
+                await this._getPlaceDetails(event);
+            } catch (error) {
+                console.error('Error fetching place details:', error);
+                this.notificationService.add(_t('Failed to retrieve place details.'), {
+                    type: 'error',
+                });
+            }
+        } else {
+            try {
+                await this._getPlaceReverseGeocode(event);
+            } catch (error) {
+                console.error('Error performing reverse geocoding:', error);
+                this.notificationService.add(_t('Failed to retrieve location information.'), {
+                    type: 'error',
+                });
             }
         }
     }
 
     /**
-     * Fetches full place details from the Google Places API (New) for the
-     * place identified by `event.placeId`, then calls the Python method
-     * `res.partner.action_in_map_google_place_create` to obtain an Odoo
-     * action that opens a pre-populated quick-create or edit form.
+     * Fetches place details from the Google Places API (New) for the place
+     * identified by `event.placeId`, then calls `action_in_map_google_place_create`
+     * on `this.env.model.config.resModel` to obtain an Odoo action that opens
+     * a pre-populated quick-create or edit form.
      *
-     * Fields fetched from the Places API:
-     * `addressComponents`, `displayName`, `location`, `websiteURI`,
-     * `internationalPhoneNumber`, `adrFormatAddress`.
+     * Fields fetched: `addressComponents`, `displayName`, `location`,
+     * `websiteURI`, `internationalPhoneNumber`, `adrFormatAddress`.
+     * `location` is a `LatLng` object and is serialised to a plain `{lat, lng}`
+     * via `.toJSON()` before being passed to the ORM call.
      *
      * On success, the returned `ir.actions.act_window` is executed via
-     * {@link actionService.doAction} with an `onSave` callback that
-     * delegates to {@link _handleOnSave}.
+     * `actionService.doAction` with an `onSave` callback that delegates to
+     * {@link _handleOnSave}.
      *
      * @param {google.maps.MapMouseEvent} event - The map click event.
      * @param {string} event.placeId - The Google Place ID of the clicked feature.
@@ -207,19 +222,15 @@ export class InMapClickAddPlace extends Component {
             ],
         });
 
-        const placeData = place.toJSON();
-        const { addressComponents, displayName, location, websiteURI, internationalPhoneNumber, adrFormatAddress } =
-            placeData; // Destructure to ensure place details are fetched
-
         const action = await this.ormService.call(this.env.model.config.resModel, 'action_in_map_google_place_create', [
             {
                 placeId,
-                addressComponents,
-                displayName,
-                location,
-                websiteURI,
-                internationalPhoneNumber,
-                adrFormatAddress,
+                addressComponents: place.addressComponents,
+                displayName: place.displayName,
+                location: place.location?.toJSON(),
+                websiteURI: place.websiteURI,
+                internationalPhoneNumber: place.internationalPhoneNumber,
+                adrFormatAddress: place.adrFormatAddress,
             },
         ]);
         if (action && action.type === 'ir.actions.act_window') {
@@ -241,19 +252,19 @@ export class InMapClickAddPlace extends Component {
     }
 
     /**
-     * Reverse-geocodes the clicked map coordinate using `google.maps.Geocoder`
-     * and passes the first result to the Python method
-     * `res.partner.action_in_map_google_place_from_reverse_geocode` to obtain
-     * an Odoo action that opens a pre-populated quick-create or edit form.
+     * Reverse-geocodes the clicked map coordinate via the shared
+     * {@link _getGeocoder} singleton and passes the first result to
+     * `action_in_map_google_place_from_reverse_geocode` on
+     * `this.env.model.config.resModel` to obtain an Odoo action that opens a
+     * pre-populated quick-create or edit form.
      *
      * Used when the click event has no `placeId` (i.e. the user clicked on
      * empty map space rather than a named Google Place).
      *
-     * On success, the returned `ir.actions.act_window` is executed via
-     * {@link actionService.doAction} with an `onSave` callback that
-     * delegates to {@link _handleOnSave}.
-     *
      * Displays a warning notification when geocoding returns no results.
+     * On success, the returned `ir.actions.act_window` is executed via
+     * `actionService.doAction` with an `onSave` callback that delegates to
+     * {@link _handleOnSave}.
      *
      * @param {google.maps.MapMouseEvent} event - The map click event.
      * @param {google.maps.LatLng} event.latLng - The coordinate to reverse-geocode.
@@ -263,8 +274,7 @@ export class InMapClickAddPlace extends Component {
      * @private
      */
     async _getPlaceReverseGeocode(event) {
-        const geocoder = new google.maps.Geocoder();
-        const { results } = await geocoder.geocode({ location: event.latLng });
+        const { results } = await this._getGeocoder().geocode({ location: event.latLng });
         if (results && results.length > 0) {
             const action = await this.ormService.call(
                 this.env.model.config.resModel,
@@ -301,12 +311,16 @@ export class InMapClickAddPlace extends Component {
      * On a successful save (`record.resId` is truthy):
      * 1. Closes the dialog/action window.
      * 2. Reloads the parent map view's root record set.
-     * 3. Shows a sticky-free info notification with an "Open" button that
+     * 3. Shows a transient info notification with an "Open" button that
      *    navigates to the newly created or updated record.
      *
+     * Does nothing when `record.resId` is falsy (user discarded the form).
+     *
      * @param {import('@web/model/record').Record} record - The saved record object.
-     * @param {'create'|'write'} mode - Whether the form performed a creation
-     *   or an update, used to tailor the notification message.
+     * @param {'create'|'write'} mode - Whether the form performed a creation or
+     *   an update, used to tailor the notification message.
+     * @param {string} [modelName] - Human-readable model name from
+     *   `action.context.model_description`. Falls back to `'record'` when absent.
      * @returns {Promise<void>}
      * @private
      */
@@ -355,14 +369,13 @@ export class InMapClickAddPlace extends Component {
      *
      * When the map is below {@link ZOOM_THRESHOLD}, zooms in to the threshold
      * level and pans to the nearest marker visible in the current viewport
-     * (see {@link _computeSmartZoomTarget}). If no markers are visible the map
-     * simply zooms in on the current centre, preserving the user's intended
-     * location.
-     *
-     * Does nothing when the map is already at or above the threshold.
+     * (see {@link _computeSmartZoomTarget}). Falls back to the current map
+     * centre when no markers are visible. Does nothing when the map is already
+     * at or above the threshold.
      *
      * @param {MouseEvent} ev - The button click event.
      * @returns {void}
+     * @private
      */
     actionZoomInMap(ev) {
         ev.stopPropagation();
@@ -374,6 +387,32 @@ export class InMapClickAddPlace extends Component {
         const target = this._computeSmartZoomTarget();
         this.props.googleMap.setZoom(ZOOM_THRESHOLD);
         this.props.googleMap.panTo(target);
+    }
+
+    /**
+     * The Google Maps control position used for the add-place indicator.
+     * Defined as a getter so subclasses can override it without patching
+     * `_onMounted` or `_cleanup`.
+     *
+     * @returns {google.maps.ControlPosition}
+     */
+    get controlPosition() {
+        return google.maps.ControlPosition.RIGHT_TOP;
+    }
+
+    /**
+     * Returns a shared `google.maps.Geocoder` instance, creating it on first
+     * call. Reusing one instance avoids constructing a new object on every
+     * reverse-geocode request.
+     *
+     * @returns {google.maps.Geocoder}
+     * @private
+     */
+    _getGeocoder() {
+        if (!this._geocoder) {
+            this._geocoder = new google.maps.Geocoder();
+        }
+        return this._geocoder;
     }
 
     /**
@@ -426,12 +465,14 @@ export class InMapClickAddPlace extends Component {
     /**
      * OWL `onWillUnmount` hook. Removes all Google Maps event listeners
      * registered by this component and strips the add-place indicator control
-     * from the map's RIGHT_TOP corner to prevent memory leaks and stale UI.
+     * from `googleMap.controls[{@link controlPosition}]` to prevent memory
+     * leaks and stale UI.
      *
-     * Listeners cleaned up:
-     * - `click` listener on the map (`_placeClickListener`)
-     * - `idle` listener for the indicator button (`_mapIdleAddPlaceIndicatorListener`)
-     * - The injected indicator DOM element from `googleMap.controls[RIGHT_TOP]`
+     * Resources released:
+     * - DOM `click` listener on the indicator button
+     * - Maps `click` listener on the map (`_placeClickListener`)
+     * - Maps `idle` listener for the indicator (`_mapIdleAddPlaceIndicatorListener`)
+     * - The indicator `div` element from the map controls array
      *
      * @returns {void}
      * @private
@@ -450,7 +491,7 @@ export class InMapClickAddPlace extends Component {
             this._mapIdleAddPlaceIndicatorListener = null;
         }
         if (this.props.googleMap) {
-            const controls = this.props.googleMap.controls[google.maps.ControlPosition.RIGHT_TOP];
+            const controls = this.props.googleMap.controls[this.controlPosition];
             for (let i = controls.getLength() - 1; i >= 0; i--) {
                 if (controls.getAt(i).id === 'custom-control-add-places-indicator') {
                     controls.removeAt(i);
