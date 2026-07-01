@@ -1,5 +1,21 @@
 # Change Log
 
+## 19.0.1.0.5
+
+### Added
+
+- **Shift-key Guard**: Map clicks below zoom threshold are now silently ignored; clicks at or above the threshold require holding the Shift key — without it an info notification prompts the user (`"Hold Shift key and click to add a place."`) and the click is discarded, preventing accidental record creation during normal map navigation
+- **`controlPosition` Getter**: New overridable getter returning `google.maps.ControlPosition.RIGHT_TOP`; subclasses can override it to place the indicator in a different corner without patching `_onMounted` or `_cleanup`
+- **`_getGeocoder()` Singleton**: New private method that lazily creates and reuses a single `google.maps.Geocoder` instance (`this._geocoder`), avoiding a new object allocation on every reverse-geocode request
+
+### Improved
+
+- **`_handleMapClickableAddPlaceIndicator()` — Refactored**: Removed the `controls` array loop; now operates directly on `this._indicatorElement` (captured at mount). Replaced manual `contains()` + `add()`/`remove()` calls with `classList.toggle(cls, bool)` for idempotent class management
+- **`_handleMapClick()` — Flattened Control Flow**: Replaced nested `if (zoomLevel >= ZOOM_THRESHOLD) { if (placeId) { … } else { … } }` with early-return guards for a flat, readable structure; error notification type changed from `'warning'` to `'error'`; error message for reverse-geocode failure updated to `"Failed to retrieve location information."`
+- **`_getPlaceDetails()` — Direct Property Access**: Removed intermediate `place.toJSON()` call and destructuring; place properties (`addressComponents`, `displayName`, etc.) are now read directly from the `Place` instance; `location` is serialised via `.toJSON()` before the ORM call
+- **`_getPlaceReverseGeocode()` — Uses Geocoder Singleton**: Replaced `new google.maps.Geocoder()` inline with `this._getGeocoder()`
+- **`_cleanup()` — Uses `controlPosition` Getter**: Replaced hardcoded `google.maps.ControlPosition.RIGHT_TOP` with `this.controlPosition` so subclass overrides are respected at teardown
+
 ## 19.0.1.0.4
 
 ### Improved
