@@ -10,6 +10,7 @@ export class GoogleMapGeolocate extends Component {
     setup() {
         this.notificationService = useService('notification');
         this.geolocateBtn = null;
+        this._idleListener = null;
         // Store bound reference for proper cleanup
         this._boundGeolocation = this.geolocation.bind(this);
 
@@ -43,23 +44,39 @@ export class GoogleMapGeolocate extends Component {
      * Get current user location using browser's geolocation API
      * @returns {Promise<void>}
      */
-    async geolocation(ev) {
-        ev.preventDefault();
+    async geolocation() {
         try {
             if (!navigator.geolocation) {
                 this.notificationService.add(_t('Geolocation is not supported by your browser.'), { type: 'warning' });
                 return;
             }
 
+            // Check permission state before calling getCurrentPosition.
+            // When state is 'prompt', getCurrentPosition triggers the browser dialog.
+            // When state is 'denied', the browser silently fires the error callback —
+            // we intercept here to show a clear, actionable message instead.
+            if (navigator.permissions) {
+                const { state } = await navigator.permissions.query({ name: 'geolocation' });
+                if (state === 'denied') {
+                    this.notificationService.add(
+                        _t(
+                            'Location access is blocked. Click the lock icon in your browser address bar, allow location access, then try again.'
+                        ),
+                        { type: 'danger' }
+                    );
+                    return;
+                }
+            }
+
             const position = await new Promise((resolve, reject) => {
                 navigator.geolocation.getCurrentPosition(resolve, reject, {
                     enableHighAccuracy: true,
-                    timeout: 10000, // 10 seconds
+                    timeout: 10000,
                     maximumAge: 0,
                 });
             });
 
-            this._geolocationSuccess(position);
+            await this._geolocationSuccess(position);
         } catch (error) {
             this._geolocationFailed(error);
         }
@@ -94,15 +111,23 @@ export class GoogleMapGeolocate extends Component {
             });
         }
 
+        // Always update the marker position to ensure it reflects the latest geolocation
+        this.marker.position = latLng;
+
         if (this.marker.map === null) {
             this.marker.map = this.props.googleMap;
         }
 
-        this.props.googleMap.panTo(this.marker.position);
+        this.props.googleMap.panTo(latLng);
 
-        google.maps.event.addListenerOnce(this.props.googleMap, 'idle', () => {
+        if (this._idleListener) {
+            google.maps.event.removeListener(this._idleListener);
+        }
+
+        this._idleListener = google.maps.event.addListenerOnce(this.props.googleMap, 'idle', () => {
+            this._idleListener = null;
             if (this.props.googleMap.getZoom() < 16) this.props.googleMap.setZoom(16);
-            google.maps.event.trigger(this.marker, 'gmp-click');
+            this._onMarkerClick();
         });
     }
 
@@ -128,7 +153,7 @@ export class GoogleMapGeolocate extends Component {
             switch (error.code) {
                 case 1: // PERMISSION_DENIED
                     message = _t(
-                        'Geolocation is disabled. Please enable it in your browser settings if you want browser to detect your location.'
+                        'Location access is blocked. Click the lock icon in your browser address bar, allow location access, then try again.'
                     );
                     break;
                 case 2: // POSITION_UNAVAILABLE
@@ -140,8 +165,8 @@ export class GoogleMapGeolocate extends Component {
                 default:
                     message = _t('An unknown error occurred. Please check Javascript console for details.');
             }
-        } else if (error.message) {
-            message = error.message;
+        } else if (error) {
+            console.error('Geolocation error:', error);
         }
 
         this.notificationService.add(message, { type: 'danger' });
@@ -161,12 +186,16 @@ export class GoogleMapGeolocate extends Component {
             this.infoWindow.close();
             google.maps.event.clearListeners(this.infoWindow, 'closeclick');
         }
+        if (this._idleListener) {
+            google.maps.event.removeListener(this._idleListener);
+            this._idleListener = null;
+        }
         if (this.geolocateBtn && this._boundGeolocation) {
             this.geolocateBtn.removeEventListener('click', this._boundGeolocation);
             // Remove button from map controls
             if (this.props.googleMap) {
                 const controls = this.props.googleMap.controls[google.maps.ControlPosition.RIGHT_BOTTOM];
-                const index = controls ? (controls.getArray() || []).indexOf(this.geolocateBtn) : -1;
+                const index = controls ? controls.getArray().indexOf(this.geolocateBtn) : -1;
                 if (index > -1) {
                     controls.removeAt(index);
                 }

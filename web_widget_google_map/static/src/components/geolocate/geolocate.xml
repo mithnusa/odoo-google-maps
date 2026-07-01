@@ -12,7 +12,7 @@
                     data-tooltip="Get Current location"
                     aria-label="Get Current location"
                 >
-                    <i class="fa fa-location-arrow fa-2x text-700" />
+                    <i class="fa fa-location-arrow fa-2x" />
                 </button>
             </div>
         </div>

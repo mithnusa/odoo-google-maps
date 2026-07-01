@@ -2,13 +2,12 @@
     .o_google_map_view {
         .button_geolocate_user {
             margin-right: 10px;
-            margin-bottom: 8px;
+            margin-bottom: 2px;
 
             .btn {
-                opacity: 1;
-                cursor: pointer;
-                padding: 6px 10px 5px 8px;
+                padding: 6px;
                 width: 42px;
+                color: #1a56c4;
             }
         }
     }
