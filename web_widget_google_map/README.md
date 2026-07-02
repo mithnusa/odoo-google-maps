@@ -2,15 +2,15 @@
 
 ## Overview
 
-This module provides a `google_map` form widget that embeds a Google Maps preview directly inside any Odoo form view. An edit button opens an interactive dialog where users can drag a marker or search for a place to update the record's coordinates.
+This module provides a `google_map` form widget that displays a Google Maps Static API image inside any Odoo form view. An edit button opens an interactive dialog where users can drag a marker or search for a place to update the record's coordinates.
 
 ## What It Does
 
-Adds a `google_map` widget for use in form views. It shows an embedded map at the record's stored latitude and longitude. When the field is editable, an edit button opens a full interactive map in a dialog — users can drag the marker to any position or use a place search to navigate and confirm a new location. Saving the dialog writes the updated coordinates back to the record.
+Adds a `google_map` widget for use in form views. It shows a collapsible static map image at the record's stored latitude and longitude. When the field is editable, an edit button opens a full interactive map in a dialog — users can drag the marker to any position or use a place search to navigate and confirm a new location. Saving the dialog writes the updated coordinates back to the record.
 
 ## Key Features
 
-- **Embedded Map Preview**: Renders a Google Maps iframe inside the form view at the record's current coordinates, with configurable zoom, map type, width, and height
+- **Collapsible Static Map Preview**: A "Show Map" toggle reveals a Google Maps Static API image at the record's current coordinates; configurable zoom, map type, width, and height
 - **Interactive Edit Dialog**: An edit button opens a dialog with a full interactive Google Map and a draggable marker for precise coordinate selection
 - **Draggable Marker**: Drag the marker anywhere on the map to pick new coordinates; the dialog updates on drop and writes the values to the record on save
 - **Place Search in Dialog**: A Google Places search box inside the dialog lets users navigate the map to a named location before dropping the marker
@@ -22,10 +22,17 @@ Adds a `google_map` widget for use in form views. It shows an embedded map at th
 
 - `base_google_map`
 
+## Required Google APIs
+
+The **Maps Static API** must be enabled in your Google Cloud Console project — it is a separate product from the Maps JavaScript API and is not enabled by default. Without it, the map preview image will fail to load.
+
+Enable it at: **Google Cloud Console → APIs & Services → Library → Maps Static API → Enable**
+
 ## Installation
 
 1. Install the module through Odoo Apps
 2. Ensure a valid Google Maps API key is configured in **Settings → General Settings → Google Maps**
+3. Enable the **Maps Static API** in Google Cloud Console (see above)
 
 ## Basic Usage
 

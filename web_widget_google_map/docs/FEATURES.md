@@ -1,13 +1,14 @@
 # Web Widget Google Maps - Features
 
-## Embedded Map Preview
+## Map Preview in Form View
 
-### Map Display in Form View
-**What it does**: Renders a Google Maps iframe at the record's current coordinates directly inside a form view.
+### Collapsible Static Map Image
 
-**Why it matters**: Gives users an immediate spatial view of a record's location without leaving the form or opening a separate map view.
+**What it does**: Renders a Google Maps Static API image at the record's current coordinates inside a form view, revealed by a "Show Map" / "Hide Map" toggle button.
 
-**How it works**: The widget uses the Google Maps Embed API to generate an iframe pointing to the stored latitude and longitude. When coordinates are 0,0 (unset), the map defaults to a world-level zoom. Configurable attributes control the display: `zoom` (default: 14), `maptype` (`roadmap` or `satellite`, default: `roadmap`), `width` (default: 400), and `height` (default: 200).
+**Why it matters**: Gives users an on-demand spatial view of a record's location without leaving the form. Loading on demand avoids an API request on every form open, and using a static image instead of an iframe eliminates the cross-origin `SecurityError` that Odoo's tooltip system would otherwise trigger.
+
+**How it works**: The widget uses the Google Maps Static API (`maps/api/staticmap`) to build an image URL from the stored latitude and longitude. The image is only fetched when the user toggles the map visible. When coordinates are 0,0 (unset), the map defaults to a world-level zoom and the red marker pin is omitted. Configurable attributes control the display: `zoom` (default: 14), `maptype` (`roadmap` or `satellite`, default: `roadmap`), `width` (default: 400), and `height` (default: 200). Because `props.record` is reactive, the image URL recomputes automatically whenever the coordinates change — saving the edit dialog refreshes the preview without any extra code.
 
 ---
 

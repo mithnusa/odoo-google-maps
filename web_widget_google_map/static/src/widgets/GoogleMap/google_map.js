@@ -13,6 +13,10 @@ import { GoogleMapSearchPlaces } from '../../components/search_places/search_pla
  * Dialog component for editing geolocation coordinates with an interactive Google Map.
  * Allows users to drag a marker to update latitude and longitude values.
  *
+ * Lifecycle safety: `_isUnmounted` is set in `onWillUnmount` so that every async
+ * continuation (importLibrary, tilesloaded promise, idle callback) becomes a no-op
+ * if the dialog is closed before they fire.
+ *
  * @extends ConfirmationDialog
  */
 class GeolocationEditDialog extends ConfirmationDialog {
@@ -37,7 +41,15 @@ class GeolocationEditDialog extends ConfirmationDialog {
 
     /**
      * Initializes the dialog component, sets up services, state, and Google Maps API loader.
-     * Configures effect hooks for map initialization and cleanup on unmount.
+     * Configures an effect hook for map initialization and registers cleanup on unmount.
+     *
+     * `_tilesLoadedListener` stores the MapsEventListener handle returned by the
+     * `tilesloaded` event so it can be cancelled in `_cleanupListeners` if the dialog
+     * closes before tiles finish rendering.
+     *
+     * `_isUnmounted` acts as a guard flag — set to true in `_cleanupListeners` so
+     * that any pending async step (importLibrary, tilesloaded, idle) returns early
+     * instead of touching a detached component.
      */
     setup() {
         super.setup();
@@ -45,6 +57,8 @@ class GeolocationEditDialog extends ConfirmationDialog {
         this.notificationService = useService('notification');
         this.uiService = useService('ui');
         this.googleMap = null;
+        this._tilesLoadedListener = null;
+        this._isUnmounted = false;
 
         // Local variables to store the latitude and longitude while dragging the marker
         this.localLat = this.props.lat || 0.0;
@@ -83,10 +97,23 @@ class GeolocationEditDialog extends ConfirmationDialog {
     }
 
     /**
-     * Cleans up Google Maps event listeners and marker references to prevent memory leaks.
-     * Called automatically when the component is unmounted.
+     * Cleans up all Google Maps resources to prevent memory leaks and stale callbacks.
+     * Called automatically by `onWillUnmount`.
+     *
+     * Steps in order:
+     * 1. Set `_isUnmounted` so async continuations return early.
+     * 2. Cancel any pending `tilesloaded` listener (can fire after dialog DOM is removed).
+     * 3. Remove the `dragend` listener and detach the marker from the map.
+     * 4. Call `clearInstanceListeners` on the map — removes all remaining Maps API
+     *    event bindings (including those set by the Maps SDK internals) so no queued
+     *    callback can touch the detached cross-origin iframes the SDK creates internally.
      */
     _cleanupListeners() {
+        this._isUnmounted = true;
+        if (this._tilesLoadedListener) {
+            google.maps.event.removeListener(this._tilesLoadedListener);
+            this._tilesLoadedListener = null;
+        }
         if (this.marker) {
             if (!this.props.readonly) {
                 google.maps.event.clearListeners(this.marker, 'dragend');
@@ -95,7 +122,7 @@ class GeolocationEditDialog extends ConfirmationDialog {
             this.marker = null;
         }
         if (this.googleMap) {
-            google.maps.event.clearListeners(this.googleMap, 'idle');
+            google.maps.event.clearInstanceListeners(this.googleMap);
         }
     }
 
@@ -114,6 +141,7 @@ class GeolocationEditDialog extends ConfirmationDialog {
                 return;
             }
             const { Map } = await this.apiLoader.importLibrary('maps');
+            if (this._isUnmounted) return;
             const settings = this.apiLoader.getSettings();
             const mapElement = this.mapRef.el;
             const { lat = 0.0, lng = 0.0 } = this.props;
@@ -139,17 +167,23 @@ class GeolocationEditDialog extends ConfirmationDialog {
     /**
      * Waits for the map tiles to finish loading before rendering the marker.
      *
+     * The `tilesloaded` listener handle is stored on `this._tilesLoadedListener` so
+     * `_cleanupListeners` can cancel it if the dialog closes before tiles finish.
+     * After the await, `_isUnmounted` is checked before touching component state.
+     *
      * @async
      * @param {google.maps.Map} map - The Google Maps instance
      * @returns {Promise<void>}
      */
     async onMapReady(map) {
         await new Promise((resolve) => {
-            const listener = map.addListener('tilesloaded', () => {
-                google.maps.event.removeListener(listener);
+            this._tilesLoadedListener = map.addListener('tilesloaded', () => {
+                google.maps.event.removeListener(this._tilesLoadedListener);
+                this._tilesLoadedListener = null;
                 resolve();
             });
         });
+        if (this._isUnmounted) return;
         this.state.isMapReady = true;
         this.renderMarker();
     }
@@ -158,6 +192,9 @@ class GeolocationEditDialog extends ConfirmationDialog {
      * Renders a draggable marker on the map at the current coordinates.
      * The marker can be dragged to update the location (unless readonly is true).
      * Automatically zooms and centers the map if valid coordinates are provided.
+     *
+     * Guards `_isUnmounted` twice: after `importLibrary` (async) and inside the
+     * `idle` callback so neither path writes to the component after it unmounts.
      *
      * @async
      * @returns {Promise<void>}
@@ -174,6 +211,7 @@ class GeolocationEditDialog extends ConfirmationDialog {
 
         try {
             const { AdvancedMarkerElement } = await this.apiLoader.importLibrary('marker');
+            if (this._isUnmounted) return;
             this.marker = new AdvancedMarkerElement(markerOptions);
             if (isZoomIn) {
                 this.googleMap.panTo({ lat, lng });
@@ -182,7 +220,9 @@ class GeolocationEditDialog extends ConfirmationDialog {
                 this.marker.addListener('dragend', this._handleMarkerDragend.bind(this));
             }
             google.maps.event.addListenerOnce(this.googleMap, 'idle', () => {
-                if (this.googleMap.getZoom() < 16) this.googleMap.setZoom(16);
+                if (!this._isUnmounted && this.googleMap.getZoom() < 16) {
+                    this.googleMap.setZoom(16);
+                }
             });
         } catch (error) {
             this.notificationService.add(
@@ -243,20 +283,30 @@ class GeolocationEditDialog extends ConfirmationDialog {
     /**
      * Handles the marker dragend event, updating local coordinates and centering the map.
      *
+     * `AdvancedMarkerElement.position` after a drag returns a `google.maps.LatLng`
+     * object where `.lat` and `.lng` are methods, not plain numbers. The `typeof`
+     * guard handles both the LatLng object form and a plain `{lat, lng}` literal
+     * so the stored values are always numbers.
+     *
      * @async
      * @returns {Promise<void>}
      */
     async _handleMarkerDragend() {
         const position = this.marker.position;
         this.googleMap.panTo(position);
-        this.localLat = position.lat;
-        this.localLng = position.lng;
+        this.localLat = typeof position.lat === 'function' ? position.lat() : position.lat;
+        this.localLng = typeof position.lng === 'function' ? position.lng() : position.lng;
     }
 }
 
 /**
- * Widget component that displays a Google Maps embed iframe showing a specific location.
- * Provides an edit button to open an interactive dialog for updating coordinates.
+ * Widget component that displays a Google Maps Static API image for a given location.
+ * Renders a collapsible map preview with a toggle button and an edit button that opens
+ * `GeolocationEditDialog` for interactive coordinate updates.
+ *
+ * The static image avoids embedding a cross-origin iframe in the form view, which would
+ * cause `SecurityError` in Odoo's `useClickAway` hook whenever a tooltip or popover
+ * appears on the same page.
  *
  * @extends Component
  */
@@ -280,12 +330,16 @@ export class GoogleMapWidget extends Component {
 
     /**
      * Initializes the widget, validates props, and loads Google Maps settings.
+     *
+     * `state.isMapVisible` drives the collapsible map toggle — the static image is only
+     * rendered (and fetched) when the user explicitly shows the map.
      */
     setup() {
         this.validateProps();
         this.settings = {};
+        this.state = useState({ isMapVisible: false });
         this.dialogService = useService('dialog');
-        onWillStart(this.loadGoogleSetting);
+        onWillStart(this.loadGoogleSetting.bind(this));
     }
 
     /**
@@ -305,24 +359,31 @@ export class GoogleMapWidget extends Component {
     }
 
     /**
-     * Generates the Google Maps Embed API iframe source URL.
+     * Computes the Maps Static API image source URL from the current record coordinates.
+     * Returns `false` when the API key is not yet loaded so the template can hide the
+     * toggle button entirely.
      *
-     * @returns {string|boolean} The iframe source URL or false if settings are not available
+     * Because `props.record` is reactive, OWL re-evaluates this getter whenever the
+     * latitude or longitude field changes, automatically updating the displayed image.
+     *
+     * @returns {string|false} The static map image URL, or false if the key is unavailable
      */
-    get iframeSrc() {
-        if (this.settings) {
+    get staticMapSrc() {
+        if (this.settings?.api_key) {
             return this.generateSrc(this.settings.api_key);
         }
         return false;
     }
 
     /**
-     * Returns the base URL for Google Maps Embed API.
+     * Base URL for the Google Maps Static API.
+     * Requires the "Maps Static API" to be enabled in Google Cloud Console
+     * (separate product from Maps Embed API and Maps JavaScript API).
      *
-     * @returns {string} The base URL for the embed API
+     * @returns {string}
      */
     get baseUrl() {
-        return 'https://www.google.com/maps/embed/v1/place';
+        return 'https://maps.googleapis.com/maps/api/staticmap';
     }
 
     /**
@@ -352,31 +413,47 @@ export class GoogleMapWidget extends Component {
     }
 
     /**
-     * Generates the parameters for the Google Maps Embed API URL.
-     * Adjusts zoom level based on whether valid coordinates are provided.
+     * Builds the query-parameter object for the Maps Static API request.
      *
-     * @returns {Object} An object containing query parameters (q, zoom, maptype)
+     * - `center` + `zoom`: always required; zoom is reduced to 3 when coordinates are 0,0.
+     * - `size`: must be integer pixel dimensions (`WxH`). `toPixels` rejects non-integer
+     *   strings (e.g. "100%") by comparing the parsed integer back to the original string,
+     *   and caps values at 640 (the Static API maximum). Falls back to safe defaults.
+     * - `markers`: added only when valid coordinates exist; omitted for 0,0 to avoid a
+     *   red pin appearing in the middle of the ocean.
+     *
+     * @returns {Object} Query parameters for the Static Maps API
      */
     get params() {
         const lat = this.latitude;
         const lng = this.longitude;
         const maptype = this.getMapType();
-        let zoom = this.props.zoom;
-        if (lat === 0.0 && lng === 0.0) {
-            zoom = 3;
-        }
-        return {
-            q: `${lat},${lng}`,
+        const hasLocation = lat !== 0.0 || lng !== 0.0;
+        const zoom = hasLocation ? this.props.zoom : 3;
+        // Static Maps API requires integer pixel dimensions — reject percentages and other non-integer values.
+        const toPixels = (val, fallback) => {
+            const n = parseInt(val, 10);
+            return Number.isFinite(n) && n > 0 && String(n) === String(val).trim() ? Math.min(n, 640) : fallback;
+        };
+        const width = toPixels(this.props.width, 400);
+        const height = toPixels(this.props.height, 200);
+        const p = {
+            center: `${lat},${lng}`,
             zoom,
+            size: `${width}x${height}`,
             maptype,
         };
+        if (hasLocation) {
+            p.markers = `color:red|${lat},${lng}`;
+        }
+        return p;
     }
 
     /**
-     * Generates the complete Google Maps Embed API iframe source URL.
+     * Assembles the complete Maps Static API image URL from the current params and API key.
      *
      * @param {string} api_key - The Google Maps API key
-     * @returns {string} The complete iframe source URL with all parameters
+     * @returns {string} The complete static map image URL
      */
     generateSrc(api_key) {
         const params = { ...this.params, key: api_key };
@@ -415,6 +492,15 @@ export class GoogleMapWidget extends Component {
             [this.props.lat]: lat,
             [this.props.lng]: lng,
         });
+    }
+
+    /**
+     * Toggles the static map image visibility.
+     * The image is only rendered (and fetched from Google) while the map is visible,
+     * so toggling to hidden avoids unnecessary API requests on subsequent renders.
+     */
+    toggleMap() {
+        this.state.isMapVisible = !this.state.isMapVisible;
     }
 
     /**

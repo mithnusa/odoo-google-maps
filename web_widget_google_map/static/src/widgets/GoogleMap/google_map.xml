@@ -1,20 +1,27 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <templates xml:space="preserve">
     <t t-name="web_widget_google_map.GoogleMapWidget">
-        <div class="d-flex flex-column" t-if="!props.invisible">
-            <div class="o_google_map_widget" t-if="iframeSrc">
-                <iframe
+        <div class="d-flex flex-column gap-1" t-if="!props.invisible">
+            <div class="d-flex gap-2">
+                <button type="button" class="btn btn-light" t-if="staticMapSrc" t-on-click="toggleMap">
+                    <i t-attf-class="fa fa-fw {{ state.isMapVisible ? 'fa-chevron-up' : 'fa-map-marker' }} me-1" />
+                    <t t-esc="state.isMapVisible ? 'Hide Map' : 'Show Map'" />
+                </button>
+                <button type="button" class="btn btn-light" t-on-click="handleOnEdit" t-if="!props.readonly">
+                    <i class="fa fa-fw fa-pencil me-1" />
+                    Edit
+                </button>
+            </div>
+            <div class="o_google_map_widget" t-if="staticMapSrc and state.isMapVisible">
+                <img
                     loading="lazy"
                     t-att-width="props.width"
                     t-att-height="props.height"
-                    frameborder="0"
-                    style="border:0"
-                    referrerpolicy="no-referrer-when-downgrade"
-                    t-att-src="iframeSrc"
-                    allowfullscreen="allowfullscreen"
+                    style="border:0;display:block"
+                    t-att-src="staticMapSrc"
+                    alt="Google Maps preview"
                 />
             </div>
-            <button type="button" class="btn btn-light" t-on-click="handleOnEdit" t-if="!props.readonly">Edit</button>
         </div>
     </t>
     <t t-name="web_widget_google_map.GeolocationEditDialog">
