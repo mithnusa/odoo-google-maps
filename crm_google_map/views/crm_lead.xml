@@ -52,34 +52,30 @@
                                     <field name="customer_longitude" nolabel="1" class="oe_inline" />
                                 </span>
                                 <br />
-                                <button
-                                    invisible="customer_latitude == 0.0 and customer_longitude == 0.0"
-                                    icon="fa-gear"
-                                    string="Compute based on address"
-                                    title="Compute Localization"
-                                    name="geo_localize"
-                                    type="object"
-                                    class="btn btn-link p-0"
-                                />
-                                <button
-                                    invisible="customer_latitude != 0.0 or customer_longitude != 0.0"
-                                    icon="fa-refresh"
-                                    string="Refresh"
-                                    title="Refresh Localization"
-                                    name="geo_localize"
-                                    type="object"
-                                    class="btn btn-link p-0"
-                                />
+                                <div class="d-flex gap-2">
+                                    <button
+                                        invisible="customer_latitude != 0.0 or customer_longitude != 0.0"
+                                        icon="fa-gear"
+                                        string="Compute based on address"
+                                        name="geo_localize"
+                                        type="object"
+                                        class="btn btn-link p-0"
+                                    />
+                                    <button
+                                        invisible="customer_latitude == 0.0 and customer_longitude == 0.0"
+                                        icon="fa-refresh"
+                                        string="Refresh"
+                                        name="geo_localize"
+                                        type="object"
+                                        class="btn btn-link p-0"
+                                    />
+                                    <widget
+                                        name="google_map"
+                                        lat="customer_latitude"
+                                        lng="customer_longitude"
+                                    />
+                                </div>
                             </div>
-                        </group>
-                        <group>
-                            <widget
-                                name="google_map"
-                                lat="customer_latitude"
-                                lng="customer_longitude"
-                                width="100%"
-                                height="400"
-                            />
                         </group>
                     </group>
                 </page>

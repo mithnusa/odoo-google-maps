@@ -17,8 +17,8 @@ Adds the `google_map` view type to the Leads, Opportunities, My Activities, Pipe
 - **Overlap Handling**: When multiple leads share the same address, markers are slightly offset so each remains individually clickable; an indicator icon flags shifted markers
 - **Sidebar with CRM Details**: The map sidebar lists all leads in the current view with their expected revenue and pipeline stage shown beneath each entry
 - **Automatic Geolocation from Partner**: When a contact is linked to a lead, the lead's latitude and longitude are automatically set from the partner's stored coordinates
-- **Geocode from Address**: A button on the Geolocation tab computes coordinates from the lead's address fields using Odoo's geocoding service
-- **Geolocation Tab**: Adds a dedicated tab to the lead form showing coordinates, a geocode button, a marker color picker, and an embedded map preview of the lead's location
+- **Geocode from Address**: Contextual buttons on the Geolocation tab compute or refresh coordinates from the lead's address fields — "Compute based on address" appears when no coordinates are set, "Refresh" when coordinates already exist
+- **Geolocation Tab**: Adds a dedicated tab to the lead form showing coordinates, geocode buttons, a map button, and a marker color picker — all in a single inline row for quick access
 
 ## Dependencies
 

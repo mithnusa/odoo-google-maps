@@ -136,7 +136,7 @@ Enhances the Contact name field with a Google Places panel alongside Odoo's buil
 
 ### CRM
 
-**[crm_google_map](crm_google_map/README.md)** [`19.0.1.0.11`](crm_google_map/CHANGELOG.md)
+**[crm_google_map](crm_google_map/README.md)** [`19.0.1.0.12`](crm_google_map/CHANGELOG.md)
 
 Adds a Google Map view to the CRM application, available in All Leads, My Activities, Opportunities, Pipeline, and Forecast. Each lead appears as a color-coded marker showing stage, address, company, contact, phone, salesperson, expected revenue, win probability, and closing date. Activity scheduling is available directly from each marker's info window. The lead form gains a Geolocation tab with an embedded map preview, a geocode button, and a marker color picker.
 
