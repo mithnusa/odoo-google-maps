@@ -39,13 +39,13 @@
 
 ---
 
-### Embedded Satellite Map in Project Form
+### Map Button in Project Form
 
-**What it does**: Shows a satellite map of the site location directly on the project form's Site tab.
+**What it does**: Adds a map button inline with the coordinates display on the project form's Site tab.
 
 **Why it matters**: Lets you confirm the correct site location without leaving the project form.
 
-**How it works**: When a site address is selected, an embedded satellite map (400px height) renders automatically on the Site tab showing the location.
+**How it works**: The `google_map` widget is placed inside the coordinates div on the Site tab. Clicking the button opens `GeolocationEditDialog` in read-only mode (satellite view) centred on the site's coordinates.
 
 ---
 

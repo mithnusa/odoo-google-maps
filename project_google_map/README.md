@@ -15,7 +15,7 @@ Extends the standard Project app with site location support for both projects an
 - **Map View**: Adds a "Map" view to the Projects list showing each project as a marker at its site location
 - **Status-Colored Markers**: Markers are automatically color-coded by project health status — green (on track), orange (at risk), red (off track), cyan (on hold), purple (done), gray (no status)
 - **Site Address Field**: Adds a "Site" tab to the project form for linking a site address to the project
-- **Embedded Map**: The project form's Site tab displays a satellite map of the selected site location
+- **Map Button**: The project form's Site tab includes a map button inline with the coordinates display; clicking it opens the interactive satellite map dialog for the site location
 - **Quick Task Access**: A "View Tasks" button in the map marker and sidebar opens the task list for that project
 
 ### Tasks
@@ -44,7 +44,7 @@ Extends the standard Project app with site location support for both projects an
 
 1. Open a project and go to the **Site** tab
 2. Select a site address (you can create a new "Site" type partner)
-3. The embedded satellite map on the same tab shows the selected location
+3. Click the map button beside the coordinates to open the satellite map dialog for that location
 4. From the Projects list, switch to the **Map** view to see all projects on a map
 5. Click a project marker to view details and use the "View Tasks" button
 
