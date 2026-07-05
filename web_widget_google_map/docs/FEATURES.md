@@ -1,52 +1,66 @@
 # Web Widget Google Maps - Features
 
-## Map Preview in Form View
+## Widget Button
 
-### Collapsible Static Map Image
+### Single Map Button
 
-**What it does**: Renders a Google Maps Static API image at the record's current coordinates inside a form view, revealed by a "Show Map" / "Hide Map" toggle button.
+**What it does**: Renders a single button on the form view that opens the interactive map dialog in one click.
 
-**Why it matters**: Gives users an on-demand spatial view of a record's location without leaving the form. Loading on demand avoids an API request on every form open, and using a static image instead of an iframe eliminates the cross-origin `SecurityError` that Odoo's tooltip system would otherwise trigger.
+**Why it matters**: Eliminates the extra toggle step — users get directly to the map without first revealing a preview image.
 
-**How it works**: The widget uses the Google Maps Static API (`maps/api/staticmap`) to build an image URL from the stored latitude and longitude. The image is only fetched when the user toggles the map visible. When coordinates are 0,0 (unset), the map defaults to a world-level zoom and the red marker pin is omitted. Configurable attributes control the display: `zoom` (default: 14), `maptype` (`roadmap` or `satellite`, default: `roadmap`), `width` (default: 400), and `height` (default: 200). Because `props.record` is reactive, the image URL recomputes automatically whenever the coordinates change — saving the edit dialog refreshes the preview without any extra code.
+**How it works**: The button label and icon adapt to the context: "View on Map" (read-only) or "Update on Map" (edit mode). Clicking always opens `GeolocationEditDialog` centred on the record's current coordinates.
 
 ---
 
-### Read-Only Display Mode
-**What it does**: Shows the embedded map without an edit button when the form field is in read-only mode.
+### Read-Only Mode
 
-**Why it matters**: Ensures the map is visible for reference in read-only contexts (e.g. portal views, locked records) without exposing editing controls.
+**What it does**: In read-only contexts the dialog opens in view-only mode — the marker is fixed, the Save button is hidden, and only the "Open in Google Maps" link is active.
 
-**How it works**: The widget checks `props.readonly`; when true, the edit button is hidden and no dialog can be opened.
+**Why it matters**: Ensures the map is visible for reference in read-only contexts (portal views, locked records) without exposing editing controls.
+
+**How it works**: The widget passes `readonly: true` to the dialog, which disables `gmpDraggable` on the marker and hides the footer Save/Cancel buttons.
 
 ---
 
 ## Edit Dialog
 
 ### Interactive Edit Dialog
-**What it does**: An edit button on the widget opens a dialog containing a full interactive Google Map for updating the record's coordinates.
 
-**Why it matters**: The embedded iframe is not interactive — the dialog provides a proper map experience for precise location selection before writing any changes to the record.
+**What it does**: Opens a full-screen Google Map dialog for viewing or updating the record's coordinates.
 
-**How it works**: Clicking the edit button opens a `GeolocationEditDialog`. The dialog initializes a Google Maps JavaScript API instance at the current coordinates (zoom 16 if coordinates are set, zoom 3 if unset). A save button writes the confirmed coordinates to the record's latitude and longitude fields; cancel discards any changes.
+**Why it matters**: Provides a proper interactive map experience — panning, zooming, place search, and marker drag — before any values are written to the record.
+
+**How it works**: `GeolocationEditDialog` initialises a Google Maps JavaScript API instance at the current coordinates (zoom 17 if coordinates are set, zoom 3 if unset). A Save button writes the confirmed coordinates to the record's latitude and longitude fields via `record.update()`; Cancel discards any changes.
 
 ---
 
 ### Draggable Marker
+
 **What it does**: Displays a draggable marker in the edit dialog that the user can move to any position on the map to select new coordinates.
 
 **Why it matters**: Allows precise visual placement of a location rather than requiring manual entry of latitude and longitude values.
 
-**How it works**: An `AdvancedMarkerElement` is placed at the current coordinates with `gmpDraggable: true`. On drag end, the marker's new position is stored locally. When the user clicks Save, these coordinates are written to the record via `record.update()`. In read-only mode, `gmpDraggable` is false and the marker is fixed.
+**How it works**: An `AdvancedMarkerElement` is placed at the current coordinates with `gmpDraggable: true`. On drag end, the marker's new position is stored locally. When the user clicks Save, these coordinates are written to the record. In read-only mode, `gmpDraggable` is false and the marker is fixed.
 
 ---
 
 ### Place Search in Edit Dialog
+
 **What it does**: A Google Places search box inside the edit dialog lets users navigate the map to a named location or address before setting the marker.
 
 **Why it matters**: Finding a precise location by name is faster than manually panning the map, especially for new or unfamiliar addresses.
 
-**How it works**: The dialog reuses the `GoogleMapSearchPlaces` component. Selecting a result from the autocomplete pans the map to that location, after which the user can fine-tune the marker position by dragging before saving.
+**How it works**: The dialog includes the `GoogleMapSearchPlaces` component. Selecting a result from the autocomplete pans the map to that location, after which the user can fine-tune the marker position by dragging before saving.
+
+---
+
+### Open in Google Maps
+
+**What it does**: A link in the dialog footer opens the current marker coordinates directly in the Google Maps website in a new tab.
+
+**Why it matters**: Lets users cross-check the location or get directions without leaving Odoo.
+
+**How it works**: The link is always visible in the dialog footer (both readonly and edit mode) and uses the stored local coordinates at the time of clicking.
 
 ---
 
@@ -56,11 +70,11 @@ These components are bundled in this module and re-exported for use by `web_view
 
 ### Geolocation Button (`GoogleMapGeolocate`)
 
-**What it does**: Adds a floating geolocation button to any Google Map instance. Clicking it shows the user's current position as a custom marker and zooms the map to that location.
+**What it does**: Adds a floating geolocation button to any Google Map instance. Clicking it shows the user's current position as a marker and zooms the map to that location.
 
 **Why it matters**: Lets users instantly orient themselves relative to their map data — useful in field workflows where the user's physical location is the starting point for exploration.
 
-**How it works**: The component injects a custom button into the map's `RIGHT_BOTTOM` control area via `google.maps.controls`. On click it calls the browser Geolocation API (`enableHighAccuracy: true`, 10 s timeout). On success an `AdvancedMarkerElement` with an SVG pin is placed at the returned coordinates and an info window labelled "Your location" opens on click. Specific `GeolocationPositionError` codes (permission denied, position unavailable, timeout) map to distinct user-facing notification messages. The button DOM element and all event listeners are cleaned up in `onWillUnmount`.
+**How it works**: The component injects a custom button into the map's `RIGHT_BOTTOM` control area. On click it calls the browser Geolocation API (`enableHighAccuracy: true`, 10 s timeout). On success an `AdvancedMarkerElement` is placed at the returned coordinates and an info window opens on click. Specific error codes (permission denied, position unavailable, timeout) map to distinct user-facing notifications. All DOM nodes and event listeners are cleaned up on unmount.
 
 ---
 
@@ -70,7 +84,7 @@ These components are bundled in this module and re-exported for use by `web_view
 
 **Why it matters**: Lets users navigate a large map to any address or landmark by name, without panning manually or knowing the coordinates in advance.
 
-**How it works**: The component renders a `<gmp-place-autocomplete>` element (`PlaceAutocompleteElement`, Places API New) into the map's `TOP_RIGHT` control area once the map fires its first `idle` event. It respects `restrict_language`, `autocomplete_restrict_country`, and `region` settings from `base_google_map`. The current map bounds are passed as `locationRestriction` and updated on every `bounds_changed` event. On selection a `fetchFields` call retrieves `displayName`, `formattedAddress`, and `location`; the map then pans (or fits the viewport) and an orange pin marker with an info window is placed at the result. All listeners and DOM nodes are removed in `onWillUnmount`.
+**How it works**: The component renders a `PlaceAutocompleteElement` (Places API New) into the map's `TOP_RIGHT` control area once the map is ready. It respects language, region, and country-restriction settings from `base_google_map`. On selection a `fetchFields` call retrieves `displayName`, `formattedAddress`, and `location`; the map then pans to the result and places a marker with an info window. All listeners and DOM nodes are removed on unmount.
 
 ---
 
@@ -82,4 +96,4 @@ These components are bundled in this module and re-exported for use by `web_view
 
 **Why it matters**: Lets users visually verify a record's exact location using street-level imagery alongside the standard map, without leaving the form.
 
-**How it works**: `GoogleMapStreetViewSideBySideDialog` loads the `maps` and `marker` libraries in parallel (Street View classes are part of `maps`). Before initialising the panorama it calls `StreetViewService.getPanorama()` to check imagery coverage within 50 metres of the coordinates. If coverage is confirmed (`StreetViewStatus.OK`) the panorama is created and linked to the map via `map.setStreetView()`. If no imagery is available the right panel is replaced by a styled placeholder and an `AdvancedMarkerElement` is placed on the map to indicate the exact position. Configurable `heading`, `pitch`, and `zoom` props control the initial Street View point-of-view.
+**How it works**: `GoogleMapStreetViewSideBySideDialog` checks Street View imagery coverage via `StreetViewService` before initialising the panorama. If coverage is confirmed the panorama is created and linked to the map. If no imagery is available the right panel is replaced by a styled placeholder and a marker is placed on the map to indicate the exact position.

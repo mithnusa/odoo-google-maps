@@ -2,16 +2,19 @@
 
 ## 19.0.1.0.8
 
+### Changed
+
+- **`GoogleMapWidget` — Simplified to a single button**: Removed the static map image and the two-button layout (toggle + edit). The widget now renders a single contextual button — "View on Map" in readonly mode, "Update on Map" in edit mode — that opens `GeolocationEditDialog` directly. This eliminates the extra click, the Static Maps API call on each form load, and the cross-origin `<iframe>`/`SecurityError` issue that motivated the previous approach.
+
 ### Fixed
 
-- **`GoogleMapWidget` — SecurityError on tooltip/popover**: Replaced the Google Maps Embed API `<iframe>` with a Google Maps Static API `<img>`. Odoo's `useClickAway` hook (used by the `Popover` component behind every `data-tooltip`) iterates all iframes in the document and calls `contentWindow.addEventListener` on each one — a cross-origin iframe causes a `SecurityError` immediately. Using a plain `<img>` eliminates the cross-origin element entirely.
-- **`GeolocationEditDialog._handleMarkerDragend` — Corrupted coordinates after drag**: `AdvancedMarkerElement.position` after a drag returns a `google.maps.LatLng` object where `.lat` and `.lng` are methods, not plain numbers. Accessing them as properties yielded a stringified function in the URL, breaking the static map image after saving. Fixed with a `typeof` guard: `typeof position.lat === 'function' ? position.lat() : position.lat`.
+- **`GeolocationEditDialog._handleMarkerDragend` — Corrupted coordinates after drag**: `AdvancedMarkerElement.position` after a drag returns a `google.maps.LatLng` object where `.lat` and `.lng` are methods, not plain numbers. Fixed with a `typeof` guard: `typeof position.lat === 'function' ? position.lat() : position.lat`.
+- **`GeolocationEditDialog._cleanupListeners` — Hung `tilesloaded` promise on fast close**: Added `_resolveTilesLoaded` — the `resolve` function of the `tilesloaded` Promise is stored on the instance and called in `_cleanupListeners` so the awaited promise is always settled even when the dialog is closed before tiles finish loading.
 
 ### Improved
 
-- **`GoogleMapWidget` — Collapsible map toggle**: The static map image is hidden by default and revealed via a "Show Map" / "Hide Map" toggle button. The image is only fetched from Google when the map is visible, avoiding an API request on every form load.
-- **`GeolocationEditDialog` — Unmount safety guards**: Added `_tilesLoadedListener` (stored handle for the `tilesloaded` Maps event) and `_isUnmounted` flag. Both are checked in `_cleanupListeners` (`onWillUnmount`) and at every async continuation point (`importLibrary`, `tilesloaded` resolve, `idle` callback) so no callback can touch a detached component after the dialog closes. `clearInstanceListeners` is now called on the map instance to cancel all remaining Maps SDK internal events on unmount.
-- **JSDoc and inline comments**: Updated all JSDoc blocks in `google_map.js` to reflect the Static Maps API migration, the collapsible toggle, the unmount safety pattern, and the `LatLng` method guard.
+- **`GeolocationEditDialog` — Map UI controls**: The dialog map now uses `disableDefaultUI: true` with explicit `zoomControl`, `streetViewControl`, `fullscreenControl`, and `mapTypeControl` re-enabled, and `gestureHandling: 'greedy'` so panning works inside the modal without the two-finger scroll requirement.
+- **`GeolocationEditDialog` — Unmount safety guards**: `_tilesLoadedListener` (stored Maps event handle) and `_isUnmounted` flag are checked at every async continuation point (`importLibrary`, `tilesloaded` resolve, `idle` callback). `clearInstanceListeners` is called on the map instance in `_cleanupListeners` to cancel all remaining Maps SDK internal events on dialog close.
 
 ## 19.0.1.0.7
 
