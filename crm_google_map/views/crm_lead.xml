@@ -69,11 +69,7 @@
                                         type="object"
                                         class="btn btn-link p-0"
                                     />
-                                    <widget
-                                        name="google_map"
-                                        lat="customer_latitude"
-                                        lng="customer_longitude"
-                                    />
+                                    <widget name="google_map" lat="customer_latitude" lng="customer_longitude" />
                                 </div>
                             </div>
                         </group>

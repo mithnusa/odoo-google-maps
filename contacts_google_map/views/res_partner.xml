@@ -50,13 +50,7 @@
                 <field name="marker_color" widget="color_picker" />
             </xpath>
             <xpath expr="//page[@name='geo_location']//div[@name='geo_localize_button']" position="inside">
-                <widget
-                    name="google_map"
-                    lat="partner_latitude"
-                    lng="partner_longitude"
-                    width="100%"
-                    height="400"
-                />
+                <widget name="google_map" lat="partner_latitude" lng="partner_longitude" width="100%" height="400" />
             </xpath>
             <xpath expr="//page[@name='geo_location']//div[@name='geo_localize_button']" position="attributes">
                 <attribute name="class">d-flex gap-2</attribute>
