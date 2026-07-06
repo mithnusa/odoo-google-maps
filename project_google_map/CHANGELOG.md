@@ -1,5 +1,11 @@
 # Change Log
 
+## 19.0.1.0.7
+
+### Changed
+
+- **`project_project.xml` — Site tab map widget layout**: The `google_map` widget on the project form's Site tab was moved from a standalone `<group>` below the coordinates into the `<div>` that already contains the lat/lng coordinate display. `width="100%"` and `height="400"` attributes were removed so the widget renders as its default single-button form inline with the coordinates.
+
 ## 19.0.1.0.6
 
 ### Changed

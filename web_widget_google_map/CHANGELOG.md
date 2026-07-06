@@ -1,5 +1,21 @@
 # Change Log
 
+## 19.0.1.0.8
+
+### Changed
+
+- **`GoogleMapWidget` — Simplified to a single button**: Removed the static map image and the two-button layout (toggle + edit). The widget now renders a single contextual button — "View on Map" in readonly mode, "Update on Map" in edit mode — that opens `GeolocationEditDialog` directly. This eliminates the extra click, the Static Maps API call on each form load, and the cross-origin `<iframe>`/`SecurityError` issue that motivated the previous approach.
+
+### Fixed
+
+- **`GeolocationEditDialog._handleMarkerDragend` — Corrupted coordinates after drag**: `AdvancedMarkerElement.position` after a drag returns a `google.maps.LatLng` object where `.lat` and `.lng` are methods, not plain numbers. Fixed with a `typeof` guard: `typeof position.lat === 'function' ? position.lat() : position.lat`.
+- **`GeolocationEditDialog._cleanupListeners` — Hung `tilesloaded` promise on fast close**: Added `_resolveTilesLoaded` — the `resolve` function of the `tilesloaded` Promise is stored on the instance and called in `_cleanupListeners` so the awaited promise is always settled even when the dialog is closed before tiles finish loading.
+
+### Improved
+
+- **`GeolocationEditDialog` — Map UI controls**: The dialog map now uses `disableDefaultUI: true` with explicit `zoomControl`, `streetViewControl`, `fullscreenControl`, and `mapTypeControl` re-enabled, and `gestureHandling: 'greedy'` so panning works inside the modal without the two-finger scroll requirement.
+- **`GeolocationEditDialog` — Unmount safety guards**: `_tilesLoadedListener` (stored Maps event handle) and `_isUnmounted` flag are checked at every async continuation point (`importLibrary`, `tilesloaded` resolve, `idle` callback). `clearInstanceListeners` is called on the map instance in `_cleanupListeners` to cancel all remaining Maps SDK internal events on dialog close.
+
 ## 19.0.1.0.7
 
 ### Improved

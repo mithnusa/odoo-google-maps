@@ -48,18 +48,14 @@
                                     Long:
                                     <field name="site_longitude" nolabel="1" class="oe_inline" />
                                 </span>
+                                <widget
+                                    name="google_map"
+                                    lat="site_latitude"
+                                    lng="site_longitude"
+                                    readonly="1"
+                                    maptype="satellite"
+                                />
                             </div>
-                        </group>
-                        <group>
-                            <widget
-                                name="google_map"
-                                lat="site_latitude"
-                                lng="site_longitude"
-                                maptype="satellite"
-                                width="100%"
-                                height="400"
-                                readonly="1"
-                            />
                         </group>
                     </group>
                 </page>

@@ -1,5 +1,11 @@
 # Change Log
 
+## 19.0.1.0.12
+
+### Changed
+
+- **`res_partner.xml` — Geolocation page inline layout**: The `google_map` widget was moved from a separate `<group>` below the geolocation form into the existing `geo_localize_button` div. That div now has `class="d-flex gap-2"` applied so the geocode button and the map widget appear side by side in a single inline row rather than stacked in separate sections.
+
 ## 19.0.1.0.11
 
 ### Fixed
