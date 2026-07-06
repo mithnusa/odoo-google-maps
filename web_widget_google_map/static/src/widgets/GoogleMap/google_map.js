@@ -349,10 +349,7 @@ export class GoogleMapWidget extends Component {
     };
 
     /**
-     * Initializes the widget, validates props, and loads Google Maps settings.
-     *
-     * `state.isMapVisible` drives the collapsible map toggle — the static image is only
-     * rendered (and fetched) when the user explicitly shows the map.
+     * Initializes the widget, validates props, and wires up the dialog service.
      */
     setup() {
         this.validateProps();
