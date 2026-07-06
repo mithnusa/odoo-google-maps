@@ -15,6 +15,21 @@ jobs:
     name: Python Test Coverage
     runs-on: ubuntu-latest
 
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: odoo
+          POSTGRES_PASSWORD: odoo
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U odoo -d postgres"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -28,7 +43,7 @@ jobs:
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y --no-install-recommends \
-            libldap2-dev libsasl2-dev libssl-dev
+            libldap2-dev libsasl2-dev libssl-dev postgresql-client
 
       - name: Clone Odoo 19
         run: |
@@ -51,6 +66,15 @@ jobs:
           pip install -r /opt/odoo/requirements.txt
           pip install -e /opt/odoo
           pip install coverage
+
+      - name: Wait for PostgreSQL
+        env:
+          PGPASSWORD: odoo
+        run: |
+          until pg_isready -h 127.0.0.1 -p 5432 -U odoo -d postgres; do
+            echo "Waiting for PostgreSQL..."
+            sleep 2
+          done
 
       - name: Run tests with coverage
         env:
@@ -184,6 +208,10 @@ jobs:
               --append \
               /opt/odoo/odoo-bin \
               --addons-path="/opt/odoo/addons,/opt/odoo/odoo/addons,$GITHUB_WORKSPACE" \
+              --db_host=127.0.0.1 \
+              --db_port=5432 \
+              --db_user=odoo \
+              --db_password=odoo \
               -d odoo_test_ci \
               -i "$DB_MODULES" \
               --test-enable \
@@ -199,3 +227,4 @@ jobs:
           file: coverage.xml
           language: python
           label: Python
+  
