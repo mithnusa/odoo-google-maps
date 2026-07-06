@@ -200,9 +200,12 @@ jobs:
             python -m coverage run --source="$COVERAGE_SOURCES" -m unittest
           fi
 
-          # Run DB-backed Odoo tests through odoo-bin so registry/database are initialized
+          # Run DB-backed Odoo tests only for repository addons that actually have DB tests
           if [[ ${#db_test_addons[@]} -gt 0 ]]; then
             DB_MODULES=$(IFS=,; echo "${db_test_addons[*]}")
+
+            TEST_TAGS=$(printf ',/%s' "${db_test_addons[@]}")
+            TEST_TAGS=${TEST_TAGS:1}
 
             python -m coverage run \
               --append \
@@ -215,6 +218,7 @@ jobs:
               -d odoo_test_ci \
               -i "$DB_MODULES" \
               --test-enable \
+              --test-tags "$TEST_TAGS" \
               --stop-after-init
           fi
 
