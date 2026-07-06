@@ -55,8 +55,6 @@
                             lat="site_latitude"
                             lng="site_longitude"
                             maptype="satellite"
-                            width="100%"
-                            height="400"
                             readonly="1"
                         />
                     </group>
