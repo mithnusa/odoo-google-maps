@@ -58,8 +58,7 @@ jobs:
         run: |
           set -euo pipefail
 
-          # Discover repo modules at the repository root.
-          # Each addon directory should directly contain __manifest__.py
+          # Discover addon directories that actually belong to this repo
           mapfile -t modules < <(
             find . -mindepth 1 -maxdepth 1 -type d \
               -exec test -f "{}/__manifest__.py" ';' -print \
@@ -68,20 +67,19 @@ jobs:
           )
 
           if [[ ${#modules[@]} -eq 0 ]]; then
-            echo "ERROR: No addon modules found at repository root."
+            echo "ERROR: No addon modules found in repository root."
             exit 1
           fi
 
-          echo "Discovered addon modules:"
+          echo "Discovered repository addons:"
           printf '  %s\n' "${modules[@]}"
           echo ""
 
-          # Symlink only repo modules into Odoo addons
+          # Symlink only repository addons into Odoo addons
           for module in "${modules[@]}"; do
             TARGET="/opt/odoo/odoo/addons/$module"
 
             if [[ -L "$TARGET" ]]; then
-              echo "WARNING: Module $module already symlinked"
               rm -f "$TARGET"
             elif [[ -d "$TARGET" ]]; then
               echo "ERROR: Module $module conflicts with Odoo builtin — skipping symlink"
@@ -92,25 +90,42 @@ jobs:
             echo "Symlinked: $module"
           done
 
-          # Discover test modules under each repo addon
-          mapfile -t test_modules < <(
-            for module in "${modules[@]}"; do
-              find "$module/tests" -type f -name "test_*.py" 2>/dev/null \
-                | sed 's|\.py$||; s|/|.|g' \
-                | sed 's/^/odoo.addons./'
-            done | sort -u
-          )
+          # Discover tests only inside repository addons
+          test_files=()
+          for module in "${modules[@]}"; do
+            if [[ -d "$module/tests" ]]; then
+              while IFS= read -r file; do
+                test_files+=("$file")
+              done < <(
+                find "$module/tests" -type f -name "test_*.py" \
+                  | sed 's|^\./||'
+              )
+            fi
+          done
 
-          if [[ ${#test_modules[@]} -eq 0 ]]; then
-            echo "ERROR: No test files found in discovered addon modules."
+          if [[ ${#test_files[@]} -eq 0 ]]; then
+            echo "ERROR: No test files found in repository addons."
             exit 1
           fi
+
+          mapfile -t test_files < <(
+            printf '%s\n' "${test_files[@]}" | sort -u
+          )
+
+          echo "Discovered test files:"
+          printf '  %s\n' "${test_files[@]}"
+          echo ""
+
+          mapfile -t test_modules < <(
+            printf '%s\n' "${test_files[@]}" \
+              | sed 's|\.py$||; s|/|.|g' \
+              | sed 's|^|odoo.addons.|'
+          )
 
           echo "Running ${#test_modules[@]} test module(s):"
           printf '  %s\n' "${test_modules[@]}"
           echo ""
 
-          # Build comma-separated list of coverage source directories
           COVERAGE_SOURCES=$(IFS=,; echo "${modules[*]}")
           echo "Coverage scope: $COVERAGE_SOURCES"
           echo ""
