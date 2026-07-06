@@ -116,6 +116,7 @@ class GoogleMapAddPlaceMixin(models.AbstractModel):
             and lng_field
             and isinstance(lat, (int, float))
             and isinstance(lng, (int, float))
+            and not (lat == 0 and lng == 0)
         ):
             values[lat_field] = lat
             values[lng_field] = lng
