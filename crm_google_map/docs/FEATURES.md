@@ -3,6 +3,7 @@
 ## Map View
 
 ### Google Map View for Leads and Opportunities
+
 **What it does**: Adds a dedicated Google Map view accessible from the Leads, Opportunities, My Activities, Pipeline, and Forecast menus in CRM.
 
 **Why it matters**: Sales teams can see the geographic distribution of their pipeline at a glance, making it easier to plan visits and identify territory coverage gaps.
@@ -12,6 +13,7 @@
 ---
 
 ### CRM-Specific Marker Design
+
 **What it does**: Displays each lead or opportunity as a custom marker showing the lead name, stage badge, address, company name, contact name, phone, salesperson, expected revenue, probability, and expected closing date.
 
 **Why it matters**: Key deal information is visible directly on the map without needing to open each record individually.
@@ -31,6 +33,7 @@
 ---
 
 ### Marker Highlight on Click
+
 **What it does**: Clicking a marker on the map highlights it visually and brings it to the foreground.
 
 **Why it matters**: Makes it easy to focus on a specific lead when multiple markers are close together.
@@ -40,6 +43,7 @@
 ---
 
 ### Overlap Handling with Visual Indicator
+
 **What it does**: When two or more leads share the same address, their markers are slightly offset so they remain individually clickable. An info icon is shown on shifted markers to indicate the adjustment.
 
 **Why it matters**: Prevents markers from stacking directly on top of each other, which would make them impossible to select individually.
@@ -51,6 +55,7 @@
 ## Sidebar
 
 ### Record Sidebar with CRM Details
+
 **What it does**: Displays a scrollable list of leads or opportunities beside the map, showing the lead name, address, expected revenue, and pipeline stage for each record.
 
 **Why it matters**: Provides a quick overview of all records in the current view without having to interact with the map markers one by one.
@@ -60,6 +65,7 @@
 ---
 
 ### Open Record from Sidebar
+
 **What it does**: Clicking a record in the sidebar opens that lead or opportunity's form view.
 
 **Why it matters**: Allows quick navigation from the map view directly into a record for editing or reviewing details.
@@ -71,6 +77,7 @@
 ## Geolocation
 
 ### Automatic Geolocation from Partner
+
 **What it does**: When a partner is linked to a lead, the lead's latitude and longitude are automatically set from the partner's stored geolocation.
 
 **Why it matters**: Reduces manual data entry when the linked contact already has a known location.
@@ -90,24 +97,27 @@
 ---
 
 ### Compute Geolocation from Address
-**What it does**: A button on the lead form's Geolocation tab lets users geocode the lead's address to obtain its latitude and longitude.
 
-**Why it matters**: Allows leads without a linked partner, or leads with a different address, to still appear on the map.
+**What it does**: Two contextual buttons on the Geolocation tab geocode the lead's address — "Compute based on address" appears when no coordinates are set; "Refresh" appears when coordinates already exist.
 
-**How it works**: The geocoder queries the Odoo geocoding service (base.geocoder) using the lead's street, city, state, zip, and country fields and stores the returned coordinates.
+**Why it matters**: Allows leads without a linked partner, or leads with a different address, to still appear on the map. The contextual labels make it clear whether you are computing for the first time or updating existing coordinates.
+
+**How it works**: Both buttons call the same `geo_localize` action, which queries the Odoo geocoding service (base.geocoder) using the lead's street, city, state, zip, and country fields and stores the returned coordinates. Visibility is toggled automatically based on whether coordinates are already present.
 
 ---
 
 ### Geolocation Tab on Lead Form
-**What it does**: Adds a dedicated "Geolocation" tab to the lead and opportunity form view showing the stored coordinates, a geocode button, a color picker for the map marker, and an embedded mini-map preview.
 
-**Why it matters**: Gives users a single place to review, update, and visualize the geographic data for each lead.
+**What it does**: Adds a dedicated "Geolocation" tab to the lead and opportunity form view showing the stored coordinates, contextual geocode buttons, a map button, and a color picker — all in a single inline row.
 
-**How it works**: The tab displays `customer_latitude` and `customer_longitude` fields, a `geo_localize` action button, a `color_picker` widget for `marker_color`, and an embedded `google_map` widget showing the lead's location.
+**Why it matters**: Gives users a single place to review, update, and visualize the geographic data for each lead, with all actions immediately accessible without scrolling.
+
+**How it works**: The tab displays `customer_latitude` and `customer_longitude` fields, then an inline row containing the contextual geocode buttons, the `google_map` widget button (opens the interactive map dialog), and a `color_picker` widget for `marker_color`.
 
 ---
 
 ### Marker Color Customization
+
 **What it does**: Each lead has a `marker_color` field that controls the color of its map marker.
 
 **Why it matters**: Allows visual differentiation between leads on the map, for example by priority, salesperson, or stage.

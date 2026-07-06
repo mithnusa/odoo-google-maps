@@ -116,7 +116,7 @@ Shared foundation for click-to-create workflows on map views. Provides the serve
 
 ### Contacts
 
-**[contacts_google_map](contacts_google_map/README.md)** [`19.0.1.0.11`](contacts_google_map/CHANGELOG.md)
+**[contacts_google_map](contacts_google_map/README.md)** [`19.0.1.0.12`](contacts_google_map/CHANGELOG.md)
 
 Adds a Google Map view to the Contacts application. Partners appear as color-coded markers; clicking one opens the contact card. Each contact form gains a Geolocation tab with an embedded map, a one-click geocode button, a marker color picker, and a nearby partners search. An optional background cron job can geocode all contacts automatically.
 
@@ -136,7 +136,7 @@ Enhances the Contact name field with a Google Places panel alongside Odoo's buil
 
 ### CRM
 
-**[crm_google_map](crm_google_map/README.md)** [`19.0.1.0.11`](crm_google_map/CHANGELOG.md)
+**[crm_google_map](crm_google_map/README.md)** [`19.0.1.0.12`](crm_google_map/CHANGELOG.md)
 
 Adds a Google Map view to the CRM application, available in All Leads, My Activities, Opportunities, Pipeline, and Forecast. Each lead appears as a color-coded marker showing stage, address, company, contact, phone, salesperson, expected revenue, win probability, and closing date. Activity scheduling is available directly from each marker's info window. The lead form gains a Geolocation tab with an embedded map preview, a geocode button, and a marker color picker.
 
@@ -168,7 +168,7 @@ Adds a Google Map view to the Inventory application, covering Deliveries, Ready 
 
 ### Project
 
-**[project_google_map](project_google_map/README.md)** [`19.0.1.0.6`](project_google_map/CHANGELOG.md)
+**[project_google_map](project_google_map/README.md)** [`19.0.1.0.7`](project_google_map/CHANGELOG.md)
 
 Adds Google Map views for Projects and Tasks. Project markers are automatically color-coded by health status — on track, at risk, off track, on hold, and done — and include a "View Tasks" shortcut to jump directly to that project's tasks. The project form gains an embedded satellite map. Task markers can be individually color-coded using a color picker.
 

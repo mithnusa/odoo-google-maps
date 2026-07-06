@@ -40,13 +40,13 @@
 
 ---
 
-## Embedded Map in Contact Form
+## Map Button in Contact Form
 
-**What it does**: Shows an embedded Google Map directly on the contact form's Geolocation page, displaying the contact's saved coordinates.
+**What it does**: Adds a map button to the Geolocation page of the contact form, placed inline alongside the geocode button in a single row.
 
-**Why it matters**: Lets you verify or review a contact's map location without leaving the form view or switching to the full map view.
+**Why it matters**: Lets you open the interactive map dialog for the contact's coordinates in one click without leaving the form view or switching to the full map view.
 
-**How it works**: The map widget is added to the Geolocation page via a form view inheritance. It renders the contact's latitude and longitude as a single marker on a compact map (400px tall, full width of the page).
+**How it works**: The `google_map` widget is injected into the existing `geo_localize_button` container with `d-flex gap-2` applied, placing it side by side with the geocode button. Clicking opens `GeolocationEditDialog` centred on the contact's stored coordinates.
 
 ---
 

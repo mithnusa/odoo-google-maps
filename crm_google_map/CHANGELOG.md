@@ -1,6 +1,16 @@
 <!-- markdownlint-disable MD024 -->
 # Change Log
 
+## 19.0.1.0.12
+
+### Fixed
+
+- **`crm_lead.xml` — Geocode button visibility was inverted**: The `invisible` conditions on the two geocode buttons were swapped — "Compute based on address" was visible when coordinates already existed and "Refresh" was visible when they did not. Corrected so "Compute based on address" shows only when `customer_latitude == 0.0 and customer_longitude == 0.0` and "Refresh" shows only when coordinates are present.
+
+### Changed
+
+- **`crm_lead.xml` — Geolocation tab inline layout**: Replaced the two-group layout (buttons in one group, full-size `google_map` widget in a separate group below) with a single `d-flex gap-2` row containing the contextual geocode buttons and the `google_map` widget side by side. Removed the `width="100%"` and `height="400"` attributes from the widget, which now uses its default single-button form.
+
 ## 19.0.1.0.11
 
 ### Added
