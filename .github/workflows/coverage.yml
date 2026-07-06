@@ -186,18 +186,23 @@ jobs:
           fi
           echo ""
 
-          COVERAGE_SOURCES=$(IFS=,; echo "${install_modules[*]}")
+          # Python imports modules via symlink paths (/opt/odoo/odoo/addons/<module>/...)
+          # so --source must point there. [paths] remaps them back to the repo root
+          # for the XML report so the coverage uploader finds the actual source files.
+          printf '[paths]\nsource =\n    ./\n    /opt/odoo/odoo/addons/\n' > .coveragerc
+
+          COVERAGE_SOURCES=$(printf '/opt/odoo/odoo/addons/%s,' "${install_modules[@]}")
+          COVERAGE_SOURCES="${COVERAGE_SOURCES%,}"
           echo "Coverage scope: $COVERAGE_SOURCES"
           echo ""
 
           # Run pure unit tests first, if any
           if [[ ${#unit_test_modules[@]} -gt 0 ]]; then
             python -m coverage run \
+              --rcfile=.coveragerc \
               --source="$COVERAGE_SOURCES" \
               -m unittest \
               "${unit_test_modules[@]}"
-          else
-            python -m coverage run --source="$COVERAGE_SOURCES" -m unittest
           fi
 
           # Run DB-backed Odoo tests only for repository addons that actually have DB tests
@@ -208,7 +213,9 @@ jobs:
             TEST_TAGS=${TEST_TAGS:1}
 
             python -m coverage run \
+              --rcfile=.coveragerc \
               --append \
+              --source="$COVERAGE_SOURCES" \
               /opt/odoo/odoo-bin \
               --addons-path="/opt/odoo/addons,/opt/odoo/odoo/addons,$GITHUB_WORKSPACE" \
               --db_host=127.0.0.1 \
@@ -222,7 +229,9 @@ jobs:
               --stop-after-init
           fi
 
-          python -m coverage xml -o coverage.xml
+          # combine applies [paths] remapping so XML shows repo-relative paths
+          python -m coverage combine
+          python -m coverage xml --rcfile=.coveragerc -o coverage.xml
 
       - name: Upload coverage report
         if: success() && (github.event_name == 'pull_request' || github.ref == 'refs/heads/19.0')
