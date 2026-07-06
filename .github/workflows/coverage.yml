@@ -58,18 +58,28 @@ jobs:
         run: |
           set -euo pipefail
 
-          # Discover all modules in this repo (must have __manifest__.py)
+          # Discover repo modules at the repository root.
+          # Each addon directory should directly contain __manifest__.py
           mapfile -t modules < <(
-            find . -mindepth 2 -maxdepth 2 -name "__manifest__.py" -print0 \
-              | xargs -0 -n1 dirname \
+            find . -mindepth 1 -maxdepth 1 -type d \
+              -exec test -f "{}/__manifest__.py" ';' -print \
               | sed 's|^\./||' \
               | sort -u
           )
 
+          if [[ ${#modules[@]} -eq 0 ]]; then
+            echo "ERROR: No addon modules found at repository root."
+            exit 1
+          fi
+
+          echo "Discovered addon modules:"
+          printf '  %s\n' "${modules[@]}"
+          echo ""
+
           # Symlink only repo modules into Odoo addons
           for module in "${modules[@]}"; do
             TARGET="/opt/odoo/odoo/addons/$module"
-            # Validate no collision with Odoo builtin modules
+
             if [[ -L "$TARGET" ]]; then
               echo "WARNING: Module $module already symlinked"
               rm -f "$TARGET"
@@ -77,22 +87,23 @@ jobs:
               echo "ERROR: Module $module conflicts with Odoo builtin — skipping symlink"
               continue
             fi
+
             ln -sfn "$GITHUB_WORKSPACE/$module" "$TARGET"
             echo "Symlinked: $module"
           done
 
-          # Discover test_*.py files scoped to repo modules only
+          # Discover test modules under each repo addon
           mapfile -t test_modules < <(
             for module in "${modules[@]}"; do
-              find "$module/tests" -maxdepth 2 -name "test_*.py" 2>/dev/null \
+              find "$module/tests" -type f -name "test_*.py" 2>/dev/null \
                 | sed 's|\.py$||; s|/|.|g' \
                 | sed 's/^/odoo.addons./'
             done | sort -u
           )
 
           if [[ ${#test_modules[@]} -eq 0 ]]; then
-            echo "No test files found — skipping coverage run."
-            exit 0
+            echo "ERROR: No test files found in discovered addon modules."
+            exit 1
           fi
 
           echo "Running ${#test_modules[@]} test module(s):"
@@ -112,7 +123,7 @@ jobs:
           python -m coverage xml -o coverage.xml
 
       - name: Upload coverage report
-        if: github.event_name == 'pull_request' || github.ref == 'refs/heads/19.0'
+        if: success() && (github.event_name == 'pull_request' || github.ref == 'refs/heads/19.0')
         uses: actions/upload-code-coverage@v1
         with:
           file: coverage.xml
