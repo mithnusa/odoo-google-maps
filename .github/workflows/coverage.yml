@@ -33,7 +33,10 @@ jobs:
       - name: Clone Odoo 19
         run: |
           git clone --depth=1 --branch=19.0 \
-            https://github.com/odoo/odoo.git /opt/odoo
+            https://github.com/odoo/odoo.git /opt/odoo || { \
+            echo "ERROR: Failed to clone Odoo repository"; \
+            exit 1; \
+          }
 
       - name: Cache pip packages
         uses: actions/cache@v4
@@ -53,11 +56,59 @@ jobs:
         env:
           PYTHONPATH: ${{ github.workspace }}
         run: |
-          ln -sfn "$GITHUB_WORKSPACE/web_view_google_map_drawing" /opt/odoo/odoo/addons/web_view_google_map_drawing
+          set -euo pipefail
+
+          # Discover all modules in this repo (must have __manifest__.py)
+          mapfile -t modules < <(
+            find . -mindepth 2 -maxdepth 2 -name "__manifest__.py" -print0 \
+              | xargs -0 -n1 dirname \
+              | sed 's|^\./||' \
+              | sort -u
+          )
+
+          # Symlink only repo modules into Odoo addons
+          for module in "${modules[@]}"; do
+            TARGET="/opt/odoo/odoo/addons/$module"
+            # Validate no collision with Odoo builtin modules
+            if [[ -L "$TARGET" ]]; then
+              echo "WARNING: Module $module already symlinked"
+              rm -f "$TARGET"
+            elif [[ -d "$TARGET" ]]; then
+              echo "ERROR: Module $module conflicts with Odoo builtin — skipping symlink"
+              continue
+            fi
+            ln -sfn "$GITHUB_WORKSPACE/$module" "$TARGET"
+            echo "Symlinked: $module"
+          done
+
+          # Discover test_*.py files scoped to repo modules only
+          mapfile -t test_modules < <(
+            for module in "${modules[@]}"; do
+              find "$module/tests" -maxdepth 2 -name "test_*.py" 2>/dev/null \
+                | sed 's|\.py$||; s|/|.|g' \
+                | sed 's/^/odoo.addons./'
+            done | sort -u
+          )
+
+          if [[ ${#test_modules[@]} -eq 0 ]]; then
+            echo "No test files found — skipping coverage run."
+            exit 0
+          fi
+
+          echo "Running ${#test_modules[@]} test module(s):"
+          printf '  %s\n' "${test_modules[@]}"
+          echo ""
+
+          # Build comma-separated list of coverage source directories
+          COVERAGE_SOURCES=$(IFS=,; echo "${modules[*]}")
+          echo "Coverage scope: $COVERAGE_SOURCES"
+          echo ""
+
           python -m coverage run \
-            --source=. \
+            --source="$COVERAGE_SOURCES" \
             -m unittest \
-            odoo.addons.web_view_google_map_drawing.tests.test_field_json_searchable
+            "${test_modules[@]}"
+
           python -m coverage xml -o coverage.xml
 
       - name: Upload coverage report
