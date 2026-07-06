@@ -58,7 +58,7 @@ jobs:
         run: |
           set -euo pipefail
 
-          # Discover addon directories that actually belong to this repo
+          # Discover addons that exist in this repository
           mapfile -t modules < <(
             find . -mindepth 1 -maxdepth 1 -type d \
               -exec test -f "{}/__manifest__.py" ';' -print \
@@ -76,23 +76,30 @@ jobs:
           echo ""
 
           # Symlink only repository addons into Odoo addons
+          install_modules=()
           for module in "${modules[@]}"; do
             TARGET="/opt/odoo/odoo/addons/$module"
 
             if [[ -L "$TARGET" ]]; then
               rm -f "$TARGET"
             elif [[ -d "$TARGET" ]]; then
-              echo "ERROR: Module $module conflicts with Odoo builtin — skipping symlink"
+              echo "WARNING: Module $module conflicts with Odoo builtin — skipping"
               continue
             fi
 
             ln -sfn "$GITHUB_WORKSPACE/$module" "$TARGET"
+            install_modules+=("$module")
             echo "Symlinked: $module"
           done
 
+          if [[ ${#install_modules[@]} -eq 0 ]]; then
+            echo "ERROR: No repository addons could be symlinked into Odoo addons."
+            exit 1
+          fi
+
           # Discover tests only inside repository addons
           test_files=()
-          for module in "${modules[@]}"; do
+          for module in "${install_modules[@]}"; do
             if [[ -d "$module/tests" ]]; then
               while IFS= read -r file; do
                 test_files+=("$file")
@@ -116,24 +123,72 @@ jobs:
           printf '  %s\n' "${test_files[@]}"
           echo ""
 
-          mapfile -t test_modules < <(
-            printf '%s\n' "${test_files[@]}" \
-              | sed 's|\.py$||; s|/|.|g' \
-              | sed 's|^|odoo.addons.|'
+          # Split tests:
+          # - pure unit tests: BaseCase-only suite that can run via unittest
+          # - Odoo/DB tests: TransactionCase or ORM-backed tests, run via odoo-bin
+          unit_test_modules=()
+          db_test_addons=()
+
+          for file in "${test_files[@]}"; do
+            module_path=$(echo "$file" | sed 's|\.py$||; s|/|.|g')
+            addon_name=${file%%/*}
+
+            if grep -Eq 'from odoo\.tests\.common import .*TransactionCase|SavepointCase|SingleTransactionCase|HttpCase' "$file"; then
+              db_test_addons+=("$addon_name")
+            elif grep -Eq 'self\.env\[|cls\.env\[|env\.ref\(' "$file"; then
+              db_test_addons+=("$addon_name")
+            else
+              unit_test_modules+=("odoo.addons.$module_path")
+            fi
+          done
+
+          mapfile -t db_test_addons < <(
+            printf '%s\n' "${db_test_addons[@]}" | sort -u
           )
 
-          echo "Running ${#test_modules[@]} test module(s):"
-          printf '  %s\n' "${test_modules[@]}"
+          echo "Pure unit test modules:"
+          if [[ ${#unit_test_modules[@]} -gt 0 ]]; then
+            printf '  %s\n' "${unit_test_modules[@]}"
+          else
+            echo "  (none)"
+          fi
           echo ""
 
-          COVERAGE_SOURCES=$(IFS=,; echo "${modules[*]}")
+          echo "Database-backed Odoo test addons:"
+          if [[ ${#db_test_addons[@]} -gt 0 ]]; then
+            printf '  %s\n' "${db_test_addons[@]}"
+          else
+            echo "  (none)"
+          fi
+          echo ""
+
+          COVERAGE_SOURCES=$(IFS=,; echo "${install_modules[*]}")
           echo "Coverage scope: $COVERAGE_SOURCES"
           echo ""
 
-          python -m coverage run \
-            --source="$COVERAGE_SOURCES" \
-            -m unittest \
-            "${test_modules[@]}"
+          # Run pure unit tests first, if any
+          if [[ ${#unit_test_modules[@]} -gt 0 ]]; then
+            python -m coverage run \
+              --source="$COVERAGE_SOURCES" \
+              -m unittest \
+              "${unit_test_modules[@]}"
+          else
+            python -m coverage run --source="$COVERAGE_SOURCES" -m unittest
+          fi
+
+          # Run DB-backed Odoo tests through odoo-bin so registry/database are initialized
+          if [[ ${#db_test_addons[@]} -gt 0 ]]; then
+            DB_MODULES=$(IFS=,; echo "${db_test_addons[*]}")
+
+            python -m coverage run \
+              --append \
+              /opt/odoo/odoo-bin \
+              --addons-path="/opt/odoo/addons,/opt/odoo/odoo/addons,$GITHUB_WORKSPACE" \
+              -d odoo_test_ci \
+              -i "$DB_MODULES" \
+              --test-enable \
+              --stop-after-init
+          fi
 
           python -m coverage xml -o coverage.xml
 
