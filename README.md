@@ -2,7 +2,7 @@
 
 [![Odoo 19.0](https://img.shields.io/badge/Odoo-19.0-875A7B?logo=odoo&logoColor=white)](https://www.odoo.com/)
 [![pre-commit.ci status](https://results.pre-commit.ci/badge/github/mithnusa/odoo-google-maps/19.0.svg)](https://results.pre-commit.ci/latest/github/mithnusa/odoo-google-maps/19.0)
-[![codecov](https://codecov.io/gh/mithnusa/odoo-google-maps/branch/19.0/graph/badge.svg)](https://codecov.io/gh/mithnusa/odoo-google-maps)
+[![codecov](https://codecov.io/gh/mithnusa/odoo-google-maps/graph/badge.svg?branch=19.0)](https://codecov.io/gh/mithnusa/odoo-google-maps/branch/19.0)
 [![Google Maps JS API](https://img.shields.io/badge/Google_Maps_JS_API-latest-4285F4?logo=googlemaps&logoColor=white)](https://developers.google.com/maps/documentation/javascript)
 [![License: LGPL-3](https://img.shields.io/badge/License-LGPL_3-blue.svg)](https://www.gnu.org/licenses/lgpl-3.0)
 
