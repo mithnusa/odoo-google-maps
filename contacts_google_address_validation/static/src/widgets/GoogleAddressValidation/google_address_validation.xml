@@ -23,7 +23,8 @@
                 </button>
             </div>
             <p class="text-muted smaller mb-0 p-0" t-if="lastValidated">
-                Validated on: <span t-esc="lastValidated" />
+                Validated on:
+                <span t-esc="lastValidated" />
             </p>
         </div>
     </t>

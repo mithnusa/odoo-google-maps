@@ -87,7 +87,7 @@
                     </span>
                     <span t-if="usps.county" class="badge text-bg-light text-dark">
                         <span class="me-1">County:</span>
-                        <span t-esc="usps.county"/>
+                        <span t-esc="usps.county" />
                     </span>
                 </div>
                 <div t-if="usps.standardizedAddress" class="mt-2">
