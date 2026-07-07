@@ -17,6 +17,7 @@ import { useService } from '@web/core/utils/hooks';
 import { standardWidgetProps } from '@web/views/widgets/standard_widget_props';
 import { KeepLast } from '@web/core/utils/concurrency';
 import { AddressValidationDialog } from '../../components/address_validation_dialog/address_validation_dialog';
+const { DateTime } = luxon;
 
 /**
  * Supported region codes for the Address Validation API, used only to
@@ -121,6 +122,15 @@ export class GoogleAddressValidation extends Component {
 
     get status() {
         return this.props.record.data.google_address_validation_status || 'not_validated';
+    }
+
+    get lastValidated() {
+        const dateStr = this.props.record.data.google_address_validation_date;
+        if (!dateStr) {
+            return '';
+        }
+        const dt = DateTime.fromISO(dateStr);
+        return dt.isValid ? dt.toLocaleString(DateTime.DATETIME_MED) : '';
     }
 
     get statusLabel() {

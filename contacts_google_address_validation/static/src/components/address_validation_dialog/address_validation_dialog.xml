@@ -86,12 +86,12 @@
                         No-Stat (not receiving mail)
                     </span>
                     <span t-if="usps.county" class="badge text-bg-light text-dark">
-                        County:
-                        <t t-esc="usps.county" />
+                        <span class="me-1">County:</span>
+                        <span t-esc="usps.county"/>
                     </span>
                 </div>
                 <div t-if="usps.standardizedAddress" class="mt-2">
-                    <span class="text-muted small">USPS Standardized:</span>
+                    <span class="text-muted small me-1">USPS Standardized:</span>
                     <span t-esc="usps.standardizedAddress" />
                 </div>
             </div>

@@ -2,7 +2,7 @@
 
 ## Overview
 
-`contacts_google_address_validation` adds the Google Address Validation API (Maps JavaScript API, `addressValidation` library) to the Odoo Contact form. It checks whether an entered address refers to a real, deliverable place, standardizes it for mailing, and geocodes it — directly from the Contact form.
+`contacts_google_address_validation` adds the Google Address Validation API to the Odoo Contact form. It checks whether an entered address refers to a real, deliverable place, standardizes it for mailing, and geocodes it — directly from the Contact form.
 
 ## What It Does
 
