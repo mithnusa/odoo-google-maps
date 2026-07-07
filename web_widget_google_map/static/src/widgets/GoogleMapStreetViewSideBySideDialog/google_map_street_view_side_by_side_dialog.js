@@ -4,6 +4,53 @@ import { useService } from '@web/core/utils/hooks';
 import { _t } from '@web/core/l10n/translation';
 import { useGoogleMapsAPILoader } from '@base_google_map/utils/loader_google_map';
 
+// Lazily-built `OverlayView` subclass used to mark the target location when
+// Street View isn't available. Built on first use (after the `maps` library
+// has loaded) rather than at module scope, since `google.maps.OverlayView`
+// doesn't exist until then. Avoids `AdvancedMarkerElement` (needs a `mapId`,
+// which this dialog's map intentionally doesn't set) and the deprecated
+// `google.maps.Marker`.
+let LocationPinOverlay;
+function getLocationPinOverlay() {
+    if (!LocationPinOverlay) {
+        LocationPinOverlay = class extends google.maps.OverlayView {
+            constructor(position, map) {
+                super();
+                this.position = position;
+                this.div = null;
+                this.setMap(map);
+            }
+            onAdd() {
+                this.div = document.createElement('div');
+                Object.assign(this.div.style, {
+                    position: 'absolute',
+                    width: '18px',
+                    height: '18px',
+                    marginLeft: '-8px',
+                    marginTop: '-8px',
+                    borderRadius: '50%',
+                    background: '#ea4335',
+                    border: '2px solid #ffffff',
+                    boxShadow: '0 1px 4px rgba(0, 0, 0, 0.4)',
+                });
+                this.getPanes().overlayMouseTarget.appendChild(this.div);
+            }
+            draw() {
+                const point = this.getProjection()?.fromLatLngToDivPixel(this.position);
+                if (point && this.div) {
+                    this.div.style.left = `${point.x}px`;
+                    this.div.style.top = `${point.y}px`;
+                }
+            }
+            onRemove() {
+                this.div?.parentNode?.removeChild(this.div);
+                this.div = null;
+            }
+        };
+    }
+    return LocationPinOverlay;
+}
+
 export class GoogleMapStreetViewSideBySideDialog extends Component {
     static template = 'web_widget_google_map.GoogleMapStreetViewSideBySideDialog';
     static components = { Dialog };
@@ -19,7 +66,7 @@ export class GoogleMapStreetViewSideBySideDialog extends Component {
     static defaultProps = {
         title: _t('Street View'),
         pitch: 10,
-        zoom: 0,
+        zoom: 0, // Default zoom level for Street View panorama (0-5).
     };
 
     setup() {
@@ -72,7 +119,7 @@ export class GoogleMapStreetViewSideBySideDialog extends Component {
 
     _cleanup() {
         if (this._locationMarker) {
-            this._locationMarker.map = null;
+            this._locationMarker.setMap(null);
             this._locationMarker = null;
         }
         if (this.panorama) {
@@ -89,50 +136,62 @@ export class GoogleMapStreetViewSideBySideDialog extends Component {
             google.maps.event.clearInstanceListeners(this.panorama);
             this.panorama.unbindAll();
             this.panorama = null;
+        } else if (this.googleMap) {
+            // No explicit panorama was bound (Street View unavailable branch),
+            // but the user may still have dragged pegman onto the left map —
+            // a nearby road can have coverage even if the exact address
+            // doesn't. In that case the SDK lazily creates its own default
+            // panorama for the pegman control that we hold no other
+            // reference to; fetch and dispose of it explicitly here.
+            const defaultStreetView = this.googleMap.getStreetView();
+            if (defaultStreetView) {
+                defaultStreetView.setVisible(false);
+                google.maps.event.clearInstanceListeners(defaultStreetView);
+                defaultStreetView.unbindAll();
+            }
         }
         if (this.googleMap) {
             google.maps.event.clearInstanceListeners(this.googleMap);
             this.googleMap.unbindAll();
             this.googleMap = null;
         }
-        // Remove the canvas elements so the browser can release their WebGL
-        // contexts immediately rather than waiting for GC. Without this, rapid
-        // open/close cycles exhaust the browser's WebGL context limit (~16) and
-        // cause subsequent map renders to go blank.
-        if (this.mapRef.el) {
-            this.mapRef.el.innerHTML = '';
-        }
-        if (this.streetViewRef.el) {
-            this.streetViewRef.el.innerHTML = '';
-        }
+        // _cleanup() — defer the destructive DOM clear to the next frame so it never
+        // interrupts a live WebGL render pass on this (or a sibling) vector map.
+        // The explicit teardown above (unbindAll/clearInstanceListeners/nulling refs)
+        // still runs synchronously and immediately stops tile/imagery fetching.
+        requestAnimationFrame(() => {
+            if (this.mapRef.el) {
+                this.mapRef.el.innerHTML = '';
+            }
+            if (this.streetViewRef.el) {
+                this.streetViewRef.el.innerHTML = '';
+            }
+        });
     }
 
     async initializeMapAndStreetView() {
         if (this.googleMap || this._initInProgress) return;
         try {
             this._initInProgress = true;
-            const [
-                { Map },
-                { StreetViewPanorama, StreetViewService, StreetViewStatus },
-                { AdvancedMarkerElement },
-                { spherical },
-            ] = await Promise.all([
-                this.apiLoader.importLibrary('maps'),
-                this.apiLoader.importLibrary('streetView'),
-                this.apiLoader.importLibrary('marker'),
-                this.apiLoader.importLibrary('geometry'),
-            ]);
+            const [{ Map }, { StreetViewPanorama, StreetViewService, StreetViewStatus }, { spherical }] =
+                await Promise.all([
+                    this.apiLoader.importLibrary('maps'),
+                    this.apiLoader.importLibrary('streetView'),
+                    this.apiLoader.importLibrary('geometry'),
+                ]);
 
             if (!this._isMounted) return;
 
-            const settings = this.apiLoader.getSettings();
             const { lat, lng, heading, pitch, zoom } = this.props;
             const position = { lat, lng };
 
             // Always create the map so the left panel is usable regardless.
+            // No mapId: this map is intentionally plain/raster, not vector-rendered
+            // (WebGL). Vector maps sharing a mapId with other maps on the page were
+            // implicated in the parent view's map going blank after this dialog
+            // closes; going raster here avoids that shared WebGL context entirely.
             const map = new Map(this.mapRef.el, {
                 center: position,
-                mapId: settings.map_id,
                 zoom: 14,
             });
             this.googleMap = map;
@@ -155,7 +214,8 @@ export class GoogleMapStreetViewSideBySideDialog extends Component {
 
             if (svStatus !== StreetViewStatus.OK) {
                 this.state.streetViewAvailable = false;
-                this._locationMarker = new AdvancedMarkerElement({ map, position });
+                const LocationPinOverlay = getLocationPinOverlay();
+                this._locationMarker = new LocationPinOverlay(position, map);
                 return;
             }
 

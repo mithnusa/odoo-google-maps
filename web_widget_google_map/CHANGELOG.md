@@ -1,5 +1,23 @@
 # Change Log
 
+## 19.0.1.0.9
+
+### Fixed
+
+- **`GoogleMapStreetViewSideBySideDialog._cleanup()` — wrong marker detach API**: `_locationMarker.map = null` (the `AdvancedMarkerElement` shorthand) replaced with `_locationMarker.setMap(null)`, which is the correct `OverlayView` API now that the fallback pin is a custom overlay rather than an `AdvancedMarkerElement`.
+- **`GoogleMapStreetViewSideBySideDialog._cleanup()` — SDK default panorama left alive**: When Street View is unavailable the user can still drag pegman onto the left map, causing the Maps SDK to lazily create its own default panorama. Added explicit fetch and disposal (`setVisible(false)`, `clearInstanceListeners`, `unbindAll`) of that default panorama in the `_cleanup` no-panorama branch.
+- **`GoogleMapStreetViewSideBySideDialog._cleanup()` — DOM clear interrupting active WebGL render**: The synchronous `.innerHTML = ''` on the map and Street View containers could run mid-render and corrupt the WebGL context. Deferred to `requestAnimationFrame` so the DOM teardown never interrupts an active paint. The synchronous teardown (`unbindAll`, `clearInstanceListeners`, nulling refs) still runs immediately to stop tile fetching.
+
+### Changed
+
+- **`GoogleMapStreetViewSideBySideDialog` — removed `mapId` from `Map` constructor**: The dialog's left-panel map is now intentionally plain/raster (no vector rendering). A vector map that shared a `mapId` with other maps on the page was causing the parent view's map to go blank after the dialog closed due to exhausting the browser's shared WebGL context limit. Removing `mapId` avoids that shared context entirely.
+- **`GoogleMapStreetViewSideBySideDialog` — `AdvancedMarkerElement` → `LocationPinOverlay`**: When Street View is unavailable, the location pin is now rendered via a lazily-built `OverlayView` subclass (`LocationPinOverlay`) instead of `AdvancedMarkerElement`. `AdvancedMarkerElement` requires a `mapId` which this dialog's map no longer sets; `OverlayView` works on any map type.
+- **`google_map.js` — `GoogleMapWidget.setup()` JSDoc**: Removed stale `state.isMapVisible` / collapsible-toggle / static-image description left over from the previous two-button design; replaced with an accurate one-liner.
+
+### Improved
+
+- **Manifest — summary and description**: Updated to reflect the single-button widget design; removed all references to the Maps Static API and the collapsible image preview.
+
 ## 19.0.1.0.8
 
 ### Changed
