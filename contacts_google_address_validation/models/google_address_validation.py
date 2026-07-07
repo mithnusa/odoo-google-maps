@@ -212,12 +212,15 @@ class GoogleAddressValidation(models.AbstractModel):
         """Map a Google error status to an actionable, translated message."""
         if status == 'PERMISSION_DENIED':
             return self.env._(
-                'The Address Validation API rejected the request. Enable '
-                'the "Address Validation API" in your Google Cloud '
-                'project, make sure it is included in your API key '
-                'restrictions, and note that HTTP-referrer restricted '
-                'keys cannot be used server-side — configure a dedicated '
-                'server key if needed.\n\n%(message)s',
+                'The Address Validation API rejected the request. Check '
+                'that: (1) the "Address Validation API" is enabled in '
+                'your Google Cloud project and included in the key\'s '
+                'API restrictions; (2) the key\'s application '
+                'restriction is "IP addresses" (recommended) or "None" '
+                '— HTTP-referrer restricted keys cannot be used '
+                'server-side; (3) with an IP restriction, the allowlist '
+                'contains the Odoo server\'s outbound IP address.'
+                '\n\n%(message)s',
                 message=message,
             )
         if status == 'RESOURCE_EXHAUSTED':

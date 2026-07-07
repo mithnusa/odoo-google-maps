@@ -9,7 +9,7 @@
             <xpath expr="//block[@name='base_google_map']" position="inside">
                 <setting
                     id="google_address_validation_api_key_setting"
-                    help="Optional dedicated API key for server-side Address Validation requests. The main Google Maps key is usually HTTP-referrer restricted, which Google rejects for server-side calls. Restrict this key to the Address Validation API and by server IP address."
+                    help="Optional dedicated API key for server-side Address Validation requests. The main Google Maps key is usually HTTP-referrer restricted, which Google rejects for server-side calls. Restrict this key to the Address Validation API only, and by server IP address when your host has a static outbound IP. On hosts without a static IP (e.g. Odoo.sh), leave the application restriction to None and set a quota cap instead — see the module README."
                     documentation="https://developers.google.com/maps/documentation/address-validation/requests-validate-address"
                 >
                     <field

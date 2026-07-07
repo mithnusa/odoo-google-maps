@@ -30,10 +30,42 @@ Adds a **Validate Address** button below the address block on the Contact form. 
 1. Install `base_google_map` and configure your Google Maps API key in **Settings → General Settings → Google Maps**
 2. Enable the **Address Validation API** in your Google Cloud Console
 3. Install this module through Odoo Apps
+4. Configure a dedicated server key (see **API Key Setup** below) and enter it in **Settings → General Settings → Google Maps → Address Validation Server Key**
 
 ### Required Google Cloud APIs
 
 - Address Validation API (required)
+
+## API Key Setup
+
+This module calls the Address Validation API **from the Odoo server**, not from the browser. This changes which key restrictions work, so the recommended setup uses **two API keys**, each restricted to match where it runs:
+
+| Key | Used by | Application restriction | API restrictions |
+| --- | --- | --- | --- |
+| Browser key (`base_google_map`) | Map views, autocomplete widgets (browser) | **Websites** (HTTP referrers) — your Odoo domains | Maps JavaScript API, Places API (New), Geocoding API |
+| Server key (this module) | Address Validation (Odoo server) | **IP addresses** — or **None** on hosts without a static IP (see below) | Address Validation API only |
+
+Do **not** reuse the browser key for this module: Google rejects HTTP-referrer restricted keys for server-side requests (`PERMISSION_DENIED`).
+
+### Creating the server key
+
+1. In the [Google Cloud Console](https://console.cloud.google.com/apis/credentials), open **APIs & Services → Credentials** and click **Create credentials → API key**
+2. Rename it clearly, e.g. *Odoo Address Validation (server)*
+3. Under **API restrictions**, select **Restrict key** and check only **Address Validation API**
+4. Under **Application restrictions**:
+   - **Server with a static IP** (on-premise, VPS): select **IP addresses** and add the server's outbound (egress) IP — verify it from the server itself with `curl ifconfig.me`
+   - **Odoo.sh or other hosts without a static IP**: select **None** (see next section)
+5. Save, then enter the key in **Settings → General Settings → Google Maps → Address Validation Server Key**
+
+### Hosting without a static IP (Odoo.sh)
+
+Odoo.sh does not provide static IP addresses — the outbound IP of your instance can change at any time, which would break an IP-restricted key. The recommended setup in that case relies on API restrictions plus usage limits instead of an IP allowlist:
+
+1. Create the server key with **Application restrictions: None** and **API restrictions: Address Validation API only** (steps above)
+2. Cap the usage: in **APIs & Services → Address Validation API → Quotas**, set a per-day request limit that comfortably covers your real usage (e.g. a few hundred requests per day)
+3. Set a billing alert: in **Billing → Budgets & alerts**, create a budget with email alerts so unexpected usage is flagged early
+
+This is safe in practice because the key never reaches the browser — it is stored in Odoo system parameters and used only in server-to-Google requests — and even if it leaked, the API restriction limits it to the Address Validation API, capped by your quota.
 
 ## Basic Usage
 
