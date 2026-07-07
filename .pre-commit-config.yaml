@@ -54,7 +54,7 @@ repos:
         args: ["--print-width=120"]
 
   - repo: https://github.com/OCA/pylint-odoo
-    rev: v10.0.4   # check for latest
+    rev: v10.0.6   # check for latest
     hooks:
       - id: pylint_odoo
         args:
