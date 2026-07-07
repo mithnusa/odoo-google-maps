@@ -21,6 +21,7 @@ A suite of Odoo 19.0 addons that bring interactive Google Maps into your Odoo wo
 | Address & place autocomplete | `web_widget_google_place_autocomplete` |
 | Click-to-create foundation | `base_google_map_add_place` |
 | Contacts map & autocomplete | `contacts_google_map`, `contacts_google_map_add_place`, `contacts_google_autocomplete`, `partner_autocomplete_with_google_autocomplete` |
+| Address validation | `contacts_google_address_validation` |
 | CRM map & autocomplete | `crm_google_map`, `crm_google_map_add_place`, `crm_google_autocomplete` |
 | Sales map | `sale_google_map` |
 | Inventory map | `stock_google_map` |
@@ -80,6 +81,8 @@ graph LR
 
     contacts_google_map --> contacts_google_map_add_place
     crm_google_map --> crm_google_map_add_place
+
+    base_google_map --> contacts_google_address_validation
 ```
 
 ---
@@ -131,6 +134,10 @@ Adds Google Places autocomplete to the Contact form. Typing in the partner name 
 **[partner_autocomplete_with_google_autocomplete](partner_autocomplete_with_google_autocomplete/README.md)** [`19.0.1.0.6`](partner_autocomplete_with_google_autocomplete/CHANGELOG.md)
 
 Enhances the Contact name field with a Google Places panel alongside Odoo's built-in partner autocomplete. A toggle lets the user switch between Odoo's database suggestions and Google Places results on the same input. Applied automatically to all contact forms — no view customization required.
+
+**[contacts_google_address_validation](contacts_google_address_validation/README.md)** [`19.0.2.0.0`](contacts_google_address_validation/CHANGELOG.md)
+
+Adds a **Validate Address** button to the Contact form that checks the stored address against the Google Address Validation API. A dialog shows the validation verdict, a side-by-side comparison of the current and Google's standardized address, and a component-level breakdown with confirmation levels. Users can apply Google's standardized address and geocoordinates in one click or keep the existing address. Validation status (Validated / Needs Review / Invalid), granularity, date, and API response ID are stored on the partner and available in list views, filters, and automations. Editing any address field automatically resets the status to Not Validated.
 
 ---
 
@@ -209,6 +216,7 @@ Install `base_google_map`, then go to **Settings → General Settings → Google
 | Show contacts on a map | `contacts_google_map` |
 | Create contacts by clicking on the map | `contacts_google_map_add_place` |
 | Autocomplete addresses on the Contact form | `contacts_google_autocomplete` |
+| Validate and standardize Contact addresses | `contacts_google_address_validation` |
 | Show CRM leads on a map | `crm_google_map` |
 | Create leads by clicking on the map | `crm_google_map_add_place` |
 | Show sales orders on a map | `sale_google_map` |

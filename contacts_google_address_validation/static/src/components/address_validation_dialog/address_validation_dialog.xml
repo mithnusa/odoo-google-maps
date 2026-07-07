@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates xml:space="preserve">
+    <t t-name="contacts_google_address_validation.AddressValidationDialog">
+        <Dialog size="'lg'" title="dialogTitle">
+            <!-- Recommendation summary -->
+            <div t-attf-class="alert d-flex gap-2 align-items-start {{ recommendationInfo.class }}" role="alert">
+                <i t-attf-class="fa fa-lg mt-1 {{ recommendationInfo.icon }}" />
+                <div>
+                    <strong t-esc="recommendationInfo.title" />
+                    <div class="small" t-esc="recommendationInfo.message" />
+                </div>
+            </div>
+
+            <!-- Verdict badges -->
+            <div class="d-flex flex-wrap gap-2 mb-3">
+                <span t-attf-class="badge {{ verdict.addressComplete ? 'text-bg-success' : 'text-bg-warning' }}">
+                    <t t-if="verdict.addressComplete">Address complete</t>
+                    <t t-else="">Address incomplete</t>
+                </span>
+                <span t-if="verdict.validationGranularity" class="badge text-bg-info">
+                    Granularity:
+                    <t t-esc="verdict.validationGranularity" />
+                </span>
+                <span t-if="verdict.hasUnconfirmedComponents" class="badge text-bg-warning">
+                    Unconfirmed components
+                </span>
+                <span t-if="verdict.hasInferredComponents" class="badge text-bg-secondary">Inferred components</span>
+                <span t-if="verdict.hasReplacedComponents" class="badge text-bg-danger">Replaced components</span>
+            </div>
+
+            <!-- Missing components / unresolved tokens -->
+            <div t-if="props.result.missingComponentTypes.length" class="alert alert-warning py-2 mb-3" role="alert">
+                <i class="fa fa-puzzle-piece me-1" />
+                <strong>Missing from the entered address:</strong>
+                <span
+                    t-foreach="props.result.missingComponentTypes"
+                    t-as="missingType"
+                    t-key="missingType_index"
+                    class="badge text-bg-warning ms-1"
+                    t-esc="missingType"
+                />
+            </div>
+            <div t-if="props.result.unresolvedTokens.length" class="alert alert-warning py-2 mb-3" role="alert">
+                <i class="fa fa-question me-1" />
+                <strong>Parts Google could not recognize:</strong>
+                <span
+                    t-foreach="props.result.unresolvedTokens"
+                    t-as="token"
+                    t-key="token_index"
+                    class="badge text-bg-warning ms-1"
+                    t-esc="token"
+                />
+            </div>
+
+            <!-- Entered vs standardized address -->
+            <div class="row g-3 mb-3">
+                <div class="col-12 col-md-6">
+                    <div class="border rounded-2 p-2 h-100">
+                        <div class="text-muted small fw-bold text-uppercase mb-1">Entered Address</div>
+                        <div style="white-space: pre-line;" t-esc="props.enteredAddress" />
+                    </div>
+                </div>
+                <div class="col-12 col-md-6">
+                    <div class="border rounded-2 p-2 h-100 border-primary">
+                        <div class="text-muted small fw-bold text-uppercase mb-1">
+                            <i class="fa fa-google me-1" />
+                            Google Standardized Address
+                        </div>
+                        <div t-esc="props.result.formattedAddress" />
+                    </div>
+                </div>
+            </div>
+
+            <!-- USPS CASS data (US / PR addresses with CASS enabled) -->
+            <div t-if="usps" class="border rounded-2 p-2 mb-3">
+                <div class="text-muted small fw-bold text-uppercase mb-1">USPS Delivery Point Validation</div>
+                <div class="d-flex flex-wrap gap-2 align-items-center">
+                    <span
+                        t-if="dpvInfo"
+                        t-attf-class="badge {{ dpvInfo.class }}"
+                        t-esc="dpvInfo.label"
+                        t-att-data-tooltip="dpvInfo.help"
+                    />
+                    <span t-if="usps.dpvVacant === 'Y'" class="badge text-bg-warning">Vacant address</span>
+                    <span t-if="usps.dpvNoStat === 'Y'" class="badge text-bg-warning">
+                        No-Stat (not receiving mail)
+                    </span>
+                    <span t-if="usps.county" class="badge text-bg-light text-dark">
+                        County:
+                        <t t-esc="usps.county" />
+                    </span>
+                </div>
+                <div t-if="usps.standardizedAddress" class="mt-2">
+                    <span class="text-muted small">USPS Standardized:</span>
+                    <span t-esc="usps.standardizedAddress" />
+                </div>
+            </div>
+
+            <!-- Component breakdown -->
+            <div t-if="props.result.components.length" class="mb-2">
+                <div class="text-muted small fw-bold text-uppercase mb-1">Address Components</div>
+                <table class="table table-sm align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Component</th>
+                            <th>Value</th>
+                            <th class="text-end">Confirmation</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr t-foreach="props.result.components" t-as="component" t-key="component_index">
+                            <td class="text-muted" t-esc="component.type" />
+                            <td>
+                                <span t-esc="component.name" />
+                                <span t-if="component.inferred" class="badge text-bg-secondary ms-1">inferred</span>
+                                <span t-if="component.replaced" class="badge text-bg-danger ms-1">replaced</span>
+                                <span t-if="component.spellCorrected" class="badge text-bg-info ms-1">
+                                    spell-corrected
+                                </span>
+                            </td>
+                            <td class="text-end">
+                                <t t-set="badge" t-value="componentBadge(component)" />
+                                <span
+                                    t-attf-class="badge {{ badge.class }}"
+                                    t-esc="badge.label"
+                                    t-att-data-tooltip="badge.help"
+                                />
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <t t-set-slot="footer">
+                <button class="btn btn-primary" t-att-disabled="state.busy" t-on-click="onApplyGoogleAddress">
+                    <i t-if="state.busy" class="fa fa-refresh fa-spin me-1" />
+                    Apply Google's Address
+                </button>
+                <button class="btn btn-secondary" t-att-disabled="state.busy" t-on-click="onKeepEnteredAddress">
+                    Keep current Address
+                </button>
+                <button class="btn btn-link" t-att-disabled="state.busy" t-on-click="onDiscard">Discard</button>
+            </t>
+        </Dialog>
+    </t>
+</templates>
