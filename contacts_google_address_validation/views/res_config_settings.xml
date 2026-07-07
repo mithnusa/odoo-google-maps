@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="res_config_settings_view_form" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.contacts_google_address_validation</field>
+        <field name="model">res.config.settings</field>
+        <field name="priority" eval="520" />
+        <field name="inherit_id" ref="base_google_map.res_config_settings_view_form" />
+        <field name="arch" type="xml">
+            <xpath expr="//block[@name='base_google_map']" position="inside">
+                <setting
+                    id="google_address_validation_api_key_setting"
+                    help="Optional dedicated API key for server-side Address Validation requests. The main Google Maps key is usually HTTP-referrer restricted, which Google rejects for server-side calls. Restrict this key to the Address Validation API only, and by server IP address when your host has a static outbound IP. On hosts without a static IP (e.g. Odoo.sh), leave the application restriction to None and set a quota cap instead — see the module README."
+                    documentation="https://developers.google.com/maps/documentation/address-validation/requests-validate-address"
+                >
+                    <field
+                        name="google_address_validation_api_key"
+                        string="Address Validation Server Key"
+                        password="True"
+                    />
+                </setting>
+            </xpath>
+        </field>
+    </record>
+</odoo>
