@@ -72,6 +72,33 @@ const SUPPORTED_REGIONS_CODES = [
 ];
 
 /**
+ * Granularity information for the Address Validation API, used only to
+ * display a tooltip for the granularity badge. The authoritative check
+ * lives server-side in `google.address.validation.get_granularity_info()`.
+ *
+ * Note: `GRANULARITY_UNSPECIFIED` is internal value, used when the API cannot determine the level of detail, but the record has been validated.
+ * In this case, the tooltip will show "Granularity: Unspecified".
+ *
+ * @see https://developers.google.com/maps/documentation/javascript/reference/address-validation#Granularity
+ * @type {Object<string, string>}
+ */
+const GRANULARITY_INFO = {
+    SUB_PREMISE: _t('Granularity: Sub-premise (below-building level result, such as an apartment)'),
+    PREMISE: _t('Granularity: Premise (building-level result, such as a house or business)'),
+    PREMISE_PROXIMITY: _t(
+        'Granularity: Premise Proximity (geocode that approximates the building-level location of the address)'
+    ),
+    BLOCK: _t(
+        'Granularity: Block (the address or geocode indicates a block. Only used in regions which have block-level addressing, such as Japan)'
+    ),
+    ROUTE: _t('Granularity: Route (the geocode or address is granular to route, such as a street, road, or highway)'),
+    OTHER: _t(
+        'Granularity: Other (all other granularities, which are bucketed together since they are not deliverable.)'
+    ),
+    GRANULARITY_UNSPECIFIED: _t('Granularity: Unspecified (Google could not determine the level of detail)'),
+};
+
+/**
  * Extracts the id from a Many2one record value, tolerating the different
  * shapes used across Odoo versions ([id, name] tuple or {id, display_name}).
  *
@@ -125,12 +152,8 @@ export class GoogleAddressValidation extends Component {
     }
 
     get lastValidated() {
-        const dateStr = this.props.record.data.google_address_validation_date;
-        if (!dateStr) {
-            return '';
-        }
-        const dt = DateTime.fromISO(dateStr);
-        return dt.isValid ? dt.toLocaleString(DateTime.DATETIME_MED) : '';
+        const dt = this.props.record.data.google_address_validation_date;
+        return dt && dt.isValid ? dt.toLocaleString(DateTime.DATETIME_MED) : '';
     }
 
     get statusLabel() {
@@ -170,6 +193,14 @@ export class GoogleAddressValidation extends Component {
             default:
                 return 'fa-circle-o';
         }
+    }
+
+    get addressGranularity() {
+        const granularity = this.props.record.data.google_address_validation_granularity || '';
+        if (granularity) {
+            return GRANULARITY_INFO[granularity] || _t('Granularity: Unknown');
+        }
+        return this.props.record.data.google_address_validation_status ? _t('Granularity: Unknown') : '';
     }
 
     /**

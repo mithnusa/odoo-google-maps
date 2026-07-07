@@ -10,7 +10,7 @@ Adds Google Address Validation (``addressValidation`` library) to the Odoo Conta
 
 Provides:
 
-- **Validate Address** button on the Contact form next to the address block; sends the current address to ``AddressValidation.fetchAddressValidation`` with the contact's country as ``regionCode``
+- **Validate Address** button on the Contact form next to the address block; sends the current address via a server-side POST to ``https://addressvalidation.googleapis.com/v1:validateAddress`` with the contact's country as ``regionCode``
 - **Validation dialog** summarizing the API verdict (validation granularity, address completeness, unconfirmed / inferred / replaced components) with a recommendation following Google's accept / confirm / fix guidance
 - **Side-by-side comparison** of the current address and Google's standardized formatted address, plus a component-level breakdown with confirmation levels
 - **Apply Google's Address**: writes the standardized address (street, street2, city, state, zip, country) and the geocode latitude / longitude back to the contact in a single write; state and country are resolved server-side

@@ -3,10 +3,7 @@
     <t t-name="contacts_google_address_validation.GoogleAddressValidation">
         <div class="o_gaddress_validation mt-1 mb-1" t-if="!state.disabled">
             <div class="d-flex align-items-center gap-1">
-                <span
-                    t-attf-class="badge rounded-pill {{ statusClass }}"
-                    t-att-data-tooltip="props.record.data.google_address_validation_granularity ? 'Granularity: ' + props.record.data.google_address_validation_granularity : undefined"
-                >
+                <span t-attf-class="badge rounded-pill {{ statusClass }}" t-att-data-tooltip="addressGranularity">
                     <i t-attf-class="fa fa-fw {{ statusIcon }}" />
                     <span t-esc="statusLabel" />
                 </span>

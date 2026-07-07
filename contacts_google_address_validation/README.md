@@ -6,7 +6,7 @@
 
 ## What It Does
 
-Adds a **Validate Address** button below the address block on the Contact form. Clicking it sends the entered address to Google's `fetchAddressValidation` method and opens a review dialog summarizing the verdict. The user can apply Google's standardized address (including latitude/longitude) or keep the entered address while storing only the validation verdict.
+Adds a **Validate Address** button below the address block on the Contact form. Clicking it sends the entered address via a server-side POST to the Google Address Validation REST API (`https://addressvalidation.googleapis.com/v1:validateAddress`) and opens a review dialog summarizing the verdict. The user can apply Google's standardized address (including latitude/longitude) or keep the entered address while storing only the validation verdict.
 
 ## Key Features
 
