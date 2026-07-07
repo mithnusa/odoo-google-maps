@@ -192,6 +192,7 @@ Sign up at [Google Cloud Console](https://console.cloud.google.com/) and create 
 | Maps JavaScript API | Map rendering |
 | Places API (New) | Address autocomplete and place search |
 | Geocoding API | Coordinate-to-address and address-to-coordinate lookup |
+| Address Validation API | Verify and standardize addresses |
 
 → [Get a Google Maps API Key](https://developers.google.com/maps/documentation/javascript/get-api-key)
 

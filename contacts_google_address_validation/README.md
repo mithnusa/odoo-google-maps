@@ -33,7 +33,6 @@ Adds a **Validate Address** button below the address block on the Contact form. 
 
 ### Required Google Cloud APIs
 
-- Maps JavaScript API (required)
 - Address Validation API (required)
 
 ## Basic Usage
