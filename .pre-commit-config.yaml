@@ -26,7 +26,7 @@ repos:
         args: ["--line-length=79", "--skip-string-normalization"]
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.15.20   # bump to latest
+    rev: v0.15.21   # bump to latest
     hooks:
       - id: ruff
         args: ["--fix", "--ignore=F401"]
@@ -73,7 +73,7 @@ repos:
       - id: oca-checks-po
 
   - repo: https://github.com/pre-commit/mirrors-eslint
-    rev: v10.6.0
+    rev: v10.7.0
     hooks:
       - id: eslint
         files: \.js$
