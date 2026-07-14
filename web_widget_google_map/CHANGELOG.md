@@ -1,5 +1,11 @@
 # Change Log
 
+## 19.0.1.0.10
+
+### Fixed
+
+- **`google_map.xml` — Button icon width shift between readonly/edit states**: Added `fa-fw` to the button icon so `fa-map-o` (readonly) and `fa-map-pin` (edit) render at a fixed, equal width instead of shifting the button/label width when the icon glyph changes.
+
 ## 19.0.1.0.9
 
 ### Fixed

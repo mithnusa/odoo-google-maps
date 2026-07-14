@@ -103,7 +103,7 @@ The core map view module. Adds a `google_map` view type alongside list, kanban, 
 
 Extends the map view with geographic drawing tools. Users can draw polygons, rectangles, and freehand shapes directly on the map. Shapes are stored as GeoJSON on the record and support server-side filtering so you can query which records fall inside a drawn area. Built on [Terra Draw](https://terradraw.io/) and [Deck.gl](https://deck.gl/); all libraries are bundled locally.
 
-**[web_widget_google_map](web_widget_google_map/README.md)** [`19.0.1.0.9`](web_widget_google_map/CHANGELOG.md)
+**[web_widget_google_map](web_widget_google_map/README.md)** [`19.0.1.0.10`](web_widget_google_map/CHANGELOG.md)
 
 Adds an embedded Google Map to any Odoo form. Shows the record's saved location and lets users update it visually — by dragging a marker or typing a place name — without leaving the form. A Street View side-by-side dialog lets users verify the exact location with street-level imagery alongside the standard map; it falls back gracefully when no Street View coverage is available.
 
@@ -119,7 +119,7 @@ Shared foundation for click-to-create workflows on map views. Provides the serve
 
 ### Contacts
 
-**[contacts_google_map](contacts_google_map/README.md)** [`19.0.1.0.12`](contacts_google_map/CHANGELOG.md)
+**[contacts_google_map](contacts_google_map/README.md)** [`19.0.1.0.13`](contacts_google_map/CHANGELOG.md)
 
 Adds a Google Map view to the Contacts application. Partners appear as color-coded markers; clicking one opens the contact card. Each contact form gains a Geolocation tab with an embedded map, a one-click geocode button, a marker color picker, and a nearby partners search. An optional background cron job can geocode all contacts automatically.
 
