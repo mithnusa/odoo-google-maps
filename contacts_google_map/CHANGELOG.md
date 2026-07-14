@@ -1,5 +1,11 @@
 # Change Log
 
+## 19.0.1.0.13
+
+### Changed
+
+- **`res_partner.xml` — Geolocation page inline layout, take 2**: The `google_map` widget insertion point was moved from inside the `geo_localize_button` div to a sibling `<xpath>` positioned `after` the `geo_localize` button itself. The extra `attribute name="class"` xpath that force-set `d-flex gap-2` on the button div was removed since the widget no longer lives inside that div.
+
 ## 19.0.1.0.12
 
 ### Changed

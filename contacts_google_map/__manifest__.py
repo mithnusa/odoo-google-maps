@@ -23,7 +23,7 @@ Provides:
     'website': 'https://www.mithnusa.com',
     'support': 'yopiangi@gmail.com',
     'category': 'Sales/CRM',
-    'version': '19.0.1.0.12',
+    'version': '19.0.1.0.13',
     'depends': [
         'base_geolocalize',
         'contacts',
