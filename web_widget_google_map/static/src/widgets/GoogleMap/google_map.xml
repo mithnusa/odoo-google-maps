@@ -8,7 +8,7 @@
                 t-on-click="handleOnEdit"
                 t-attf-data-tooltip="{{ props.readonly ? 'Show on Map' : 'Update Location on Map' }}"
             >
-                <i t-attf-class="fa me-1 {{ props.readonly ? 'fa-map-o' : 'fa-map-pin'}}" />
+                <i t-attf-class="fa fa-fw {{ props.readonly ? 'fa-map-o' : 'fa-map-pin'}} me-1" />
                 <span t-if="props.readonly">View on Map</span>
                 <span t-else="">Update on Map</span>
             </button>
