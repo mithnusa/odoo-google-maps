@@ -1,5 +1,16 @@
 # Change Log
 
+## 19.0.1.0.23
+
+### Updated Dependencies
+
+- **Deck.gl**: Updated from 9.3.4 to 9.3.6
+- **Terra Draw**: Updated from 1.31.1 to 1.32.0
+
+### Fixed
+
+- **`GoogleMapDrawingController.rendererProps`**: Also strips `showGoogleStreetViewSideBySide` (in addition to `showNearbyRecords`) before passing props to the drawing renderer — the Street View side-by-side toggle from the base map view is not applicable in drawing mode and was leaking through as an unused prop
+
 ## 19.0.1.0.22
 
 ### Improved
