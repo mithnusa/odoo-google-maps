@@ -1,7 +1,28 @@
 import { _t } from '@web/core/l10n/translation';
-import { Component } from '@odoo/owl';
+import { Component, props, t } from '@odoo/owl';
 import { CheckBox } from '@web/core/checkbox/checkbox';
 import { Field } from '@web/views/fields/field';
+
+
+export const googleMapSidebarProps = {
+    header: t.string(),
+    title: t.string(),
+    getGroupsOrRecords: t.function(),
+    toggleGroup: t.function(),
+    renderGroupedRecordsFitBounds: t.function(),
+    openRecord: t.function(),
+    showRecordsByDomain: t.function(),
+    showNearbyRecords: t.function(),
+    pointInMap: t.function(),
+    deleteGroupRecords: t.function(),
+    handleToggleSelection: t.function(),
+    handleCanSelectRecord: t.boolean(),
+    handleSelectAll: t.boolean(),
+    handleToggleRecordSelection: t.function(),
+    allowSelectors: t.boolean(),
+    isGrouped: t.boolean(),
+};
+
 
 export class GoogleMapSidebar extends Component {
     static template = 'web_view_google_map.GoogleMapSidebar';
@@ -22,24 +43,7 @@ export class GoogleMapSidebar extends Component {
      */
     static recordActionsTemplate = 'web_view_google_map.RecordActionsTemplate';
     static components = { CheckBox, Field };
-    static props = {
-        header: String,
-        title: { type: String, optional: true },
-        getGroupsOrRecords: Function,
-        toggleGroup: Function,
-        renderGroupedRecordsFitBounds: Function,
-        openRecord: Function,
-        showRecordsByDomain: Function,
-        showNearbyRecords: Function,
-        pointInMap: Function,
-        deleteGroupRecords: Function,
-        handleToggleSelection: Function,
-        handleCanSelectRecord: Boolean,
-        handleSelectAll: Boolean,
-        handleToggleRecordSelection: Function,
-        allowSelectors: Boolean,
-        isGrouped: Boolean,
-    };
+    static props = googleMapSidebarProps;
 
     get datas() {
         return this.props.getGroupsOrRecords();

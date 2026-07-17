@@ -15,6 +15,8 @@ class ResPartner(models.Model):
     _inherit = "res.partner"
 
     marker_color = fields.Integer(string="Marker Color", default=1)
+    partner_latitude = fields.Float(index=True)
+    partner_longitude = fields.Float(index=True)
 
     def _compute_bounding_box(self, lat, lng, radius_meters):
         """Computes a bounding box around a geographic point for proximity search.
@@ -158,17 +160,11 @@ class ResPartner(models.Model):
                 )
             )
 
-        radius_meters = (
+        radius = (
             self.env["ir.config_parameter"]
             .sudo()
-            .get_param(
-                "web_view_google_map.nearby_radius_search", default="1000"
-            )
+            .get_int("web_view_google_map.nearby_radius_search", default=1000)
         )
-        try:
-            radius = int(radius_meters)
-        except (ValueError, TypeError):
-            radius = 1000
 
         domain, bounding_box = self._compute_bounding_box_domain(
             self.partner_latitude,

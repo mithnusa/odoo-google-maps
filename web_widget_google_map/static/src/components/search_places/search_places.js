@@ -1,6 +1,6 @@
-import { _t } from '@web/core/l10n/translation';
-import { Component, useEffect, useRef, onWillUnmount } from '@odoo/owl';
 import { useService } from '@web/core/utils/hooks';
+import { _t } from '@web/core/l10n/translation';
+import { Component, onWillUnmount, useEffect, useRef } from '@odoo/owl';
 import { debounce } from '@web/core/utils/timing';
 import { renderToString } from '@web/core/utils/render';
 

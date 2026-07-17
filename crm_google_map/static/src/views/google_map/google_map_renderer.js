@@ -1,8 +1,9 @@
 import { _t } from '@web/core/l10n/translation';
+import { t, props } from '@odoo/owl';
 import { renderToString } from '@web/core/utils/render';
 import { user } from '@web/core/user';
 import { formatNumber } from '@web_view_google_map/views/google_map/utils';
-import { GoogleMapRenderer } from '@web_view_google_map/views/google_map/google_map_renderer';
+import { GoogleMapRenderer, googleMapRendererProps } from '@web_view_google_map/views/google_map/google_map_renderer';
 import { GoogleMapSidebarCRM } from './google_map_sidebar';
 
 const { DateTime } = luxon;
@@ -24,16 +25,16 @@ const CRM_MARKER_CONFIG = {
 };
 
 export class GoogleMapRendererCRM extends GoogleMapRenderer {
-    static props = {
-        ...GoogleMapRenderer.props,
-        openRecordScheduleActivity: Function,
-        showRecordScheduledActivity: Function,
-    };
     static components = {
         ...GoogleMapRenderer.components,
         Sidebar: GoogleMapSidebarCRM,
     };
     static templateInfoWindow = 'crm_google_map.MarkerInfoWindow';
+    props = props({
+        ...googleMapRendererProps,
+        openRecordScheduleActivity: t.function(),
+        showRecordScheduledActivity: t.function(),
+    });
 
     /**
      * @override

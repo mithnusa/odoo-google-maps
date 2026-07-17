@@ -1,6 +1,7 @@
-import { Component, useRef, useEffect, onWillUnmount, useState } from '@odoo/owl';
-import { Dialog } from '@web/core/dialog/dialog';
 import { useService } from '@web/core/utils/hooks';
+import { useLayoutEffect, useRef } from '@web/owl2/utils';
+import { Component, onWillUnmount, props, proxy, t } from '@odoo/owl';
+import { Dialog } from '@web/core/dialog/dialog';
 import { _t } from '@web/core/l10n/translation';
 import { useGoogleMapsAPILoader } from '@base_google_map/utils/loader_google_map';
 
@@ -55,18 +56,13 @@ export class GoogleMapStreetViewSideBySideDialog extends Component {
     static template = 'web_widget_google_map.GoogleMapStreetViewSideBySideDialog';
     static components = { Dialog };
     static props = {
-        close: Function,
-        lat: Number,
-        lng: Number,
-        title: { type: String, optional: true },
-        heading: { type: Number, optional: true },
-        pitch: { type: Number, optional: true },
-        zoom: { type: Number, optional: true },
-    };
-    static defaultProps = {
-        title: _t('Street View'),
-        pitch: 10,
-        zoom: 0, // Default zoom level for Street View panorama (0-5).
+        close: t.function(),
+        lat: t.number(),
+        lng: t.number(),
+        title: t.string().optional(_t('Street View')),
+        heading: t.number().optional(),
+        pitch: t.number().optional(10),
+        zoom: t.number().optional(0),
     };
 
     setup() {
@@ -79,7 +75,7 @@ export class GoogleMapStreetViewSideBySideDialog extends Component {
         this._locationMarker = null;
         this._initInProgress = false;
 
-        this.state = useState({ isGoogleLoaded: false, streetViewAvailable: true });
+        this.state = proxy({ isGoogleLoaded: false, streetViewAvailable: true });
 
         this.apiLoader = useGoogleMapsAPILoader(
             () => {
@@ -94,7 +90,7 @@ export class GoogleMapStreetViewSideBySideDialog extends Component {
             }
         );
 
-        useEffect(
+        useLayoutEffect(
             (isGoogleLoaded, mapEl, streetViewEl) => {
                 if (isGoogleLoaded && mapEl && streetViewEl) {
                     this.initializeMapAndStreetView();
@@ -226,10 +222,9 @@ export class GoogleMapStreetViewSideBySideDialog extends Component {
 
             const panorama = new StreetViewPanorama(this.streetViewRef.el, {
                 position,
-                pov: { heading: effectiveHeading, pitch },
-                zoom,
+                pov: { heading: effectiveHeading, pitch: pitch ?? 10 },
+                zoom: zoom ?? 0,
             });
-
             map.setStreetView(panorama);
             this.panorama = panorama;
         } catch (error) {
@@ -257,7 +252,7 @@ export class GoogleMapStreetViewSideBySideDialog extends Component {
             throw new Error(_t('Invalid heading value.'));
         }
 
-        if (!Number.isFinite(pitch) || !Number.isFinite(zoom)) {
+        if (pitch !== undefined && (!Number.isFinite(pitch) || !Number.isFinite(zoom))) {
             throw new Error(_t('Invalid pitch or zoom values.'));
         }
 
@@ -269,7 +264,7 @@ export class GoogleMapStreetViewSideBySideDialog extends Component {
             throw new Error(_t('Panorama zoom level must be between 0 and 5.'));
         }
 
-        if (pitch < -90 || pitch > 90) {
+        if (Number.isFinite(pitch) && (pitch < -90 || pitch > 90)) {
             throw new Error(_t('Pitch must be between -90 and 90.'));
         }
 

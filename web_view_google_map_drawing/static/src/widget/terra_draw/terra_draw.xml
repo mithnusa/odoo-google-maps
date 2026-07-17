@@ -2,60 +2,60 @@
 <templates xml:space="preserve">
     <div t-name="web_view_google_map_drawing.GoogleMapTerraDrawField">
         <div class="o_google_map_renderer">
-            <InMapSearchPlaces googleMap="googleMap" />
-            <div class="o_google_map_view" id="o_google_map_view" t-ref="map" />
-            <Geolocate googleMap="googleMap" t-if="state.isMapReady" />
+            <InMapSearchPlaces googleMap="this.googleMap" />
+            <div class="o_google_map_view" id="o_google_map_view" t-custom-ref="map" />
+            <Geolocate googleMap="this.googleMap" t-if="this.state.isMapReady" />
 
-            <t t-if="state.isMapReady">
-                <t t-if="props.readonly">
+            <t t-if="this.state.isMapReady">
+                <t t-if="this.props.readonly">
                     <!-- Conditional Rendering: DeckGL for complex features -->
                     <DeckGlEditor
-                        dataGeoJson="geoJson"
-                        googleMap="googleMap"
-                        record="props.record"
-                        saveFeatures.bind="handleSave"
-                        saveFeaturesTotalArea.bind="handleSaveFeatureTotalArea"
-                        readonly="props.readonly"
-                        renderingMode="state.renderingMode"
+                        dataGeoJson="this.geoJson"
+                        googleMap="this.googleMap"
+                        record="this.props.record"
+                        saveFeatures.bind="this.handleSave"
+                        saveFeaturesTotalArea.bind="this.handleSaveFeatureTotalArea"
+                        readonly="this.props.readonly"
+                        renderingMode="this.state.renderingMode"
                     />
                 </t>
-                <t t-elif="!props.readonly &amp;&amp; state.renderingMode === 'terra-draw'">
+                <t t-elif="!this.props.readonly &amp;&amp; this.state.renderingMode === 'terra-draw'">
                     <!-- Conditional Rendering: Terra Draw for simple features -->
                     <TerraDrawToolsUI
-                        dataGeoJson="geoJson"
-                        googleMap="googleMap"
-                        saveFeatures.bind="handleSave"
-                        record="props.record"
-                        renderingMode="state.renderingMode"
+                        dataGeoJson="this.geoJson"
+                        googleMap="this.googleMap"
+                        saveFeatures.bind="this.handleSave"
+                        record="this.props.record"
+                        renderingMode="this.state.renderingMode"
                     />
                 </t>
-                <t t-elif="!props.readonly &amp;&amp; state.renderingMode === 'deckgl'">
+                <t t-elif="!this.props.readonly &amp;&amp; this.state.renderingMode === 'deckgl'">
                     <!-- Conditional Rendering: DeckGL for complex features -->
                     <DeckGlEditor
-                        dataGeoJson="geoJson"
-                        googleMap="googleMap"
-                        record="props.record"
-                        saveFeatures.bind="handleSave"
-                        saveFeaturesTotalArea.bind="handleSaveFeatureTotalArea"
-                        renderingMode="state.renderingMode"
-                        readonly="props.readonly"
+                        dataGeoJson="this.geoJson"
+                        googleMap="this.googleMap"
+                        record="this.props.record"
+                        saveFeatures.bind="this.handleSave"
+                        saveFeaturesTotalArea.bind="this.handleSaveFeatureTotalArea"
+                        renderingMode="this.state.renderingMode"
+                        readonly="this.props.readonly"
                     />
                 </t>
                 <t t-else="">
                     <DeckGlEditor
-                        dataGeoJson="geoJson"
-                        googleMap="googleMap"
-                        record="props.record"
-                        saveFeatures.bind="handleSave"
-                        saveFeaturesTotalArea.bind="handleSaveFeatureTotalArea"
-                        renderingMode="state.renderingMode"
-                        readonly="props.readonly"
+                        dataGeoJson="this.geoJson"
+                        googleMap="this.googleMap"
+                        record="this.props.record"
+                        saveFeatures.bind="this.handleSave"
+                        saveFeaturesTotalArea.bind="this.handleSaveFeatureTotalArea"
+                        renderingMode="this.state.renderingMode"
+                        readonly="this.props.readonly"
                     />
                 </t>
             </t>
         </div>
         <!-- Readonly Mode Banner for features with holes -->
-        <div class="o_complexity_banner" t-if="state.isMapReady and state.renderingMode === 'deckgl'">
+        <div class="o_complexity_banner" t-if="this.state.isMapReady and this.state.renderingMode === 'deckgl'">
             <p class="p-0 m-0 text-warning small">
                 *Features containing complex geometry (polygon with holes or 3D coordinates) are not supported for
                 editing.

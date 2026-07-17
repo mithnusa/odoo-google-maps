@@ -1,4 +1,5 @@
-import { useRef, useState, useSubEnv, useEffect, onPatched, onWillUpdateProps, onWillStart } from '@odoo/owl';
+import { useLayoutEffect, useRef, useSubEnv } from '@web/owl2/utils';
+import { proxy, onPatched, onWillUpdateProps, onWillStart, props, t } from '@odoo/owl';
 import { _t } from '@web/core/l10n/translation';
 import { renderToString } from '@web/core/utils/render';
 import { debounce } from '@web/core/utils/timing';
@@ -75,6 +76,21 @@ const MARKER_CONFIG = {
     },
 };
 
+export const googleMapRendererProps = {
+    archInfo: t.object(),
+    openRecord: t.function(),
+    showRecord: t.function(),
+    showRecordsByDomain: t.function(),
+    showNearbyRecords: t.function(),
+    showGoogleStreetViewSideBySide: t.function(),
+    readonly: t.boolean(),
+    list: t.object(),
+    onAdd: t.function().optional(),
+    activeActions: t.object().optional(),
+    allowSelectors: t.boolean(),
+    viewAttrs: t.object(),
+};
+
 export class GoogleMapRenderer extends BaseGoogleMapComponent {
     static template = 'web_view_google_map.GoogleMapRenderer';
     static templateInfoWindow = 'web_view_google_map.MarkerInfoWindow';
@@ -84,20 +100,7 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
         Sidebar: GoogleMapSidebar,
         InMapSearchPlaces: GoogleMapSearchPlaces,
     };
-    static props = {
-        archInfo: Object,
-        openRecord: Function,
-        showRecord: Function,
-        showRecordsByDomain: Function,
-        showNearbyRecords: Function,
-        showGoogleStreetViewSideBySide: Function,
-        readonly: Boolean,
-        list: Object,
-        onAdd: { type: Function, optional: true },
-        activeActions: { type: Object, optional: true },
-        allowSelectors: Boolean,
-        viewAttrs: Object,
-    };
+    props = props(googleMapRendererProps);
 
     setup() {
         super.setup();
@@ -112,7 +115,7 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
         // Make sidebar state non-reactive
         this._isSidebarAction = false;
 
-        this.state = useState({
+        this.state = proxy({
             ...this.state,
             sidebarIsFolded: false,
             // flag to Google Maps API loader status
@@ -133,7 +136,7 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
         this.debounceRenderGeolocationData = debounce(this.renderGeolocationData.bind(this), 500);
         this.debounceSelectedMarkers = debounce(this.onSelectedMarkers.bind(this), 500);
 
-        useEffect(
+        useLayoutEffect(
             () => {
                 if (this.isMapLoaded() && !this._isSidebarAction) {
                     this.debounceRenderGeolocationData();

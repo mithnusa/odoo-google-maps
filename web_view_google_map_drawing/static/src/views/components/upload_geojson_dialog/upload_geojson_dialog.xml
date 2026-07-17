@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <templates xml:space="preserve">
     <t t-name="web_view_google_map_drawing.UploadGeoJsonFileDialog">
-        <Dialog size="'md'" title="props.title" modalRef="modalRef">
+        <Dialog size="'md'" title="this.props.title" modalRef="this.modalRef">
             <div class="alert alert-warning" role="alert">
                 Any existing drawn features will be removed when importing a new GeoJSON file
             </div>
@@ -17,12 +17,12 @@
                 </div>
             </div>
             <t t-set-slot="footer">
-                <button class="btn btn-primary" t-on-click="_confirm" t-esc="props.confirmLabel" data-hotkey="q" />
+                <button class="btn btn-primary" t-on-click="this._confirm" t-out="this.props.confirmLabel" data-hotkey="q" />
                 <button
-                    t-if="props.cancel"
+                    t-if="this.props.cancel"
                     class="btn btn-secondary"
-                    t-on-click="_cancel"
-                    t-esc="props.cancelLabel"
+                    t-on-click="this._cancel"
+                    t-out="this.props.cancelLabel"
                     data-hotkey="x"
                 />
             </t>

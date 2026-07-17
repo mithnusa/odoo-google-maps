@@ -19,7 +19,7 @@ Provides:
     'website': 'https://github.com/mithnusa',
     'support': 'yopiangi@gmail.com',
     'category': 'Extra Tools',
-    'version': '19.0.1.0.3',
+    'version': '1.0.0',
     'depends': ['contacts', 'web_widget_google_place_autocomplete'],
     'data': ['views/res_partner_views.xml'],
     'post_init_hook': '_post_install_hook_configure_contact_google_place_mapping',

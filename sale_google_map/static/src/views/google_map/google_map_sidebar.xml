@@ -5,7 +5,7 @@
         <xpath expr="//button[@data-bs-toggle='collapse']" position="replace">
             <div class="ps-1 cursor-pointer o_map_sidebar_group" t-on-click="() => fnPinPointInMap(group.group.id)">
                 <t t-set="title" t-value="(group.group.displayName || 'None') + ' (' + group.group.count + ')' " />
-                <t t-set="totalAmount" t-value="getTotalAmount(group.group)" />
+                <t t-set="totalAmount" t-value="this.getTotalAmount(group.group)" />
                 <t t-set="avatar_url" t-value="this.getAvatarUrl(group)" />
                 <div class="d-flex align-items-center gap-2">
                     <t t-if="avatar_url">
@@ -45,8 +45,8 @@
         t-inherit="web_view_google_map.GoogleMapSidebar"
         t-inherit-mode="primary"
     >
-        <xpath expr="//t[@t-if='props.allowSelectors']" position="replace" />
-        <xpath expr="//div[@t-ref='root']" position="attributes">
+        <xpath expr="//t[@t-if='this.props.allowSelectors']" position="replace" />
+        <xpath expr="//div[@t-custom-ref='root']" position="attributes">
             <attribute name="class" add="sale_google_map" separator=" " />
         </xpath>
     </t>

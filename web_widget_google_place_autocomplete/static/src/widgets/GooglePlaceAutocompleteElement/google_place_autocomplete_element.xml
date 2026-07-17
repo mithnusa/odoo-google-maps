@@ -20,17 +20,17 @@
         <xpath expr="//div[@id='o_google_place_autocomplete_wrapper']/div" position="inside">
             <xpath expr="//input" position="move" />
             <a
-                t-if="!props.readonly"
-                t-attf-class="btn btn-light align-content-center o_gplace_toggle collapsed {{ state.isCollapseOpen ? 'bg-200' : '' }}"
-                t-attf-href="#{ '#' + widgetId }"
+                t-if="!this.props.readonly"
+                t-attf-class="btn btn-light align-content-center o_gplace_toggle collapsed {{ this.state.isCollapseOpen ? 'bg-200' : '' }}"
+                t-attf-href="#{ '#' + this.widgetId }"
                 role="button"
                 data-bs-toggle="collapse"
                 aria-expanded="false"
-                t-on-click.prevent="toggleCollapse"
-                t-attf-aria-controls="#{ widgetId }"
+                t-on-click.prevent="this.toggleCollapse"
+                t-attf-aria-controls="#{ this.widgetId }"
                 data-tooltip="Google Autocomplete"
                 title="Google Autocomplete"
-                t-ref="googleAutocompleteToggle"
+                t-custom-ref="googleAutocompleteToggle"
             >
                 <div class="d-flex gap-1 align-items-center">
                     <i class="fa fa-google" />
@@ -40,21 +40,21 @@
         </xpath>
         <xpath expr="//div[@id='o_google_place_autocomplete_wrapper']" position="inside">
             <!-- Collapsible Google Places Container -->
-            <div t-if="!props.readonly" t-attf-id="#{ widgetId }" class="collapse">
-                <t t-if="state.mappingId > 0">
+            <div t-if="!this.props.readonly" t-attf-id="#{ this.widgetId }" class="collapse">
+                <t t-if="this.state.mappingId > 0">
                     <GooglePlaceAutocompleteElement
-                        id="state.mappingId"
-                        code="mappingConfig.code"
-                        mode="mappingConfig.mode"
-                        options="mappingConfig.options"
-                        fields="mappingConfig.fields"
-                        resModel="props.record.resModel"
-                        elementId="widgetId + '_google_places'"
-                        callback.bind="saveChanges"
-                        isCollapseOpen="state.isCollapseOpen"
+                        id="this.state.mappingId"
+                        code="this.mappingConfig.code"
+                        mode="this.mappingConfig.mode"
+                        options="this.mappingConfig.options"
+                        fields="this.mappingConfig.fields"
+                        resModel="this.props.record.resModel"
+                        elementId="this.widgetId + '_google_places'"
+                        callback.bind="this.saveChanges"
+                        isCollapseOpen="this.state.isCollapseOpen"
                     />
                 </t>
-                <t t-elif="state.mappingId == 0">
+                <t t-elif="this.state.mappingId == 0">
                     <div class="bg-100 ps-2 pe-2 pb-2 pt-1 mt-1 rounded-2 shadow-sm">
                         <p class="small mb-0 text-warning text-center">
                             <i class="fa fa-refresh fa-spin fa-fw" />

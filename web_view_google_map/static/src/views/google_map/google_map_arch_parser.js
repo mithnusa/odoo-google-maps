@@ -18,6 +18,26 @@ export class GoogleMapArchParser {
         return processButton(node);
     }
 
+
+    parseFieldNode(node, models, modelName, fieldNextIds, fieldNodes) {
+        const fieldInfo = Field.parseFieldNode(node, models, modelName, "google_map");
+        if (!(fieldInfo.name in fieldNextIds)) {
+            fieldNextIds[fieldInfo.name] = 0;
+        }
+        const fieldId = `${fieldInfo.name}_${fieldNextIds[fieldInfo.name]++}`;
+        fieldNodes[fieldId] = fieldInfo;
+        node.setAttribute("field_id", fieldId);
+        const label = fieldInfo.field.label;
+        return {
+            ...fieldInfo,
+            className: node.getAttribute("class"),
+            optional: node.getAttribute("optional") || false,
+            type: "field",
+            fieldType: fieldInfo.type,
+            label: (fieldInfo.widget && label && label.toString()) || fieldInfo.string,
+        };
+    }
+
     parse(xmlDoc, models, modelName) {
         const className = xmlDoc.getAttribute('class') || null;
         const jsClass = xmlDoc.getAttribute('js_class');
@@ -31,7 +51,7 @@ export class GoogleMapArchParser {
         const fieldNodes = {};
         const googleMapAttr = {};
         const fieldNextIds = {};
-        const creates = [];
+        const controls = [];
 
         let nextId = 0;
         let buttonId = 0;
@@ -46,35 +66,44 @@ export class GoogleMapArchParser {
 
         visitXML(xmlDoc, (node) => {
             if (node.tagName === 'field') {
-                const fieldInfo = Field.parseFieldNode(node, models, modelName, 'google_map', jsClass);
-                if (!(fieldInfo.name in fieldNextIds)) {
-                    fieldNextIds[fieldInfo.name] = 0;
+                const fieldDescriptor = this.parseFieldNode(
+                    node,
+                    models,
+                    modelName,
+                    fieldNextIds,
+                    fieldNodes
+                );
+                if (fieldDescriptor.isHandle) {
+                    handleField = fieldDescriptor.name;
                 }
-                const fieldId = `${fieldInfo.name}_${fieldNextIds[fieldInfo.name]++}`;
-                fieldNodes[fieldId] = fieldInfo;
-                node.setAttribute('field_id', fieldId);
-                const label = fieldInfo.field.label;
                 columns.push({
-                    ...fieldInfo,
+                    ...fieldDescriptor,
                     id: `column_${nextId++}`,
-                    className: node.getAttribute('class'), // for oe_edit_only and oe_read_only
-                    optional: node.getAttribute('optional') || false,
-                    type: 'field',
-                    hasLabel: !(exprToBoolean(fieldInfo.attrs.nolabel) || fieldInfo.field.noLabel),
-                    label: (fieldInfo.widget && label && label.toString()) || fieldInfo.string,
+                    hasLabel: !(
+                        fieldDescriptor.field.label === false ||
+                        exprToBoolean(fieldDescriptor.attrs.nolabel) === true
+                    ),
                 });
             } else if (node.tagName === 'control') {
                 for (const childNode of node.children) {
-                    if (childNode.tagName === 'button') {
-                        creates.push({
-                            type: 'button',
-                            ...this.processButton(childNode),
+                    if (childNode.tagName === "button") {
+                        controls.push({
+                            type: "button",
+                            ...processButton(childNode),
                         });
-                    } else if (childNode.tagName === 'create') {
-                        creates.push({
-                            type: 'create',
-                            context: childNode.getAttribute('context'),
-                            string: childNode.getAttribute('string'),
+                    } else if (childNode.tagName === "create") {
+                        controls.push({
+                            type: "create",
+                            name: childNode.getAttribute("name"),
+                            context: childNode.getAttribute("context"),
+                            string: childNode.getAttribute("string"),
+                            invisible: childNode.getAttribute("invisible"),
+                            hotkey: childNode.getAttribute("data-hotkey"),
+                        });
+                    } else if (childNode.tagName === "delete") {
+                        controls.push({
+                            type: "delete",
+                            invisible: childNode.getAttribute("invisible"),
                         });
                     }
                 }
@@ -100,7 +129,7 @@ export class GoogleMapArchParser {
             }
         });
         return {
-            creates,
+            controls,
             columns,
             className,
             fieldNodes,

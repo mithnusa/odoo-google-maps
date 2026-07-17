@@ -21,7 +21,7 @@ Provides:
     'website': 'https://www.mithnusa.com',
     'support': 'yopiangi@gmail.com',
     'category': 'Extra Tools',
-    'version': '19.0.1.0.4',
+    'version': '1.0.0',
     'depends': ['crm_google_map', 'web_widget_google_place_autocomplete'],
     'data': ['views/crm_lead_views.xml'],
     'post_init_hook': '_post_install_hook_configure_crm_google_place_mapping',

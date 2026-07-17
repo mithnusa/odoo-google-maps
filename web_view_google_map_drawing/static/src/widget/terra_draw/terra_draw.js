@@ -1,7 +1,8 @@
+import { useRef, useSubEnv } from '@web/owl2/utils';
 import { registry } from '@web/core/registry';
 import { _t } from '@web/core/l10n/translation';
 import { standardFieldProps } from '@web/views/fields/standard_field_props';
-import { useRef, useSubEnv, useState, onWillUpdateProps } from '@odoo/owl';
+import { proxy, onWillUpdateProps } from '@odoo/owl';
 
 import { BaseGoogleMapComponent } from '@base_google_map/utils/base_google_map';
 import { GoogleMapGeolocate } from '@web_widget_google_map/components/geolocate/geolocate';
@@ -41,7 +42,7 @@ export class GoogleMapTerraDrawField extends BaseGoogleMapComponent {
         this.mapRef = useRef('map');
         this.googleMapBounds = null;
 
-        this.state = useState({
+        this.state = proxy({
             ...this.state,
             sidebarIsFolded: false,
             renderingMode: 'terra-draw',

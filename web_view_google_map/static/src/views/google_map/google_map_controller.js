@@ -1,4 +1,7 @@
+import { Component, onWillPatch, onWillStart, plugin, props, proxy, t } from '@odoo/owl';
+import { useLayoutEffect, useRef, useSubEnv } from '@web/owl2/utils';
 import { _t } from '@web/core/l10n/translation';
+import { OfflinePlugin } from "@web/core/offline/offline_plugin";
 import { Layout } from '@web/search/layout';
 import { useModelWithSampleData } from '@web/model/model';
 import { evaluateBooleanExpr } from '@web/core/py_js/py';
@@ -7,6 +10,7 @@ import { usePager } from '@web/search/pager_hook';
 import { useService } from '@web/core/utils/hooks';
 import { user } from '@web/core/user';
 import { Domain } from '@web/core/domain';
+import { OfflineActionHelper } from '@web/views/offline_action_helper';
 import { unique } from '@web/core/utils/arrays';
 import { FormViewDialog } from '@web/views/view_dialogs/form_view_dialog';
 import { download } from '@web/core/network/download';
@@ -25,12 +29,27 @@ import { executeButtonCallback } from '@web/views/view_button/view_button_hook';
 import { CogMenu } from '@web/search/cog_menu/cog_menu';
 import { DropdownItem } from '@web/core/dropdown/dropdown_item';
 import { useExportRecords, useDeleteRecords } from '@web/views/view_hook';
+import { OfflineSearchBar } from "@web/search/search_bar/offline_search_bar";
 import { GoogleMapSearchBar } from './google_map_search_bar';
 import { GoogleMapStreetViewSideBySideDialog } from '@web_widget_google_map/widgets/GoogleMapStreetViewSideBySideDialog/google_map_street_view_side_by_side_dialog';
 
-import { Component, useRef, onWillStart, onWillPatch, useState, useSubEnv, useEffect } from '@odoo/owl';
 
 const DEFAULT_NEARBY_RADIUS = 1000; // meters
+
+export const googleMapControllerProps = {
+    ...standardViewProps,
+    Model: t.function(),
+    Renderer: t.function(),
+    buttonTemplate: t.string(),
+    archInfo: t.object(),
+    showButtons: t.boolean().optional(true),
+    allowSelectors: t.boolean().optional(true),
+    onSelectionChanged: t.function().optional(),
+    readonly: t.boolean().optional(),
+    createRecord: t.function().optional(() => () => {}),
+    selectRecord: t.function().optional(() => () => {}),
+    centerMap: t.function().optional(() => () => {}),
+};
 
 export class GoogleMapController extends Component {
     static template = 'web_view_google_map.GoogleMapView';
@@ -42,26 +61,11 @@ export class GoogleMapController extends Component {
         SelectionBox,
         MultiRecordViewButton,
         DropdownItem,
+        OfflineActionHelper,
+        OfflineSearchBar,
         SearchBar: GoogleMapSearchBar,
     };
-    static props = {
-        ...standardViewProps,
-        Model: Function,
-        Renderer: Function,
-        buttonTemplate: String,
-        archInfo: Object,
-        showButtons: { type: Boolean, optional: true },
-        allowSelectors: { type: Boolean, optional: true },
-        onSelectionChanged: { type: Function, optional: true },
-        readonly: { type: Boolean, optional: true },
-    };
-    static defaultProps = {
-        createRecord: () => {},
-        selectRecord: () => {},
-        centerMap: () => {},
-        showButtons: true,
-        allowSelectors: true,
-    };
+    props = props(googleMapControllerProps);
 
     setup() {
         this.ui = useService('ui');
@@ -73,9 +77,13 @@ export class GoogleMapController extends Component {
 
         this.archInfo = this.props.archInfo;
 
+        this.offlinePlugin = plugin(OfflinePlugin);
+
+        this.optionalActiveFields = {};
+
         this.activeActions = this.props.archInfo.activeActions;
         this.multiEdit = this.props.archInfo.multiEdit;
-        this.model = useState(useModelWithSampleData(this.props.Model, this.modelParams, this.modelOptions));
+        this.model = proxy(useModelWithSampleData(this.props.Model, this.modelParams, this.modelOptions));
 
         this.archiveEnabled =
             'active' in this.props.fields
@@ -100,10 +108,17 @@ export class GoogleMapController extends Component {
             rootRef: this.rootRef,
             getLocalState: () => {
                 return {
-                    activeBars: this.progressBarState?.activeBars,
                     modelState: this.model.exportState(),
                 };
             },
+            getOrderBy: () => this.model.root.orderBy,
+            getContext: () => {
+                const optionalShow = Object.keys(this.optionalActiveFields).filter(
+                    (name) => this.optionalActiveFields[name]
+                );
+                return optionalShow.length ? { list_optional_show: optionalShow } : {};
+            },
+            reload: () => this.model.load(),
         });
 
         usePager(() => {
@@ -116,16 +131,17 @@ export class GoogleMapController extends Component {
                 limit: limit,
                 total: count,
                 onUpdate: async ({ offset, limit }, hasNavigated) => {
-                    await this.model.root.load({ offset, limit });
+                    await this.model.root.load({ limit, offset });
                     if (hasNavigated) {
-                        this.onPageChangeScroll();
+                        this.onPageChange();
                     }
                 },
-                updateTotal: !isGrouped && hasLimitedCount ? () => this.model.root.fetchCount() : undefined,
+                updateTotal:
+                    !isGrouped && hasLimitedCount ? () => this.model.root.fetchCount() : undefined,
             };
         });
 
-        useEffect(
+        useLayoutEffect(
             () => {
                 // useEffect callbacks must be synchronous — chain .catch() so a
                 // rejection from getResIds or the caller's onSelectionChanged prop
@@ -556,7 +572,7 @@ export class GoogleMapController extends Component {
         await this.props.createRecord();
     }
 
-    onPageChangeScroll() {
+    onPageChange() {
         if (this.rootRef && this.rootRef.el) {
             if (this.env.isSmall) {
                 this.rootRef.el.scrollTop = 0;
@@ -638,8 +654,8 @@ export class GoogleMapController extends Component {
             );
 
         return {
-            action: [...staticActionItems, ...(actionMenus.action || [])],
-            print: actionMenus.print,
+            action: [...staticActionItems, ...(actionMenus?.action || [])],
+            print: actionMenus?.print,
         };
     }
 
@@ -678,7 +694,7 @@ export class GoogleMapController extends Component {
             ...this.props.display,
             controlPanel: {
                 ...controlPanel,
-                layoutActions: !this.hasSelectedRecords,
+                actions: !this.hasSelectedRecords,
             },
         };
     }

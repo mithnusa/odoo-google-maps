@@ -1,3 +1,4 @@
+import { useLayoutEffect, useRef } from '@web/owl2/utils';
 /**
  * @fileoverview Google Place Autocomplete Component for Odoo
  *
@@ -19,7 +20,7 @@ import { _t } from '@web/core/l10n/translation';
 import { useService } from '@web/core/utils/hooks';
 import { sprintf } from '@web/core/utils/strings';
 import { debounce } from '@web/core/utils/timing';
-import { Component, useEffect, useState, useRef, onWillUnmount } from '@odoo/owl';
+import { Component, onWillUnmount, proxy } from '@odoo/owl';
 import { useGoogleMapsAPILoader } from '@base_google_map/utils/loader_google_map';
 
 // Constants
@@ -230,7 +231,7 @@ export class GooglePlaceAutocompleteElement extends Component {
         this.notificationService = useService('notification');
         this.actionService = useService('action');
 
-        this.state = useState({ isGoogleLoaded: false });
+        this.state = proxy({ isGoogleLoaded: false });
 
         this.googleApiloader = useGoogleMapsAPILoader(
             () => {
@@ -250,7 +251,7 @@ export class GooglePlaceAutocompleteElement extends Component {
         this.placeAutocompleteEl = null;
         this.debounceHandleGooglePlaceError = debounce(this.handleGooglePlaceError.bind(this), FOCUS_DEBOUNCE_DELAY);
 
-        useEffect(
+        useLayoutEffect(
             (mappingId, isGoogleLoaded, gAutocompleteRef) => {
                 if (mappingId && isGoogleLoaded && gAutocompleteRef.el) {
                     this.initGooglePlaceAutocompleteElement();
@@ -259,7 +260,7 @@ export class GooglePlaceAutocompleteElement extends Component {
             () => [this.props.id, this.state.isGoogleLoaded, this.gAutocompleteRef]
         );
 
-        useEffect(
+        useLayoutEffect(
             (isCollapseOpen) => {
                 if (isCollapseOpen && this.placeAutocompleteEl) {
                     this.placeAutocompleteEl.focus();

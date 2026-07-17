@@ -22,7 +22,7 @@ Provides:
     'website': 'https://www.mithnusa.com',
     'support': 'yopiangi@gmail.com',
     'category': 'Extra Tools',
-    'version': '19.0.1.0.6',
+    'version': '1.0.0',
     'depends': ['partner_autocomplete', 'contacts_google_autocomplete'],
     'assets': {
         'web.assets_backend': [

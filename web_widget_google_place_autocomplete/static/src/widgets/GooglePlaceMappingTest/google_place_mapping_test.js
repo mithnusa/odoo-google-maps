@@ -3,7 +3,7 @@ import { _t } from '@web/core/l10n/translation';
 import { standardFieldProps } from '@web/views/fields/standard_field_props';
 import { ConfirmationDialog } from '@web/core/confirmation_dialog/confirmation_dialog';
 import { renderToString } from '@web/core/utils/render';
-import { Component, markup } from '@odoo/owl';
+import { Component, markup, props } from '@odoo/owl';
 import { useService } from '@web/core/utils/hooks';
 import { GooglePlaceAutocompleteElement } from '../../component/google_place_autocomplete';
 
@@ -61,8 +61,8 @@ function formatStringToObject(str) {
 
 export class GooglePlaceMappingTestField extends Component {
     static template = 'web_widget_google_place_autocomplete.GooglePlacesMappingTestField';
-    static props = { ...standardFieldProps };
     static components = { GooglePlaceAutocompleteElement };
+    props = props({ ...standardFieldProps });
 
     setup() {
         this.notificationService = useService('notification');
@@ -83,6 +83,7 @@ export class GooglePlaceMappingTestField extends Component {
             });
             this.dialogService.add(ConfirmationDialog, {
                 title: _t('Result'),
+                size: 'md',
                 body: markup(view),
                 confirm: () => {},
                 confirmLabel: _t('Close'),

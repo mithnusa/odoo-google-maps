@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <templates xml:space="preserve">
     <t t-name="web_widget_google_map.SearchPlaces">
-        <div class="input-group google_search_places o_hidden" t-ref="searchPlaces" />
+        <div class="input-group google_search_places o_hidden" t-custom-ref="searchPlaces" />
     </t>
     <t t-name="web_widget_google_map.SearchPlacesInfoWindow">
         <div id="infowindow-content">
             <span id="place-displayname" class="fs-4 fw-bolder">
-                <t t-esc="displayName" />
+                <t t-esc="this.displayName" />
             </span>
             <br />
             <span id="place-address">
-                <t t-esc="formattedAddress" />
+                <t t-esc="this.formattedAddress" />
             </span>
         </div>
     </t>

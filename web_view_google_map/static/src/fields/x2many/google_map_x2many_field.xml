@@ -4,7 +4,7 @@
         <xpath expr="//ListRenderer" position="after">
             <GoogleMapRenderer t-elif="props.viewMode === 'google_map'" t-props="rendererProps" />
         </xpath>
-        <xpath expr="//div[@t-ref='buttons']" position="inside">
+        <xpath expr="//div[@t-custom-ref='buttons']" position="inside">
             <button
                 type="button"
                 class="btn btn-secondary"

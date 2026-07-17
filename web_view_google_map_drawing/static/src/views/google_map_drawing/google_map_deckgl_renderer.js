@@ -1,9 +1,10 @@
+import { useLayoutEffect, useRef, useSubEnv } from '@web/owl2/utils';
 import { _t } from '@web/core/l10n/translation';
 import { useService, useBus } from '@web/core/utils/hooks';
 import { debounce } from '@web/core/utils/timing';
 import { renderToString } from '@web/core/utils/render';
 import { user } from '@web/core/user';
-import { useEffect, useState, useRef, useSubEnv, onPatched, onWillStart, onWillUpdateProps } from '@odoo/owl';
+import { onPatched, onWillStart, onWillUpdateProps, proxy, props, t } from '@odoo/owl';
 import { isNull } from '@web/views/utils';
 import { BaseGoogleMapComponent } from '@base_google_map/utils/base_google_map';
 import { getRecordDataView, hexToRgba, generateColor, darkenColor } from '@web_view_google_map/views/google_map/utils';
@@ -19,6 +20,20 @@ import {
     loadTurfJSAssets,
 } from '../../utils/utils';
 import { DECKGL_CONFIG, STROKE_CONFIG } from '../../utils/map_config';
+
+export const googleMapDeckGLRendererProps = {
+    archInfo: t.object(),
+    openRecord: t.function(),
+    showRecord: t.function(),
+    showRecordsByDomain: t.function(),
+    readonly: t.boolean(),
+    list: t.object(),
+    onAdd: t.function().optional(),
+    activeActions: t.object().optional(),
+    allowSelectors: t.boolean(),
+    viewAttrs: t.object(),
+};
+
 
 /**
  * Deck.gl High-Performance Renderer Component
@@ -72,24 +87,12 @@ import { DECKGL_CONFIG, STROKE_CONFIG } from '../../utils/map_config';
 export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
     static template = 'web_view_google_map.GoogleMapRenderer';
     static templateInfoWindow = 'web_view_google_map_drawing.ShapeInfoWindow';
-
     static components = {
         Geolocate: GoogleMapGeolocate,
         Sidebar: GoogleMapsDrawingSidebar,
         InMapSearchPlaces: GoogleMapSearchPlaces,
     };
-    static props = {
-        archInfo: Object,
-        openRecord: Function,
-        showRecord: Function,
-        showRecordsByDomain: Function,
-        readonly: Boolean,
-        list: Object,
-        onAdd: { type: Function, optional: true },
-        activeActions: { type: Object, optional: true },
-        allowSelectors: Boolean,
-        viewAttrs: Object,
-    };
+    props = props(googleMapDeckGLRendererProps);
 
     setup() {
         super.setup();
@@ -102,7 +105,7 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
         this._isSidebarAction = false;
         this._isDestroyed = false;
 
-        this.state = useState({
+        this.state = proxy({
             ...this.state,
             // Sidebar state
             sidebarIsFolded: false,
@@ -162,7 +165,7 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
                 });
         });
 
-        useEffect(
+        useLayoutEffect(
             (isMapAndAssetsLoaded) => {
                 if (isMapAndAssetsLoaded && !this._isSidebarAction) {
                     this._initializeDeckGLOverlay();

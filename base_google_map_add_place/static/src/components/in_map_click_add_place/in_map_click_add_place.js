@@ -1,5 +1,5 @@
 import { _t } from '@web/core/l10n/translation';
-import { Component, onWillUnmount, onMounted } from '@odoo/owl';
+import { Component, onMounted, onWillUnmount } from '@odoo/owl';
 import { useService } from '@web/core/utils/hooks';
 import { renderToString } from '@web/core/utils/render';
 
@@ -30,7 +30,7 @@ const ZOOM_THRESHOLD = 15;
  */
 export class InMapClickAddPlace extends Component {
     static template = 'base_google_map_add_place.ClickAddPlace';
-    static props = ['googleMap'];
+    static props = ['googleMap?'];
 
     /**
      * Initialises OWL services, pre-binds event handler references, and

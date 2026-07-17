@@ -1,31 +1,5 @@
 # Change Log
 
-## 19.0.1.0.3
+## 20.0.1.0.0
 
-### Improved
-
-- **Python — Black format** (`models/res_partner.py`): Added missing blank line between import and class definition.
-- **XML format** (`static/src/views/google_map/google_map_renderer.xml`): Reformatted with self-closing tags and multi-line template attributes.
-- **`__manifest__.py`**: Removed explicit `installable`, `application`, and `auto_install` keys — these are Odoo defaults and were redundant.
-
-## 1.0.2
-
-### Improved
-
-- **Manifest**: Rewrote summary and description; replaced wildcard asset glob with explicit file entries; removed empty `data` and `demo` keys
-- **i18n**: Regenerated POT — updated dates; removed stale JS strings moved upstream to `base_google_map_add_place`
-
-## 1.0.1
-
-- [Refactor] **Mixin Extraction**: Moved `google_map.add_place.mixin` and the `InMapClickAddPlace` OWL component to the new `base_google_map_add_place` module; `contacts_google_map_add_place` now delegates all click-to-create logic to that base layer
-- [Updated] **Dependency**: Added `base_google_map_add_place` as a required dependency
-- [Updated] **Import Paths**: Updated JS import references in `in_map_click_add_place.js` and `google_map_renderer.js` to point to the new base module
-- [Updated] **i18n**: Removed translatable strings now owned by `base_google_map_add_place` from the `.pot` file
-
-## 1.0.0 - Initial Release
-
-- **Click-to-Create from Named Places**: Extended `res.partner` with `google_map.add_place.mixin`; clicking a named Google Place on the Contacts map fetches its details (name, address, phone, website, coordinates) via the Places API and opens a pre-populated quick-create form
-- **Click-to-Create from Map Space**: Clicking empty map space reverse-geocodes the coordinate and opens a partner form pre-filled with the resolved address
-- **Contacts Field Mapping**: Place name populates `name`, coordinates map to `partner_latitude`/`partner_longitude`, and all standard address fields are pre-filled
-- **Duplicate Detection**: If a partner with the same `gplace_id` already exists, the existing record is opened instead of creating a duplicate
-- **Renderer Integration**: Patched `GoogleMapRendererContacts` to include the `InMapClickAddPlace` component on the Contacts map view
+Migration to version 20.0

@@ -11,15 +11,15 @@
                         <a
                             href="#"
                             role="button"
-                            t-att-data-id="recordId"
+                            t-att-data-id="this.recordId"
                             class="text-decoration-none"
                             id="btn-open_form"
                         >
-                            <h4 t-esc="title" />
+                            <h4 t-out="this.title" />
                         </a>
                     </div>
-                    <div t-if="subTitle">
-                        <t t-esc="subTitle" />
+                    <div t-if="this.subTitle">
+                        <t t-out="this.subTitle" />
                     </div>
                 </main>
             </article>
@@ -27,10 +27,10 @@
     </t>
     <t t-name="web_view_google_map_drawing.FeatureProperties">
         <div class="text-800">
-            <p class="mb-0 pb-0 fs-4" t-out="title" />
-            <div class="mt-1" t-if="displayNames">
+            <p class="mb-0 pb-0 fs-4" t-out="this.title" />
+            <div class="mt-1" t-if="this.displayNames">
                 <ul class="list-unstyled">
-                    <t t-foreach="displayNames" t-as="displayName" t-key="displayName_index">
+                    <t t-foreach="this.displayNames" t-as="displayName" t-key="displayName_index">
                         <li>
                             <div class="d-flex flex-column mb-2">
                                 <div>
@@ -44,12 +44,12 @@
                 </ul>
             </div>
             <!-- Show more original properties -->
-            <div class="popup-more-properties mt-2" t-if="properties">
+            <div class="popup-more-properties mt-2" t-if="this.properties">
                 <div
                     class="properties-list"
                     style="max-height: 150px; overflow-y: auto; margin-top: 6px; padding-top: 6px; border-top: 1px solid #ecf0f1;"
                 >
-                    <t t-foreach="Object.entries(properties)" t-as="entry" t-key="entry_index">
+                    <t t-foreach="Object.entries(this.properties)" t-as="entry" t-key="entry_index">
                         <div class="d-flex justify-content-between mb-1 text-muted" style="font-size: 11px;">
                             <span t-out="entry[0] + ':' " />
                             <span t-out="entry[1]?.toString()" />

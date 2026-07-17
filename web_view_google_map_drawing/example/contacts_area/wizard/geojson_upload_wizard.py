@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import json
 import logging
-import base64
 from odoo import api, fields, models
 from odoo.exceptions import UserError, ValidationError
 
@@ -50,10 +49,9 @@ class GeoJsonUploadWizard(models.TransientModel):
         """Preview the GeoJSON file content"""
         if self.geojson_file:
             try:
-                # Decode the file
-                file_content = base64.b64decode(self.geojson_file).decode(
-                    "utf-8"
-                )
+                # Binary fields hold raw bytes on master (BinaryValue), no
+                # base64 round-trip anymore.
+                file_content = self.geojson_file.decode("utf-8")
                 geojson_data = json.loads(file_content)
 
                 # Validate GeoJSON structure
@@ -67,7 +65,8 @@ class GeoJsonUploadWizard(models.TransientModel):
                 preview = self._create_preview_summary(features)
                 self.preview_data = preview
 
-            except UnicodeDecodeError:
+            except UnicodeDecodeError as e:
+                _logger.error("Error decoding GeoJSON file: %s", e)
                 raise UserError(
                     self.env._(
                         "Invalid file encoding. Please upload a UTF-8 encoded file."
@@ -205,8 +204,8 @@ class GeoJsonUploadWizard(models.TransientModel):
             )
 
         try:
-            # Decode and parse the file
-            file_content = base64.b64decode(self.geojson_file).decode("utf-8")
+            # Decode and parse the file (raw bytes, see _onchange_geojson_file)
+            file_content = self.geojson_file.decode("utf-8")
             geojson_data = json.loads(file_content)
 
             # Validate again

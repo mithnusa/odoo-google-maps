@@ -25,7 +25,7 @@ Provides:
     'website': 'https://www.mithnusa.com',
     'support': 'yopiangi@gmail.com',
     'category': 'Sales/Sales',
-    'version': '19.0.1.0.14',
+    'version': '1.0.0',
     'depends': ['sale_management', 'web_view_google_map'],
     'data': ['views/sale_order.xml', 'views/res_partner.xml'],
     'assets': {

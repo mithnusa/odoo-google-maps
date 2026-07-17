@@ -1,8 +1,8 @@
-import { reactive } from '@odoo/owl';
+import { proxy } from '@odoo/owl';
 
 class GmapViewAttrsContextManager {
     constructor() {
-        this.context = reactive({});
+        this.context = proxy({});
     }
 
     set(key, value) {

@@ -143,6 +143,20 @@ class CrmLead(models.Model):
         compute="_compute_customer_address",
         string="Complete Address",
     )
+    # crm.stage lost its color field in Odoo master; derive a stable
+    # marker palette index (1-11) from the stage sequence instead.
+    stage_id_color = fields.Integer(
+        string="Stage Color Index",
+        compute="_compute_stage_id_color",
+    )
+
+    @api.depends("stage_id.sequence")
+    def _compute_stage_id_color(self):
+        for lead in self:
+            if lead.stage_id:
+                lead.stage_id_color = (lead.stage_id.sequence % 11) + 1
+            else:
+                lead.stage_id_color = 0
 
     @api.model
     def _geo_localize(self, street="", zip="", city="", state="", country=""):

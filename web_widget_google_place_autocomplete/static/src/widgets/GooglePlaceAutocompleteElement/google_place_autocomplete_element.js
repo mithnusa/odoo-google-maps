@@ -1,9 +1,10 @@
+import { useService } from '@web/core/utils/hooks';
+import { useLayoutEffect, useRef } from '@web/owl2/utils';
 import { _t } from '@web/core/l10n/translation';
 import { registry } from '@web/core/registry';
-import { useService } from '@web/core/utils/hooks';
 import { exprToBoolean } from '@web/core/utils/strings';
-import { useRef, useState, onWillUnmount, onWillUpdateProps, useEffect } from '@odoo/owl';
-import { CharField, charField } from '@web/views/fields/char/char_field';
+import { onWillUnmount, onWillUpdateProps, proxy, props, t } from '@odoo/owl';
+import { CharField, charFieldProps, charField } from '@web/views/fields/char/char_field';
 import { GooglePlaceAutocompleteElement } from '../../component/google_place_autocomplete';
 import { useGooglePlaceAutocompleteMapping } from '../../hooks/use_google_place_autocomplete_mapping';
 
@@ -24,12 +25,12 @@ import { useGooglePlaceAutocompleteMapping } from '../../hooks/use_google_place_
 export class GooglePlaceAutocompleteCharField extends CharField {
     static template = 'web_widget_google_place_autocomplete.GooglePlaceAutocompleteCharField';
     static components = { ...CharField.components, GooglePlaceAutocompleteElement };
-    static props = {
-        ...CharField.props,
-        mappingCode: { type: String, optional: true },
-        mappingMode: { type: String, optional: true }, // 'address' or 'places'
-        noManualEdit: { type: Boolean, optional: true }, // If true, the input field will be set to readonly to prevent manual edits. Other fields will still be populated based on the autocomplete selection. Default is false (manual edits allowed).
-    };
+    props = props({
+        ...charFieldProps,
+        mappingCode: t.string().optional(), // The mapping code to fetch the mapping configuration from the backend. If provided, takes precedence over `mappingMode`.
+        mappingMode: t.string().optional(), // 'address' or 'places'
+        noManualEdit: t.boolean().optional(), // If true, the input field will be set to readonly to prevent manual edits. Other fields will still be populated based on the autocomplete selection. Default is false (manual edits allowed).
+    });
 
     /**
      * Initialises services, reactive state, the place mapping hook, and
@@ -41,7 +42,7 @@ export class GooglePlaceAutocompleteCharField extends CharField {
         super.setup();
         this.notificationService = useService('notification');
         this.googleAutocompleteToggleRef = useRef('googleAutocompleteToggle');
-        this.state = useState({
+        this.state = proxy({
             mappingId: 0,
             isCollapseOpen: false,
         });
@@ -49,7 +50,7 @@ export class GooglePlaceAutocompleteCharField extends CharField {
         this.widgetId = this.placeMapping.getUniqueWidgetId();
         this.mappingConfig = {};
 
-        useEffect(
+        useLayoutEffect(
             () => {
                 if (this.input.el && !this.props.readonly && this.props.noManualEdit) {
                     this.input.el.setAttribute('readonly', 'readonly');

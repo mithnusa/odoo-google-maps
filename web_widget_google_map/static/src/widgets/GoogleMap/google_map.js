@@ -1,10 +1,14 @@
+import { useLayoutEffect, useRef, useSubEnv } from '@web/owl2/utils';
 import { registry } from '@web/core/registry';
 import { _t } from '@web/core/l10n/translation';
 import { useService } from '@web/core/utils/hooks';
 import { standardWidgetProps } from '@web/views/widgets/standard_widget_props';
-import { Component, useRef, useEffect, useState, onWillUnmount, useSubEnv } from '@odoo/owl';
+import { Component, onWillUnmount, proxy, t, props} from '@odoo/owl';
 
-import { ConfirmationDialog } from '@web/core/confirmation_dialog/confirmation_dialog';
+import {
+    ConfirmationDialog,
+    confirmationDialogProps,
+} from "@web/core/confirmation_dialog/confirmation_dialog";
 import { useGoogleMapsAPILoader } from '@base_google_map/utils/loader_google_map';
 import { GoogleMapSearchPlaces } from '../../components/search_places/search_places';
 
@@ -24,19 +28,16 @@ class GeolocationEditDialog extends ConfirmationDialog {
         ...ConfirmationDialog.components,
         GoogleMapSearchPlaces,
     };
-    static props = {
-        ...ConfirmationDialog.props,
-        confirm: Function,
-        lat: Number,
-        lng: Number,
-        readonly: Boolean,
-        mapType: String,
-    };
+    props = props({
+        ...confirmationDialogProps,
+        confirm: t.function(),
+        lat: t.number(),
+        lng: t.number(),
+        readonly: t.boolean(),
+        mapType: t.string().optional(),
+        confirmLabel: t.string().optional(_t('Save')),
+    });
 
-    static defaultProps = {
-        ...ConfirmationDialog.defaultProps,
-        confirmLabel: _t('Save'),
-    };
 
     /**
      * Initializes the dialog component, sets up services, state, and Google Maps API loader.
@@ -64,7 +65,7 @@ class GeolocationEditDialog extends ConfirmationDialog {
         this.localLat = this.props.lat || 0.0;
         this.localLng = this.props.lng || 0.0;
 
-        this.state = useState({ isGoogleLoaded: false, isMapReady: false });
+        this.state = proxy({ isGoogleLoaded: false, isMapReady: false });
 
         this.apiLoader = useGoogleMapsAPILoader(
             () => {
@@ -78,13 +79,13 @@ class GeolocationEditDialog extends ConfirmationDialog {
                 );
             }
         );
-        useEffect(
+        useLayoutEffect(
             (isGoogleLoaded, mapRef) => {
-                if (isGoogleLoaded && mapRef.el) {
+                if (isGoogleLoaded && mapRef) {
                     this.initializeMap();
                 }
             },
-            () => [this.state.isGoogleLoaded, this.mapRef]
+            () => [this.state.isGoogleLoaded, this.mapRef.el]
         );
 
         useSubEnv({

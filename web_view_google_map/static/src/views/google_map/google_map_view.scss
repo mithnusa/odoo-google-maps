@@ -320,6 +320,7 @@
     // Kanban Grouped Layout - Column default
     .o_kanban_group {
         padding: 0 var(--KanbanGroup-padding-h) var(--KanbanGroup-padding-bottom);
+        margin-top: 4px;
         width: 400px;
         @media (max-width: 768px) {
             width: inherit;

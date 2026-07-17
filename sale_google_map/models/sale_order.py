@@ -9,9 +9,11 @@ class SaleOrder(models.Model):
         related='partner_id.partner_latitude',
         string='Latitude',
         store=True,
+        index=True,
     )
     partner_longitude = fields.Float(
         related='partner_id.partner_longitude',
         string='Longitude',
         store=True,
+        index=True,
     )

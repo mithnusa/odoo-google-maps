@@ -142,6 +142,15 @@ class IrUiView(models.Model):
                 name_manager.must_have_fields(
                     node, vnames, node_info, ("context", context)
                 )
+            if field.type == "binary" and (
+                field_filename := node.get("filename")
+            ):
+                name_manager.must_have_fields(
+                    node,
+                    [field_filename],
+                    node_info,
+                    ("filename", field_filename),
+                )
 
             for child in node:
                 if child.tag in (
@@ -276,8 +285,6 @@ class IrUiView(models.Model):
 
     def _modifiers_from_model(self, node):
         modifier_names = super()._modifiers_from_model(node)
-        if node.tag == "google_map" and not all(
-            name in modifier_names for name in ("readonly", "required")
-        ):
+        if node.tag == "google_map":
             modifier_names += ["readonly", "required"]
         return modifier_names

@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 from odoo import http
 from odoo.http import request
-from odoo.tools.safe_eval import safe_eval
 
 
 class Main(http.Controller):
@@ -9,12 +8,12 @@ class Main(http.Controller):
     def map_setting(self):
         IrParam = request.env['ir.config_parameter'].sudo()
 
-        api_key = IrParam.get_param('base_google_map.api_key', default='')
-        map_id = IrParam.get_param('base_google_map.map_id', default='')
-        region = IrParam.get_param(
+        api_key = IrParam.get_str('base_google_map.api_key', default='')
+        map_id = IrParam.get_str('base_google_map.map_id', default='')
+        region = IrParam.get_str(
             'base_google_map.region_localization', default=''
         )
-        version = IrParam.get_param(
+        version = IrParam.get_str(
             'base_google_map.version', default='quarterly'
         )
 
@@ -29,20 +28,16 @@ class Main(http.Controller):
             values['region'] = region
 
         # Extras
-        color_scheme = IrParam.get_param(
+        color_scheme = IrParam.get_str(
             'base_google_map.color_scheme', default=''
         )
-        is_places_search_enable = safe_eval(
-            IrParam.get_param(
-                'base_google_map.enable_map_place_search', default='False'
-            )
+        is_places_search_enable = IrParam.get_bool(
+            'base_google_map.enable_map_place_search', default=False
         )
-        is_restrict_language = safe_eval(
-            IrParam.get_param(
-                'base_google_map.autocomplete_lang_restrict', default='False'
-            )
+        is_restrict_language = IrParam.get_bool(
+            'base_google_map.autocomplete_lang_restrict', default=False
         )
-        language = IrParam.get_param(
+        language = IrParam.get_str(
             'base_google_map.lang_localization', default=''
         )
 
@@ -53,15 +48,13 @@ class Main(http.Controller):
         values['is_places_search_enable'] = is_places_search_enable
 
         # Autocomplete country restriction
-        is_restrict_country = safe_eval(
-            IrParam.get_param(
-                'base_google_map.autocomplete_country_restrict',
-                default='False',
-            )
+        is_restrict_country = IrParam.get_bool(
+            'base_google_map.autocomplete_country_restrict',
+            default=False,
         )
         values['autocomplete_restrict_country'] = is_restrict_country
 
-        country_codes = IrParam.get_param(
+        country_codes = IrParam.get_str(
             'base_google_map.autocomplete_country_restriction', default=''
         )
         values['autocomplete_list_countries_restriction'] = []

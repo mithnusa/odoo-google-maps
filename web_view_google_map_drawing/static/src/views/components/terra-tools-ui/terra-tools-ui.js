@@ -1,7 +1,8 @@
+import { useLayoutEffect, useRef } from '@web/owl2/utils';
 import { _t } from '@web/core/l10n/translation';
 import { useService } from '@web/core/utils/hooks';
 import { ConfirmationDialog } from '@web/core/confirmation_dialog/confirmation_dialog';
-import { Component, useEffect, useState, useRef, onWillStart, onWillDestroy, onWillUpdateProps } from '@odoo/owl';
+import { Component, onWillDestroy, onWillStart, onWillUpdateProps, proxy } from '@odoo/owl';
 import { generateUUID } from '@web_view_google_map/views/google_map/utils';
 import {
     loadTerraDrawAssets,
@@ -63,7 +64,7 @@ export class TerraDrawToolsUI extends Component {
         this.dialogService = useService('dialog');
         this.uiService = useService('ui');
         this.toolsUiRef = useRef('toolUiRef');
-        this.state = useState({
+        this.state = proxy({
             currentMode: null,
             activeButton: null,
             selectedFeatureId: null,
@@ -80,7 +81,7 @@ export class TerraDrawToolsUI extends Component {
         this.eventProjectionChanges = null;
         this.initTimeout = null;
 
-        useEffect(
+        useLayoutEffect(
             () => {
                 // Capture the bound handler in the closure so the cleanup removes
                 // exactly this listener, not whatever this.handleKeydown points to
@@ -121,7 +122,7 @@ export class TerraDrawToolsUI extends Component {
             }
         });
 
-        useEffect(
+        useLayoutEffect(
             () => {
                 if (
                     this.props.googleMap &&

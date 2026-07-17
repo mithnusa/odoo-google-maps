@@ -1,6 +1,7 @@
 import { GoogleMapArchParser } from './google_map_arch_parser';
 import { GoogleMapController } from './google_map_controller';
 import { GoogleMapModel } from './google_map_model';
+// import { RelationalModel } from '@web/model/relational_model/relational_model';
 import { GoogleMapRenderer } from './google_map_renderer';
 
 import { registry } from '@web/core/registry';

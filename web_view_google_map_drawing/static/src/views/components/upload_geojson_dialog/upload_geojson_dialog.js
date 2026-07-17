@@ -1,6 +1,6 @@
+import { useService } from '@web/core/utils/hooks';
 import { _t } from '@web/core/l10n/translation';
 import { ConfirmationDialog } from '@web/core/confirmation_dialog/confirmation_dialog';
-import { useService } from '@web/core/utils/hooks';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
 

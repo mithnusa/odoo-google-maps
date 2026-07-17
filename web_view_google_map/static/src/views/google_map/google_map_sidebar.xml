@@ -1,12 +1,18 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <templates xml:space="preserve">
+    <!--
+        Sub-templates are rendered via parametric t-call: `record`, `data`,
+        `showMarker`, `group`, `fnPinPointInMap` and `fnOpenRecord` are t-call
+        parameters and must be read as bare variables (OWL 3 does not expose
+        them on `this`, and nested t-calls must re-pass them explicitly).
+    -->
     <t t-name="web_view_google_map.RecordItem">
-        <tr t-att-class="{ 'table-info': props.allowSelectors &amp;&amp; record.selected }">
+        <tr t-att-class="{ 'table-info': this.props.allowSelectors &amp;&amp; record.selected }">
             <t t-set="_showMarker" t-value="showMarker ?? true" />
-            <t t-if="props.allowSelectors">
+            <t t-if="this.props.allowSelectors">
                 <td style="width: 20px;">
                     <CheckBox
-                        disabled="!props.handleCanSelectRecord"
+                        disabled="!this.props.handleCanSelectRecord"
                         value="record.selected"
                         onChange.alike="() => this.selectRecord(record)"
                     />
@@ -18,10 +24,10 @@
                     t-on-click="() => fnPinPointInMap(record.resId)"
                 >
                     <div class="o_map_sidebar_record" t-att-data-tooltip="data?.other?.title">
-                        <Field id="props.title" name="props.title" record="record" readonly="true" />
+                        <Field id="this.props.title" name="this.props.title" record="record" readonly="true" />
                     </div>
                 </div>
-                <t t-call="{{ constructor.recordExtraTemplate }}" />
+                <t t-call="{{ this.constructor.recordExtraTemplate }}" record="record" data="data" />
             </td>
             <td>
                 <div class="d-flex align-items-center justify-content-center">
@@ -37,11 +43,11 @@
                         class="btn btn-sm btn-link"
                         data-role="action-show-nearby"
                         data-tooltip="Nearby"
-                        t-on-click="() => props.showNearbyRecords(record)"
+                        t-on-click="() => this.props.showNearbyRecords(record)"
                     >
                         <i class="fa fa-location-arrow" aria-hidden="true" />
                     </button>
-                    <t t-call="{{ constructor.recordActionsTemplate }}" />
+                    <t t-call="{{ this.constructor.recordActionsTemplate }}" record="record" data="data" />
                     <button
                         type="button"
                         class="btn btn-sm btn-link"
@@ -71,12 +77,12 @@
                         t-on-click.prevent="(ev) => this.handleGroupCollapse(ev, group.key)"
                     >
                         <div class="d-flex align-items-center o_map_sidebar_group">
-                            <t t-set="title" t-value="getGroupTitle(group)" />
+                            <t t-set="title" t-value="this.getGroupTitle(group)" />
                             <span class="me-2">
                                 <i class="fa fa-caret-right" aria-hidden="true" />
                                 <i class="fa fa-caret-down" aria-hidden="true" />
                             </span>
-                            <span class="ps-1 pe-1" t-esc="title" t-att-data-tooltip="title" />
+                            <span class="ps-1 pe-1" t-out="title" t-att-data-tooltip="title" />
                         </div>
                     </button>
                     <div t-if="group.group.count" class="d-flex align-items-center justify-content-center">
@@ -109,11 +115,12 @@
                         <table class="table table-sm table-hover table-striped mb-0">
                             <tbody>
                                 <t t-foreach="group.group.records" t-as="record" t-key="record.id">
-                                    <t t-call="{{ constructor.recordItemTemplate }}">
-                                        <t t-set="record" t-value="record" />
-                                        <t t-set="data" t-value="record.dataView" />
-                                        <t t-set="showMarker" t-value="false" />
-                                    </t>
+                                    <t t-call="{{ this.constructor.recordItemTemplate }}"
+                                        record="record"
+                                        data="record.dataView"
+                                        showMarker="false"
+                                        fnPinPointInMap="fnPinPointInMap"
+                                        fnOpenRecord="fnOpenRecord"/>
                                 </t>
                                 <tr t-if="group.group.count > group.group.records.length">
                                     <td colspan="99">
@@ -137,18 +144,21 @@
     <t t-name="web_view_google_map.ListGroupOrRecord">
         <table class="table table-sm table-hover table-striped">
             <tbody>
-                <t t-if="datas.length">
-                    <t t-foreach="datas" t-as="groupOrRecord" t-key="groupOrRecord.key">
+                <t t-if="this.datas.length">
+                    <t t-foreach="this.datas" t-as="groupOrRecord" t-key="groupOrRecord.key">
                         <t t-if="groupOrRecord.group">
-                            <t t-call="{{ constructor.groupItemTemplate }}">
-                                <t t-set="group" t-value="groupOrRecord" />
-                            </t>
+                            <t t-call="{{ this.constructor.groupItemTemplate }}"
+                                group="groupOrRecord"
+                                fnPinPointInMap="fnPinPointInMap"
+                                fnOpenRecord="fnOpenRecord"/>
                         </t>
                         <t t-else="">
-                            <t t-call="{{ constructor.recordItemTemplate }}">
-                                <t t-set="record" t-value="groupOrRecord.record" />
-                                <t t-set="data" t-value="record.dataView" />
-                            </t>
+                            <t t-set="record" t-value="groupOrRecord.record" />
+                            <t t-call="{{ this.constructor.recordItemTemplate }}"
+                                record="record"
+                                data="record.dataView"
+                                fnPinPointInMap="fnPinPointInMap"
+                                fnOpenRecord="fnOpenRecord"/>
                         </t>
                     </t>
                 </t>
@@ -180,24 +190,23 @@
     <t t-name="web_view_google_map.RecordActionsTemplate" />
 
     <t t-name="web_view_google_map.GoogleMapSidebar">
-        <div class="o_map_sidebar" t-ref="root">
+        <div class="o_map_sidebar" t-custom-ref="root">
             <div class="mt-2 mx-1">
                 <div class="d-flex">
-                    <t t-if="props.allowSelectors">
-                        <CheckBox value="props.handleSelectAll" onChange.bind="props.handleToggleSelection" />
+                    <t t-if="this.props.allowSelectors">
+                        <CheckBox value="this.props.handleSelectAll" onChange.bind="this.props.handleToggleSelection" />
                     </t>
-                    <h3 t-if="props.header" t-esc="props.header" />
+                    <h3 t-if="this.props.header" t-out="this.props.header" />
                     <small class="ms-2 text-muted">
-                        <span t-att-data-tooltip="geolocationInfoTooltip">
+                        <span t-att-data-tooltip="this.geolocationInfoTooltip">
                             <i class="fa fa-info" aria-hidden="true" />
                         </span>
                     </small>
                 </div>
             </div>
-            <t t-call="{{ constructor.listGroupOrRecordTemplate }}">
-                <t t-set="fnPinPointInMap" t-value="props.pointInMap" />
-                <t t-set="fnOpenRecord" t-value="props.openRecord" />
-            </t>
+            <t t-call="{{ this.constructor.listGroupOrRecordTemplate }}"
+                fnPinPointInMap="this.props.pointInMap"
+                fnOpenRecord="this.props.openRecord"/>
         </div>
     </t>
 </templates>

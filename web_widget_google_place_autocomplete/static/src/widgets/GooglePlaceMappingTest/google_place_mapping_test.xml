@@ -4,17 +4,17 @@
         <div class="mb-2">
             <GooglePlaceAutocompleteElement
                 isTest="true"
-                id="config.id"
-                code="config.code"
-                mode="config.mode"
-                options="config.options"
-                fields="config.fields"
-                resModel="props.record.resModel"
-                elementId="widgetId + '_google_places'"
-                callback.bind="showValues"
+                id="this.config.id"
+                code="this.config.code"
+                mode="this.config.mode"
+                options="this.config.options"
+                fields="this.config.fields"
+                resModel="this.props.record.resModel"
+                elementId="this.widgetId + '_google_places'"
+                callback.bind="this.showValues"
             />
             <div class="mt-2">
-                <button type="button" class="btn btn-sm btn-secondary w-50" t-on-click="reloadTestPlaceAutocomplete">
+                <button type="button" class="btn btn-sm btn-secondary w-50" t-on-click="this.reloadTestPlaceAutocomplete">
                     Reload
                 </button>
             </div>
@@ -27,28 +27,28 @@
                     <i class="fa fa-angle-right me-1" />
                     <span>Address</span>
                 </p>
-                <pre t-out="addressMappingResult" />
+                <pre t-out="this.addressMappingResult" />
             </li>
-            <li t-if="mode == 'places'" class="list-group-item">
+            <li t-if="this.mode == 'places'" class="list-group-item">
                 <p class="fs-4 mb-1">
                     <i class="fa fa-angle-right me-1" />
                     <span>Other</span>
                 </p>
-                <pre t-out="otherMappingResult" />
+                <pre t-out="this.otherMappingResult" />
             </li>
             <li class="list-group-item">
                 <p class="fs-4 mb-1">
                     <i class="fa fa-angle-right me-1" />
                     <span>Geolocation</span>
                 </p>
-                <pre t-out="geoLocationResult" />
+                <pre t-out="this.geoLocationResult" />
             </li>
             <li class="list-group-item">
                 <p class="fs-4 mb-1">
                     <i class="fa fa-angle-right me-1" />
                     <span>Google Place JSON</span>
                 </p>
-                <pre t-out="placeDetailsResult" />
+                <pre t-out="this.placeDetailsResult" />
             </li>
         </ul>
     </t>

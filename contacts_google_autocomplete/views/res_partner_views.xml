@@ -10,10 +10,6 @@
                 <attribute name="widget">gplace_autocomplete_el</attribute>
                 <attribute name="options">{'mapping_mode': 'places'}</attribute>
             </xpath>
-            <xpath expr="//h1/field[2]" position="attributes">
-                <attribute name="widget">gplace_autocomplete_el</attribute>
-                <attribute name="options">{'mapping_mode': 'places'}</attribute>
-            </xpath>
             <xpath expr="//field[@name='street']" position="attributes">
                 <attribute name="widget">gplace_autocomplete_el</attribute>
                 <attribute name="options">{'mapping_mode': 'address'}</attribute>

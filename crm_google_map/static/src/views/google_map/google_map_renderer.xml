@@ -1,21 +1,21 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <templates xml:space="preserve">
     <t t-name="crm_google_map.MarkerInfoWindow">
-        <div t-attf-class="crm_lead marker-drop-animation #{ isSelected ? 'selected-marker' : '' }">
+        <div t-attf-class="crm_lead marker-drop-animation #{ this.isSelected ? 'selected-marker' : '' }">
             <div class="marker-icon">
-                <span t-if="title" class="d-block marker-icon-title mb-1" t-att-data-tooltip="title">
-                    <small class="font-sans-serif" t-out="title" />
+                <span t-if="this.title" class="d-block marker-icon-title mb-1" t-att-data-tooltip="this.title">
+                    <small class="font-sans-serif" t-out="this.title" />
                 </span>
-                <i class="fa fa-circle fa-fw small" t-attf-style="color: {{ markerColor || 'red' }};" />
-                <small t-if="stage" class="font-sans-serif" t-out="stage" />
-                <span t-if="expectedRevenue" class="d-block mt-1">
+                <i class="fa fa-circle fa-fw small" t-attf-style="color: {{ this.markerColor || 'red' }};" />
+                <small t-if="this.stage" class="font-sans-serif" t-out="this.stage" />
+                <span t-if="this.expectedRevenue" class="d-block mt-1">
                     <i class="fa fa-dollar fa-fw small text-muted" />
-                    <small class="font-monospace" t-out="expectedRevenue" />
+                    <small class="font-monospace" t-out="this.expectedRevenue" />
                 </span>
             </div>
             <div class="marker-content">
                 <div class="lead-title">
-                    <h4 id="title" class="mb-0" t-out="title" />
+                    <h4 id="title" class="mb-0" t-out="this.title" />
                     <button id="show-record" class="btn btn-link btn-sm" type="button" data-tooltip="Open">
                         <i class="fa fa-expand" />
                     </button>
@@ -47,72 +47,72 @@
                 </div>
                 <div class="d-flex flex-wrap gap-2 mt-2 pt-2 mb-2 pb-1">
                     <div
-                        t-if="subTitle"
+                        t-if="this.subTitle"
                         class="flex-fill align-content-around px-2 py-1"
                         style="white-space: pre-line; text-align: left; align-items: baseline; gap: 0.25rem;"
                         data-tooltip="Address"
                     >
-                        <i class="fa fa-map-pin fa-fw" t-attf-style="color: {{ markerColor || 'red' }};" />
-                        <span class="small" t-out="subTitle" />
+                        <i class="fa fa-map-pin fa-fw" t-attf-style="color: {{ this.markerColor || 'red' }};" />
+                        <span class="small" t-out="this.subTitle" />
                     </div>
-                    <div t-if="stage" class="flex-fill align-content-around text-center px-2 py-1" data-tooltip="Stage">
-                        <i class="fa fa-circle d-block" t-attf-style="color: {{ markerColor || 'red' }};" />
-                        <span class="small" t-out="stage" />
+                    <div t-if="this.stage" class="flex-fill align-content-around text-center px-2 py-1" data-tooltip="Stage">
+                        <i class="fa fa-circle d-block" t-attf-style="color: {{ this.markerColor || 'red' }};" />
+                        <span class="small" t-out="this.stage" />
                     </div>
                     <div
-                        t-if="partnerName"
+                        t-if="this.partnerName"
                         class="flex-fill align-content-around text-center px-2 py-1"
                         data-tooltip="Company Name"
                     >
-                        <i class="fa fa-building-o d-block" t-attf-style="color: {{ markerColor || 'red' }};" />
-                        <span class="small" t-out="partnerName" />
+                        <i class="fa fa-building-o d-block" t-attf-style="color: {{ this.markerColor || 'red' }};" />
+                        <span class="small" t-out="this.partnerName" />
                     </div>
                     <div
-                        t-if="contactName"
+                        t-if="this.contactName"
                         class="flex-fill align-content-around text-center px-2 py-1"
                         data-tooltip="Contact"
                     >
-                        <i class="fa fa-address-card-o d-block" t-attf-style="color: {{ markerColor || 'red' }};" />
-                        <span class="small" t-out="contactName" />
+                        <i class="fa fa-address-card-o d-block" t-attf-style="color: {{ this.markerColor || 'red' }};" />
+                        <span class="small" t-out="this.contactName" />
                     </div>
-                    <div t-if="phone" class="flex-fill align-content-around text-center px-2 py-1" data-tooltip="Phone">
-                        <i class="fa fa-phone d-block" t-attf-style="color: {{ markerColor || 'red' }};" />
-                        <span class="small" t-out="phone" />
+                    <div t-if="this.phone" class="flex-fill align-content-around text-center px-2 py-1" data-tooltip="Phone">
+                        <i class="fa fa-phone d-block" t-attf-style="color: {{ this.markerColor || 'red' }};" />
+                        <span class="small" t-out="this.phone" />
                     </div>
                     <div
-                        t-if="salespersonName"
+                        t-if="this.salespersonName"
                         class="flex-fill align-content-around text-center px-2 py-1"
                         data-tooltip="Salesperson"
                     >
-                        <i class="fa fa-user-o d-block" t-attf-style="color: {{ markerColor || 'red' }};" />
-                        <span class="small" t-out="salespersonName" />
+                        <i class="fa fa-user-o d-block" t-attf-style="color: {{ this.markerColor || 'red' }};" />
+                        <span class="small" t-out="this.salespersonName" />
                     </div>
                     <div
-                        t-if="expectedRevenue"
+                        t-if="this.expectedRevenue"
                         class="flex-fill align-content-around text-center px-2 py-1"
                         data-tooltip="Expected Revenue"
                     >
-                        <i class="fa fa-dollar d-block" t-attf-style="color: {{ markerColor || 'red' }};" />
-                        <span class="font-monospace small" t-out="expectedRevenue" />
+                        <i class="fa fa-dollar d-block" t-attf-style="color: {{ this.markerColor || 'red' }};" />
+                        <span class="font-monospace small" t-out="this.expectedRevenue" />
                     </div>
                     <div
-                        t-if="probability"
+                        t-if="this.probability"
                         class="flex-fill align-content-around text-center px-2 py-1"
                         data-tooltip="Probability"
                     >
-                        <i class="fa fa-percent d-block" t-attf-style="color: {{ markerColor || 'red' }};" />
+                        <i class="fa fa-percent d-block" t-attf-style="color: {{ this.markerColor || 'red' }};" />
                         <span class="small">
-                            <t t-out="probability" />
+                            <t t-out="this.probability" />
                             %
                         </span>
                     </div>
                     <div
-                        t-if="dateDeadline"
+                        t-if="this.dateDeadline"
                         class="flex-fill align-content-around text-center px-2 py-1"
                         data-tooltip="Expected Closing"
                     >
-                        <i class="fa fa-calendar d-block" t-attf-style="color: {{ markerColor || 'red' }};" />
-                        <span class="small" t-out="dateDeadline" />
+                        <i class="fa fa-calendar d-block" t-attf-style="color: {{ this.markerColor || 'red' }};" />
+                        <span class="small" t-out="this.dateDeadline" />
                     </div>
                 </div>
             </div>

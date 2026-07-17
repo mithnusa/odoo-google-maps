@@ -1,4 +1,5 @@
-import { Component, onWillDestroy, onMounted, useState, useEffect } from '@odoo/owl';
+import { useLayoutEffect } from '@web/owl2/utils';
+import { Component, onMounted, onWillDestroy, proxy } from '@odoo/owl';
 import { _t } from '@web/core/l10n/translation';
 import { useService } from '@web/core/utils/hooks';
 import { LOADER_STATUS, LOADER_ERROR_TYPES, useGoogleMapsAPILoader } from './loader_google_map';
@@ -35,7 +36,7 @@ export class BaseGoogleMapComponent extends Component {
         });
 
         // Map State — declared first so all hooks below can safely reference this.state
-        this.state = useState({
+        this.state = proxy({
             isMapReady: null,
             loaderStatus: LOADER_STATUS.NOT_LOADED,
             isLoading: null,
@@ -57,7 +58,7 @@ export class BaseGoogleMapComponent extends Component {
         onMounted(() => this._onMounted());
         onWillDestroy(() => this._cleanUp());
 
-        useEffect(
+        useLayoutEffect(
             (mapEl, loaderStatus) => {
                 this.handleApiLoaderUseEffect(mapEl, loaderStatus);
             },

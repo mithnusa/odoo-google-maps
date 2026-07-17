@@ -1,12 +1,14 @@
+import { useService } from '@web/core/utils/hooks';
+import { useLayoutEffect, useRef } from '@web/owl2/utils';
 import { registry } from '@web/core/registry';
 import { _t } from '@web/core/l10n/translation';
-import { useService } from '@web/core/utils/hooks';
 import { exprToBoolean } from '@web/core/utils/strings';
-import { useState, useRef, onWillUnmount, onWillUpdateProps, useEffect } from '@odoo/owl';
+import { onWillUnmount, onWillUpdateProps, proxy, props, t } from '@odoo/owl';
 import {
     PartnerAutoCompleteCharField,
     partnerAutoCompleteCharField,
 } from '@partner_autocomplete/js/partner_autocomplete_fieldchar';
+import { charFieldProps } from '@web/views/fields/char/char_field';
 import { useGooglePlaceAutocompleteMapping } from '@web_widget_google_place_autocomplete/hooks/use_google_place_autocomplete_mapping';
 import { GooglePlaceAutocompleteElement } from '@web_widget_google_place_autocomplete/component/google_place_autocomplete';
 
@@ -34,12 +36,12 @@ export class PartnerAutoCompleteCharFieldWithGooglePlace extends PartnerAutoComp
         ...PartnerAutoCompleteCharField.components,
         GooglePlaceAutocompleteElement,
     };
-    static props = {
-        ...PartnerAutoCompleteCharField.props,
-        mappingCode: { type: String, optional: true },
-        mappingMode: { type: String, optional: true },
-        noManualEdit: { type: Boolean, optional: true }, // If true, the input field will be set to readonly to prevent manual edits. Other fields will still be populated based on the autocomplete selection. Default is false (manual edits allowed).
-    };
+    props = props({
+        ...charFieldProps,
+        mappingCode: t.string().optional(),
+        mappingMode: t.string().optional(), // Accepted values: 'address' or 'places'. Default is 'places' if not set.
+        noManualEdit: t.boolean().optional(), // If true, the input field will be set to readonly to prevent manual edits. Other fields will still be populated based on the autocomplete selection. Default is false (manual edits allowed).
+    });
 
     /**
      * Initialises services, reactive state, the place mapping hook, and
@@ -51,7 +53,7 @@ export class PartnerAutoCompleteCharFieldWithGooglePlace extends PartnerAutoComp
         super.setup();
         this.notificationService = useService('notification');
         this.googleAutocompleteToggleRef = useRef('googleAutocompleteToggle');
-        this.state = useState({
+        this.state = proxy({
             mappingId: 0,
             isCollapseOpen: false,
         });
@@ -59,7 +61,7 @@ export class PartnerAutoCompleteCharFieldWithGooglePlace extends PartnerAutoComp
         this.widgetId = this.placeMapping.getUniqueWidgetId();
         this.mappingConfig = {};
 
-        useEffect(
+        useLayoutEffect(
             () => {
                 if (this.inputRef.el && !this.props.readonly && this.props.noManualEdit) {
                     this.inputRef.el.setAttribute('readonly', 'readonly');

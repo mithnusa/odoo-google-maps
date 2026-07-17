@@ -1,50 +1,48 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <templates xml:space="preserve">
     <t t-name="web_widget_google_map.GoogleMapWidget">
-        <div t-if="!props.invisible">
-            <button
-                type="button"
-                class="btn btn-link p-0"
-                t-on-click="handleOnEdit"
-                t-attf-data-tooltip="{{ props.readonly ? 'Show on Map' : 'Update Location on Map' }}"
-            >
-                <i t-attf-class="fa fa-fw {{ props.readonly ? 'fa-map-o' : 'fa-map-pin'}} me-1" />
-                <span t-if="props.readonly">View on Map</span>
-                <span t-else="">Update on Map</span>
-            </button>
-        </div>
+        <button t-if="!this.props.invisible"
+            type="button"
+            class="btn btn-link p-0"
+            t-on-click="this.handleOnEdit"
+            t-attf-data-tooltip="{{ this.props.readonly ? 'Show on Map' : 'Update Location on Map' }}"
+        >
+            <i t-attf-class="fa fa-fw {{ this.props.readonly ? 'fa-map-o' : 'fa-map-pin'}} me-1" />
+            <span t-if="this.props.readonly">View on Map</span>
+            <span t-else="">Update on Map</span>
+        </button>
     </t>
     <t t-name="web_widget_google_map.GeolocationEditDialog">
-        <Dialog size="'xl'" title="dialogTitle" modalRef="modalRef">
-            <div class="alert alert-info text-center" t-if="!props.readonly">
+        <Dialog size="'xl'" title="this.dialogTitle" modalRef="this.modalRef">
+            <div class="alert alert-info text-center" t-if="!this.props.readonly">
                 Drag the marker to update the location
             </div>
             <div class="o_google_map_form">
                 <div class="o_google_map_renderer">
-                    <div class="o_google_map_view" t-ref="map" />
-                    <GoogleMapSearchPlaces googleMap="googleMap" t-if="state.isMapReady" />
+                    <div class="o_google_map_view" t-custom-ref="map" />
+                    <GoogleMapSearchPlaces googleMap="this.googleMap" t-if="this.state.isMapReady" />
                 </div>
             </div>
             <t t-set-slot="footer">
-                <t t-if="!props.readonly">
+                <t t-if="!this.props.readonly">
                     <button
                         class="btn"
-                        t-att-class="props.confirmClass"
-                        t-on-click="_confirm"
-                        t-esc="props.confirmLabel"
+                        t-att-class="this.props.confirmClass"
+                        t-on-click="this._confirm"
+                        t-out="this.props.confirmLabel"
                         data-hotkey="q"
                     />
                     <button
-                        t-if="props.cancel"
+                        t-if="this.props.cancel"
                         class="btn btn-secondary"
-                        t-on-click="_cancel"
-                        t-esc="props.cancelLabel"
+                        t-on-click="this._cancel"
+                        t-out="this.props.cancelLabel"
                         data-hotkey="x"
                     />
                 </t>
                 <button
                     class="btn btn-link"
-                    t-on-click="openGoogleMaps"
+                    t-on-click="this.openGoogleMaps"
                     style="margin-left: auto; margin-right: 0px;"
                     data-tooltip="Open in Google Maps Website"
                 >

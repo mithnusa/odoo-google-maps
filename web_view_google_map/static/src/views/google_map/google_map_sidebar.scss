@@ -141,7 +141,15 @@
 
                     &::before {
                         display: inline-block;
-                        font-family: 'FontAwesome';
+                        // Odoo master removed FontAwesome; icons are Material
+                        // Symbols ligatures (see web/static/src/webclient/icons.scss)
+                        font-family: var(--icon-font-family, 'Material Symbols Outlined');
+                        font-feature-settings: 'liga';
+                        // Material Symbols pictograms have inner padding, so they
+                        // render smaller than the old FA carets at the same size —
+                        // compensate like web's material-icon-base does.
+                        font-size: 1.25em;
+                        transform: scale(1.214285);
                         color: #6c757d;
                     }
                 }
@@ -165,7 +173,7 @@
                     left: 0; // Tracks the collapsing edge to stay visible
 
                     button::before {
-                        content: '\f0da';
+                        content: 'arrow_right';
                     }
                 }
             }
@@ -185,7 +193,7 @@
                     left: 100%;
 
                     button::before {
-                        content: '\f0d9';
+                        content: 'arrow_left';
                     }
                 }
             }

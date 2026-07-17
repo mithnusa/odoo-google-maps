@@ -1,6 +1,6 @@
-import { _t } from '@web/core/l10n/translation';
-import { Component, onWillUnmount, onMounted } from '@odoo/owl';
 import { useService } from '@web/core/utils/hooks';
+import { _t } from '@web/core/l10n/translation';
+import { Component, onMounted, onWillUnmount } from '@odoo/owl';
 import { renderToString } from '@web/core/utils/render';
 
 export class GoogleMapGeolocate extends Component {

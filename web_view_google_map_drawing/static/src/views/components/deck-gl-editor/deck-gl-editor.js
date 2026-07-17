@@ -1,7 +1,8 @@
+import { useLayoutEffect, useRef } from '@web/owl2/utils';
 import { _t } from '@web/core/l10n/translation';
 import { debounce } from '@web/core/utils/timing';
 import { useService } from '@web/core/utils/hooks';
-import { Component, useEffect, useState, useRef, onWillStart, onWillDestroy, onWillUpdateProps } from '@odoo/owl';
+import { Component, onWillDestroy, onWillStart, onWillUpdateProps, proxy } from '@odoo/owl';
 import { hexToRgba, generateColor } from '@web_view_google_map/views/google_map/utils';
 import {
     loadDeckGlAssets,
@@ -35,7 +36,7 @@ export class DeckGlEditor extends Component {
         this.deckglOverlay = null;
 
         // Selection state management - make reactive for template
-        this.state = useState({
+        this.state = proxy({
             selectedFeatures: new Set(), // Track selected feature IDs
             hoveredFeatureId: null, // Track hovered feature
         });
@@ -52,7 +53,7 @@ export class DeckGlEditor extends Component {
             await loadTurfJSAssets();
         });
 
-        useEffect(
+        useLayoutEffect(
             (editorRef, googleMap) => {
                 if (editorRef.el && googleMap) {
                     this._initializeDeckGLOverlay();

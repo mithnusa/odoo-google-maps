@@ -194,7 +194,7 @@ class ResConfigSettings(models.TransientModel):
         region = (
             self.env['ir.config_parameter']
             .sudo()
-            .get_param('base_google_map.region_localization')
+            .get_str('base_google_map.region_localization', default=False)
         )
         res.update(google_maps_region_localization=region)
         return res

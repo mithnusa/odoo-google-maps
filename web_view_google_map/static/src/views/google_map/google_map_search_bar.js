@@ -1,5 +1,5 @@
-import { _t } from '@web/core/l10n/translation';
 import { useService } from '@web/core/utils/hooks';
+import { _t } from '@web/core/l10n/translation';
 import { SearchBarMenu } from '@web/search/search_bar_menu/search_bar_menu';
 import { SearchBar } from '@web/search/search_bar/search_bar';
 

@@ -1,38 +1,34 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <templates xml:space="preserve">
     <t t-name="web_view_google_map.GoogleMapView">
-        <div t-att-class="className" t-ref="root">
-            <Layout className="model.useSampleModel ? 'o_view_sample_data' : ''" display="display">
-                <t t-set-slot="control-panel-create-button">
-                    <t t-if="!model.root.editedRecord and activeActions.create and !env.inDialog">
+        <div t-att-class="this.className" t-custom-ref="root">
+            <Layout className="this.model.useSampleModel ? 'o_view_sample_data' : ''" display="this.display">
+                <t t-set-slot="control-panel-buttons">
+                    <t t-if="!this.model.root.editedRecord and this.activeActions.create and !this.env.inDialog">
                         <button
                             type="button"
                             class="btn btn-primary o_list_button_add"
                             data-hotkey="c"
-                            t-on-click="onClickCreate"
+                            t-on-click="this.onClickCreate"
                             data-bounce-button=""
                         >
                             New
                         </button>
                     </t>
-                </t>
-                <t t-set-slot="layout-buttons">
-                    <t t-call="{{ props.buttonTemplate }}" />
-                </t>
-                <t t-set-slot="control-panel-always-buttons">
+                    <t t-call="{{ this.props.buttonTemplate }}" />
                     <t
-                        t-foreach="archInfo.headerButtons"
+                        t-foreach="this.archInfo.headerButtons"
                         t-as="button"
                         t-key="button.id"
-                        t-if="!evalViewModifier(button.invisible)"
+                        t-if="!this.evalViewModifier(button.invisible)"
                     >
                         <MultiRecordViewButton
                             t-if="button.display === 'always'"
-                            list="model.root"
+                            list="this.model.root"
                             className="button.className"
                             clickParams="button.clickParams"
                             defaultRank="'btn-secondary'"
-                            domain="props.domain"
+                            domain="this.props.domain"
                             icon="button.icon"
                             string="button.string"
                             title="button.title"
@@ -40,37 +36,38 @@
                         />
                     </t>
                 </t>
-                <t t-set-slot="layout-actions">
-                    <SearchBar toggler="searchBarToggler" autofocus="firstLoad" />
+                <t t-set-slot="control-panel-actions">
+                    <SearchBar t-if="!this.offlinePlugin.isOffline()" toggler="this.searchBarToggler" autofocus="this.firstLoad" />
+                    <OfflineSearchBar t-else="" toggler="this.searchBarToggler" autofocus="this.firstLoad"/>
                 </t>
                 <t t-set-slot="control-panel-navigation-additional">
                     <t
-                        t-if="!hasSelectedRecords"
-                        t-component="searchBarToggler.component"
-                        t-props="searchBarToggler.props"
+                        t-if="!this.hasSelectedRecords"
+                        t-component="this.searchBarToggler.component"
+                        t-props="this.searchBarToggler.props"
                     />
                 </t>
                 <t t-set-slot="control-panel-additional-actions">
-                    <CogMenu t-if="!hasSelectedRecords" />
+                    <CogMenu t-if="!this.hasSelectedRecords" />
                     <CogMenu
-                        t-elif="env.isSmall and (props.info.actionMenus or archInfo.headerButtons.length)"
+                        t-elif="this.env.isSmall and (this.props.info.actionMenus or this.archInfo.headerButtons.length)"
                         t-props="this.actionMenuProps"
-                        hasSelectedRecords="hasSelectedRecords"
+                        hasSelectedRecords="this.hasSelectedRecords"
                     >
                         <t
-                            t-foreach="archInfo.headerButtons"
+                            t-foreach="this.archInfo.headerButtons"
                             t-as="button"
                             t-key="button.id"
-                            t-if="!evalViewModifier(button.invisible)"
+                            t-if="!this.evalViewModifier(button.invisible)"
                         >
                             <DropdownItem class="'o-dropdown-item-unstyled-button'">
                                 <MultiRecordViewButton
                                     t-if="button.display !== 'always'"
-                                    list="model.root"
+                                    list="this.model.root"
                                     className="button.className"
                                     clickParams="button.clickParams"
                                     defaultRank="'btn-secondary'"
-                                    domain="props.domain"
+                                    domain="this.props.domain"
                                     icon="button.icon"
                                     string="button.string"
                                     title="button.title"
@@ -81,42 +78,47 @@
                     </CogMenu>
                 </t>
                 <t t-set-slot="control-panel-selection-actions">
-                    <div t-if="hasSelectedRecords" class="o_selection_container m-1 m-md-0 d-flex gap-1">
+                    <div t-if="this.hasSelectedRecords" class="o_selection_container m-1 m-md-0 d-flex gap-1">
                         <SelectionBox root="this.model.root" />
-                        <t t-if="!env.isSmall">
+                        <t t-if="!this.env.isSmall">
                             <t
-                                t-foreach="archInfo.headerButtons"
+                                t-foreach="this.archInfo.headerButtons"
                                 t-as="button"
                                 t-key="button.id"
-                                t-if="!evalViewModifier(button.invisible)"
+                                t-if="!this.evalViewModifier(button.invisible)"
                             >
                                 <MultiRecordViewButton
                                     t-if="button.display !== 'always'"
-                                    list="model.root"
+                                    list="this.model.root"
                                     className="button.className"
                                     clickParams="button.clickParams"
                                     defaultRank="'btn-secondary'"
-                                    domain="props.domain"
+                                    domain="this.props.domain"
                                     icon="button.icon"
                                     string="button.string"
                                     title="button.title"
                                     attrs="button.attrs"
                                 />
                             </t>
-                            <t t-if="props.info.actionMenus">
-                                <ActionMenus t-props="actionMenuProps" />
+                            <t t-if="this.props.info.actionMenus">
+                                <ActionMenus t-props="this.actionMenuProps" />
                             </t>
                         </t>
                     </div>
                 </t>
-                <t t-component="props.Renderer" t-props="rendererProps" />
+                <t t-if="this.model.isReady()">
+                    <t t-component="this.props.Renderer" t-props="this.rendererProps"/>
+                </t>
+                <t t-elif="this.model.couldNotLoadRootOffline">
+                    <OfflineActionHelper/>
+                </t>
             </Layout>
         </div>
     </t>
 
     <t t-name="web_view_google_map.GoogleMapView.Buttons">
         <div
-            t-if="props.showButtons"
+            t-if="this.props.showButtons"
             class="o_list_buttons d-flex gap-1 d-empty-none align-items-baseline"
             role="toolbar"
             aria-label="Main actions"
@@ -124,7 +126,7 @@
             <button
                 type="button"
                 class="btn btn-outline-secondary o-google_map-button-center-map"
-                t-on-click="centerMap"
+                t-on-click="this.centerMap"
             >
                 Center Map
             </button>

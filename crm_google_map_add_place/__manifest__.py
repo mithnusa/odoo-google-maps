@@ -24,7 +24,7 @@ Provides:
     "website": "https://github.com/mithnusa",
     "support": "yopiangi@gmail.com",
     "category": "Tools",
-    "version": "19.0.1.0.2",
+    "version": "1.0.0",
     "depends": [
         "web_view_google_map",
         "base_google_map_add_place",

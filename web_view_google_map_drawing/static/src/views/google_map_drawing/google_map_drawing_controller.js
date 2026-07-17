@@ -16,7 +16,7 @@ export class GoogleMapDrawingController extends GoogleMapController {
     get rendererProps() {
         const { showNearbyRecords, showGoogleStreetViewSideBySide, ...rendererProps } = super.rendererProps;
         // remove unnecessary properties
-        // following properties are not used in drawing mode
+        // following properties are not used in drawing mode\
         return rendererProps;
     }
 }

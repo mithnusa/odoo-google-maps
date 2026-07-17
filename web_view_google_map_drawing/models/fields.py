@@ -93,9 +93,11 @@ class SearchableJson(fields.Json):
     """
 
     def _condition_to_sql(
-        self, field_expr: str, operator: str, value, model, alias: str, query
+        self, table, field_expr: str, operator: str, value
     ) -> SQL:
-        sql_field = model._field_to_sql(alias, field_expr, query)
+        # `table[field_expr]` performs the field access check and returns the
+        # column SQL (master's TableSQL API, replacing model._field_to_sql).
+        sql_field = table[field_expr]
 
         # Intercept in/not in entirely: parent fields.Json uses text comparison,
         # but this field requires JSONB semantics for all value types.
@@ -115,9 +117,7 @@ class SearchableJson(fields.Json):
                 "— operator_optimization registration may have failed."
             )
 
-        return super()._condition_to_sql(
-            field_expr, operator, value, model, alias, query
-        )
+        return super()._condition_to_sql(table, field_expr, operator, value)
 
     def _build_json_in_sql(self, sql_field: SQL, operator: str, values) -> SQL:
         conditions = [

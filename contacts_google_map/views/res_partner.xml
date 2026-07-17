@@ -46,10 +46,10 @@
         <field name="inherit_id" ref="base_geolocalize.view_crm_partner_geo_form" />
         <field name="priority" eval="1000" />
         <field name="arch" type="xml">
-            <xpath expr="//label[@for='date_localization']/.." position="inside">
+            <xpath expr="//field[@name='date_localization']" position="after">
                 <field name="marker_color" widget="color_picker" />
             </xpath>
-            <xpath expr="//page[@name='geo_location']//button[@name='geo_localize']/.." position="after">
+            <xpath expr="//field[@name='partner_latitude']/.." position="inside">
                 <widget name="google_map" lat="partner_latitude" lng="partner_longitude" />
             </xpath>
         </field>

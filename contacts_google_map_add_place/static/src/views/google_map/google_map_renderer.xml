@@ -6,7 +6,7 @@
         t-inherit-mode="primary"
     >
         <xpath expr="//InMapSearchPlaces" position="after">
-            <InMapClickAddPlace googleMap="googleMap" t-if="state.isMapReady" />
+            <InMapClickAddPlace googleMap="this.googleMap" t-if="this.state.isMapReady" />
         </xpath>
     </t>
 </templates>

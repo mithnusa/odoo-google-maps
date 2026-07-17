@@ -11,7 +11,7 @@
             class="btn btn-sm btn-link"
             id="action-view-task"
             data-tooltip="View Tasks"
-            t-on-click="() => props.onActionViewTask(record)"
+            t-on-click="() => this.props.onActionViewTask(this.record)"
         >
             <i class="fa fa-list-ul" />
         </button>
