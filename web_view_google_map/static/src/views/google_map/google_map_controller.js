@@ -416,6 +416,12 @@ export class GoogleMapController extends Component {
         this.actionService.doAction(action);
     }
 
+    showUnlocatedRecords() {
+        const domain = this.model.unlocatedRecordsDomain;
+        if (!domain.length) return;
+        this.showRecordsByDomain(_t('Unlocated'), domain);
+    }
+
     /**
      * Opens a new map view scoped to records within a bounding box around the
      * given record's location. The bounding box is a rectangular approximation
@@ -743,6 +749,7 @@ export class GoogleMapController extends Component {
     get rendererProps() {
         return {
             list: this.model.root,
+            unLocatedCount: this.model.unLocatedCount,
             archInfo: this.props.archInfo,
             viewAttrs: this.viewMapConfig,
             activeActions: this.activeActions,
@@ -753,6 +760,7 @@ export class GoogleMapController extends Component {
             showRecord: this.showRecord.bind(this),
             showRecordsByDomain: this.showRecordsByDomain.bind(this),
             showNearbyRecords: this.showNearbyRecords.bind(this),
+            showUnlocatedRecords: this.showUnlocatedRecords.bind(this),
             showGoogleStreetViewSideBySide: this.showGoogleStreetViewSideBySide.bind(this),
         };
     }

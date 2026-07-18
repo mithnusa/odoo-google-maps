@@ -82,9 +82,11 @@ export const googleMapRendererProps = {
     showRecord: t.function(),
     showRecordsByDomain: t.function(),
     showNearbyRecords: t.function(),
+    showUnlocatedRecords: t.function(),
     showGoogleStreetViewSideBySide: t.function(),
     readonly: t.boolean(),
     list: t.object(),
+    unLocatedCount: t.number(),
     onAdd: t.function().optional(),
     activeActions: t.object().optional(),
     allowSelectors: t.boolean(),
@@ -854,6 +856,7 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
         const { viewTitle } = this.props.archInfo;
         return {
             header: viewTitle,
+            unLocatedCount: this.props.unLocatedCount,
             title: this.props.archInfo.sidebarTitleField,
             getGroupsOrRecords: this.getGroupsOrRecords.bind(this),
             toggleGroup: this.toggleGroup.bind(this),
@@ -861,6 +864,7 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
             openRecord: this.props.openRecord.bind(this),
             showRecordsByDomain: this.props.showRecordsByDomain.bind(this),
             showNearbyRecords: this.searchNearbyRecords.bind(this),
+            showUnlocatedRecords: this.props.showUnlocatedRecords.bind(this),
             pointInMap: this.pointInMap.bind(this),
             deleteGroupRecords: this.deleteGroupRecords.bind(this),
             handleToggleRecordSelection: this.toggleRecordSelection.bind(this),

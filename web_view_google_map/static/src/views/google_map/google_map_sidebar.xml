@@ -204,6 +204,24 @@
                     </small>
                 </div>
             </div>
+            <div t-if="this.props.unLocatedCount &gt; 0" class="py-1 border-top border-bottom">
+                <div class="d-flex align-items-center justify-content-end px-1">
+                    <div>
+                        <span>Unlocated</span>
+                        <span class="ms-1">
+                            (<t t-out="this.props.unLocatedCount" />)
+                        </span>
+                    </div>
+                    <button
+                        type="button"
+                        class="btn btn-link"
+                        data-tooltip="Show Unlocated"
+                        t-on-click.prevent="() => this.props.showUnlocatedRecords()"
+                    >
+                        <i class="fa fa-lg fa-angle-double-right" aria-hidden="true" />
+                    </button>
+                </div>
+            </div>
             <t t-call="{{ this.constructor.listGroupOrRecordTemplate }}"
                 fnPinPointInMap="this.props.pointInMap"
                 fnOpenRecord="this.props.openRecord"/>

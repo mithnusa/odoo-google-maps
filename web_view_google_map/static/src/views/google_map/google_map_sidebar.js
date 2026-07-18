@@ -7,6 +7,8 @@ import { Field } from '@web/views/fields/field';
 export const googleMapSidebarProps = {
     header: t.string(),
     title: t.string(),
+    unLocatedCount: t.number(),
+    showUnlocatedRecords: t.function(),
     getGroupsOrRecords: t.function(),
     toggleGroup: t.function(),
     renderGroupedRecordsFitBounds: t.function(),
@@ -44,6 +46,7 @@ export class GoogleMapSidebar extends Component {
     static recordActionsTemplate = 'web_view_google_map.RecordActionsTemplate';
     static components = { CheckBox, Field };
     static props = googleMapSidebarProps;
+    props = props(this.constructor.props);
 
     get datas() {
         return this.props.getGroupsOrRecords();
