@@ -30,11 +30,11 @@ export class GoogleMapRendererCRM extends GoogleMapRenderer {
         Sidebar: GoogleMapSidebarCRM,
     };
     static templateInfoWindow = 'crm_google_map.MarkerInfoWindow';
-    props = props({
+    static props = {
         ...googleMapRendererProps,
         openRecordScheduleActivity: t.function(),
         showRecordScheduledActivity: t.function(),
-    });
+    };
 
     /**
      * @override

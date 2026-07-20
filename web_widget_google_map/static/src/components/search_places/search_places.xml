@@ -6,11 +6,11 @@
     <t t-name="web_widget_google_map.SearchPlacesInfoWindow">
         <div id="infowindow-content">
             <span id="place-displayname" class="fs-4 fw-bolder">
-                <t t-esc="this.displayName" />
+                <t t-out="this.displayName" />
             </span>
             <br />
             <span id="place-address">
-                <t t-esc="this.formattedAddress" />
+                <t t-out="this.formattedAddress" />
             </span>
         </div>
     </t>

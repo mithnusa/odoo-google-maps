@@ -36,7 +36,7 @@ export class GoogleMapRendererProject extends GoogleMapRenderer {
     }
 
     get sidebarProps() {
-        return Object.assign(super.sidebarProps, {
+        return Object.assign({}, super.sidebarProps, {
             onActionViewTask: this._actionViewTasks.bind(this),
         });
     }

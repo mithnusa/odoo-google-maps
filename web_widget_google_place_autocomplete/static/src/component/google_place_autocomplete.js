@@ -20,7 +20,7 @@ import { _t } from '@web/core/l10n/translation';
 import { useService } from '@web/core/utils/hooks';
 import { sprintf } from '@web/core/utils/strings';
 import { debounce } from '@web/core/utils/timing';
-import { Component, onWillUnmount, proxy } from '@odoo/owl';
+import { Component, onWillUnmount, proxy, props, t } from '@odoo/owl';
 import { useGoogleMapsAPILoader } from '@base_google_map/utils/loader_google_map';
 
 // Constants
@@ -171,6 +171,19 @@ function extractStreetNumber(address) {
     return { buildingNumber: '', route: streetPart, unitNumber: '', prefix: '', street_number: '' };
 }
 
+const googlePlaceAutocompleteProps = {
+    id: t.number().optional(),
+    code: t.string(),
+    mode: t.selection(['address', 'places']),
+    options: t.object().optional({}),
+    fields: t.array(t.string()),
+    resModel: t.string(),
+    elementId: t.string(),
+    callback: t.function(),
+    isTest: t.boolean().optional(false),
+    isCollapseOpen: t.boolean().optional(false),
+};
+
 /**
  * Google Place Autocomplete Element Component
  *
@@ -203,28 +216,8 @@ function extractStreetNumber(address) {
  */
 export class GooglePlaceAutocompleteElement extends Component {
     static template = 'web_widget_google_place_autocomplete.GooglePlaceAutocomplete';
-    static props = {
-        id: { type: Number, optional: true }, // Mapping ID
-        code: String,
-        mode: {
-            type: String,
-            validate: (value) => ['address', 'places'].includes(value),
-            optional: false,
-        },
-        options: { type: Object, optional: true },
-        fields: Array,
-        resModel: String,
-        elementId: String,
-        callback: Function, // Callback function to handle selected place
-        isTest: { type: Boolean, optional: true },
-        isCollapseOpen: { type: Boolean, optional: true },
-    };
-
-    static defaultProps = {
-        options: {},
-        isTest: false,
-        isCollapseOpen: false,
-    };
+    static props = googlePlaceAutocompleteProps;
+    props = props(this.constructor.props);
 
     setup() {
         this.gAutocompleteRef = useRef('gAutocomplete');

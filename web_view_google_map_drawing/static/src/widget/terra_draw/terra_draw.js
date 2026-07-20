@@ -2,7 +2,7 @@ import { useRef, useSubEnv } from '@web/owl2/utils';
 import { registry } from '@web/core/registry';
 import { _t } from '@web/core/l10n/translation';
 import { standardFieldProps } from '@web/views/fields/standard_field_props';
-import { proxy, onWillUpdateProps } from '@odoo/owl';
+import { proxy, onWillUpdateProps, props, t } from '@odoo/owl';
 
 import { BaseGoogleMapComponent } from '@base_google_map/utils/base_google_map';
 import { GoogleMapGeolocate } from '@web_widget_google_map/components/geolocate/geolocate';
@@ -13,6 +13,19 @@ import { DeckGlEditor } from '../../views/components/deck-gl-editor/deck-gl-edit
 import { MAP_OPTIONS } from '../../utils/map_config';
 import { analyzeDatasetPerformance } from '../../utils/geometry_performance_utils';
 
+
+const googleMapTerraDrawFieldProps = {
+    ...standardFieldProps,
+    placeholder: t.string().optional(),
+    dynamicPlaceholder: t.boolean().optional(false),
+    shouldTrim: t.boolean().optional(true),
+    defaultCenter: t.array(t.number()).optional(),
+    defaultZoom: t.number().optional(),
+    mapTypeId: t.string().optional(),
+    fieldArea: t.string().optional(),
+};
+
+
 export class GoogleMapTerraDrawField extends BaseGoogleMapComponent {
     static template = 'web_view_google_map_drawing.GoogleMapTerraDrawField';
     static components = {
@@ -21,19 +34,8 @@ export class GoogleMapTerraDrawField extends BaseGoogleMapComponent {
         TerraDrawToolsUI,
         DeckGlEditor,
     };
-    static defaultProps = {
-        dynamicPlaceholder: false,
-        shouldTrim: true,
-    };
-    static props = {
-        ...standardFieldProps,
-        placeholder: { type: String, optional: true },
-        dynamicPlaceholder: { type: Boolean, optional: true },
-        defaultCenter: { type: Array, optional: true },
-        defaultZoom: { type: Number, optional: true },
-        mapTypeId: { type: String, optional: true },
-        fieldArea: { type: String, optional: true },
-    };
+    static props = googleMapTerraDrawFieldProps;
+    props = props(this.constructor.props);
 
     setup() {
         super.setup();

@@ -2,7 +2,7 @@ import { useLayoutEffect, useRef } from '@web/owl2/utils';
 import { _t } from '@web/core/l10n/translation';
 import { debounce } from '@web/core/utils/timing';
 import { useService } from '@web/core/utils/hooks';
-import { Component, onWillDestroy, onWillStart, onWillUpdateProps, proxy } from '@odoo/owl';
+import { Component, onWillDestroy, onWillStart, onWillUpdateProps, proxy, props, t } from '@odoo/owl';
 import { hexToRgba, generateColor } from '@web_view_google_map/views/google_map/utils';
 import {
     loadDeckGlAssets,
@@ -14,18 +14,23 @@ import {
 import { DECKGL_CONFIG, STROKE_CONFIG } from '../../../utils/map_config';
 import { UploadGeoJsonFileDialog } from '../upload_geojson_dialog/upload_geojson_dialog';
 
+
+const deckGlEditorProps = {
+    readonly: t.boolean(),
+    renderingMode: t.string(),
+    googleMap: t.object(),
+    dataGeoJson: t.or([t.object(), t.boolean()]).optional(),
+    saveFeatures: t.function(),
+    saveFeaturesTotalArea: t.function(),
+    record: t.object(),
+    onSelectionChange: t.function().optional(), // Callback for selection changes
+};
+
+
 export class DeckGlEditor extends Component {
     static template = 'web_view_google_map_drawing.DeckGlEditor';
-    static props = {
-        readonly: Boolean,
-        renderingMode: String,
-        googleMap: Object,
-        dataGeoJson: { type: Object, optional: true },
-        saveFeatures: Function,
-        saveFeaturesTotalArea: Function,
-        record: Object,
-        onSelectionChange: { type: Function, optional: true }, // Callback for selection changes
-    };
+    static props = deckGlEditorProps;
+    props = props(this.constructor.props);
 
     setup() {
         this.notificationService = useService('notification');

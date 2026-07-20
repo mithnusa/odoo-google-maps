@@ -1,5 +1,5 @@
 import { _t } from '@web/core/l10n/translation';
-import { Component, onMounted, onWillUnmount } from '@odoo/owl';
+import { Component, onMounted, onWillUnmount, props, t } from '@odoo/owl';
 import { useService } from '@web/core/utils/hooks';
 import { renderToString } from '@web/core/utils/render';
 
@@ -10,6 +10,10 @@ import { renderToString } from '@web/core/utils/render';
  * @constant {number}
  */
 const ZOOM_THRESHOLD = 15;
+
+export const inMapClickAddPlaceProps = {
+    googleMap: t.or([t.object(), t.literal(null)]).optional(),
+};
 
 /**
  * OWL component that enables users to add new Odoo record directly from
@@ -30,7 +34,8 @@ const ZOOM_THRESHOLD = 15;
  */
 export class InMapClickAddPlace extends Component {
     static template = 'base_google_map_add_place.ClickAddPlace';
-    static props = ['googleMap?'];
+    static props = inMapClickAddPlaceProps;
+    props = props(this.constructor.props);
 
     /**
      * Initialises OWL services, pre-binds event handler references, and

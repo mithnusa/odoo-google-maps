@@ -2,7 +2,7 @@ import { useLayoutEffect, useRef } from '@web/owl2/utils';
 import { _t } from '@web/core/l10n/translation';
 import { useService } from '@web/core/utils/hooks';
 import { ConfirmationDialog } from '@web/core/confirmation_dialog/confirmation_dialog';
-import { Component, onWillDestroy, onWillStart, onWillUpdateProps, proxy } from '@odoo/owl';
+import { Component, onWillDestroy, onWillStart, onWillUpdateProps, proxy, props, t } from '@odoo/owl';
 import { generateUUID } from '@web_view_google_map/views/google_map/utils';
 import {
     loadTerraDrawAssets,
@@ -26,6 +26,14 @@ export const MODE_BUTTONS = {
     'circle-mode': 'circle',
     'freehand-mode': 'freehand',
     'clear-mode': 'static',
+};
+
+const terraDrawToolUiProps = {
+    googleMap: t.object(),
+    saveFeatures: t.function(),
+    renderingMode: t.string(),
+    dataGeoJson: t.or([t.object(), t.boolean()]).optional(),
+    record: t.object(),
 };
 
 /**

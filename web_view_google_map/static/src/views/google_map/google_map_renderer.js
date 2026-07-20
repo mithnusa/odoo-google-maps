@@ -102,7 +102,8 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
         Sidebar: GoogleMapSidebar,
         InMapSearchPlaces: GoogleMapSearchPlaces,
     };
-    props = props(googleMapRendererProps);
+    static props = googleMapRendererProps; 
+    props = props(this.constructor.props);
 
     setup() {
         super.setup();

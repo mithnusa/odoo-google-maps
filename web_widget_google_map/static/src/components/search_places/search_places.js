@@ -1,6 +1,7 @@
 import { useService } from '@web/core/utils/hooks';
 import { _t } from '@web/core/l10n/translation';
-import { Component, onWillUnmount, useEffect, useRef } from '@odoo/owl';
+import { Component, onWillUnmount, useRef, props, t } from '@odoo/owl';
+import { useLayoutEffect } from '@web/owl2/utils';
 import { debounce } from '@web/core/utils/timing';
 import { renderToString } from '@web/core/utils/render';
 
@@ -9,7 +10,7 @@ const INFO_WINDOW_MAX_WIDTH = '400px';
 
 export class GoogleMapSearchPlaces extends Component {
     static template = 'web_widget_google_map.SearchPlaces';
-    static props = ['googleMap'];
+    props = props({ googleMap: t.or([t.object(), t.literal(null)]).optional() });
 
     setup() {
         this.searchRef = useRef('searchPlaces');
@@ -19,9 +20,10 @@ export class GoogleMapSearchPlaces extends Component {
         this.markerInfoWindow = null;
         this.debouncedHandlePlaceSelect = debounce(this.handlePlaceSelect, 150);
         this.boundsChangedListener = null;
-        useEffect(
-            (googleMap, searchEl) => {
-                if (googleMap && searchEl) {
+
+        useLayoutEffect(
+            (googleMap, searchRef) => {
+                if (googleMap && searchRef) {
                     this._initSearchBox();
                 }
             },

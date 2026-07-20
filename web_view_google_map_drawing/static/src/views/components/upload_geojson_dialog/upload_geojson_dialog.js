@@ -1,6 +1,7 @@
 import { useService } from '@web/core/utils/hooks';
+import { t } from '@odoo/owl';
 import { _t } from '@web/core/l10n/translation';
-import { ConfirmationDialog } from '@web/core/confirmation_dialog/confirmation_dialog';
+import { ConfirmationDialog, confirmationDialogProps } from '@web/core/confirmation_dialog/confirmation_dialog';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
 
@@ -8,13 +9,9 @@ export class UploadGeoJsonFileDialog extends ConfirmationDialog {
     static template = 'web_view_google_map_drawing.UploadGeoJsonFileDialog';
     static props = {
         ...ConfirmationDialog.props,
-        confirm: Function,
-    };
-
-    static defaultProps = {
-        ...ConfirmationDialog.defaultProps,
-        title: _t('Import GeoJSON File'),
-        confirmLabel: _t('Apply'),
+        title: t.string().optional(_t('Import GeoJSON File')),
+        confirmLabel: t.string().optional(_t('Apply')),
+        confirm: t.function(),
     };
 
     setup() {
