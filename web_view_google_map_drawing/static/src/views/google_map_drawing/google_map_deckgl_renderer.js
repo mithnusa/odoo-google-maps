@@ -89,6 +89,8 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
         activeActions: { type: Object, optional: true },
         allowSelectors: Boolean,
         viewAttrs: Object,
+        unLocatedCount: Number,
+        showUnlocatedRecords: Function,
     };
 
     setup() {
@@ -1237,11 +1239,13 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
         return {
             header: viewTitle,
             title: this.props.archInfo.sidebarTitleField,
+            unLocatedCount: this.props.unLocatedCount,
             getGroupsOrRecords: this.getGroupsOrRecords.bind(this),
             toggleGroup: this.toggleGroup.bind(this),
             renderGroupedRecordsFitBounds: this._renderGroupedRecordsFitBounds.bind(this),
             openRecord: this.props.openRecord.bind(this),
             showRecordsByDomain: this.props.showRecordsByDomain.bind(this),
+            showUnlocatedRecords: this.props.showUnlocatedRecords.bind(this),
             pointInMap: this.pointInMap.bind(this),
             deleteGroupRecords: this.deleteGroupRecords.bind(this),
             handleToggleRecordSelection: this.toggleRecordSelection.bind(this),
