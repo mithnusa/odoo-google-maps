@@ -25,6 +25,7 @@ export class GoogleMapSidebar extends Component {
     static props = {
         header: String,
         title: { type: String, optional: true },
+        unLocatedCount: Number,
         getGroupsOrRecords: Function,
         toggleGroup: Function,
         renderGroupedRecordsFitBounds: Function,
@@ -34,6 +35,7 @@ export class GoogleMapSidebar extends Component {
         pointInMap: Function,
         deleteGroupRecords: Function,
         handleToggleSelection: Function,
+        showUnlocatedRecords: Function,
         handleCanSelectRecord: Boolean,
         handleSelectAll: Boolean,
         handleToggleRecordSelection: Function,
