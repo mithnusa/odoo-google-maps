@@ -153,10 +153,7 @@ export class GoogleMapModel extends RelationalModel {
             const nullValues = [null, false];
             // Complement of mapDomain: a record is not geolocated when ANY
             // required coordinate source is missing — hence OR, not AND.
-            const parts = [
-                [[this.viewConfig.lat, 'in', nullValues]],
-                [[this.viewConfig.lng, 'in', nullValues]],
-            ];
+            const parts = [[[this.viewConfig.lat, 'in', nullValues]], [[this.viewConfig.lng, 'in', nullValues]]];
             for (const fieldName of [this.viewConfig.lat, this.viewConfig.lng]) {
                 const related = this.config.fields[fieldName].related;
                 if (related) {
