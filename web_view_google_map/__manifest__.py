@@ -33,7 +33,7 @@ Provides:
     "website": "https://github.com/mithnusa",
     "support": "yopiangi@gmail.com",
     "category": "Extra Tools",
-    "version": "19.0.1.0.26",
+    "version": "19.0.2.0.1",
     "depends": ["base_google_map", "web_widget_google_map"],
     "data": ["views/res_config_settings.xml"],
     "assets": {
@@ -58,6 +58,9 @@ Provides:
         ],
         "web.dark_mode_assets_backend": [
             "web_view_google_map/static/src/views/google_map/google_map_view.dark.scss",
+        ],
+        "web.assets_unit_tests": [
+            "web_view_google_map/static/tests/**/*",
         ],
     },
     "uninstall_hook": "_uninstall_view_google_map",

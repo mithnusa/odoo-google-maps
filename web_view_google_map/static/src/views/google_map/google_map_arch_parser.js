@@ -112,7 +112,21 @@ export class GoogleMapArchParser {
         };
     }
 
+    mandatoryAttrs() {
+        return ['lat', 'lng', 'sidebar_title', 'sidebar_subtitle'];
+    }
+
     parseGoogleMapAttrs(xmlDoc, node, attrs) {
+        const requiredAttrs = this.mandatoryAttrs();
+        if (requiredAttrs) {
+            const missingAttrs = requiredAttrs.filter(
+                (attrName) => !xmlDoc.getAttribute(attrName)
+            );
+            if (missingAttrs.length) {
+                throw new Error(`Missing required attribute(s): ${missingAttrs.join(', ')}`);
+            }
+        }
+
         const activeActions = {
             ...getActiveActions(xmlDoc),
             exportXlsx: exprToBoolean(xmlDoc.getAttribute('export_xlsx'), true),
@@ -151,11 +165,12 @@ export class GoogleMapArchParser {
         const longitudeField = xmlDoc.getAttribute('lng');
         attrs.longitudeField = longitudeField;
 
-        const sidebarTitleField = xmlDoc.getAttribute('sidebar_title');
-        attrs.sidebarTitleField = sidebarTitleField;
-
-        const sidebarSubtitleField = xmlDoc.getAttribute('sidebar_subtitle');
-        attrs.sidebarSubtitleField = sidebarSubtitleField;
+        // getAttribute() returns null (not undefined) when the attribute is
+        // absent; GoogleMapSidebar's title/subTitle props are optional
+        // strings, and OWL's prop validator only treats undefined as "not
+        // provided" — an explicit null still fails the String type check.
+        attrs.sidebarTitleField = xmlDoc.getAttribute('sidebar_title') || undefined;
+        attrs.sidebarSubtitleField = xmlDoc.getAttribute('sidebar_subtitle') || undefined;
 
         const onCreate = xmlDoc.getAttribute('on_create');
         attrs.onCreate = onCreate;
