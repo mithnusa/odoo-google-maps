@@ -1,5 +1,18 @@
 # Change Log
 
+## 19.0.2.0.1
+
+### Added
+
+- **Hoot JS Test Suite** (`static/tests/google_map_view.test.js`): First test suite for the module — covers unlocated-records domain exclusion, `mapDomain`'s 0.0 equator/prime-meridian handling, arch-parser mandatory-attribute validation, `groupsLimit` defaults, marker creation and click, grouping, header buttons, and record deletion.
+- **`static/tests/helpers/google_maps_test_helpers.js`**: Shared fakes for the `google.maps` API boundary (`FakeMap`, `FakeAdvancedMarkerElement`, `FakePinElement`, `FakeInfoWindow`, etc.) plus `mockGoogleMapsApi()` and `waitUntil()` helpers; reused by dependent modules (e.g. `web_view_google_map_drawing`) instead of duplicating the harness.
+- **`web.assets_unit_tests` Bundle** (`__manifest__.py`): Registered `static/tests/**/*` so the new suite runs under Odoo's Hoot test runner.
+- **`GoogleMapArchParser.mandatoryAttrs()` — Required-Attribute Validation**: `parseGoogleMapAttrs()` now throws `Missing required attribute(s): ...` when any of `lat`, `lng`, `sidebar_title`, `sidebar_subtitle` is absent from the arch, uncovered while writing the arch-parser tests.
+
+### Fixed
+
+- **`sidebarTitleField` / `sidebarSubtitleField` — Null vs Undefined Prop Crash**: `xmlDoc.getAttribute()` returns `null` (not `undefined`) when an attribute is absent; `GoogleMapSidebar`'s `title`/`subTitle` props are optional strings, and OWL's prop validator only treats `undefined` as "not provided" — an explicit `null` still failed the `String` type check. Both fields now fall back to `undefined` via `|| undefined`.
+
 ## 19.0.1.1.0
 
 ### Added

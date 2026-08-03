@@ -28,7 +28,7 @@ Provides:
     "website": "https://www.mithnusa.com",
     "support": "yopiangi@gmail.com",
     "category": "Extra Tools",
-    "version": "19.0.1.1.0",
+    "version": "19.0.2.0.1",
     "depends": ["web_view_google_map"],
     "assets": {
         "web.assets_backend": [
@@ -59,6 +59,9 @@ Provides:
             "web_view_google_map_drawing/static/src/views/google_map_drawing/google_map_drawing_controller.xml",
             "web_view_google_map_drawing/static/src/views/google_map_drawing/google_map_drawing_view.js",
             "web_view_google_map_drawing/static/src/fields/x2many/google_map_drawing_x2many_field.js",
+        ],
+        "web.assets_unit_tests": [
+            "web_view_google_map_drawing/static/tests/**/*",
         ],
     },
 }
