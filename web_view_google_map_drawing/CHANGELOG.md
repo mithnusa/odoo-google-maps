@@ -1,5 +1,18 @@
 # Change Log
 
+## 19.0.1.1.0
+
+### Added
+
+- **"Unlocated Records" Sidebar Row & Action**: Adopts the `web_view_google_map` v1.1.0 unlocated-records feature — the sidebar shows a count of records with no drawn shape, with a button to open them in a list view via the inherited `showUnlocatedRecords()` action. Passed through `GoogleMapDeckGLRenderer.props` (`unLocatedCount`, `showUnlocatedRecords`) into its sidebar props.
+- **`GoogleMapDrawingModel.notGeolocatedDomain`**: New override defining "unlocated" for drawing views as no shape drawn yet — the GeoJSON field is `NULL` or an empty `FeatureCollection`. Uses `Domain.or` since `json_eq` never matches `NULL` rows, so both legs are required.
+- **`GoogleMapDrawingModel._hasSearchableGeoFields()`**: New override checking the searchable GeoJSON field instead of lat/lng, reused by both `mapDomain` and the new `notGeolocatedDomain`.
+
+### Improved
+
+- **`mapDomain` — Extracted `_hasSearchableGeoFields()`**: The GeoJSON field/searchability check was factored out of the `mapDomain` getter into its own method; `EMPTY_FEATURE_COLLECTION` extracted as a shared module-level constant instead of being redefined inline in each domain.
+- **`Domain.and(...).toList()` Cleanup**: Removed the unnecessary empty options object (`.toList({})` → `.toList()`).
+
 ## 19.0.1.0.23
 
 ### Updated Dependencies
