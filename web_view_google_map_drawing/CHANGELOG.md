@@ -1,5 +1,13 @@
 # Change Log
 
+## 19.0.2.0.1
+
+### Added
+
+- **Hoot JS Test Suite** (`static/tests/google_map_drawing_view.test.js`): First test suite for the module — covers `GoogleMapDrawingArchParser`'s `geojson` requirement (in place of `lat`/`lng`), `sidebar_title`/`sidebar_subtitle` validation, and `mapDomain`/`notGeolocatedDomain` structure (the `json_ne`/`json_eq` FeatureCollection checks against the geojson field). Reuses `web_view_google_map`'s `mockGoogleMapsApi()` helper and adds minimal fakes for the Deck.gl/Turf.js globals this renderer also depends on.
+- **`web.assets_unit_tests` Bundle** (`__manifest__.py`): Registered `static/tests/**/*` so the new suite runs under Odoo's Hoot test runner.
+- **`GoogleMapDrawingArchParser.mandatoryAttrs()` Override**: Drawing views locate records by a GeoJSON field, not lat/lng — overrides the base parser's mandatory-attribute list with `geojson`, `sidebar_title`, `sidebar_subtitle`, surfaced while writing the arch-parser tests.
+
 ## 19.0.1.0.23
 
 ### Updated Dependencies

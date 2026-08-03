@@ -13,6 +13,11 @@ patch(GoogleMapArchParser.prototype, {
 });
 
 export class GoogleMapDrawingArchParser extends GoogleMapArchParser {
+    // Drawing views locate records by a GeoJSON field, not lat/lng.
+    mandatoryAttrs() {
+        return ['geojson', 'sidebar_title', 'sidebar_subtitle'];
+    }
+
     parseGoogleMapAttrs(xmlDoc, node, attrs) {
         super.parseGoogleMapAttrs(xmlDoc, node, attrs);
 
