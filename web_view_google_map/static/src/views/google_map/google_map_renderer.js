@@ -852,7 +852,7 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
         return {
             header: viewTitle,
             title: this.props.archInfo.sidebarTitleField,
-            unLocatedCount: this.props.unLocatedCount,
+            unLocatedCount: this.props.unLocatedCount ?? 0,
             getGroupsOrRecords: this.getGroupsOrRecords.bind(this),
             toggleGroup: this.toggleGroup.bind(this),
             renderGroupedRecordsFitBounds: this._renderGroupedRecordsFitBounds.bind(this),

@@ -28,6 +28,8 @@ export class X2ManyFieldGoogleMap extends X2ManyField {
     get viewAttrsConfig() {
         const { archInfo } = this;
         return {
+            lat: archInfo.latitudeField,
+            lng: archInfo.longitudeField,
             title: archInfo.sidebarTitleField,
             subTitle: archInfo.sidebarSubtitleField,
             __geoColor: archInfo.__geoColor,
@@ -48,6 +50,8 @@ export class X2ManyFieldGoogleMap extends X2ManyField {
                 openRecord: this.openRecord.bind(this),
                 showRecord: this.openRecord.bind(this),
                 showRecordsByDomain: () => {},
+                showUnlocatedRecords: () => {},
+                unLocatedCount: 0,
                 allowSelectors: false,
                 viewAttrs: viewAttrsConfig,
             };

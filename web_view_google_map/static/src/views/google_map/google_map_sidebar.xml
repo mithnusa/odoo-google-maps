@@ -181,34 +181,29 @@
 
     <t t-name="web_view_google_map.GoogleMapSidebar">
         <div class="o_map_sidebar" t-ref="root">
-            <div class="mt-2 mx-1">
+            <div class="mt-2 mx-1" t-if="props.header || props.allowSelectors">
                 <div class="d-flex">
                     <t t-if="props.allowSelectors">
                         <CheckBox value="props.handleSelectAll" onChange.bind="props.handleToggleSelection" />
                     </t>
                     <h3 t-if="props.header" t-esc="props.header" />
-                    <small class="ms-2 text-muted">
-                        <span t-att-data-tooltip="geolocationInfoTooltip">
-                            <i class="fa fa-info" aria-hidden="true" />
-                        </span>
-                    </small>
                 </div>
             </div>
-            <div t-if="this.props.unLocatedCount &gt; 0" class="py-1 border-top border-bottom">
+            <div t-if="(props.unLocatedCount || 0) &gt; 0" class="py-1 border-top border-bottom">
                 <div class="d-flex align-items-center justify-content-end px-1">
                     <div>
                         <span>Unlocated</span>
                         <span class="ms-1">
-                            (
-                            <t t-out="this.props.unLocatedCount" />
-                            )
+                            <span>(</span>
+                            <span t-out="props.unLocatedCount" />
+                            <span>)</span>
                         </span>
                     </div>
                     <button
                         type="button"
                         class="btn btn-link"
                         data-tooltip="Show Unlocated"
-                        t-on-click.prevent="() => this.props.showUnlocatedRecords()"
+                        t-on-click.prevent="() => props.showUnlocatedRecords()"
                     >
                         <i class="fa fa-lg fa-angle-double-right" aria-hidden="true" />
                     </button>
