@@ -119,9 +119,7 @@ export class GoogleMapArchParser {
     parseGoogleMapAttrs(xmlDoc, node, attrs) {
         const requiredAttrs = this.mandatoryAttrs();
         if (requiredAttrs) {
-            const missingAttrs = requiredAttrs.filter(
-                (attrName) => !xmlDoc.getAttribute(attrName)
-            );
+            const missingAttrs = requiredAttrs.filter((attrName) => !xmlDoc.getAttribute(attrName));
             if (missingAttrs.length) {
                 throw new Error(`Missing required attribute(s): ${missingAttrs.join(', ')}`);
             }
