@@ -11,6 +11,7 @@ import {
 } from '@web/../tests/web_test_helpers';
 
 import { mockGoogleMapsApi } from '@web_view_google_map/../tests/helpers/google_maps_test_helpers';
+import { GoogleMapArchParser } from '@web_view_google_map/views/google_map/google_map_arch_parser';
 import { GoogleMapDrawingArchParser } from '@web_view_google_map_drawing/views/google_map_drawing/google_map_drawing_arch_parser';
 import { GoogleMapDrawingController } from '@web_view_google_map_drawing/views/google_map_drawing/google_map_drawing_controller';
 
@@ -95,6 +96,27 @@ describe('arch parser', () => {
         const archInfo = parseArch(
             `<google_map js_class="google_map_drawing" geojson="gshape_geojson" sidebar_title="name" sidebar_subtitle="contact_address"/>`
         );
+        expect(archInfo.geoJsonField).toBe('gshape_geojson');
+    });
+
+    // Regression test: Field.parseFieldNode (used for one2many/many2many
+    // sub-views, e.g. a drawing map embedded via google_map_drawing_one2many)
+    // resolves an embedded <google_map> element's ArchParser via
+    // viewRegistry.get(child.tagName) — always 'google_map', regardless of
+    // any js_class attribute on the element. js_class-based ArchParser
+    // swapping only happens for top-level View mounting, so an embedded
+    // drawing arch is always parsed by the BASE GoogleMapArchParser, never
+    // by GoogleMapDrawingArchParser above. This module patches
+    // GoogleMapArchParser.prototype (see google_map_drawing_arch_parser.js)
+    // specifically so that base-class instance still recognizes geojson —
+    // simulate that exact scenario here by instantiating the base class
+    // directly rather than the drawing subclass.
+    test('the patched base GoogleMapArchParser accepts geojson as an alternative to lat/lng', () => {
+        const xmlDoc = new DOMParser().parseFromString(
+            `<google_map js_class="google_map_drawing" geojson="gshape_geojson" sidebar_title="name" sidebar_subtitle="contact_address"/>`,
+            'text/xml'
+        ).documentElement;
+        const archInfo = new GoogleMapArchParser().parse(xmlDoc, { 'res.partner': { fields: {} } }, 'res.partner');
         expect(archInfo.geoJsonField).toBe('gshape_geojson');
     });
 });

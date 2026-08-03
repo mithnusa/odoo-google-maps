@@ -113,16 +113,38 @@ export class GoogleMapArchParser {
     }
 
     mandatoryAttrs() {
-        return ['lat', 'lng', 'sidebar_title', 'sidebar_subtitle'];
+        return ['sidebar_title', 'sidebar_subtitle'];
     }
 
-    parseGoogleMapAttrs(xmlDoc, node, attrs) {
+    validateMandatoryAttrs(xmlDoc) {
         const requiredAttrs = this.mandatoryAttrs();
         if (requiredAttrs) {
             const missingAttrs = requiredAttrs.filter((attrName) => !xmlDoc.getAttribute(attrName));
             if (missingAttrs.length) {
                 throw new Error(`Missing required attribute(s): ${missingAttrs.join(', ')}`);
             }
+        }
+    }
+
+    /**
+     * A google_map view locates records by lat/lng. Overridable (and
+     * patchable — see web_view_google_map_drawing's arch parser) for
+     * variants that locate records a different way.
+     */
+    hasValidGeoAttrs(xmlDoc) {
+        return Boolean(xmlDoc.getAttribute('lat')) && Boolean(xmlDoc.getAttribute('lng'));
+    }
+
+    /** Paired with hasValidGeoAttrs() — kept separate so a subclass/patch can override just the message. */
+    missingGeoAttrsMessage() {
+        return 'Missing required attribute(s): lat, lng';
+    }
+
+    parseGoogleMapAttrs(xmlDoc, node, attrs) {
+        this.validateMandatoryAttrs(xmlDoc);
+
+        if (!this.hasValidGeoAttrs(xmlDoc)) {
+            throw new Error(this.missingGeoAttrsMessage());
         }
 
         const activeActions = {

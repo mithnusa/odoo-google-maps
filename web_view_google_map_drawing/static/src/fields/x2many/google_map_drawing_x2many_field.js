@@ -11,10 +11,13 @@ export class X2manyFieldGoogleMapDrawing extends X2ManyFieldGoogleMap {
 
     get viewAttrsConfig() {
         const { archInfo } = this;
-        return Object.assign({}, super.viewAttrsConfig, {
+        const attrs = Object.assign({}, super.viewAttrsConfig, {
             geoJsonField: archInfo.geoJsonField,
             subTitle: archInfo.sidebarSubtitleField,
         });
+        delete attrs.lat;
+        delete attrs.lng;
+        return attrs;
     }
 }
 
