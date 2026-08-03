@@ -65,7 +65,7 @@ jobs:
         run: |
           pip install -r /opt/odoo/requirements.txt
           pip install -e /opt/odoo
-          pip install coverage
+          pip install coverage websocket-client
 
       - name: Wait for PostgreSQL
         env:
