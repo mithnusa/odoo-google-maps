@@ -32,7 +32,7 @@
                             data-tooltip="This marker has been adjusted slightly so it doesn't overlap with others. The line points to its original location."
                         />
                     </h4>
-                    <div>
+                    <div class="fw-normal" t-if="subTitle">
                         <t t-esc="subTitle" />
                     </div>
                     <div class="pt-3 d-flex text-nowrap gap-1">

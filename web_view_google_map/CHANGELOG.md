@@ -13,6 +13,25 @@
 
 - **`sidebarTitleField` / `sidebarSubtitleField` — Null vs Undefined Prop Crash**: `xmlDoc.getAttribute()` returns `null` (not `undefined`) when an attribute is absent; `GoogleMapSidebar`'s `title`/`subTitle` props are optional strings, and OWL's prop validator only treats `undefined` as "not provided" — an explicit `null` still failed the `String` type check. Both fields now fall back to `undefined` via `|| undefined`.
 
+## 19.0.1.1.0
+
+### Added
+
+- **"Unlocated Records" Sidebar Row & Action** (`google_map_sidebar.xml`, `google_map_sidebar.js`): The sidebar now shows a count of records excluded from the map because they lack valid geolocation data, with a button that opens those records in a dedicated list view via the new `showUnlocatedRecords()` action.
+- **`unLocatedCount`, `notGeolocatedDomain`, `unlocatedRecordsDomain`** (`google_map_model.js`): New model getters compute the complement of `mapDomain` — records missing a required lat/lng (including their related source fields when applicable) — combined with the current search domain, so the sidebar count and the list it opens can never disagree.
+- **`showUnlocatedRecords()`** (`google_map_controller.js`): New controller method that opens a list view scoped to `model.unlocatedRecordsDomain`; wired through `rendererProps` down to the renderer and sidebar.
+- **Dedicated Count `KeepLast`** (`google_map_model.js`): New `_countKeepLast` instance isolates the unlocated-record count RPC from the model's own record-load `keepLast`, preventing the two async flows from cancelling each other. `load()` is overridden to refresh the count after every load.
+
+### Improved
+
+- **Marker Info Window Subtitle** (`google_map_renderer.xml`): The subtitle `<div>` in `MarkerInfoWindow` now only renders when a `subTitle` value is present (`t-if="subTitle"`), avoiding an empty line in the info window; added `fw-normal` class.
+- **`mapDomain` — Extracted `_hasSearchableGeoFields()`** (`google_map_model.js`): The geolocation field/searchability check was factored out of the `mapDomain` getter into its own method, now shared with the new `notGeolocatedDomain` getter.
+- **`Domain.and(...).toList()` Cleanup** (`google_map_model.js`): Removed the unnecessary empty options object (`.toList({})` → `.toList()`) from all domain calls in `mapDomain` and `_getNextConfig`.
+
+### Removed
+
+- **Unused `KanbanRecord` Import** (`google_map_renderer.js`): Removed the unused `KanbanRecord` import and its registration in `static components`.
+
 ## 19.0.1.0.26
 
 ### Added

@@ -7,7 +7,6 @@ import { useBus } from '@web/core/utils/hooks';
 
 import { BaseGoogleMapComponent } from '@base_google_map/utils/base_google_map';
 import { LOADER_STATUS } from '@base_google_map/utils/loader_google_map';
-import { KanbanRecord } from '@web/views/kanban/kanban_record';
 
 import { GoogleMapSidebar } from './google_map_sidebar';
 import { GoogleMapGeolocate } from '@web_widget_google_map/components/geolocate/geolocate';
@@ -79,7 +78,6 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
     static template = 'web_view_google_map.GoogleMapRenderer';
     static templateInfoWindow = 'web_view_google_map.MarkerInfoWindow';
     static components = {
-        KanbanRecord,
         Geolocate: GoogleMapGeolocate,
         Sidebar: GoogleMapSidebar,
         InMapSearchPlaces: GoogleMapSearchPlaces,
@@ -90,9 +88,11 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
         showRecord: Function,
         showRecordsByDomain: Function,
         showNearbyRecords: Function,
+        showUnlocatedRecords: Function,
         showGoogleStreetViewSideBySide: Function,
         readonly: Boolean,
         list: Object,
+        unLocatedCount: Number,
         onAdd: { type: Function, optional: true },
         activeActions: { type: Object, optional: true },
         allowSelectors: Boolean,
@@ -852,12 +852,14 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
         return {
             header: viewTitle,
             title: this.props.archInfo.sidebarTitleField,
+            unLocatedCount: this.props.unLocatedCount ?? 0,
             getGroupsOrRecords: this.getGroupsOrRecords.bind(this),
             toggleGroup: this.toggleGroup.bind(this),
             renderGroupedRecordsFitBounds: this._renderGroupedRecordsFitBounds.bind(this),
             openRecord: this.props.openRecord.bind(this),
             showRecordsByDomain: this.props.showRecordsByDomain.bind(this),
             showNearbyRecords: this.searchNearbyRecords.bind(this),
+            showUnlocatedRecords: this.props.showUnlocatedRecords.bind(this),
             pointInMap: this.pointInMap.bind(this),
             deleteGroupRecords: this.deleteGroupRecords.bind(this),
             handleToggleRecordSelection: this.toggleRecordSelection.bind(this),
