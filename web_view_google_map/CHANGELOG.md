@@ -1,5 +1,16 @@
 # Change Log
 
+## 19.0.2.0.2
+
+### Added
+
+- **`X2ManyFieldGoogleMap.unlocatedRecords` / `unLocatedCount` / `showUnlocatedRecords()`**: The embedded x2many map field previously stubbed these with `showUnlocatedRecords: () => {}` and `unLocatedCount: 0`, so its sidebar never actually showed the "Unlocated" row added to the main map view. `unlocatedRecords` now filters `this.list.records` via `parseRecord(...).geolocation` (returns `[]` when the field's `lat`/`lng` attrs aren't configured), and `showUnlocatedRecords()` opens a scoped `list`/`google_map`/`form` action over those records' IDs.
+
+### Fixed
+
+- **`_updateUnlocatedRecordCount()` — Stale Search Domain**: `this._searchDomain` was only ever set once, on the first call (`if (this._searchDomain === undefined)`), so the unlocated-record count kept scoring against the domain from initial mount and never reflected a later search. Since `params.domain` is present on every model-driven load but omitted on bare `model.load()` calls (reload button, action-menu refresh), the domain is now re-synced whenever `params.domain !== undefined` and otherwise left at its last known value.
+- **`_hasSearchableGeoFields()` — Prettier Reformat**: Reflowed the multi-line `Boolean(...)` condition to match the project's `printWidth: 120` config (no logic change).
+
 ## 19.0.2.0.1
 
 ### Added
