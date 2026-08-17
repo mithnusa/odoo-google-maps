@@ -1,5 +1,11 @@
 # Change Log
 
+## 19.0.2.0.3
+
+### Added
+
+- **`X2manyFieldGoogleMapDrawing.unlocatedRecords` Override**: The base `unlocatedRecords` getter (from `web_view_google_map`'s `X2ManyFieldGoogleMap`) filters on `lat`/`lng`, which a drawing field never has — overridden here to filter `this.list.records` by the `geoJsonField` attribute instead, treating a record as unlocated when its GeoJSON value is missing or its `features` array is empty. Returns `[]` when `geoJsonField` isn't configured on the field. Fixes the embedded drawing x2many field's sidebar "Unlocated" row, which inherited the base getter's lat/lng check and so never counted anything.
+
 ## 19.0.2.0.1
 
 ### Added

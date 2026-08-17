@@ -9,6 +9,17 @@ export class X2manyFieldGoogleMapDrawing extends X2ManyFieldGoogleMap {
         GoogleMapRenderer: GoogleMapDeckGLRenderer,
     };
 
+    get unlocatedRecords() {
+        const { geoJsonField } = this.viewAttrsConfig;
+        if (!geoJsonField) {
+            return [];
+        }
+        return this.list.records.filter((record) => {
+            const geoJson = record.data[geoJsonField];
+            return !geoJson || !Array.isArray(geoJson.features) || geoJson.features.length === 0;
+        });
+    }
+
     get viewAttrsConfig() {
         const { archInfo } = this;
         const attrs = Object.assign({}, super.viewAttrsConfig, {
