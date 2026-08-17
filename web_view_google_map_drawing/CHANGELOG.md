@@ -8,6 +8,10 @@
 - **Terra Draw**: Updated from 1.32.0 to 1.32.3
 - **Turf.js**: Updated from 7.3.5 to 7.4.0
 
+### Added
+
+- **"Bundled Third-Party Assets" Test Coverage** (`static/tests/google_map_drawing_view.test.js`): The existing suite faked `window.deck`/`window.turf` for every test, so the actual bundled `dist.min.js`/`turf.min.js`/`terra-draw.umd.js` files were never loaded or exercised — meaning the dependency bump above had no test coverage. Added three tests that clear the fake for one library at a time and let `loadDeckGlAssets()`/`loadTerraDrawAssets()`/`loadTurfJSAssets()` fetch and evaluate the real shipped bundle, asserting the expected constructors/classes are exposed (`GeoJsonLayer`, `ScatterplotLayer`, `GoogleMapsOverlay`, `TerraDraw`, drawing mode classes, `TerraDrawGoogleMapsAdapter`); the Turf.js test additionally computes area/length for a known small polygon and checks the result against a planar approximation computed independently in the test.
+
 ## 19.0.2.0.1
 
 ### Added

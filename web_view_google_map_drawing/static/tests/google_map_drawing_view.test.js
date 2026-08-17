@@ -14,6 +14,7 @@ import { mockGoogleMapsApi } from '@web_view_google_map/../tests/helpers/google_
 import { GoogleMapArchParser } from '@web_view_google_map/views/google_map/google_map_arch_parser';
 import { GoogleMapDrawingArchParser } from '@web_view_google_map_drawing/views/google_map_drawing/google_map_drawing_arch_parser';
 import { GoogleMapDrawingController } from '@web_view_google_map_drawing/views/google_map_drawing/google_map_drawing_controller';
+import { loadDeckGlAssets, loadTerraDrawAssets, loadTurfJSAssets } from '@web_view_google_map_drawing/utils/utils';
 
 class Partner extends models.Model {
     _name = 'res.partner';
@@ -82,7 +83,9 @@ describe('arch parser', () => {
 
     test('geojson is required instead of lat/lng', () => {
         expect(() =>
-            parseArch(`<google_map js_class="google_map_drawing" sidebar_title="name" sidebar_subtitle="contact_address"/>`)
+            parseArch(
+                `<google_map js_class="google_map_drawing" sidebar_title="name" sidebar_subtitle="contact_address"/>`
+            )
         ).toThrow('Missing required attribute(s): geojson');
     });
 
@@ -194,5 +197,93 @@ describe('map domain', () => {
         expect(notGeolocatedJson).toInclude('gshape_geojson');
         expect(notGeolocatedJson).toInclude('json_eq');
         expect(notGeolocatedJson).toInclude('FeatureCollection');
+    });
+});
+
+describe('bundled third-party assets', () => {
+    // Every other describe block above runs with window.deck/window.turf
+    // pre-faked by the top-level beforeEach (FAKE_DECK/FAKE_TURF), so
+    // loadDeckGlAssets()/loadTurfJSAssets()/loadTerraDrawAssets() always
+    // take their "already loaded" early-return path and never touch the
+    // real files this module bundles. That leaves the actual dist.min.js /
+    // turf.min.js / terra-draw.umd.js files — the ones a version bump
+    // changes — with zero coverage. These tests undo the fake for one
+    // global at a time and let the loader fetch+eval the real bundle, as a
+    // smoke test that the shipped file still loads and exposes the exports
+    // the rest of the module calls.
+    //
+    // Each real library is loaded at most once across this file: Odoo's
+    // loadJS() caches by URL and won't re-execute a <script> it already
+    // injected, so a second "undo the fake, reload" on the same global
+    // would resolve from that cache without re-running the script and find
+    // window.x still cleared. Anything that needs the real library after
+    // it's loaded (e.g. the turf.area/turf.length check below) happens
+    // inside the same test that performs the real load, never a later one.
+
+    test('loadDeckGlAssets() loads the real bundled Deck.gl library', async () => {
+        patchWithCleanup(window, { deck: undefined });
+        await loadDeckGlAssets();
+
+        expect(typeof window.deck?.GeoJsonLayer).toBe('function');
+        expect(typeof window.deck?.ScatterplotLayer).toBe('function');
+        expect(typeof window.deck?.GoogleMapsOverlay).toBe('function');
+    });
+
+    test('loadTerraDrawAssets() loads the real bundled Terra Draw and Google Maps adapter', async () => {
+        patchWithCleanup(window, { terraDraw: undefined, terraDrawGoogleMapsAdapter: undefined });
+        await loadTerraDrawAssets();
+
+        expect(typeof window.terraDraw?.TerraDraw).toBe('function');
+        expect(typeof window.terraDraw?.TerraDrawPolygonMode).toBe('function');
+        expect(typeof window.terraDraw?.TerraDrawRectangleMode).toBe('function');
+        expect(typeof window.terraDrawGoogleMapsAdapter?.TerraDrawGoogleMapsAdapter).toBe('function');
+    });
+
+    test('loadTurfJSAssets() loads the real bundled Turf.js and computes geometry consistent with a planar approximation', async () => {
+        patchWithCleanup(window, { turf: undefined });
+        await loadTurfJSAssets();
+
+        expect(typeof window.turf?.area).toBe('function');
+        expect(typeof window.turf?.length).toBe('function');
+        expect(typeof window.turf?.lineString).toBe('function');
+
+        // A small square right at the equator, where curvature is
+        // negligible enough that turf's geodesic result should track a
+        // flat-earth estimate computed independently here (not a
+        // hardcoded literal) — catches a broken/regressed turf.area or
+        // turf.length without depending on turf's exact internal
+        // algorithm or a version-specific constant.
+        const sideDeg = 0.001;
+        const metersPerDegreeAtEquator = 111320;
+        const approxSideMeters = sideDeg * metersPerDegreeAtEquator;
+
+        const square = {
+            type: 'Feature',
+            properties: {},
+            geometry: {
+                type: 'Polygon',
+                coordinates: [
+                    [
+                        [0, 0],
+                        [sideDeg, 0],
+                        [sideDeg, sideDeg],
+                        [0, sideDeg],
+                        [0, 0],
+                    ],
+                ],
+            },
+        };
+        const approxArea = approxSideMeters ** 2;
+        expect(window.turf.area(square)).toBeWithin(approxArea * 0.9, approxArea * 1.1);
+
+        const line = window.turf.lineString([
+            [0, 0],
+            [sideDeg, 0],
+        ]);
+        const approxLengthKm = approxSideMeters / 1000;
+        expect(window.turf.length(line, { units: 'kilometers' })).toBeWithin(
+            approxLengthKm * 0.9,
+            approxLengthKm * 1.1
+        );
     });
 });
