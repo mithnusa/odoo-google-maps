@@ -1,1 +1,1 @@
-https://unpkg.com/@turf/turf@7.3.5/turf.min.js
+https://unpkg.com/@turf/turf@7.4.0/turf.min.js

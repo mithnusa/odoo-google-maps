@@ -1,5 +1,13 @@
 # Change Log
 
+## 19.0.2.0.2
+
+### Updated Dependencies
+
+- **Deck.gl**: Updated from 9.3.6 to 9.3.10
+- **Terra Draw**: Updated from 1.32.0 to 1.32.3
+- **Turf.js**: Updated from 7.3.5 to 7.4.0
+
 ## 19.0.2.0.1
 
 ### Added
