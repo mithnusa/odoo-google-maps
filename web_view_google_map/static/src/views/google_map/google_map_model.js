@@ -106,12 +106,12 @@ export class GoogleMapModel extends RelationalModel {
     _hasSearchableGeoFields() {
         return Boolean(
             this.viewConfig &&
-            this.viewConfig.lat &&
-            this.viewConfig.lng &&
-            this.config.fields[this.viewConfig.lat] &&
-            this.config.fields[this.viewConfig.lng] &&
-            this.config.fields[this.viewConfig.lat].searchable &&
-            this.config.fields[this.viewConfig.lng].searchable
+                this.viewConfig.lat &&
+                this.viewConfig.lng &&
+                this.config.fields[this.viewConfig.lat] &&
+                this.config.fields[this.viewConfig.lng] &&
+                this.config.fields[this.viewConfig.lat].searchable &&
+                this.config.fields[this.viewConfig.lng].searchable
         );
     }
 
