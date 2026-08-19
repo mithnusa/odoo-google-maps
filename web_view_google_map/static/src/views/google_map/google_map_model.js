@@ -182,8 +182,16 @@ export class GoogleMapModel extends RelationalModel {
     }
 
     async _updateUnlocatedRecordCount(config, params) {
-        if (this._searchDomain === undefined) {
-            this._searchDomain = params.domain ?? [];
+        // `params.domain` is present on every model-driven load (useModel's
+        // getSearchParams always includes 'domain' from SEARCH_KEYS), so it
+        // must be re-synced every call, not just the first — otherwise the
+        // unlocated count keeps scoring against the domain from initial
+        // mount and never reflects a later search. Bare `this.model.load()`
+        // calls (reload button, action-menu refresh) omit params entirely,
+        // so `params.domain` is undefined there — keep the last known scope
+        // in that case instead of resetting it.
+        if (params.domain !== undefined) {
+            this._searchDomain = params.domain;
         }
         const domain = this.unlocatedRecordsDomain;
         if (!domain.length || this.useSampleModel) {

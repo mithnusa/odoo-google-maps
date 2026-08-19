@@ -28,7 +28,7 @@ Provides:
     "website": "https://www.mithnusa.com",
     "support": "yopiangi@gmail.com",
     "category": "Extra Tools",
-    "version": "19.0.2.0.2",
+    "version": "19.0.2.0.3",
     "depends": ["web_view_google_map"],
     "assets": {
         "web.assets_backend": [
