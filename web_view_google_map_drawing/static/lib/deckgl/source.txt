@@ -1,1 +1,1 @@
-https://unpkg.com/deck.gl@9.3.6/dist.min.js
+https://unpkg.com/deck.gl@9.3.10/dist.min.js

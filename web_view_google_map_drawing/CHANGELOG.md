@@ -6,6 +6,20 @@
 
 - **`X2manyFieldGoogleMapDrawing.unlocatedRecords` Override**: The base `unlocatedRecords` getter (from `web_view_google_map`'s `X2ManyFieldGoogleMap`) filters on `lat`/`lng`, which a drawing field never has — overridden here to filter `this.list.records` by the `geoJsonField` attribute instead, treating a record as unlocated when its GeoJSON value is missing or its `features` array is empty. Returns `[]` when `geoJsonField` isn't configured on the field. Fixes the embedded drawing x2many field's sidebar "Unlocated" row, which inherited the base getter's lat/lng check and so never counted anything.
 
+
+## 19.0.2.0.2
+
+### Updated Dependencies
+
+- **Deck.gl**: Updated from 9.3.6 to 9.3.10
+- **Terra Draw**: Updated from 1.32.0 to 1.32.3
+- **Turf.js**: Updated from 7.3.5 to 7.4.0
+
+### Added
+
+- **"Bundled Third-Party Assets" Test Coverage** (`static/tests/google_map_drawing_view.test.js`): The existing suite faked `window.deck`/`window.turf` for every test, so the actual bundled `dist.min.js`/`turf.min.js`/`terra-draw.umd.js` files were never loaded or exercised — meaning the dependency bump above had no test coverage. Added three tests that clear the fake for one library at a time and let `loadDeckGlAssets()`/`loadTerraDrawAssets()`/`loadTurfJSAssets()` fetch and evaluate the real shipped bundle, asserting the expected constructors/classes are exposed (`GeoJsonLayer`, `ScatterplotLayer`, `GoogleMapsOverlay`, `TerraDraw`, drawing mode classes, `TerraDrawGoogleMapsAdapter`); the Turf.js test additionally computes area/length for a known small polygon and checks the result against a planar approximation computed independently in the test.
+
+
 ## 19.0.2.0.1
 
 ### Added
