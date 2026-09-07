@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 {
     "name": "Web widget Google Maps",
     "summary": "Google Maps widget for form views — single-button access to an interactive coordinate-edit dialog",
