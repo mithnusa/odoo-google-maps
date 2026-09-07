@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 {
     "name": "Partner Area (Google Maps Drawing demo implementation)",
     "version": "19.0.1.0.0",

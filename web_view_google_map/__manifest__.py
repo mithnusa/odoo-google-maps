@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 {
     "name": "Web View Google Map",
     "summary": "Core Google Maps view type for Odoo with clustering, grouping, nearby search, and dark mode",
