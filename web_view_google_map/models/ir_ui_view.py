@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from odoo import api, fields, models
 from odoo.tools.view_validation import get_expression_field_names
 

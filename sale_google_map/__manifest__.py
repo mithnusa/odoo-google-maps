@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 {
     'name': 'Sales Google Maps',
     'summary': 'Google Maps view for Sales Orders grouped by customer with totals and nearby search',

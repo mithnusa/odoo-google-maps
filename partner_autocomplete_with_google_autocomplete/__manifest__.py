@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 {
     'name': 'Partner Autocomplete with Google Autocomplete',
     'summary': 'Combines Odoo partner autocomplete with a Google Places panel on the Contact name field',
