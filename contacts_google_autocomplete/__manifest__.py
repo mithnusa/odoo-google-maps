@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 {
     'name': 'Contacts Google Autocomplete',
     'summary': 'Google Places autocomplete for the name and street fields on the Contact form',
