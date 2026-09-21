@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 from odoo import fields, models
 from odoo.tools.sql import create_index
 
