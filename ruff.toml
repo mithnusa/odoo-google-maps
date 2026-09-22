@@ -1,0 +1,8 @@
+line-length = 79
+
+[format]
+quote-style = "single"
+indent-style = "space"
+
+[lint]
+ignore = ["E501", "F401", "B018", "UP009", "RUF012"]
