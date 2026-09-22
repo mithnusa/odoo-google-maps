@@ -70,7 +70,7 @@ class TestIrUiViewFieldOverrides(TransactionCase):
         view = self._create_partner_form_view(
             """
             <field name="bank_ids">
-                <google_map js_class="google_map_drawing" sidebar_title="acc_number">
+                <google_map lat="acc_number" lng="acc_number" sidebar_title="acc_number">
                     <field name="acc_number"/>
                 </google_map>
             </field>
@@ -92,7 +92,8 @@ class TestIrUiViewFieldOverrides(TransactionCase):
             self._create_partner_form_view(
                 """
                 <field name="bank_ids">
-                    <google_map js_class="google_map_drawing" sidebar_title="acc_number">
+                    <google_map lat="acc_number" lng="acc_number" sidebar_title="acc_number">
+                        <field name="acc_number"/>
                         <field name="not_a_real_field_xyz"/>
                     </google_map>
                 </field>
@@ -124,7 +125,7 @@ class TestIrUiViewFieldOverrides(TransactionCase):
                 "arch": """
                 <xpath expr="//field[@name='name']" position="after">
                     <field name="bank_ids">
-                        <google_map js_class="google_map_drawing" sidebar_title="acc_number">
+                        <google_map lat="acc_number" lng="acc_number" sidebar_title="acc_number">
                             <field name="partner_id"/>
                             <field name="acc_number"/>
                         </google_map>
@@ -171,7 +172,7 @@ class TestIrUiViewFieldOverrides(TransactionCase):
             view = self._create_partner_form_view(
                 """
                 <field name="bank_ids">
-                    <google_map js_class="google_map_drawing" sidebar_title="acc_number">
+                    <google_map lat="acc_number" lng="acc_number" sidebar_title="acc_number">
                         <field name="acc_number"/>
                     </google_map>
                 </field>
