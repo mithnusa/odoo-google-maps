@@ -1,5 +1,20 @@
 # Change Log
 
+## 19.0.2.0.3
+
+### Fixed
+
+- **`ir_ui_view.py` — `_postprocess_tag_field` / `_validate_tag_field` Missing `super()` Call**: Both methods were fully copy-pasted from Odoo core's `ir.ui.view` instead of extending it, just to add `'google_map'` to a hardcoded child-tag tuple — and had already silently drifted from core, missing the `field.type == "binary"` / `filename` `must_have_fields` branch present in Odoo 19 core's `_postprocess_tag_field`. Since these are global dispatch methods (invoked for every `<field>` tag in every view, not only `google_map` ones), the drift affected any view in the database referencing a binary field with a `filename` attribute. Both methods now call `super()` first and only handle this module's own delta.
+
+### Added
+
+- **`_get_additional_nestable_view_tags()`**: New extension hook on `ir.ui.view` returning `("google_map",)` — the tags `_postprocess_tag_field`/`_validate_tag_field` treat as nested view archs embeddable inside an x2many `<field>` node, on top of Odoo's built-in `('form', 'list', 'graph', 'kanban', 'calendar')`. A module needing to embed a different map-like view type should override this hook via `super()` instead of re-overriding the two dispatch methods directly, avoiding the MRO collision where one module's full-copy override silently shadows another's.
+- **`tests/test_ir_ui_view.py`**: New test suite (7 tests) covering the above — core x2many auto-embed and field-tag validation still run via `super()`, the `google_map` child arch is postprocessed/validated correctly (including through view inheritance/xpath resolution), and `_get_additional_nestable_view_tags()` composes correctly when extended by a second module.
+
+### Removed
+
+- **`get_expression_field_names` Import**: Removed the now-unused import following the `_postprocess_tag_field`/`_validate_tag_field` refactor.
+
 ## 19.0.2.0.2
 
 ### Added
