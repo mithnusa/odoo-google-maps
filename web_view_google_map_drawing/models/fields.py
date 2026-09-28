@@ -13,12 +13,12 @@ Supported operators:
 import json
 
 from odoo import fields
-from odoo.tools import SQL
 from odoo.orm.domains import (
     CONDITION_OPERATORS,
-    operator_optimization,
     DomainCondition,
+    operator_optimization,
 )
+from odoo.tools import SQL
 from odoo.tools.misc import OrderedSet
 
 # Odoo 19 has no public API for registering custom domain operators.
@@ -37,7 +37,7 @@ CONDITION_OPERATORS.update(
 class _JsonWrappedValue:
     """Base for JSON value wrappers that need to participate in domain optimization."""
 
-    __slots__ = ("value", "_hash")
+    __slots__ = ("_hash", "value")
 
     def __init__(self, value):
         self.value = value

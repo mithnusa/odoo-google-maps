@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from odoo import api, fields, models
 
 GMAPS_LANG_LOCALIZATION = [
@@ -182,7 +181,7 @@ class ResConfigSettings(models.TransientModel):
 
     @api.model
     def get_values(self):
-        res = super(ResConfigSettings, self).get_values()
+        res = super().get_values()
         module_web_view_google_map = self.env['ir.module.module']._get(
             'web_view_google_map'
         )

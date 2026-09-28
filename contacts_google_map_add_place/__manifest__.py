@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 {
     "name": "Contacts - Google Maps: Click to Add Place",
     "summary": "Create contacts directly from the Google Maps view by clicking on any place or location",
