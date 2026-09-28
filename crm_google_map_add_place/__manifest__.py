@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 {
     "name": "CRM - Google Maps: Add Lead from Map Click",
     "summary": "Create CRM leads directly from the Google Maps view by clicking on any place or location",
