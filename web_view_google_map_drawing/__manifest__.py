@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 {
     "name": "Web View Google Map Drawing",
     "summary": "Extends the Google Map view with Terra Draw shape editing, Deck.gl rendering, and GeoJSON storage",

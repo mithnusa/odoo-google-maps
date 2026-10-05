@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 {
     'name': 'CRM Google Places Autocomplete',
     'summary': 'Google Places autocomplete for the company name and street fields on the Lead/Opportunity form',
