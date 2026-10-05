@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 {
     "name": "Base - Google Maps: Add Place from Map Click",
     "summary": "Abstract mixin and UI component for creating Odoo records by clicking on a Google Maps view",

@@ -1,12 +1,11 @@
-# -*- coding: utf-8 -*-
-from ast import literal_eval
 import logging
 import math
 import time
+from ast import literal_eval
 
 from odoo import api, fields, models
-from odoo.fields import Domain
 from odoo.exceptions import UserError
+from odoo.fields import Domain
 
 _logger = logging.getLogger(__name__)
 

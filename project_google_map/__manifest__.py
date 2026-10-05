@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 {
     'name': 'Project Google Maps',
     'summary': 'Google Maps views for Projects and Tasks with site addresses and status-colored markers',
