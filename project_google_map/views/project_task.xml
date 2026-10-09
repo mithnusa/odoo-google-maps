@@ -5,19 +5,19 @@
         <field name="model">project.task</field>
         <field name="arch" type="xml">
             <google_map
+                js_class="google_map_drawing_project_task"
                 string="Task Sites"
-                lat="site_latitude"
-                lng="site_longitude"
-                color="marker_color"
+                geojson="geojson"
+                color="geojson_color"
                 sidebar_title="name"
-                sidebar_subtitle="partner_id"
+                sidebar_subtitle="project_id"
             >
-                <field name="marker_color" />
                 <field name="name" />
-                <field name="partner_id" />
-                <field name="partner_site_id" />
-                <field name="site_latitude" />
-                <field name="site_longitude" />
+                <field name="geojson_color" />
+                <field name="project_id" />
+                <field name="geojson" />
+                <field name="geojson_area" />
+                <field name="project_geojson" />
             </google_map>
         </field>
     </record>
@@ -26,39 +26,34 @@
         <field name="model">project.task</field>
         <field name="inherit_id" ref="project.view_task_form2" />
         <field name="arch" type="xml">
-            <xpath expr="//page[@name='extra_info']" position="inside">
-                <group string="Site Information">
+            <xpath expr="//page[last()]" position="after">
+                <page string="Site">
+                    <field name="project_geojson" invisible="1" />
+                    <field
+                        name="geojson"
+                        widget="google_map_terra_draw_project_task"
+                        options="{'field_area': 'geojson_area'}"
+                    />
                     <group>
-                        <field
-                            name="partner_site_id"
-                            string="Address"
-                            widget="res_partner_many2one"
-                            context="{'show_address': 1, 'default_type': 'site'}"
-                        />
-                        <label for="site_latitude" string="Geo Location" class="o_form_label" />
-                        <div>
-                            <span>
-                                Lat:
-                                <field name="site_latitude" nolabel="1" class="oe_inline" />
-                            </span>
-                            <br />
-                            <span>
-                                Long:
-                                <field name="site_longitude" nolabel="1" class="oe_inline" />
-                            </span>
-                        </div>
-                        <field name="marker_color" widget="color_picker" />
+                        <group>
+                            <label for="project_geojson_area" />
+                            <div>
+                                <field name="project_geojson_area" class="oe_inline" nolabel="1" />
+                                <span class="ms-1">m</span>
+                                <sup>2</sup>
+                            </div>
+                            <label for="geojson_area" />
+                            <div>
+                                <field name="geojson_area" class="oe_inline" nolabel="1" />
+                                <span class="ms-1">m</span>
+                                <sup>2</sup>
+                            </div>
+                        </group>
+                        <group>
+                            <field name="geojson_color" widget="color_picker" />
+                        </group>
                     </group>
-                    <group>
-                        <widget
-                            name="google_map"
-                            lat="site_latitude"
-                            lng="site_longitude"
-                            maptype="satellite"
-                            readonly="1"
-                        />
-                    </group>
-                </group>
+                </page>
             </xpath>
         </field>
     </record>

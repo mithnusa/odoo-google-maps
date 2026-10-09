@@ -23,10 +23,10 @@ Provides:
     'website': 'https://www.mithnusa.com',
     'support': 'yopiangi@gmail.com',
     'category': 'Project',
-    'version': '19.0.1.0.7',
+    'version': '19.0.2.0.1',
     'depends': [
         'project',
-        'web_view_google_map',
+        'web_view_google_map_drawing',
     ],
     'data': [
         'data/ir_actions_act_window.xml',
@@ -35,11 +35,8 @@ Provides:
     ],
     'assets': {
         'web.assets_backend': [
-            'project_google_map/static/src/views/google_map/google_map_sidebar.js',
-            'project_google_map/static/src/views/google_map/google_map_sidebar.xml',
-            'project_google_map/static/src/views/google_map/google_map_renderer.js',
-            'project_google_map/static/src/views/google_map/google_map_renderer.xml',
-            'project_google_map/static/src/views/google_map/google_map_view.js',
+            'project_google_map/static/src/views/**/*',
+            'project_google_map/static/src/widget/**/*',
         ],
     },
     'uninstall_hook': 'uninstall_hook',

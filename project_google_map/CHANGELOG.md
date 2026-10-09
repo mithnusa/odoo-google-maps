@@ -1,5 +1,27 @@
 # Change Log
 
+## 19.0.2.0.1
+
+### Added
+
+- **Task Map View — Project Boundary Backdrop**: `GoogleMapDeckGLRendererTask` (`google_map_renderer.js`) now renders each task's parent project boundary underneath the task's own shape on the "Task Sites" map view. A project shared by several tasks is only drawn once per render (deduplicated by `project_id`). The backdrop is non-pickable — it is a visual reference only, never selectable.
+- **Task Drawing Widget — Project Boundary Backdrop**: New `GoogleMapTerraDrawProjectTaskField` field widget (`google_map_terra_draw_project_task`), used on the task form's Site Information map. It shows the parent project's boundary as a static backdrop in its own Deck.gl overlay, independent of whichever editor (Terra Draw or Deck.gl) is currently drawing the task's own shape — so it never participates in editing, selection, or undo/redo.
+- **Auto-Focus on Project Area**: When a task has no shape drawn yet, the drawing widget now fits the map to the parent project's boundary instead of the default world view, so the user immediately sees where to draw.
+- **Dotted Project Boundary Outline**: The project boundary backdrop — in both the "Task Sites" map view and the task form's drawing widget — is rendered with a dotted outline (via Deck.gl's `PathStyleExtension`) so it reads as a reference area rather than an editable or selectable shape.
+
+### Changed
+
+- **`google_map_deckgl_renderer.js` (`web_view_google_map_drawing`) — Background layer hook**: Added a `_getBackgroundLayers()` extension point to `GoogleMapDeckGLRenderer._updateDeckGLLayers()`. Subclasses can now inject additional static layers rendered underneath the primary feature layers without duplicating the layer-building logic. Used by `GoogleMapDeckGLRendererTask` for the project boundary backdrop.
+- **`views/project_task.xml`**: Wired the `project_geojson` related field into the "Task Sites" map view's field list and into the task form (invisible, feeding the drawing widget). The form's `geojson` field now uses the `google_map_terra_draw_project_task` widget instead of the generic `google_map_terra_draw`.
+
+### Fixed
+
+- **Missing asset bundle entry**: `static/src/widget/drawing/terra_draw.js` existed on disk but was never loaded in the browser — the manifest's asset glob only matched `static/src/views/**/*`. Added `static/src/widget/**/*` to `web.assets_backend`.
+
+### Improved
+
+- **`README.md` — Rewritten to match current behavior**: The previous README described a point-marker, site-partner implementation (`partner_site_id`, latitude/longitude fields, a "Site" partner type, a satellite map dialog) that no longer exists in the code. Rewritten to describe the module as it actually works today: area/shape drawing for both projects and tasks, status-colored project areas, and the task-side project boundary reference.
+
 ## 19.0.1.0.7
 
 ### Changed
