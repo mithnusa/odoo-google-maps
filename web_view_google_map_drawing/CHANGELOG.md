@@ -1,5 +1,17 @@
 # Change Log
 
+## 19.0.2.0.4
+
+### Added
+
+- **`GoogleMapDeckGLRenderer._getBackgroundLayers()` Extension Hook** (`google_map_deckgl_renderer.js`): New overridable hook called from `_updateDeckGLLayers()`, returning `[]` by default. Subclasses can override it to inject additional static Deck.gl layers, rendered underneath the primary polygon/line/point layers — e.g. a parent record's boundary shown as a non-interactive reference shape. Avoids duplicating the layer-building logic or depending on Deck.gl internals to achieve the same result. First used by `project_google_map`'s task renderer to show a task's parent project boundary.
+
+### Updated Dependencies
+
+- **Deck.gl**: Updated from 9.3.10 to 9.4.0
+- **Terra Draw**: Updated from 1.32.3 to 1.37.0
+- **Terra Draw Google Maps Adapter**: Updated from 1.6.1 to 1.7.0
+
 ## 19.0.2.0.3
 
 ### Added

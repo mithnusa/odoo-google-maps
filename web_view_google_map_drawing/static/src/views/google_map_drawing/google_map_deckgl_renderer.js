@@ -587,6 +587,10 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
         }
 
         const layers = [
+            // Subclass-provided static layers (e.g. a parent record's boundary),
+            // listed first so Deck.gl paints them underneath the layers below.
+            ...this._getBackgroundLayers(),
+
             // Polygon layer for filled shapes
             new window.deck.GeoJsonLayer({
                 id: 'polygonsLayer',
@@ -655,6 +659,16 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
         ];
 
         this.deckglOverlay.setProps({ layers });
+    }
+
+    /**
+     * Hook for subclasses to inject additional static Deck.gl layers rendered
+     * underneath the primary feature layers (e.g. a parent record's boundary).
+     * @returns {Array} Deck.gl layer instances
+     * @protected
+     */
+    _getBackgroundLayers() {
+        return [];
     }
 
     /**

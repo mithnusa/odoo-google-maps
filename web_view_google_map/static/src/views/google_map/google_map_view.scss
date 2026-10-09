@@ -58,6 +58,8 @@
 
         }
         .infoWindow {
+            min-width: 250px;
+            min-height: 100px;
             white-space: pre-line;
             &:focus, &:focus-within, &:active {
                 outline: none;
