@@ -2,10 +2,10 @@
 <templates xml:space="preserve">
     <t
         t-name="project_google_map.MarkerInfoWindow"
-        t-inherit="web_view_google_map.MarkerInfoWindow"
+        t-inherit="web_view_google_map_drawing.ShapeInfoWindow"
         t-inherit-mode="primary"
     >
-        <xpath expr="//button[@data-role='btn-open_form']" position="after">
+        <xpath expr="//a[@id='btn-open_form']" position="after">
             <button
                 type="button"
                 class="btn btn-sm btn-outline-dark"
