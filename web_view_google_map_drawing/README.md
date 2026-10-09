@@ -21,6 +21,7 @@ Adds a `google_map_drawing` view variant and a `google_map_terra_draw` form widg
 - **Geometry Simplification**: Reduce vertex count on complex imported shapes to bring them within editing limits while preserving the overall form
 - **Undo/Redo**: Full drawing history managed per session
 - **Embedded Drawing Widget**: Embed the drawing canvas inside form views on One2many or Many2many fields using dedicated widgets
+- **Background Reference Layers**: Views built on the high-performance renderer can show additional read-only shapes underneath the main records — such as a parent record's boundary — as a visual reference that is never editable or selectable
 
 ## Dependencies
 

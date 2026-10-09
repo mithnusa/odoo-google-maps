@@ -65,10 +65,10 @@ export const MEASUREMENT_CONFIG = {
     COORDINATE_PRECISION: 6, // Decimal places for coordinate display
 };
 
-const TERRA_DRAW_VERSION = '1.32.3';
-const TERRA_DRAW_GMAPS_ADAPTER_VERSION = '1.6.1';
+const TERRA_DRAW_VERSION = '1.37.0';
+const TERRA_DRAW_GMAPS_ADAPTER_VERSION = '1.7.0';
 const TURF_JS_VERSION = '7.4.0';
-const DECK_GL_VERSION = '9.3.10';
+const DECK_GL_VERSION = '9.4.0';
 
 /**
  * Load Terra Draw library assets

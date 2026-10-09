@@ -1,5 +1,11 @@
 # Change Log
 
+## 19.0.2.0.4
+
+### Improved
+
+- **`.infoWindow` — Minimum Size** (`google_map_view.scss`): Added `min-width: 250px` and `min-height: 100px` so marker info windows no longer shrink to fit short or narrow custom content, keeping a consistent minimum footprint across different `templateInfoWindow` layouts.
+
 ## 19.0.2.0.3
 
 ### Fixed
