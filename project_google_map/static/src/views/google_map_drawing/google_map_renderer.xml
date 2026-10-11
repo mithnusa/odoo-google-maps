@@ -12,7 +12,7 @@
                 data-role="btn-view_tasks"
                 data-tooltip="View Tasks"
             >
-                <i class="fa fa-fw fa-list-ul" />
+                <i class="oi oi-fw" data-icon="format_list_bulleted" />
             </button>
         </xpath>
     </t>

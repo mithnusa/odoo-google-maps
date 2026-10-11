@@ -15,7 +15,7 @@
                     <button t-att-data-tooltip="this.sidebarToggleTooltip" t-on-click="this.toggleSidebar" />
                 </div>
             </div>
-            <div class="o_google_map_view" t-custom-ref="map" />
+            <div class="o_google_map_view" t-ref="this.mapRef" />
             <InMapSearchPlaces googleMap="this.googleMap" t-if="this.state.isMapReady" />
         </div>
     </t>
@@ -27,13 +27,14 @@
                         <t t-out="this.title" />
                         <i
                             t-if="this.isShifted"
-                            class="fa fa-info-circle ms-1 text-info"
+                            class="oi oi-filled ms-1 text-info"
+                            data-icon="info"
                             aria-hidden="true"
                             data-tooltip="This marker has been adjusted slightly so it doesn't overlap with others. The line points to its original location."
                         />
                     </h4>
-                    <div class="fw-normal" t-if="subTitle">
-                        <t t-esc="subTitle" />
+                    <div class="fw-normal" name="subTitle" t-if="subTitle">
+                        <t t-out="subTitle" />
                     </div>
                     <div class="pt-3 d-flex text-nowrap gap-1">
                         <button
@@ -44,7 +45,7 @@
                             data-role="btn-open_form"
                             data-tooltip="Open"
                         >
-                            <i class="fa fa-angle-right fa-lg" aria-hidden="true" />
+                            <i class="oi oi-lg" data-icon="keyboard_arrow_right" aria-hidden="true" />
                             <span class="visually-hidden">Open</span>
                         </button>
                         <button
@@ -54,7 +55,7 @@
                             data-role="btn-show_nearby"
                             data-tooltip="Show nearby records"
                         >
-                            <i class="fa fa-location-arrow" aria-hidden="true" />
+                            <i class="oi" data-icon="near_me" aria-hidden="true" />
                         </button>
                         <button
                             type="button"
@@ -63,7 +64,7 @@
                             data-role="btn-open_street_view"
                             data-tooltip="Street View Side by Side"
                         >
-                            <i class="fa fa-street-view" aria-hidden="true" />
+                            <i class="oi" data-icon="streetview" aria-hidden="true" />
                         </button>
                         <a
                             tabindex="-1"
@@ -73,7 +74,7 @@
                             class="btn btn-sm btn-outline-dark"
                             data-tooltip="Navigate to this location"
                         >
-                            <i class="fa fa-map-signs" aria-hidden="true" />
+                            <i class="oi" data-icon="signpost" aria-hidden="true" />
                         </a>
                         <a
                             tabindex="-1"
@@ -83,7 +84,7 @@
                             class="btn btn-sm btn-outline-dark"
                             data-tooltip="View on Google Maps website"
                         >
-                            <i class="fa fa-external-link" aria-hidden="true" />
+                            <i class="oi" data-icon="open_in_new" aria-hidden="true" />
                         </a>
                     </div>
                 </main>

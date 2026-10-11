@@ -13,7 +13,7 @@
             data-tooltip="View Tasks"
             t-on-click="() => this.props.onActionViewTask(this.record)"
         >
-            <i class="fa fa-list-ul" />
+            <i class="oi" data-icon="format_list_bulleted" />
         </button>
     </t>
 </templates>

@@ -11,7 +11,7 @@
                 data-tooltip="Get Current location"
                 aria-label="Get Current location"
             >
-                <i class="fa fa-location-arrow fa-lg" />
+                <i class="oi oi-lg" data-icon="near_me" />
             </button>
         </div>
     </t>

@@ -1,9 +1,9 @@
 import { _t } from '@web/core/l10n/translation';
-import { t, props } from '@odoo/owl';
+import { t } from '@odoo/owl';
 import { renderToString } from '@web/core/utils/render';
 import { user } from '@web/core/user';
 import { formatNumber } from '@web_view_google_map/views/google_map/utils';
-import { GoogleMapRenderer, googleMapRendererProps } from '@web_view_google_map/views/google_map/google_map_renderer';
+import { GoogleMapRenderer } from '@web_view_google_map/views/google_map/google_map_renderer';
 import { GoogleMapSidebarCRM } from './google_map_sidebar';
 
 const { DateTime } = luxon;
@@ -15,7 +15,7 @@ const CRM_MARKER_CONFIG = {
     VISUAL: {
         CLASSES: {
             CONTAINER: 'crm_lead marker-drop-animation',
-            INFO_ICON: 'fa fa-info-circle ms-1 text-info float-end',
+            INFO_ICON: 'oi oi-filled ms-1 text-info float-end',
         },
         Z_INDEX: {
             DEFAULT: null, // Default z-index for markers, will be set by Google Maps API
@@ -30,8 +30,8 @@ export class GoogleMapRendererCRM extends GoogleMapRenderer {
         Sidebar: GoogleMapSidebarCRM,
     };
     static templateInfoWindow = 'crm_google_map.MarkerInfoWindow';
-    static props = {
-        ...googleMapRendererProps,
+    static propsSchema = {
+        ...GoogleMapRenderer.propsSchema,
         openRecordScheduleActivity: t.function(),
         showRecordScheduledActivity: t.function(),
     };
@@ -164,9 +164,10 @@ export class GoogleMapRendererCRM extends GoogleMapRenderer {
      * @private
      * @returns {HTMLElement} Icon element
      */
-    _createIcon(faIconClass, tooltipText) {
+    _createIcon(iconClass, iconName, tooltipText) {
         const icon = document.createElement('i');
-        icon.className = faIconClass;
+        icon.className = iconClass;
+        icon.setAttribute('data-icon', iconName);
         icon.setAttribute('aria-hidden', 'true');
         if (tooltipText) {
             icon.dataset.tooltip = tooltipText;
@@ -314,6 +315,7 @@ export class GoogleMapRendererCRM extends GoogleMapRenderer {
         const content = marker.content;
         const indicator = this._createIcon(
             CRM_MARKER_CONFIG.VISUAL.CLASSES.INFO_ICON,
+            'info',
             _t(
                 "This marker has been adjusted slightly so it doesn't overlap with others. The line points to its original location."
             )

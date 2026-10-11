@@ -23,8 +23,8 @@ const SALE_MARKER_CONFIG = {
             NAME: 'mb-0 fs-6 py-1 border-bottom',
             AMOUNT: 'font-monospace',
             BUTTON: 'btn btn-link btn-sm flex-shrink-0',
-            ICON: 'fa fa-angle-double-right fa-lg',
-            INFO_ICON: 'fa fa-info-circle ms-1 text-info',
+            ICON: 'oi oi-lg',
+            INFO_ICON: 'oi oi-filled ms-1 text-info',
             IMG_LOGO_CONTAINER: 'd-inline-block position-relative opacity-trigger-hover',
             IMG_LOGO: 'img img-fluid o_avatar rounded',
         },
@@ -283,6 +283,7 @@ export class GoogleMapRendererSaleOrder extends GoogleMapRenderer {
     _createActionOpenButtonIcon() {
         const icon = document.createElement('i');
         icon.className = SALE_MARKER_CONFIG.VISUAL.CLASSES.ICON;
+        icon.setAttribute('data-icon', 'keyboard_double_arrow_right');
         icon.setAttribute('aria-hidden', 'true');
         return icon;
     }
@@ -301,7 +302,8 @@ export class GoogleMapRendererSaleOrder extends GoogleMapRenderer {
         button.dataset.id = group.id;
 
         const icon = document.createElement('i');
-        icon.className = 'fa fa-location-arrow fa-lg';
+        icon.className = 'oi oi-lg';
+        icon.setAttribute('data-icon', 'near_me');
         icon.setAttribute('aria-hidden', 'true');
         button.appendChild(icon);
 
@@ -508,6 +510,7 @@ export class GoogleMapRendererSaleOrder extends GoogleMapRenderer {
     _createShiftedMarkerIndicator() {
         const indicator = document.createElement('i');
         indicator.setAttribute('aria-hidden', 'true');
+        indicator.setAttribute('data-icon', 'info');
         indicator.className = SALE_MARKER_CONFIG.VISUAL.CLASSES.INFO_ICON;
         indicator.dataset.tooltip = _t(
             "This marker has been adjusted slightly so it doesn't overlap with others. The line points to its original location."

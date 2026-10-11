@@ -125,7 +125,7 @@
                                             target="_blank"
                                             class="ms-1"
                                         >
-                                            <i class="fa fa-question-circle-o" title="Documentation" />
+                                            <i class="oi" data-icon="help_outline" title="Documentation" />
                                         </a>
                                     </p>
                                     <field name="mapping_address_ids" nolabel="1" colspan="2">
@@ -184,7 +184,7 @@
                                             target="_blank"
                                             class="ms-1"
                                         >
-                                            <i class="fa fa-question-circle-o" title="Documentation" />
+                                            <i class="oi" data-icon="help_outline" title="Documentation" />
                                         </a>
                                     </p>
                                     <field name="mapping_other_ids" nolabel="1" colspan="2">

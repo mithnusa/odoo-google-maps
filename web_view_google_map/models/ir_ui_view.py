@@ -9,7 +9,7 @@ class IrUiView(models.Model):
 
     def _get_view_info(self):
         view_info = super()._get_view_info()
-        view_info["google_map"] = {"icon": "fa fa-map-o"}
+        view_info["google_map"] = {"icon": "map"}
         return view_info
 
     def _validate_tag_google_map(self, node, name_manager, node_info):

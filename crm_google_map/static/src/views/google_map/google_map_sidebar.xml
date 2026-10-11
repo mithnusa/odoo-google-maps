@@ -7,7 +7,7 @@
     <t t-name="crm_google_map.RecordItemExtra">
         <div class="o_crm_sidebar_extra d-flex align-items-center mt-1">
             <div class="o_crm_sidebar_amount d-flex align-items-center">
-                <i class="fa fa-dollar text-muted me-1" />
+                <i class="oi text-muted me-1" data-icon="attach_money" />
                 <Field
                     id="'expected_revenue'"
                     class="'smaller font-monospace disabled'"

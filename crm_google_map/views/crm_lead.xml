@@ -7,16 +7,16 @@
             <google_map
                 string="Leads"
                 js_class="google_map_crm"
-                lat="customer_latitude"
-                lng="customer_longitude"
+                lat="partner_latitude"
+                lng="partner_longitude"
                 color="stage_id_color"
                 sidebar_title="name"
-                sidebar_subtitle="customer_address"
+                sidebar_subtitle="contact_address"
             >
                 <field name="name" />
-                <field name="customer_latitude" />
-                <field name="customer_longitude" />
-                <field name="customer_address" />
+                <field name="partner_latitude" />
+                <field name="partner_longitude" />
+                <field name="contact_address" />
                 <field name="stage_id_color" />
                 <field name="expected_revenue" />
                 <field name="probability" />
@@ -40,36 +40,36 @@
                 <page string="Geolocation" name="geo_location">
                     <group>
                         <group string="Geolocation">
-                            <label for="customer_latitude" string="Geo Location" />
+                            <label for="partner_latitude" string="Geo Location" />
                             <div>
                                 <span>
                                     Lat :
-                                    <field name="customer_latitude" nolabel="1" class="oe_inline" />
+                                    <field name="partner_latitude" nolabel="1" class="oe_inline" />
                                 </span>
                                 <br />
                                 <span>
                                     Long:
-                                    <field name="customer_longitude" nolabel="1" class="oe_inline" />
+                                    <field name="partner_longitude" nolabel="1" class="oe_inline" />
                                 </span>
                                 <br />
                                 <div class="d-flex gap-2">
                                     <button
-                                        invisible="customer_latitude != 0.0 or customer_longitude != 0.0"
-                                        icon="fa-gear"
+                                        invisible="partner_latitude != 0.0 or partner_longitude != 0.0"
+                                        icon="settings"
                                         string="Compute based on address"
                                         name="geo_localize"
                                         type="object"
                                         class="btn btn-link p-0"
                                     />
                                     <button
-                                        invisible="customer_latitude == 0.0 and customer_longitude == 0.0"
-                                        icon="fa-refresh"
+                                        invisible="partner_latitude == 0.0 and partner_longitude == 0.0"
+                                        icon="refresh"
                                         string="Refresh"
                                         name="geo_localize"
                                         type="object"
                                         class="btn btn-link p-0"
                                     />
-                                    <widget name="google_map" lat="customer_latitude" lng="customer_longitude" />
+                                    <widget name="google_map" lat="partner_latitude" lng="partner_longitude" />
                                 </div>
                             </div>
                         </group>
@@ -93,7 +93,11 @@
         </field>
     </record>
     <record id="crm.crm_lead_all_leads" model="ir.actions.act_window">
-        <field name="view_mode">list,kanban,graph,pivot,calendar,form,activity,google_map</field>
+        <field
+            name="view_mode"
+            model="ir.actions.act_window"
+            eval="','.join(dict.fromkeys(obj(ref('crm.crm_lead_all_leads')).view_mode.split(',') + ['google_map']))"
+        />
     </record>
     <record id="crm_lead_all_leads_view_google_map" model="ir.actions.act_window.view">
         <field name="sequence" eval="7" />
@@ -102,7 +106,11 @@
         <field name="act_window_id" ref="crm.crm_lead_all_leads" />
     </record>
     <record id="crm.crm_lead_action_my_activities" model="ir.actions.act_window">
-        <field name="view_mode">list,kanban,graph,pivot,calendar,form,activity,google_map</field>
+        <field
+            name="view_mode"
+            model="ir.actions.act_window"
+            eval="','.join(dict.fromkeys(obj(ref('crm.crm_lead_action_my_activities')).view_mode.split(',') + ['google_map']))"
+        />
     </record>
     <record id="crm_lead_action_my_activities_view_google_map" model="ir.actions.act_window.view">
         <field name="sequence" eval="7" />
@@ -111,7 +119,11 @@
         <field name="act_window_id" ref="crm.crm_lead_action_my_activities" />
     </record>
     <record id="crm.crm_lead_opportunities" model="ir.actions.act_window">
-        <field name="view_mode">kanban,list,graph,pivot,form,calendar,activity,google_map</field>
+        <field
+            name="view_mode"
+            model="ir.actions.act_window"
+            eval="','.join(dict.fromkeys(obj(ref('crm.crm_lead_opportunities')).view_mode.split(',') + ['google_map']))"
+        />
     </record>
     <record id="crm_lead_opportunities_view_google_map" model="ir.actions.act_window.view">
         <field name="sequence" eval="7" />
@@ -120,7 +132,11 @@
         <field name="act_window_id" ref="crm.crm_lead_opportunities" />
     </record>
     <record id="crm.crm_lead_action_pipeline" model="ir.actions.act_window">
-        <field name="view_mode">kanban,list,graph,pivot,form,calendar,activity,google_map</field>
+        <field
+            name="view_mode"
+            model="ir.actions.act_window"
+            eval="','.join(dict.fromkeys(obj(ref('crm.crm_lead_action_pipeline')).view_mode.split(',') + ['google_map']))"
+        />
     </record>
     <record id="crm_lead_action_pipeline_view_google_map" model="ir.actions.act_window.view">
         <field name="sequence" eval="7" />
@@ -129,7 +145,11 @@
         <field name="act_window_id" ref="crm.crm_lead_action_pipeline" />
     </record>
     <record id="crm.crm_lead_action_forecast" model="ir.actions.act_window">
-        <field name="view_mode">kanban,graph,pivot,list,form,google_map</field>
+        <field
+            name="view_mode"
+            model="ir.actions.act_window"
+            eval="','.join(dict.fromkeys(obj(ref('crm.crm_lead_action_forecast')).view_mode.split(',') + ['google_map']))"
+        />
     </record>
     <record id="crm_lead_action_forecast_view_google_map" model="ir.actions.act_window.view">
         <field name="sequence" eval="5" />

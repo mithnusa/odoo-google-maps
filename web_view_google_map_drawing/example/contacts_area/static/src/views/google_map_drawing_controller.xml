@@ -9,7 +9,7 @@
                 t-on-click="this.openGeoJSONUploadWizard"
                 data-tooltip="Import GeoJSON file"
             >
-                <i class="fa fa-upload" />
+                <i class="oi" data-icon="upload" />
                 <span class="ps-1">GeoJSON</span>
             </button>
         </xpath>
