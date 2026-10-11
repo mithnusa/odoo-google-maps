@@ -21,7 +21,7 @@ Provides:
     'website': 'https://github.com/mithnusa',
     'support': 'yopiangi@gmail.com',
     'category': 'Extra Tools',
-    'version': '1.0.0',
+    'version': '20.0.1.0.0',
     'depends': ['web', 'base_geolocalize'],
     'data': [
         'data/google_map.xml',

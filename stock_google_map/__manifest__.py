@@ -20,7 +20,7 @@ Provides:
     'website': 'https://www.mithnusa.com',
     'support': 'yopiangi@gmail.com',
     'category': 'Inventory',
-    'version': '1.0.0',
+    'version': '20.0.1.0.0',
     'depends': ['sale_stock', 'stock_delivery', 'web_view_google_map'],
     'data': ['views/stock_picking.xml'],
 }
