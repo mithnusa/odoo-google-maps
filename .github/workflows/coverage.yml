@@ -2,9 +2,9 @@ name: Code Coverage
 
 on:
   push:
-    branches: ["19.0", "19.0-*"]
+    branches: ["20.0", "20.0-*"]
   pull_request:
-    branches: ["19.0"]
+    branches: ["20.0"]
 
 permissions:
   contents: read
@@ -232,40 +232,50 @@ jobs:
               "${unit_test_modules[@]}"
           fi
 
-          # Run DB-backed Odoo tests and/or the Hoot JS suite, whichever
-          # (or both) this repo actually has. Independent of one another —
-          # neither should be skipped just because the other is empty.
-          if [[ ${#db_test_addons[@]} -gt 0 || ${#js_test_addons[@]} -gt 0 ]]; then
-            # Modules to install: anything with Python DB tests, plus
-            # anything with JS tests (needed so their web.assets_unit_tests
-            # bundle is actually loaded when /web/tests runs).
-            mapfile -t install_for_tests < <(
-              printf '%s\n' "${db_test_addons[@]}" "${js_test_addons[@]}" | sort -u
-            )
-            DB_MODULES=$(IFS=,; echo "${install_for_tests[*]}")
+          # Install every repository addon (not just the ones with tests) so
+          # install-time issues — broken views, security XML, demo data,
+          # manifest errors — are caught across the whole suite. Test
+          # execution itself stays scoped to modules that actually have
+          # DB-backed or Hoot JS tests, via --test-tags: when neither exists,
+          # --test-enable/--test-tags are omitted entirely rather than passed
+          # empty, since an empty --test-tags value runs every default Odoo
+          # test too, not just this repo's.
+          ALL_MODULES=$(IFS=,; echo "${install_modules[*]}")
 
-            test_tag_parts=()
-            for addon in "${db_test_addons[@]}"; do
-              test_tag_parts+=("/$addon")
-            done
-            test_tag_parts+=("${hoot_tags[@]}")
-            TEST_TAGS=$(IFS=,; echo "${test_tag_parts[*]}")
+          test_tag_parts=()
+          for addon in "${db_test_addons[@]}"; do
+            test_tag_parts+=("/$addon")
+          done
+          test_tag_parts+=("${hoot_tags[@]}")
+          TEST_TAGS=$(IFS=,; echo "${test_tag_parts[*]}")
 
-            python -m coverage run \
-              --append \
-              --source="$COVERAGE_SOURCES" \
-              /opt/odoo/odoo-bin \
-              --addons-path="/opt/odoo/addons,/opt/odoo/odoo/addons,$GITHUB_WORKSPACE" \
-              --db_host=127.0.0.1 \
-              --db_port=5432 \
-              --db_user=odoo \
-              --db_password=odoo \
-              -d odoo_test_ci \
-              -i "$DB_MODULES" \
-              --test-enable \
-              --test-tags "$TEST_TAGS" \
-              --stop-after-init
+          echo "Installing: $ALL_MODULES"
+          echo ""
+
+          odoo_bin_args=(
+            /opt/odoo/odoo-bin
+            --addons-path="/opt/odoo/addons,/opt/odoo/odoo/addons,$GITHUB_WORKSPACE"
+            --db_host=127.0.0.1
+            --db_port=5432
+            --db_user=odoo
+            --db_password=odoo
+            -d odoo_test_ci
+            -i "$ALL_MODULES"
+          )
+
+          if [[ -n "$TEST_TAGS" ]]; then
+            odoo_bin_args+=(--test-enable --test-tags "$TEST_TAGS" --stop-after-init)
+            echo "Installing all repository addons, running tests tagged: $TEST_TAGS"
+          else
+            odoo_bin_args+=(--stop-after-init)
+            echo "Installing all repository addons (no DB-backed or JS tests found — Odoo test suite not run)"
           fi
+          echo ""
+
+          python -m coverage run \
+            --append \
+            --source="$COVERAGE_SOURCES" \
+            "${odoo_bin_args[@]}"
 
           # Generate XML directly from the collected coverage data.
           # `coverage combine` fails when there is only a single data file.
