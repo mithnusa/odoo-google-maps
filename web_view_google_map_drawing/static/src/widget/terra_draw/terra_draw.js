@@ -1,8 +1,8 @@
-import { useRef, useSubEnv } from '@web/owl2/utils';
+import { useSubEnv } from '@web/owl2/utils';
 import { registry } from '@web/core/registry';
 import { _t } from '@web/core/l10n/translation';
 import { standardFieldProps } from '@web/views/fields/standard_field_props';
-import { proxy, onWillUpdateProps, props, t } from '@odoo/owl';
+import { proxy, onWillUpdateProps, signal, t, useProps } from '@odoo/owl';
 
 import { BaseGoogleMapComponent } from '@base_google_map/utils/base_google_map';
 import { GoogleMapGeolocate } from '@web_widget_google_map/components/geolocate/geolocate';
@@ -13,19 +13,6 @@ import { DeckGlEditor } from '../../views/components/deck-gl-editor/deck-gl-edit
 import { MAP_OPTIONS } from '../../utils/map_config';
 import { analyzeDatasetPerformance } from '../../utils/geometry_performance_utils';
 
-
-const googleMapTerraDrawFieldProps = {
-    ...standardFieldProps,
-    placeholder: t.string().optional(),
-    dynamicPlaceholder: t.boolean().optional(false),
-    shouldTrim: t.boolean().optional(true),
-    defaultCenter: t.array(t.number()).optional(),
-    defaultZoom: t.number().optional(),
-    mapTypeId: t.string().optional(),
-    fieldArea: t.string().optional(),
-};
-
-
 export class GoogleMapTerraDrawField extends BaseGoogleMapComponent {
     static template = 'web_view_google_map_drawing.GoogleMapTerraDrawField';
     static components = {
@@ -34,14 +21,23 @@ export class GoogleMapTerraDrawField extends BaseGoogleMapComponent {
         TerraDrawToolsUI,
         DeckGlEditor,
     };
-    static props = googleMapTerraDrawFieldProps;
-    props = props(this.constructor.props);
+    static propsSchema = {
+        ...standardFieldProps,
+        placeholder: t.string().optional(),
+        dynamicPlaceholder: t.boolean().optional(false),
+        shouldTrim: t.boolean().optional(true),
+        defaultCenter: t.array(t.number()).optional(),
+        defaultZoom: t.number().optional(),
+        mapTypeId: t.string().optional(),
+        fieldArea: t.string().optional(),
+    };
+    props = useProps(this.constructor.propsSchema);
 
     setup() {
         super.setup();
         this.validateProps();
 
-        this.mapRef = useRef('map');
+        this.mapRef = signal.ref();
         this.googleMapBounds = null;
 
         this.state = proxy({
@@ -64,7 +60,7 @@ export class GoogleMapTerraDrawField extends BaseGoogleMapComponent {
      * @override
      */
     mapDivElement() {
-        return this.mapRef.el;
+        return this.mapRef();
     }
 
     /**

@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef } from '@web/owl2/utils';
+import { useLayoutEffect } from '@web/owl2/utils';
 /**
  * @fileoverview Google Place Autocomplete Component for Odoo
  *
@@ -20,7 +20,7 @@ import { _t } from '@web/core/l10n/translation';
 import { useService } from '@web/core/utils/hooks';
 import { sprintf } from '@web/core/utils/strings';
 import { debounce } from '@web/core/utils/timing';
-import { Component, onWillUnmount, proxy, props, t } from '@odoo/owl';
+import { Component, onWillUnmount, proxy, signal, useProps, t } from '@odoo/owl';
 import { useGoogleMapsAPILoader } from '@base_google_map/utils/loader_google_map';
 
 // Constants
@@ -171,19 +171,6 @@ function extractStreetNumber(address) {
     return { buildingNumber: '', route: streetPart, unitNumber: '', prefix: '', street_number: '' };
 }
 
-const googlePlaceAutocompleteProps = {
-    id: t.number().optional(),
-    code: t.string(),
-    mode: t.selection(['address', 'places']),
-    options: t.object().optional({}),
-    fields: t.array(t.string()),
-    resModel: t.string(),
-    elementId: t.string(),
-    callback: t.function(),
-    isTest: t.boolean().optional(false),
-    isCollapseOpen: t.boolean().optional(false),
-};
-
 /**
  * Google Place Autocomplete Element Component
  *
@@ -216,11 +203,22 @@ const googlePlaceAutocompleteProps = {
  */
 export class GooglePlaceAutocompleteElement extends Component {
     static template = 'web_widget_google_place_autocomplete.GooglePlaceAutocomplete';
-    static props = googlePlaceAutocompleteProps;
-    props = props(this.constructor.props);
+    static propsSchema = {
+        id: t.number().optional(),
+        code: t.string(),
+        mode: t.selection(['address', 'places']),
+        options: t.object().optional({}),
+        fields: t.array(t.string()),
+        resModel: t.string(),
+        elementId: t.string(),
+        callback: t.function(),
+        isTest: t.boolean().optional(false),
+        isCollapseOpen: t.boolean().optional(false),
+    };
+    props = useProps(this.constructor.propsSchema);
 
     setup() {
-        this.gAutocompleteRef = useRef('gAutocomplete');
+        this.gAutocompleteRef = signal.ref();
         this.notificationService = useService('notification');
         this.actionService = useService('action');
 
@@ -246,7 +244,7 @@ export class GooglePlaceAutocompleteElement extends Component {
 
         useLayoutEffect(
             (mappingId, isGoogleLoaded, gAutocompleteRef) => {
-                if (mappingId && isGoogleLoaded && gAutocompleteRef.el) {
+                if (mappingId && isGoogleLoaded && gAutocompleteRef()) {
                     this.initGooglePlaceAutocompleteElement();
                 }
             },
@@ -298,7 +296,7 @@ export class GooglePlaceAutocompleteElement extends Component {
             }
             this.placeAutocompleteEl.placeholder = placeholderText;
             // Append the autocomplete element to the container
-            this.gAutocompleteRef.el.appendChild(this.placeAutocompleteEl);
+            this.gAutocompleteRef().appendChild(this.placeAutocompleteEl);
             // Register event listeners
             this.setGmpEventListener('gmp-select', this.handlePlaceSelect.bind(this));
             this.setGmpEventListener('gmp-error', this.debounceHandleGooglePlaceError);
@@ -329,7 +327,7 @@ export class GooglePlaceAutocompleteElement extends Component {
             clearTimeout(this.handleWidgetElTimeout);
         }
         this.handleWidgetElTimeout = setTimeout(() => {
-            const isClosed = this.gAutocompleteRef.el.classList.contains('collapsed');
+            const isClosed = this.gAutocompleteRef().classList.contains('collapsed');
             if (!isClosed) {
                 this.placeAutocompleteEl.focus();
             } else {
@@ -408,8 +406,8 @@ export class GooglePlaceAutocompleteElement extends Component {
      */
     displayGooglePlaceError() {
         const errorMessage = _t('Failed to initialize Google Autocomplete');
-        this.gAutocompleteRef.el.innerHTML = '<p class="text-center mb-0">⚠️ ' + errorMessage + '</p>';
-        this.gAutocompleteRef.el.classList.add('smaller', 'text-muted');
+        this.gAutocompleteRef().innerHTML = '<p class="text-center mb-0">⚠️ ' + errorMessage + '</p>';
+        this.gAutocompleteRef().classList.add('smaller', 'text-muted');
     }
 
     /**
@@ -537,8 +535,8 @@ export class GooglePlaceAutocompleteElement extends Component {
             clearTimeout(this.handleWidgetElTimeout);
             this.handleWidgetElTimeout = null;
         }
-        if (this.placeAutocompleteEl && this.gAutocompleteRef.el.contains(this.placeAutocompleteEl)) {
-            this.gAutocompleteRef.el.removeChild(this.placeAutocompleteEl);
+        if (this.placeAutocompleteEl && this.gAutocompleteRef().contains(this.placeAutocompleteEl)) {
+            this.gAutocompleteRef().removeChild(this.placeAutocompleteEl);
             this.placeAutocompleteEl = null;
         }
     }

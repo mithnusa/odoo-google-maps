@@ -4,15 +4,15 @@
         <Dialog title="this.props.title" size="'xl'" bodyClass="'o_google_map_street_view_side_by_side'">
             <div class="o_street_view_split_container row g-0">
                 <div class="col-6">
-                    <div t-custom-ref="map" class="o_street_view_split_panel" />
+                    <div t-ref="this.mapRef" class="o_street_view_split_panel" />
                 </div>
                 <div class="col-6">
                     <t t-if="this.state.streetViewAvailable">
-                        <div t-custom-ref="streetView" class="o_street_view_split_panel" />
+                        <div t-ref="this.streetViewRef" class="o_street_view_split_panel" />
                     </t>
                     <t t-else="">
                         <div class="o_street_view_split_panel o_street_view_no_imagery">
-                            <i class="fa fa-street-view fa-3x mb-3" />
+                            <i class="oi oi-3x mb-3" data-icon="streetview" />
                             <span t-out="this.streetViewUnavailableText" />
                         </div>
                     </t>

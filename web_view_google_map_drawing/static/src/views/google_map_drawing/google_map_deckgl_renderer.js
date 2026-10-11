@@ -1,10 +1,10 @@
-import { useLayoutEffect, useRef, useSubEnv } from '@web/owl2/utils';
+import { useLayoutEffect, useSubEnv } from '@web/owl2/utils';
 import { _t } from '@web/core/l10n/translation';
 import { useService, useBus } from '@web/core/utils/hooks';
 import { debounce } from '@web/core/utils/timing';
 import { renderToString } from '@web/core/utils/render';
 import { user } from '@web/core/user';
-import { onPatched, onWillStart, onWillUpdateProps, proxy, props, t } from '@odoo/owl';
+import { onPatched, onWillStart, onWillUpdateProps, proxy, signal, useProps, t } from '@odoo/owl';
 import { isNull } from '@web/views/utils';
 import { BaseGoogleMapComponent } from '@base_google_map/utils/base_google_map';
 import { getRecordDataView, hexToRgba, generateColor, darkenColor } from '@web_view_google_map/views/google_map/utils';
@@ -20,22 +20,6 @@ import {
     loadTurfJSAssets,
 } from '../../utils/utils';
 import { DECKGL_CONFIG, STROKE_CONFIG } from '../../utils/map_config';
-
-export const googleMapDeckGLRendererProps = {
-    archInfo: t.object(),
-    openRecord: t.function(),
-    showRecord: t.function(),
-    showRecordsByDomain: t.function(),
-    readonly: t.boolean(),
-    list: t.object(),
-    onAdd: t.function().optional(),
-    activeActions: t.object().optional(),
-    allowSelectors: t.boolean(),
-    viewAttrs: t.object(),
-    unLocatedCount: t.number(),
-    showUnlocatedRecords: t.function(),
-};
-
 
 /**
  * Deck.gl High-Performance Renderer Component
@@ -94,13 +78,27 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
         Sidebar: GoogleMapsDrawingSidebar,
         InMapSearchPlaces: GoogleMapSearchPlaces,
     };
-    props = props(googleMapDeckGLRendererProps);
+    static propsSchema = {
+        archInfo: t.object(),
+        openRecord: t.function(),
+        showRecord: t.function(),
+        showRecordsByDomain: t.function(),
+        readonly: t.boolean(),
+        list: t.object(),
+        onAdd: t.function().optional(),
+        activeActions: t.object().optional(),
+        allowSelectors: t.boolean(),
+        viewAttrs: t.object(),
+        unLocatedCount: t.number(),
+        showUnlocatedRecords: t.function(),
+    };
+    props = useProps(this.constructor.propsSchema);
 
     setup() {
         super.setup();
         this.validateProps();
 
-        this.mapRef = useRef('map');
+        this.mapRef = signal.ref();
         this.notificationService = useService('notification');
         this.actionService = useService('action');
 
@@ -271,7 +269,7 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
      * @returns {HTMLElement|false} Map DOM element
      */
     mapDivElement() {
-        return this.mapRef.el;
+        return this.mapRef();
     }
 
     /**

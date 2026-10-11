@@ -1,8 +1,8 @@
-import { useLayoutEffect, useRef } from '@web/owl2/utils';
+import { useLayoutEffect } from '@web/owl2/utils';
 import { _t } from '@web/core/l10n/translation';
 import { useService } from '@web/core/utils/hooks';
 import { ConfirmationDialog } from '@web/core/confirmation_dialog/confirmation_dialog';
-import { Component, onWillDestroy, onWillStart, onWillUpdateProps, proxy, props, t } from '@odoo/owl';
+import { Component, onWillDestroy, onWillStart, onWillUpdateProps, proxy, signal, useProps, t } from '@odoo/owl';
 import { generateUUID } from '@web_view_google_map/views/google_map/utils';
 import {
     loadTerraDrawAssets,
@@ -28,14 +28,6 @@ export const MODE_BUTTONS = {
     'clear-mode': 'static',
 };
 
-const terraDrawToolUiProps = {
-    googleMap: t.object(),
-    saveFeatures: t.function(),
-    renderingMode: t.string(),
-    dataGeoJson: t.or([t.object(), t.boolean()]).optional(),
-    record: t.object(),
-};
-
 /**
  * Terra Draw Tools UI Component
  *
@@ -59,19 +51,20 @@ const terraDrawToolUiProps = {
  */
 export class TerraDrawToolsUI extends Component {
     static template = 'web_view_google_map_drawing.TerraToolsUI';
-    static props = {
-        googleMap: Object,
-        saveFeatures: Function,
-        renderingMode: String,
-        dataGeoJson: { type: Object, optional: true, default: null },
-        record: Object,
+    static propsSchema = {
+        googleMap: t.object(),
+        saveFeatures: t.function(),
+        renderingMode: t.string(),
+        dataGeoJson: t.or([t.object(), t.boolean()]).optional(),
+        record: t.object(),
     };
+    props = useProps(this.constructor.propsSchema);
 
     setup() {
         this.notificationService = useService('notification');
         this.dialogService = useService('dialog');
         this.uiService = useService('ui');
-        this.toolsUiRef = useRef('toolUiRef');
+        this.toolsUiRef = signal.ref();
         this.state = proxy({
             currentMode: null,
             activeButton: null,
@@ -134,7 +127,7 @@ export class TerraDrawToolsUI extends Component {
             () => {
                 if (
                     this.props.googleMap &&
-                    this.toolsUiRef.el &&
+                    this.toolsUiRef() &&
                     window.terraDraw &&
                     this.props.renderingMode === 'terra-draw'
                 ) {
@@ -147,7 +140,7 @@ export class TerraDrawToolsUI extends Component {
                     });
                 }
             },
-            () => [this.props.googleMap, this.toolsUiRef.el, this.props.renderingMode]
+            () => [this.props.googleMap, this.toolsUiRef(), this.props.renderingMode]
         );
     }
 

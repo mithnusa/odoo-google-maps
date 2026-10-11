@@ -1,6 +1,6 @@
 import { useService } from '@web/core/utils/hooks';
 import { _t } from '@web/core/l10n/translation';
-import { Component, onWillUnmount, useRef, props, t } from '@odoo/owl';
+import { Component, onWillUnmount, signal, useProps, t } from '@odoo/owl';
 import { useLayoutEffect } from '@web/owl2/utils';
 import { debounce } from '@web/core/utils/timing';
 import { renderToString } from '@web/core/utils/render';
@@ -10,10 +10,13 @@ const INFO_WINDOW_MAX_WIDTH = '400px';
 
 export class GoogleMapSearchPlaces extends Component {
     static template = 'web_widget_google_map.SearchPlaces';
-    props = props({ googleMap: t.or([t.object(), t.literal(null)]).optional() });
+    static propsSchema = {
+        googleMap: t.or([t.object(), t.literal(null)]).optional(),
+    };
+    props = useProps(this.constructor.propsSchema);
 
     setup() {
-        this.searchRef = useRef('searchPlaces');
+        this.searchRef = signal.ref();
         this.notificationService = useService('notification');
         this.placeAutocomplete = null;
         this.markerPlacesSearch = null;
@@ -27,7 +30,7 @@ export class GoogleMapSearchPlaces extends Component {
                     this._initSearchBox();
                 }
             },
-            () => [this.props.googleMap, this.searchRef.el]
+            () => [this.props.googleMap, this.searchRef()]
         );
         onWillUnmount(() => {
             this._cleanup();
@@ -78,16 +81,17 @@ export class GoogleMapSearchPlaces extends Component {
                         this.placeAutocomplete = new google.maps.places.PlaceAutocompleteElement(searchOptions);
                         this.placeAutocomplete.placeholder = _t('Search for a place');
                         this.placeAutocomplete.id = 'place-autocomplete-input';
-                        this.searchRef.el.classList.remove('o_hidden');
-                        this.searchRef.el.style.zIndex = 1;
-                        this.searchRef.el.appendChild(this.placeAutocomplete);
+                        this.searchRef().classList.remove('o_hidden');
+                        this.searchRef().style.zIndex = 1;
+                        this.searchRef().appendChild(this.placeAutocomplete);
 
-                        this.props.googleMap.controls[google.maps.ControlPosition.TOP_RIGHT].push(this.searchRef.el);
+                        this.props.googleMap.controls[google.maps.ControlPosition.TOP_RIGHT].push(this.searchRef());
 
                         const markerContent = document.createElement('div');
                         markerContent.className = 'places-search-marker';
                         const icon = document.createElement('i');
-                        icon.className = 'fa fa-search';
+                        icon.className = 'oi';
+                        icon.setAttribute('data-icon', 'search');
                         markerContent.appendChild(icon);
                         this.markerPlacesSearch = new AdvancedMarkerElement({
                             map: this.props.googleMap,
@@ -226,9 +230,9 @@ export class GoogleMapSearchPlaces extends Component {
             }
         }
         // Remove search control from map
-        if (this.searchRef?.el && this.props.googleMap) {
+        if (this.searchRef?.() && this.props.googleMap) {
             const controls = this.props.googleMap.controls[google.maps.ControlPosition.TOP_RIGHT];
-            const index = controls ? (controls.getArray() || []).indexOf(this.searchRef.el) : -1;
+            const index = controls ? (controls.getArray() || []).indexOf(this.searchRef()) : -1;
             if (index > -1) {
                 controls.removeAt(index);
             }

@@ -1,7 +1,7 @@
-import { Component, onWillPatch, onWillStart, plugin, props, proxy, t } from '@odoo/owl';
-import { useLayoutEffect, useRef, useSubEnv } from '@web/owl2/utils';
+import { Component, onWillPatch, onWillStart, usePlugin, useProps, proxy, signal, t } from '@odoo/owl';
+import { useLayoutEffect, useSubEnv } from '@web/owl2/utils';
 import { _t } from '@web/core/l10n/translation';
-import { OfflinePlugin } from "@web/core/offline/offline_plugin";
+import { OfflinePlugin } from '@web/core/offline/offline_plugin';
 import { Layout } from '@web/search/layout';
 import { useModelWithSampleData } from '@web/model/model';
 import { evaluateBooleanExpr } from '@web/core/py_js/py';
@@ -29,27 +29,11 @@ import { executeButtonCallback } from '@web/views/view_button/view_button_hook';
 import { CogMenu } from '@web/search/cog_menu/cog_menu';
 import { DropdownItem } from '@web/core/dropdown/dropdown_item';
 import { useExportRecords, useDeleteRecords } from '@web/views/view_hook';
-import { OfflineSearchBar } from "@web/search/search_bar/offline_search_bar";
+import { OfflineSearchBar } from '@web/search/search_bar/offline_search_bar';
 import { GoogleMapSearchBar } from './google_map_search_bar';
 import { GoogleMapStreetViewSideBySideDialog } from '@web_widget_google_map/widgets/GoogleMapStreetViewSideBySideDialog/google_map_street_view_side_by_side_dialog';
 
-
 const DEFAULT_NEARBY_RADIUS = 1000; // meters
-
-export const googleMapControllerProps = {
-    ...standardViewProps,
-    Model: t.function(),
-    Renderer: t.function(),
-    buttonTemplate: t.string(),
-    archInfo: t.object(),
-    showButtons: t.boolean().optional(true),
-    allowSelectors: t.boolean().optional(true),
-    onSelectionChanged: t.function().optional(),
-    readonly: t.boolean().optional(),
-    createRecord: t.function().optional(() => () => {}),
-    selectRecord: t.function().optional(() => () => {}),
-    centerMap: t.function().optional(() => () => {}),
-};
 
 export class GoogleMapController extends Component {
     static template = 'web_view_google_map.GoogleMapView';
@@ -65,19 +49,33 @@ export class GoogleMapController extends Component {
         OfflineSearchBar,
         SearchBar: GoogleMapSearchBar,
     };
-    props = props(googleMapControllerProps);
+    static propsSchema = {
+        ...standardViewProps,
+        Model: t.function(),
+        Renderer: t.function(),
+        buttonTemplate: t.string(),
+        archInfo: t.object(),
+        showButtons: t.boolean().optional(true),
+        allowSelectors: t.boolean().optional(true),
+        onSelectionChanged: t.function().optional(),
+        readonly: t.boolean().optional(),
+        createRecord: t.function().optional(() => () => {}),
+        selectRecord: t.function().optional(() => () => {}),
+        centerMap: t.function().optional(() => () => {}),
+    };
+    props = useProps(this.constructor.propsSchema);
 
     setup() {
-        this.ui = useService('ui');
+        this.uiService = useService('ui');
         this.dialogService = useService('dialog');
         this.actionService = useService('action');
         this.notificationService = useService('notification');
 
-        this.rootRef = useRef('root');
+        this.rootRef = signal.ref();
 
         this.archInfo = this.props.archInfo;
 
-        this.offlinePlugin = plugin(OfflinePlugin);
+        this.offlinePlugin = usePlugin(OfflinePlugin);
 
         this.optionalActiveFields = {};
 
@@ -136,8 +134,7 @@ export class GoogleMapController extends Component {
                         this.onPageChange();
                     }
                 },
-                updateTotal:
-                    !isGrouped && hasLimitedCount ? () => this.model.root.fetchCount() : undefined,
+                updateTotal: !isGrouped && hasLimitedCount ? () => this.model.root.fetchCount() : undefined,
             };
         });
 
@@ -228,14 +225,14 @@ export class GoogleMapController extends Component {
             export: {
                 isAvailable: () => this.isExportEnable,
                 sequence: 10,
-                icon: 'fa fa-upload',
+                icon: 'upload',
                 description: _t('Export'),
                 callback: () => this.exportRecords(),
             },
             archive: {
                 isAvailable: () => this.archiveEnabled && !isM2MGrouped,
                 sequence: 20,
-                icon: 'oi oi-archive',
+                icon: 'archive',
                 description: _t('Archive'),
                 callback: () => {
                     this.dialogService.add(ConfirmationDialog, this.archiveDialogProps);
@@ -244,22 +241,24 @@ export class GoogleMapController extends Component {
             unarchive: {
                 isAvailable: () => this.archiveEnabled && !isM2MGrouped,
                 sequence: 30,
-                icon: 'oi oi-unarchive',
+                icon: 'unarchive',
                 description: _t('Unarchive'),
                 callback: () => this.toggleArchiveState(false),
             },
             duplicate: {
                 isAvailable: () => this.activeActions.duplicate && !isM2MGrouped,
                 sequence: 35,
-                icon: 'fa fa-clone',
+                icon: 'content_copy',
                 description: _t('Duplicate'),
                 callback: () => this.duplicateRecords(),
             },
             delete: {
                 isAvailable: () => this.activeActions.delete && !isM2MGrouped,
                 sequence: 40,
-                icon: 'fa fa-trash-o',
+                icon: 'delete',
+                iconClass: 'oi-filled',
                 description: _t('Delete'),
+                class: 'text-danger',
                 callback: () => this.onDeleteSelectedRecords(),
             },
         };
@@ -319,7 +318,7 @@ export class GoogleMapController extends Component {
 
     centerMap() {
         if (this.props.allowSelectors) {
-            this.ui.bus.trigger('google-map-center-map');
+            this.uiService.bus.trigger('google-map-center-map');
         } else {
             this.render(true);
         }
@@ -350,7 +349,7 @@ export class GoogleMapController extends Component {
     }
 
     async onClickCreate() {
-        return executeButtonCallback(this.rootRef.el, () => this.createRecord());
+        return executeButtonCallback(this.rootRef(), () => this.createRecord());
     }
 
     /**
@@ -579,11 +578,11 @@ export class GoogleMapController extends Component {
     }
 
     onPageChange() {
-        if (this.rootRef && this.rootRef.el) {
-            if (this.env.isSmall) {
-                this.rootRef.el.scrollTop = 0;
+        if (this.rootRef && this.rootRef()) {
+            if (this.uiService.isSmall) {
+                this.rootRef().scrollTop = 0;
             } else {
-                this.rootRef.el.querySelector('.o_content').scrollTop = 0;
+                this.rootRef().querySelector('.o_content').scrollTop = 0;
             }
         }
     }
@@ -743,7 +742,7 @@ export class GoogleMapController extends Component {
     }
 
     get hasSelectors() {
-        return this.props.allowSelectors && !this.env.isSmall;
+        return this.props.allowSelectors && !this.uiService.isSmall;
     }
 
     get rendererProps() {

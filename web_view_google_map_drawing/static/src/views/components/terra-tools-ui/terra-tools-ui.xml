@@ -2,7 +2,7 @@
 <templates xml:space="preserve">
     <t t-name="web_view_google_map_drawing.TerraToolsUI">
         <!-- Main Toolbar -->
-        <div class="o_terra_tools_ui" t-custom-ref="toolUiRef">
+        <div class="o_terra_tools_ui" t-ref="this.toolsUiRef">
             <div class="o_terra_toolbar">
                 <button
                     id="point-mode"
@@ -119,7 +119,7 @@
                     t-on-click.prevent="this.onClickActionButton"
                     t-att-disabled="!this.state.selectedFeatureId"
                 >
-                    <span class="fa fa-compress fa-lg" />
+                    <span class="oi oi-lg" data-icon="close_fullscreen" />
                 </button>
                 <button
                     id="upload-button"
@@ -127,7 +127,7 @@
                     data-tooltip="Upload GeoJSON"
                     t-on-click.prevent="this.onClickActionButton"
                 >
-                    <span class="fa fa-upload fa-lg" />
+                    <span class="oi oi-lg" data-icon="upload" />
                 </button>
                 <button
                     id="download-button"
@@ -135,7 +135,7 @@
                     data-tooltip="Download GeoJSON"
                     t-on-click.prevent="this.onClickActionButton"
                 >
-                    <span class="fa fa-download fa-lg" />
+                    <span class="oi oi-lg" data-icon="download" />
                 </button>
                 <button
                     id="save-button"
@@ -143,7 +143,7 @@
                     data-tooltip="Save Changes (Ctrl+S)"
                     t-on-click.prevent="this.onClickActionButton"
                 >
-                    <span class="fa fa-save fa-lg" />
+                    <span class="oi oi-lg" data-icon="save" />
                 </button>
             </div>
         </div>

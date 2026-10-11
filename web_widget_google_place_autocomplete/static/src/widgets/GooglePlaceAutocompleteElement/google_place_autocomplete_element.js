@@ -1,9 +1,9 @@
 import { useService } from '@web/core/utils/hooks';
-import { useLayoutEffect, useRef } from '@web/owl2/utils';
+import { useLayoutEffect } from '@web/owl2/utils';
 import { _t } from '@web/core/l10n/translation';
 import { registry } from '@web/core/registry';
 import { exprToBoolean } from '@web/core/utils/strings';
-import { onWillUnmount, onWillUpdateProps, proxy, props, t } from '@odoo/owl';
+import { onWillUnmount, onWillUpdateProps, proxy, signal, useProps, t } from '@odoo/owl';
 import { CharField, charFieldProps, charField } from '@web/views/fields/char/char_field';
 import { GooglePlaceAutocompleteElement } from '../../component/google_place_autocomplete';
 import { useGooglePlaceAutocompleteMapping } from '../../hooks/use_google_place_autocomplete_mapping';
@@ -25,12 +25,13 @@ import { useGooglePlaceAutocompleteMapping } from '../../hooks/use_google_place_
 export class GooglePlaceAutocompleteCharField extends CharField {
     static template = 'web_widget_google_place_autocomplete.GooglePlaceAutocompleteCharField';
     static components = { ...CharField.components, GooglePlaceAutocompleteElement };
-    props = props({
+    static propsSchema = {
         ...charFieldProps,
         mappingCode: t.string().optional(), // The mapping code to fetch the mapping configuration from the backend. If provided, takes precedence over `mappingMode`.
         mappingMode: t.string().optional(), // 'address' or 'places'
         noManualEdit: t.boolean().optional(), // If true, the input field will be set to readonly to prevent manual edits. Other fields will still be populated based on the autocomplete selection. Default is false (manual edits allowed).
-    });
+    };
+    props = useProps(this.constructor.propsSchema);
 
     /**
      * Initialises services, reactive state, the place mapping hook, and
@@ -41,7 +42,7 @@ export class GooglePlaceAutocompleteCharField extends CharField {
     setup() {
         super.setup();
         this.notificationService = useService('notification');
-        this.googleAutocompleteToggleRef = useRef('googleAutocompleteToggle');
+        this.googleAutocompleteToggleRef = signal.ref();
         this.state = proxy({
             mappingId: 0,
             isCollapseOpen: false,
@@ -52,9 +53,9 @@ export class GooglePlaceAutocompleteCharField extends CharField {
 
         useLayoutEffect(
             () => {
-                if (this.input.el && !this.props.readonly && this.props.noManualEdit) {
-                    this.input.el.setAttribute('readonly', 'readonly');
-                    this.input.el.setAttribute(
+                if (this.input() && !this.props.readonly && this.props.noManualEdit) {
+                    this.input().setAttribute('readonly', 'readonly');
+                    this.input().setAttribute(
                         'data-tooltip',
                         _t(
                             'This field is read-only because manual edits are disabled. Please use the Google Place Autocomplete to update the value.'
@@ -62,13 +63,13 @@ export class GooglePlaceAutocompleteCharField extends CharField {
                     );
                 }
                 return () => {
-                    if (this.input.el) {
-                        this.input.el.removeAttribute('readonly');
-                        this.input.el.removeAttribute('data-tooltip');
+                    if (this.input()) {
+                        this.input().removeAttribute('readonly');
+                        this.input().removeAttribute('data-tooltip');
                     }
                 };
             },
-            () => [this.input.el, this.props.noManualEdit, this.props.readonly]
+            () => [this.input(), this.props.noManualEdit, this.props.readonly]
         );
 
         onWillUpdateProps((nextProps) => {
@@ -204,17 +205,17 @@ export class GooglePlaceAutocompleteCharField extends CharField {
      * already closed.
      */
     closeGoogleAutocomplete() {
-        if (!this.googleAutocompleteToggleRef.el) {
+        if (!this.googleAutocompleteToggleRef()) {
             return;
         }
-        const isClosed = this.googleAutocompleteToggleRef.el.classList.contains('collapsed');
+        const isClosed = this.googleAutocompleteToggleRef().classList.contains('collapsed');
         const collapseEl = document.getElementById(
-            this.googleAutocompleteToggleRef.el.getAttribute('href').substring(1)
+            this.googleAutocompleteToggleRef().getAttribute('href').substring(1)
         );
         if (!isClosed && collapseEl && collapseEl.classList.contains('show')) {
             this.state.isCollapseOpen = false;
             collapseEl.classList.remove('show');
-            this.googleAutocompleteToggleRef.el.setAttribute('aria-expanded', 'false');
+            this.googleAutocompleteToggleRef().setAttribute('aria-expanded', 'false');
         }
     }
 

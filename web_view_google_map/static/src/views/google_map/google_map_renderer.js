@@ -1,5 +1,5 @@
-import { useLayoutEffect, useRef, useSubEnv } from '@web/owl2/utils';
-import { proxy, onPatched, onWillUpdateProps, onWillStart, props, t } from '@odoo/owl';
+import { useLayoutEffect, useSubEnv } from '@web/owl2/utils';
+import { proxy, onPatched, onWillUpdateProps, onWillStart, signal, useProps, t } from '@odoo/owl';
 import { _t } from '@web/core/l10n/translation';
 import { renderToString } from '@web/core/utils/render';
 import { debounce } from '@web/core/utils/timing';
@@ -75,23 +75,6 @@ const MARKER_CONFIG = {
     },
 };
 
-export const googleMapRendererProps = {
-    archInfo: t.object(),
-    openRecord: t.function(),
-    showRecord: t.function(),
-    showRecordsByDomain: t.function(),
-    showNearbyRecords: t.function(),
-    showUnlocatedRecords: t.function(),
-    showGoogleStreetViewSideBySide: t.function(),
-    readonly: t.boolean(),
-    list: t.object(),
-    unLocatedCount: t.number(),
-    onAdd: t.function().optional(),
-    activeActions: t.object().optional(),
-    allowSelectors: t.boolean(),
-    viewAttrs: t.object(),
-};
-
 export class GoogleMapRenderer extends BaseGoogleMapComponent {
     static template = 'web_view_google_map.GoogleMapRenderer';
     static templateInfoWindow = 'web_view_google_map.MarkerInfoWindow';
@@ -100,12 +83,27 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
         Sidebar: GoogleMapSidebar,
         InMapSearchPlaces: GoogleMapSearchPlaces,
     };
-    static props = googleMapRendererProps; 
-    props = props(this.constructor.props);
+    static propsSchema = {
+        archInfo: t.object(),
+        openRecord: t.function(),
+        showRecord: t.function(),
+        showRecordsByDomain: t.function(),
+        showNearbyRecords: t.function(),
+        showUnlocatedRecords: t.function(),
+        showGoogleStreetViewSideBySide: t.function(),
+        readonly: t.boolean(),
+        list: t.object(),
+        unLocatedCount: t.number(),
+        onAdd: t.function().optional(),
+        activeActions: t.object().optional(),
+        allowSelectors: t.boolean(),
+        viewAttrs: t.object(),
+    };
+    props = useProps(this.constructor.propsSchema);
 
     setup() {
         super.setup();
-        this.mapRef = useRef('map');
+        this.mapRef = signal.ref();
         this.googleMapBounds = null;
         this.googleMapBoundsSelected = null;
         this.markerClusterer = null;
@@ -267,7 +265,7 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
      * @returns {HTMLElement|false} Map DOM element
      */
     mapDivElement() {
-        return this.mapRef.el;
+        return this.mapRef();
     }
 
     /**
@@ -854,7 +852,7 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
     get sidebarProps() {
         const { viewTitle } = this.props.archInfo;
         return {
-            header: viewTitle,
+            header: viewTitle ?? '',
             unLocatedCount: this.props.unLocatedCount,
             title: this.props.archInfo.sidebarTitleField,
             unLocatedCount: this.props.unLocatedCount ?? 0,

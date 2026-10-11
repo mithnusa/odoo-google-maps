@@ -1,14 +1,11 @@
-import { useLayoutEffect, useRef, useSubEnv } from '@web/owl2/utils';
+import { useLayoutEffect, useSubEnv } from '@web/owl2/utils';
 import { registry } from '@web/core/registry';
 import { _t } from '@web/core/l10n/translation';
 import { useService } from '@web/core/utils/hooks';
 import { standardWidgetProps } from '@web/views/widgets/standard_widget_props';
-import { Component, onWillUnmount, proxy, t, props} from '@odoo/owl';
+import { Component, onWillUnmount, proxy, signal, t, useProps } from '@odoo/owl';
 
-import {
-    ConfirmationDialog,
-    confirmationDialogProps,
-} from "@web/core/confirmation_dialog/confirmation_dialog";
+import { ConfirmationDialog, confirmationDialogProps } from '@web/core/confirmation_dialog/confirmation_dialog';
 import { useGoogleMapsAPILoader } from '@base_google_map/utils/loader_google_map';
 import { GoogleMapSearchPlaces } from '../../components/search_places/search_places';
 
@@ -28,7 +25,7 @@ class GeolocationEditDialog extends ConfirmationDialog {
         ...ConfirmationDialog.components,
         GoogleMapSearchPlaces,
     };
-    props = props({
+    static propsSchema = {
         ...confirmationDialogProps,
         confirm: t.function(),
         lat: t.number(),
@@ -36,8 +33,8 @@ class GeolocationEditDialog extends ConfirmationDialog {
         readonly: t.boolean(),
         mapType: t.string().optional(),
         confirmLabel: t.string().optional(_t('Save')),
-    });
-
+    };
+    props = useProps(this.constructor.propsSchema);
 
     /**
      * Initializes the dialog component, sets up services, state, and Google Maps API loader.
@@ -53,7 +50,7 @@ class GeolocationEditDialog extends ConfirmationDialog {
      */
     setup() {
         super.setup();
-        this.mapRef = useRef('map');
+        this.mapRef = signal.ref();
         this.notificationService = useService('notification');
         this.uiService = useService('ui');
         this.googleMap = null;
@@ -85,7 +82,7 @@ class GeolocationEditDialog extends ConfirmationDialog {
                     this.initializeMap();
                 }
             },
-            () => [this.state.isGoogleLoaded, this.mapRef.el]
+            () => [this.state.isGoogleLoaded, this.mapRef()]
         );
 
         useSubEnv({
@@ -148,7 +145,7 @@ class GeolocationEditDialog extends ConfirmationDialog {
             const { Map } = await this.apiLoader.importLibrary('maps');
             if (this._isUnmounted) return;
             const settings = this.apiLoader.getSettings();
-            const mapElement = this.mapRef.el;
+            const mapElement = this.mapRef();
             const { lat = 0.0, lng = 0.0 } = this.props;
             const options = {
                 center: { lat, lng },
@@ -331,6 +328,13 @@ class GeolocationEditDialog extends ConfirmationDialog {
     }
 }
 
+export const googleMapWidgetProps = {
+    ...standardWidgetProps,
+    lat: t.string(),
+    lng: t.string(),
+    maptype: t.string().optional(),
+};
+
 /**
  * Widget component that renders a single button on a form view.
  * Clicking the button opens `GeolocationEditDialog`, which shows an interactive
@@ -342,12 +346,7 @@ class GeolocationEditDialog extends ConfirmationDialog {
  */
 export class GoogleMapWidget extends Component {
     static template = 'web_widget_google_map.GoogleMapWidget';
-    static props = {
-        ...standardWidgetProps,
-        lat: String,
-        lng: String,
-        maptype: { type: String, optional: true },
-    };
+    props = useProps(googleMapWidgetProps);
 
     /**
      * Initializes the widget, validates props, and wires up the dialog service.

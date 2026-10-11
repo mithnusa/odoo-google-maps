@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <templates xml:space="preserve">
     <t t-name="web_widget_google_map.GoogleMapWidget">
-        <button t-if="!this.props.invisible"
+        <button
+            t-if="!this.props.invisible"
             type="button"
             class="btn btn-link p-0"
             t-on-click="this.handleOnEdit"
             t-attf-data-tooltip="{{ this.props.readonly ? 'Show on Map' : 'Update Location on Map' }}"
         >
-            <i t-attf-class="fa fa-fw {{ this.props.readonly ? 'fa-map-o' : 'fa-map-pin'}} me-1" />
+            <i class="oi oi-fw me-1" t-att-data-icon="this.props.readonly ? 'map' : 'push_pin'" />
             <span t-if="this.props.readonly">View on Map</span>
             <span t-else="">Update on Map</span>
         </button>
@@ -19,7 +20,7 @@
             </div>
             <div class="o_google_map_form">
                 <div class="o_google_map_renderer">
-                    <div class="o_google_map_view" t-custom-ref="map" />
+                    <div class="o_google_map_view" t-ref="this.mapRef" />
                     <GoogleMapSearchPlaces googleMap="this.googleMap" t-if="this.state.isMapReady" />
                 </div>
             </div>
@@ -46,7 +47,7 @@
                     style="margin-left: auto; margin-right: 0px;"
                     data-tooltip="Open in Google Maps Website"
                 >
-                    <i class="fa fa-fw fa-external-link" />
+                    <i class="oi oi-fw" data-icon="open_in_new" />
                     <span>Open in Google Maps</span>
                 </button>
             </t>

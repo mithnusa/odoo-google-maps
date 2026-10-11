@@ -1,6 +1,6 @@
 import { useService } from '@web/core/utils/hooks';
-import { useLayoutEffect, useRef } from '@web/owl2/utils';
-import { Component, onWillUnmount, props, proxy, t } from '@odoo/owl';
+import { useLayoutEffect } from '@web/owl2/utils';
+import { Component, onWillUnmount, useProps, proxy, signal, t } from '@odoo/owl';
 import { Dialog } from '@web/core/dialog/dialog';
 import { _t } from '@web/core/l10n/translation';
 import { useGoogleMapsAPILoader } from '@base_google_map/utils/loader_google_map';
@@ -55,7 +55,7 @@ function getLocationPinOverlay() {
 export class GoogleMapStreetViewSideBySideDialog extends Component {
     static template = 'web_widget_google_map.GoogleMapStreetViewSideBySideDialog';
     static components = { Dialog };
-    static props = {
+    static propsSchema = {
         close: t.function(),
         lat: t.number(),
         lng: t.number(),
@@ -64,10 +64,11 @@ export class GoogleMapStreetViewSideBySideDialog extends Component {
         pitch: t.number().optional(10),
         zoom: t.number().optional(0),
     };
+    props = useProps(this.constructor.propsSchema);
 
     setup() {
-        this.mapRef = useRef('map');
-        this.streetViewRef = useRef('streetView');
+        this.mapRef = signal.ref();
+        this.streetViewRef = signal.ref();
         this.notificationService = useService('notification');
         this._isMounted = true;
         this.googleMap = null;
@@ -96,7 +97,7 @@ export class GoogleMapStreetViewSideBySideDialog extends Component {
                     this.initializeMapAndStreetView();
                 }
             },
-            () => [this.state.isGoogleLoaded, this.mapRef.el, this.streetViewRef.el]
+            () => [this.state.isGoogleLoaded, this.mapRef(), this.streetViewRef()]
         );
 
         onWillUnmount(() => {
@@ -156,11 +157,11 @@ export class GoogleMapStreetViewSideBySideDialog extends Component {
         // The explicit teardown above (unbindAll/clearInstanceListeners/nulling refs)
         // still runs synchronously and immediately stops tile/imagery fetching.
         requestAnimationFrame(() => {
-            if (this.mapRef.el) {
-                this.mapRef.el.innerHTML = '';
+            if (this.mapRef()) {
+                this.mapRef().innerHTML = '';
             }
-            if (this.streetViewRef.el) {
-                this.streetViewRef.el.innerHTML = '';
+            if (this.streetViewRef()) {
+                this.streetViewRef().innerHTML = '';
             }
         });
     }
@@ -186,7 +187,7 @@ export class GoogleMapStreetViewSideBySideDialog extends Component {
             // (WebGL). Vector maps sharing a mapId with other maps on the page were
             // implicated in the parent view's map going blank after this dialog
             // closes; going raster here avoids that shared WebGL context entirely.
-            const map = new Map(this.mapRef.el, {
+            const map = new Map(this.mapRef(), {
                 center: position,
                 zoom: 14,
             });
@@ -220,7 +221,7 @@ export class GoogleMapStreetViewSideBySideDialog extends Component {
             const effectiveHeading =
                 heading !== undefined ? heading : panoLatLng ? spherical.computeHeading(panoLatLng, position) : 0;
 
-            const panorama = new StreetViewPanorama(this.streetViewRef.el, {
+            const panorama = new StreetViewPanorama(this.streetViewRef(), {
                 position,
                 pov: { heading: effectiveHeading, pitch: pitch ?? 10 },
                 zoom: zoom ?? 0,

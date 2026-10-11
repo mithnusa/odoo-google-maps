@@ -1,9 +1,9 @@
 import { useService } from '@web/core/utils/hooks';
-import { useLayoutEffect, useRef } from '@web/owl2/utils';
+import { useLayoutEffect } from '@web/owl2/utils';
 import { registry } from '@web/core/registry';
 import { _t } from '@web/core/l10n/translation';
 import { exprToBoolean } from '@web/core/utils/strings';
-import { onWillUnmount, onWillUpdateProps, proxy, props, t } from '@odoo/owl';
+import { onWillUnmount, onWillUpdateProps, proxy, signal, useProps, t } from '@odoo/owl';
 import {
     PartnerAutoCompleteCharField,
     partnerAutoCompleteCharField,
@@ -36,12 +36,13 @@ export class PartnerAutoCompleteCharFieldWithGooglePlace extends PartnerAutoComp
         ...PartnerAutoCompleteCharField.components,
         GooglePlaceAutocompleteElement,
     };
-    props = props({
+    static propsSchema = {
         ...charFieldProps,
         mappingCode: t.string().optional(),
-        mappingMode: t.string().optional(), // Accepted values: 'address' or 'places'. Default is 'places' if not set.
-        noManualEdit: t.boolean().optional(), // If true, the input field will be set to readonly to prevent manual edits. Other fields will still be populated based on the autocomplete selection. Default is false (manual edits allowed).
-    });
+        mappingMode: t.string().optional(),
+        noManualEdit: t.boolean().optional(),
+    };
+    props = useProps(this.constructor.propsSchema);
 
     /**
      * Initialises services, reactive state, the place mapping hook, and
@@ -52,7 +53,7 @@ export class PartnerAutoCompleteCharFieldWithGooglePlace extends PartnerAutoComp
     setup() {
         super.setup();
         this.notificationService = useService('notification');
-        this.googleAutocompleteToggleRef = useRef('googleAutocompleteToggle');
+        this.googleAutocompleteToggleRef = signal.ref();
         this.state = proxy({
             mappingId: 0,
             isCollapseOpen: false,
@@ -63,9 +64,9 @@ export class PartnerAutoCompleteCharFieldWithGooglePlace extends PartnerAutoComp
 
         useLayoutEffect(
             () => {
-                if (this.inputRef.el && !this.props.readonly && this.props.noManualEdit) {
-                    this.inputRef.el.setAttribute('readonly', 'readonly');
-                    this.inputRef.el.setAttribute(
+                if (this.inputRef() && !this.props.readonly && this.props.noManualEdit) {
+                    this.inputRef().setAttribute('readonly', 'readonly');
+                    this.inputRef().setAttribute(
                         'data-tooltip',
                         _t(
                             'This field is read-only because manual edits are disabled. Please use the Google Place Autocomplete to update the value.'
@@ -73,13 +74,13 @@ export class PartnerAutoCompleteCharFieldWithGooglePlace extends PartnerAutoComp
                     );
                 }
                 return () => {
-                    if (this.inputRef.el) {
-                        this.inputRef.el.removeAttribute('readonly');
-                        this.inputRef.el.removeAttribute('data-tooltip');
+                    if (this.inputRef()) {
+                        this.inputRef().removeAttribute('readonly');
+                        this.inputRef().removeAttribute('data-tooltip');
                     }
                 };
             },
-            () => [this.inputRef.el, this.props.noManualEdit, this.props.readonly]
+            () => [this.inputRef(), this.props.noManualEdit, this.props.readonly]
         );
 
         onWillUnmount(() => {
@@ -215,17 +216,17 @@ export class PartnerAutoCompleteCharFieldWithGooglePlace extends PartnerAutoComp
      * already closed.
      */
     closeGoogleAutocomplete() {
-        if (!this.googleAutocompleteToggleRef.el) {
+        if (!this.googleAutocompleteToggleRef()) {
             return;
         }
-        const isClosed = this.googleAutocompleteToggleRef.el.classList.contains('collapsed');
+        const isClosed = this.googleAutocompleteToggleRef().classList.contains('collapsed');
         const collapseEl = document.getElementById(
-            this.googleAutocompleteToggleRef.el.getAttribute('href').substring(1)
+            this.googleAutocompleteToggleRef().getAttribute('href').substring(1)
         );
         if (!isClosed && collapseEl && collapseEl.classList.contains('show')) {
             this.state.isCollapseOpen = false;
             collapseEl.classList.remove('show');
-            this.googleAutocompleteToggleRef.el.setAttribute('aria-expanded', 'false');
+            this.googleAutocompleteToggleRef().setAttribute('aria-expanded', 'false');
         }
     }
 

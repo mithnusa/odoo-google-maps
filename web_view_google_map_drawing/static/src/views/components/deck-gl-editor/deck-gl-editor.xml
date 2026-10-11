@@ -2,7 +2,7 @@
 <templates xml:space="preserve">
     <div t-name="web_view_google_map_drawing.DeckGlEditor" class="deck-gl-editor">
         <!-- DeckGL Import/Export Toolbar -->
-        <div class="o_deckgl_toolbar" t-custom-ref="editor">
+        <div class="o_deckgl_toolbar" t-ref="this.editorRef">
             <t t-if="!this.props.readonly">
                 <button
                     id="import-geojson-button"
@@ -10,7 +10,7 @@
                     data-tooltip="Import GeoJSON"
                     t-on-click.prevent="this.onClickImport"
                 >
-                    <span class="fa fa-upload fa-lg" />
+                    <span class="oi oi-lg" data-icon="upload" />
                 </button>
                 <button
                     id="export-geojson-button"
@@ -19,7 +19,7 @@
                     t-on-click.prevent="this.onClickExport"
                     t-att-disabled="!this.hasDataToExport"
                 >
-                    <span class="fa fa-download fa-lg" />
+                    <span class="oi oi-lg" data-icon="download" />
                 </button>
                 <button
                     id="calculate-area-button"
@@ -27,7 +27,7 @@
                     data-tooltip="Calculate Area"
                     t-on-click.prevent="this.onClickCalculateArea"
                 >
-                    <span class="fa fa-calculator fa-lg" />
+                    <span class="oi oi-lg" data-icon="calculate" />
                 </button>
             </t>
         </div>

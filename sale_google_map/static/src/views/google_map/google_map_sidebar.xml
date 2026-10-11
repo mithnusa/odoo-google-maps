@@ -32,9 +32,9 @@
                     type="button"
                     class="btn btn-sm btn-link"
                     data-tooltip="Nearby"
-                    t-on-click="() => props.showNearbyRecords(group.group.records[0])"
+                    t-on-click="() => this.props.showNearbyRecords(group.group.records[0])"
                 >
-                    <i class="fa fa-location-arrow" />
+                    <i class="oi" data-icon="near_me" />
                     <span class="visually-hidden">Nearby</span>
                 </button>
             </t>
@@ -46,7 +46,7 @@
         t-inherit-mode="primary"
     >
         <xpath expr="//t[@t-if='this.props.allowSelectors']" position="replace" />
-        <xpath expr="//div[@t-custom-ref='root']" position="attributes">
+        <xpath expr="//div[hasclass('o_map_sidebar')]" position="attributes">
             <attribute name="class" add="sale_google_map" separator=" " />
         </xpath>
     </t>

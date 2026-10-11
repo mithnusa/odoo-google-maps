@@ -3,7 +3,7 @@
     <div t-name="web_view_google_map_drawing.GoogleMapTerraDrawField">
         <div class="o_google_map_renderer">
             <InMapSearchPlaces googleMap="this.googleMap" />
-            <div class="o_google_map_view" id="o_google_map_view" t-custom-ref="map" />
+            <div class="o_google_map_view" id="o_google_map_view" t-ref="this.mapRef" />
             <Geolocate googleMap="this.googleMap" t-if="this.state.isMapReady" />
 
             <t t-if="this.state.isMapReady">

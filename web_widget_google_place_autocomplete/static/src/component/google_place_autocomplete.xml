@@ -15,14 +15,14 @@
                     data-tooltip="Open Mapping Configuration"
                     t-on-click.prevent="this.openMappingConfig"
                 >
-                    <i class="fa fa-cog text-600" />
+                    <i class="oi oi-filled text-600" data-icon="settings" />
                 </span>
             </p>
             <p t-else="" class="smaller mb-0 text-warning text-center">
-                <i class="fa fa-exclamation-triangle" />
+                <i class="oi" data-icon="warning" />
                 <span class="ps-1">Missing mapping code or mapping mode</span>
             </p>
-            <div t-custom-ref="gAutocomplete" class="o_google_places_element" />
+            <div t-ref="this.gAutocompleteRef" class="o_google_places_element" />
         </div>
     </t>
 </templates>

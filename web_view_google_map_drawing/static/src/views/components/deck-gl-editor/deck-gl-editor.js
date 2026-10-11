@@ -1,8 +1,8 @@
-import { useLayoutEffect, useRef } from '@web/owl2/utils';
+import { useLayoutEffect } from '@web/owl2/utils';
 import { _t } from '@web/core/l10n/translation';
 import { debounce } from '@web/core/utils/timing';
 import { useService } from '@web/core/utils/hooks';
-import { Component, onWillDestroy, onWillStart, onWillUpdateProps, proxy, props, t } from '@odoo/owl';
+import { Component, onWillDestroy, onWillStart, onWillUpdateProps, proxy, signal, useProps, t } from '@odoo/owl';
 import { hexToRgba, generateColor } from '@web_view_google_map/views/google_map/utils';
 import {
     loadDeckGlAssets,
@@ -14,29 +14,25 @@ import {
 import { DECKGL_CONFIG, STROKE_CONFIG } from '../../../utils/map_config';
 import { UploadGeoJsonFileDialog } from '../upload_geojson_dialog/upload_geojson_dialog';
 
-
-const deckGlEditorProps = {
-    readonly: t.boolean(),
-    renderingMode: t.string(),
-    googleMap: t.object(),
-    dataGeoJson: t.or([t.object(), t.boolean()]).optional(),
-    saveFeatures: t.function(),
-    saveFeaturesTotalArea: t.function(),
-    record: t.object(),
-    onSelectionChange: t.function().optional(), // Callback for selection changes
-};
-
-
 export class DeckGlEditor extends Component {
     static template = 'web_view_google_map_drawing.DeckGlEditor';
-    static props = deckGlEditorProps;
-    props = props(this.constructor.props);
+    static propsSchema = {
+        readonly: t.boolean(),
+        renderingMode: t.string(),
+        googleMap: t.object(),
+        dataGeoJson: t.or([t.object(), t.boolean()]).optional(),
+        saveFeatures: t.function(),
+        saveFeaturesTotalArea: t.function(),
+        record: t.object(),
+        onSelectionChange: t.function().optional(), // Callback for selection changes
+    };
+    props = useProps(this.constructor.propsSchema);
 
     setup() {
         this.notificationService = useService('notification');
         this.dialogService = useService('dialog');
         this.uiService = useService('ui');
-        this.editorRef = useRef('editor');
+        this.editorRef = signal.ref();
         this.googleMapBounds = null;
         this.deckglOverlay = null;
 
@@ -60,7 +56,7 @@ export class DeckGlEditor extends Component {
 
         useLayoutEffect(
             (editorRef, googleMap) => {
-                if (editorRef.el && googleMap) {
+                if (editorRef() && googleMap) {
                     this._initializeDeckGLOverlay();
                 }
             },
