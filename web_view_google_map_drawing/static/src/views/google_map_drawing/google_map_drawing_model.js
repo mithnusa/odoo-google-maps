@@ -29,7 +29,7 @@ export class GoogleMapDrawingModel extends GoogleMapModel {
             result = Domain.and([
                 [[this.viewConfig.geoJsonField, '!=', null]],
                 [[this.viewConfig.geoJsonField, 'json_ne', EMPTY_FEATURE_COLLECTION]],
-            ]).toList({}); // Filter out null and empty FeatureCollection
+            ]).toList(); // Filter out null and empty FeatureCollection
         }
         this._mapDomainCache = result;
         return result;
@@ -50,7 +50,7 @@ export class GoogleMapDrawingModel extends GoogleMapModel {
             result = Domain.or([
                 [[this.viewConfig.geoJsonField, '=', null]],
                 [[this.viewConfig.geoJsonField, 'json_eq', EMPTY_FEATURE_COLLECTION]],
-            ]).toList({});
+            ]).toList();
         }
         this._unlocatedDomainCache = result;
         return result;

@@ -1,20 +1,23 @@
 from odoo import fields, models
+from odoo.addons.web_view_google_map_drawing.models.fields import (
+    SearchableJson,
+)
 
 
 class ProjectTask(models.Model):
     _inherit = "project.task"
 
-    partner_site_id = fields.Many2one(
-        "res.partner",
-        string="Site Address",
+    project_geojson = SearchableJson(
+        related="project_id.geojson",
+        string="Project GeoJSON",
+        readonly=True,
     )
-    site_latitude = fields.Float(
-        related="partner_site_id.partner_latitude",
+    project_geojson_area = fields.Float(
+        related="project_id.geojson_area",
+        string="Project Area",
+        readonly=True,
     )
-    site_longitude = fields.Float(
-        related="partner_site_id.partner_longitude",
-    )
-    marker_color = fields.Integer(
-        string="Marker Color",
-        default=1,
-    )
+    geojson = SearchableJson(string="GeoJSON")
+    geojson_area = fields.Float(string="Area")
+    # Paired with widget color_picker
+    geojson_color = fields.Integer(string="AreaColor", default=1)

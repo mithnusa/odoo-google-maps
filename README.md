@@ -93,11 +93,11 @@ graph LR
 
 The required foundation for every other module in this suite. Adds a Google Maps section to General Settings where you enter your API Key, Map ID, and preferences for language, region, color scheme, and nearby search radius. All other modules load the Google Maps script through this one.
 
-**[web_view_google_map](web_view_google_map/README.md)** [`19.0.1.0.26`](web_view_google_map/CHANGELOG.md)
+**[web_view_google_map](web_view_google_map/README.md)** [`19.0.2.0.4`](web_view_google_map/CHANGELOG.md)
 
 The core map view module. Adds a `google_map` view type alongside list, kanban, and form. Features a record sidebar, marker clustering for dense data, box selection to pick multiple records at once, nearby search, in-map place search, a geolocation button to center the map on your location, grouped markers, dark mode, and a Street View side-by-side button in every marker info window.
 
-**[web_view_google_map_drawing](web_view_google_map_drawing/README.md)** [`19.0.1.0.22`](web_view_google_map_drawing/CHANGELOG.md)
+**[web_view_google_map_drawing](web_view_google_map_drawing/README.md)** [`19.0.2.0.4`](web_view_google_map_drawing/CHANGELOG.md)
 
 Extends the map view with geographic drawing tools. Users can draw polygons, rectangles, and freehand shapes directly on the map. Shapes are stored as GeoJSON on the record and support server-side filtering so you can query which records fall inside a drawn area. Built on [Terra Draw](https://terradraw.io/) and [Deck.gl](https://deck.gl/); all libraries are bundled locally.
 
@@ -169,9 +169,9 @@ Adds a Google Map view to the Inventory application, covering Deliveries, Ready 
 
 ### Project
 
-**[project_google_map](project_google_map/README.md)** [`19.0.1.0.7`](project_google_map/CHANGELOG.md)
+**[project_google_map](project_google_map/README.md)** [`19.0.2.0.1`](project_google_map/CHANGELOG.md)
 
-Adds Google Map views for Projects and Tasks. Project markers are automatically color-coded by health status — on track, at risk, off track, on hold, and done — and include a "View Tasks" shortcut to jump directly to that project's tasks. The project form gains an embedded satellite map. Task markers can be individually color-coded using a color picker.
+Adds Google Map views for Projects and Tasks, where each project and task has a drawn area rather than a single pin. Project areas are automatically color-coded by health status — on track, at risk, off track, on hold, and done — and include a "View Tasks" shortcut to jump directly to that project's tasks. Task areas are drawn with the parent project's boundary shown as a reference outline, and can be individually color-coded.
 
 ---
 

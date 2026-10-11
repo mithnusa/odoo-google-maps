@@ -65,7 +65,7 @@ jobs:
         run: |
           pip install -r /opt/odoo/requirements.txt
           pip install -e /opt/odoo
-          pip install coverage
+          pip install coverage websocket-client
 
       - name: Wait for PostgreSQL
         env:
@@ -186,6 +186,37 @@ jobs:
           fi
           echo ""
 
+          # Discover repository addons with a Hoot JS unit test suite
+          # (static/tests/**/*.test.js). These have no Python test_*.py file
+          # so they're absent from db_test_addons above, but they still need
+          # to be installed for their web.assets_unit_tests bundle to be
+          # loaded when /web/tests runs — and WebSuite.test_unit_desktop's
+          # hoot id filter is built from their suite name (derived from the
+          # test file name), not a hardcoded list.
+          js_test_addons=()
+          hoot_tags=()
+          for module in "${install_modules[@]}"; do
+            if [[ -d "$module/static/tests" ]]; then
+              while IFS= read -r test_file; do
+                js_test_addons+=("$module")
+                suite_name=$(basename "$test_file" .test.js)
+                hoot_tags+=("/web:WebSuite.test_unit_desktop[@${module}/${suite_name}]")
+              done < <(find "$module/static/tests" -type f -name "*.test.js")
+            fi
+          done
+
+          mapfile -t js_test_addons < <(
+            printf '%s\n' "${js_test_addons[@]}" | sort -u
+          )
+
+          echo "JS (Hoot) test addons:"
+          if [[ ${#js_test_addons[@]} -gt 0 ]]; then
+            printf '  %s\n' "${js_test_addons[@]}"
+          else
+            echo "  (none)"
+          fi
+          echo ""
+
           # Python imports modules via their symlink path (/opt/odoo/odoo/addons/<module>/...)
           # so --source must point there to match what coverage actually tracks.
           COVERAGE_SOURCES=$(printf '/opt/odoo/odoo/addons/%s,' "${install_modules[@]}")
@@ -201,12 +232,24 @@ jobs:
               "${unit_test_modules[@]}"
           fi
 
-          # Run DB-backed Odoo tests only for repository addons that actually have DB tests
-          if [[ ${#db_test_addons[@]} -gt 0 ]]; then
-            DB_MODULES=$(IFS=,; echo "${db_test_addons[*]}")
+          # Run DB-backed Odoo tests and/or the Hoot JS suite, whichever
+          # (or both) this repo actually has. Independent of one another —
+          # neither should be skipped just because the other is empty.
+          if [[ ${#db_test_addons[@]} -gt 0 || ${#js_test_addons[@]} -gt 0 ]]; then
+            # Modules to install: anything with Python DB tests, plus
+            # anything with JS tests (needed so their web.assets_unit_tests
+            # bundle is actually loaded when /web/tests runs).
+            mapfile -t install_for_tests < <(
+              printf '%s\n' "${db_test_addons[@]}" "${js_test_addons[@]}" | sort -u
+            )
+            DB_MODULES=$(IFS=,; echo "${install_for_tests[*]}")
 
-            TEST_TAGS=$(printf ',/%s' "${db_test_addons[@]}")
-            TEST_TAGS=${TEST_TAGS:1}
+            test_tag_parts=()
+            for addon in "${db_test_addons[@]}"; do
+              test_tag_parts+=("/$addon")
+            done
+            test_tag_parts+=("${hoot_tags[@]}")
+            TEST_TAGS=$(IFS=,; echo "${test_tag_parts[*]}")
 
             python -m coverage run \
               --append \

@@ -1,0 +1,25 @@
+.o_field_google_map_terra_draw_project_task {
+    width: 100%;
+    .o_google_map_renderer {
+        min-height: 650px;
+        margin-bottom: 1rem;
+        position: relative; // For complexity banner positioning
+
+        .o_google_map_view_widget {
+            border: 1px solid $o-view-background-color;
+        }
+    }
+}
+
+.o_dialog {
+    .o_field_google_map_terra_draw_project_task {
+        width: 100%;
+        .o_google_map_renderer {
+            z-index: 2;
+            min-height: 550px;
+            .o_google_map_view + .o_google_map_view_startpoint {
+                left: 50%;
+            }
+        }
+    }
+}

@@ -1,25 +1,20 @@
 from odoo import api, fields, models
+from odoo.addons.web_view_google_map_drawing.models.fields import (
+    SearchableJson,
+)
 
 
 class ProjectProject(models.Model):
     _inherit = "project.project"
 
-    partner_site_id = fields.Many2one(
-        "res.partner",
-        string="Site Address",
+    geojson = SearchableJson(string="GeoJSON")
+    geojson_color = fields.Char(
+        string="Marker Color", compute="_compute_geojson_color"
     )
-    site_latitude = fields.Float(
-        related="partner_site_id.partner_latitude",
-    )
-    site_longitude = fields.Float(
-        related="partner_site_id.partner_longitude",
-    )
-    marker_color = fields.Char(
-        string="Marker Color", compute="_compute_marker_color"
-    )
+    geojson_area = fields.Float(string="Area")
 
     @api.depends("last_update_status")
-    def _compute_marker_color(self):
+    def _compute_geojson_color(self):
         colors = {
             "on_track": "#28a745",
             "at_risk": "#ffac00",
@@ -29,6 +24,6 @@ class ProjectProject(models.Model):
         }
         unknown_status = "#d2d3d4"
         for record in self:
-            record.marker_color = colors.get(
+            record.geojson_color = colors.get(
                 record.last_update_status, unknown_status
             )

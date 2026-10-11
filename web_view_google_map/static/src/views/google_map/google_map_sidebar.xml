@@ -201,7 +201,15 @@
                         <span t-att-data-tooltip="this.geolocationInfoTooltip">
                             <i class="fa fa-info" aria-hidden="true" />
                         </span>
-                    </small>
+                    </div>
+                    <button
+                        type="button"
+                        class="btn btn-link"
+                        data-tooltip="Show Unlocated"
+                        t-on-click.prevent="() => props.showUnlocatedRecords()"
+                    >
+                        <i class="fa fa-lg fa-angle-double-right" aria-hidden="true" />
+                    </button>
                 </div>
             </div>
             <div t-if="this.props.unLocatedCount &gt; 0" class="py-1 border-top border-bottom">

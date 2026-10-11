@@ -60,5 +60,8 @@ Provides:
             "web_view_google_map_drawing/static/src/views/google_map_drawing/google_map_drawing_view.js",
             "web_view_google_map_drawing/static/src/fields/x2many/google_map_drawing_x2many_field.js",
         ],
+        "web.assets_unit_tests": [
+            "web_view_google_map_drawing/static/tests/**/*",
+        ],
     },
 }

@@ -87,10 +87,37 @@ export class GoogleMapModel extends RelationalModel {
         const mapDomain = this.mapDomain;
         if (mapDomain && mapDomain.length) {
             // add domain for geolocation fields
-            nextConfig.domain = Domain.and([nextConfig.domain ?? [], mapDomain]).toList({});
+            nextConfig.domain = Domain.and([nextConfig.domain ?? [], mapDomain]).toList();
         }
         return nextConfig;
     }
+
+    /**
+     * Override
+     * @param {*} params
+     */
+    async load(params = {}) {
+        const res = await super.load(params);
+        await this._updateUnlocatedRecordCount(this.config, params);
+        return res;
+    }
+
+    /**
+     * Whether the view is configured with searchable geolocation fields
+     * @returns {boolean}
+     */
+    _hasSearchableGeoFields() {
+        return Boolean(
+            this.viewConfig &&
+                this.viewConfig.lat &&
+                this.viewConfig.lng &&
+                this.config.fields[this.viewConfig.lat] &&
+                this.config.fields[this.viewConfig.lng] &&
+                this.config.fields[this.viewConfig.lat].searchable &&
+                this.config.fields[this.viewConfig.lng].searchable
+        );
+    }
+
     /**
      * Override
      * @param {*} params
@@ -133,13 +160,13 @@ export class GoogleMapModel extends RelationalModel {
 
             if (this.config.fields[this.viewConfig.lat].related) {
                 const related_source = this.config.fields[this.viewConfig.lat].related.split('.')[0];
-                latDomain = Domain.and([latDomain, [[related_source, 'not in', nullValues]]]).toList({});
+                latDomain = Domain.and([latDomain, [[related_source, 'not in', nullValues]]]).toList();
             }
             if (this.config.fields[this.viewConfig.lng].related) {
                 const related_source = this.config.fields[this.viewConfig.lng].related.split('.')[0];
-                lngDomain = Domain.and([lngDomain, [[related_source, 'not in', nullValues]]]).toList({});
+                lngDomain = Domain.and([lngDomain, [[related_source, 'not in', nullValues]]]).toList();
             }
-            result = Domain.and([latDomain, lngDomain]).toList({});
+            result = Domain.and([latDomain, lngDomain]).toList();
         }
         this._mapDomainCache = result;
         return result;
@@ -182,10 +209,21 @@ export class GoogleMapModel extends RelationalModel {
         if (!notGeolocated.length) {
             return [];
         }
-        return Domain.and([this._searchDomain ?? [], notGeolocated]).toList({});
+        return Domain.and([this._searchDomain ?? [], notGeolocated]).toList();
     }
 
-    async _updateUnlocatedRecordCount() {
+    async _updateUnlocatedRecordCount(config, params) {
+        // `params.domain` is present on every model-driven load (useModel's
+        // getSearchParams always includes 'domain' from SEARCH_KEYS), so it
+        // must be re-synced every call, not just the first — otherwise the
+        // unlocated count keeps scoring against the domain from initial
+        // mount and never reflects a later search. Bare `this.model.load()`
+        // calls (reload button, action-menu refresh) omit params entirely,
+        // so `params.domain` is undefined there — keep the last known scope
+        // in that case instead of resetting it.
+        if (params.domain !== undefined) {
+            this._searchDomain = params.domain;
+        }
         const domain = this.unlocatedRecordsDomain;
         if (!domain.length || this.useSampleModel) {
             this.unLocatedCount = 0;

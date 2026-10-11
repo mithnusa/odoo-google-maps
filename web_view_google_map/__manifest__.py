@@ -59,6 +59,9 @@ Provides:
         "web.dark_mode_assets_backend": [
             "web_view_google_map/static/src/views/google_map/google_map_view.dark.scss",
         ],
+        "web.assets_unit_tests": [
+            "web_view_google_map/static/tests/**/*",
+        ],
     },
     "uninstall_hook": "_uninstall_view_google_map",
 }
