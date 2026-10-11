@@ -1,4 +1,4 @@
-import { useComponent } from '@web/owl2/utils';
+import { props as useComponentProps } from '@odoo/owl';
 import { _t } from '@web/core/l10n/translation';
 import { useService } from '@web/core/utils/hooks';
 
@@ -22,7 +22,7 @@ import { useService } from '@web/core/utils/hooks';
  * }}
  */
 export function useGooglePlaceAutocompleteMapping(isTest = false) {
-    const component = useComponent();
+    const componentProps = useComponentProps();
     const notificationService = useService('notification');
     const ormService = useService('orm');
     const mappingCache = {};
@@ -37,7 +37,7 @@ export function useGooglePlaceAutocompleteMapping(isTest = false) {
      * @returns {string} A unique widget ID string.
      */
     function getUniqueWidgetId() {
-        const { record, id } = component.props;
+        const { record, id } = componentProps;
         const recordPart = record?.id || 'new';
         const _id = String(id || '');
         return 'place-autocomplete-input-widget-' + recordPart + '-' + _id;
@@ -52,7 +52,7 @@ export function useGooglePlaceAutocompleteMapping(isTest = false) {
      */
     function buildContext(additionalContext = {}) {
         return {
-            widget_res_model: component.props?.record?.resModel,
+            widget_res_model: componentProps.record?.resModel,
             ...additionalContext,
         };
     }
@@ -125,8 +125,8 @@ export function useGooglePlaceAutocompleteMapping(isTest = false) {
     async function getMappingConfig() {
         if (
             mappingCache.id &&
-            ((component.props.mappingCode && mappingCache.code === component.props.mappingCode) ||
-                (component.props.mappingMode && mappingCache.mode === component.props.mappingMode))
+            ((componentProps.mappingCode && mappingCache.code === componentProps.mappingCode) ||
+                (componentProps.mappingMode && mappingCache.mode === componentProps.mappingMode))
         ) {
             return { ...mappingCache };
         }
@@ -134,18 +134,17 @@ export function useGooglePlaceAutocompleteMapping(isTest = false) {
             return _pendingFetch;
         }
 
-        const props = component.props || {};
         _pendingFetch = (async () => {
             try {
-                if (!props.mappingCode && !props.mappingMode) {
+                if (!componentProps.mappingCode && !componentProps.mappingMode) {
                     return null;
                 }
 
                 let mappingConfig = null;
-                if (props.mappingCode) {
-                    mappingConfig = await getMappingConfigByCode(props.mappingCode);
-                } else if (props.mappingMode) {
-                    mappingConfig = await getMappingConfigByMode(props.mappingMode);
+                if (componentProps.mappingCode) {
+                    mappingConfig = await getMappingConfigByCode(componentProps.mappingCode);
+                } else if (componentProps.mappingMode) {
+                    mappingConfig = await getMappingConfigByMode(componentProps.mappingMode);
                 }
 
                 if (mappingConfig === null) {
