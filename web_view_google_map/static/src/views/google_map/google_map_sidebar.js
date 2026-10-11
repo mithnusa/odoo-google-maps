@@ -1,36 +1,46 @@
 import { _t } from '@web/core/l10n/translation';
-import { Component, props, t } from '@odoo/owl';
+import { Component, t, useProps } from '@odoo/owl';
 import { CheckBox } from '@web/core/checkbox/checkbox';
 import { Field } from '@web/views/fields/field';
-
-
-export const googleMapSidebarProps = {
-    header: t.string(),
-    title: t.string(),
-    unLocatedCount: t.number(),
-    showUnlocatedRecords: t.function(),
-    getGroupsOrRecords: t.function(),
-    toggleGroup: t.function(),
-    renderGroupedRecordsFitBounds: t.function(),
-    openRecord: t.function(),
-    showRecordsByDomain: t.function(),
-    showNearbyRecords: t.function(),
-    pointInMap: t.function(),
-    deleteGroupRecords: t.function(),
-    handleToggleSelection: t.function(),
-    handleCanSelectRecord: t.boolean(),
-    handleSelectAll: t.boolean(),
-    handleToggleRecordSelection: t.function(),
-    allowSelectors: t.boolean(),
-    isGrouped: t.boolean(),
-};
-
 
 export class GoogleMapSidebar extends Component {
     static template = 'web_view_google_map.GoogleMapSidebar';
     static listGroupOrRecordTemplate = 'web_view_google_map.ListGroupOrRecord';
     static recordItemTemplate = 'web_view_google_map.RecordItem';
     static groupItemTemplate = 'web_view_google_map.GroupItem';
+    static components = { CheckBox, Field };
+    // Resolved via `this.constructor.propsSchema` (not the
+    // `googleMapSidebarProps` constant directly) so a subclass that needs a
+    // different prop schema — e.g. the drawing sidebar removing the
+    // unsupported `showNearbyRecords` requirement — can override the static
+    // instead of adding its own instance-level `useProps()` call. An
+    // instance field in the subclass would run too late: this field
+    // initializer (inherited from here) runs first during `super()` and
+    // already validates against whatever `this.constructor.propsSchema`
+    // resolves to for the actual instantiated class. Named `propsSchema`,
+    // not `props`, so it can't be confused with the component's own
+    // instance-level `props`.
+    static propsSchema = {
+        header: t.any().optional(true),
+        title: t.string(),
+        unLocatedCount: t.number(),
+        showUnlocatedRecords: t.function(),
+        getGroupsOrRecords: t.function(),
+        toggleGroup: t.function(),
+        renderGroupedRecordsFitBounds: t.function(),
+        openRecord: t.function(),
+        showRecordsByDomain: t.function(),
+        showNearbyRecords: t.function(),
+        pointInMap: t.function(),
+        deleteGroupRecords: t.function(),
+        handleToggleSelection: t.function(),
+        handleCanSelectRecord: t.boolean(),
+        handleSelectAll: t.boolean(),
+        handleToggleRecordSelection: t.function(),
+        allowSelectors: t.boolean(),
+        isGrouped: t.boolean(),
+    };
+    props = useProps(this.constructor.propsSchema);
     /**
      * Optional extra content rendered below the record title inside the
      * content <td>.  Override in a sub-class to inject module-specific
@@ -44,9 +54,6 @@ export class GoogleMapSidebar extends Component {
      * RecordItem.
      */
     static recordActionsTemplate = 'web_view_google_map.RecordActionsTemplate';
-    static components = { CheckBox, Field };
-    static props = googleMapSidebarProps;
-    props = props(this.constructor.props);
 
     get datas() {
         return this.props.getGroupsOrRecords();
