@@ -17,7 +17,7 @@ jobs:
 
     services:
       postgres:
-        image: postgres:16
+        image: postgres:18.4
         env:
           POSTGRES_USER: odoo
           POSTGRES_PASSWORD: odoo
@@ -34,10 +34,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Python 3.12
+      - name: Set up Python 3.14
         uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: "3.14"
 
       - name: Install system dependencies
         run: |
@@ -45,9 +45,9 @@ jobs:
           sudo apt-get install -y --no-install-recommends \
             libldap2-dev libsasl2-dev libssl-dev postgresql-client
 
-      - name: Clone Odoo 19
+      - name: Clone Odoo 20
         run: |
-          git clone --depth=1 --branch=19.0 \
+          git clone --depth=1 --branch=20.0 \
             https://github.com/odoo/odoo.git /opt/odoo || { \
             echo "ERROR: Failed to clone Odoo repository"; \
             exit 1; \
