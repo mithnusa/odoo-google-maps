@@ -618,13 +618,30 @@ export class BaseGoogleMapComponent extends Component {
 
             mapEl.setAttribute('aria-live', 'assertive');
 
+            // mapEl must be a positioning context for the centered overlay below
+            if (!mapEl.style.position) {
+                mapEl.style.position = 'relative';
+            }
+
             // aria-describedby must reference an element ID, not raw text
             let errorEl = mapEl.querySelector('[data-role="gmap-error-msg"]');
             if (!errorEl) {
                 errorEl = document.createElement('div');
                 errorEl.id = 'gmap-error-msg';
                 errorEl.setAttribute('data-role', 'gmap-error-msg');
-                errorEl.className = 'sr-only';
+                errorEl.style.cssText = `
+                    position: absolute;
+                    inset: 0;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    text-align: center;
+                    padding: 24px;
+                    background-color: rgba(255, 255, 255, 0.9);
+                    color: #d9534f;
+                    font-weight: 500;
+                    z-index: 1;
+                `;
                 mapEl.appendChild(errorEl);
             }
             errorEl.textContent = this.errorMessage;
