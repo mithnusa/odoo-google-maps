@@ -119,31 +119,6 @@ export class GoogleMapModel extends RelationalModel {
     }
 
     /**
-     * Override
-     * @param {*} params
-     */
-    async load(params = {}) {
-        const res = await super.load(params);
-        await this._updateUnlocatedRecordCount();
-        return res;
-    }
-
-    /**
-     * Whether the view is configured with searchable geolocation fields
-     * @returns {boolean}
-     */
-    _hasSearchableGeoFields() {
-        return Boolean(
-            this.viewConfig &&
-                this.viewConfig.lat &&
-                this.viewConfig.lng &&
-                this.config.fields[this.viewConfig.lat] &&
-                this.config.fields[this.viewConfig.lng] &&
-                this.config.fields[this.viewConfig.lat].searchable &&
-                this.config.fields[this.viewConfig.lng].searchable
-        );
-    }
-    /**
      * Filter for geolocation fields
      * @returns {Array} domain for map
      */
@@ -181,17 +156,14 @@ export class GoogleMapModel extends RelationalModel {
             const nullValues = [null, false];
             // Complement of mapDomain: a record is not geolocated when ANY
             // required coordinate source is missing — hence OR, not AND.
-            const parts = [
-                [[this.viewConfig.lat, 'in', nullValues]],
-                [[this.viewConfig.lng, 'in', nullValues]],
-            ];
+            const parts = [[[this.viewConfig.lat, 'in', nullValues]], [[this.viewConfig.lng, 'in', nullValues]]];
             for (const fieldName of [this.viewConfig.lat, this.viewConfig.lng]) {
                 const related = this.config.fields[fieldName].related;
                 if (related) {
                     parts.push([[related.split('.')[0], 'in', nullValues]]);
                 }
             }
-            result = Domain.or(parts).toList({});
+            result = Domain.or(parts).toList();
         }
         this._unlocatedDomainCache = result;
         return result;
