@@ -29,6 +29,7 @@ export class GoogleMapSidebar extends Component {
         toggleGroup: t.function(),
         renderGroupedRecordsFitBounds: t.function(),
         openRecord: t.function(),
+        showRecord: t.function(),
         showRecordsByDomain: t.function(),
         showNearbyRecords: t.function(),
         pointInMap: t.function(),

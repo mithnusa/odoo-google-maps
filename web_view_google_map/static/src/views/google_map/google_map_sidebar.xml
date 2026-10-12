@@ -114,7 +114,7 @@
                     t-attf-id="collapseGroup_#{ group.key }"
                 >
                     <t t-if="group.group.records.length">
-                        <table class="table table-sm table-hover table-striped mb-0">
+                        <table class="table table-sm table-striped mb-0">
                             <tbody>
                                 <t t-foreach="group.group.records" t-as="record" t-key="record.id">
                                     <t
@@ -150,7 +150,7 @@
         </tr>
     </t>
     <t t-name="web_view_google_map.ListGroupOrRecord">
-        <table class="table table-sm table-hover table-striped">
+        <table class="table table-sm table-hover">
             <tbody>
                 <t t-if="this.datas.length">
                     <t t-foreach="this.datas" t-as="groupOrRecord" t-key="groupOrRecord.key">
@@ -211,14 +211,14 @@
                     <h3 t-if="this.props.header" t-out="this.props.header" />
                 </div>
             </div>
-            <div t-if="this.props.unLocatedCount &gt; 0" class="py-1 border-top border-bottom">
-                <div class="d-flex align-items-center justify-content-end px-1">
+            <div t-if="this.props.unLocatedCount &gt; 0" class="py-1">
+                <div class="d-flex align-items-center justify-content-end">
                     <div>
                         <span>Unlocated</span>
                         <span class="ms-1">
-                            (
+                            <span>(</span>
                             <t t-out="this.props.unLocatedCount" />
-                            )
+                            <span>)</span>
                         </span>
                     </div>
                     <button
@@ -234,7 +234,7 @@
             <t
                 t-call="{{ this.constructor.listGroupOrRecordTemplate }}"
                 fnPinPointInMap="this.props.pointInMap"
-                fnOpenRecord="this.props.openRecord"
+                fnOpenRecord="this.props.showRecord"
             />
         </div>
     </t>

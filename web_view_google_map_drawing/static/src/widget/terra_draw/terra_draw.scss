@@ -1,6 +1,6 @@
 .o_field_google_map_terra_draw {
     width: 100%;
-    margin-bottom: 1rem;
+    margin-bottom: 1rem !important;
 
     .o_google_map_renderer {
         min-height: 600px;
@@ -39,8 +39,8 @@
         }
 
         .o_google_map_view {
-            border: 1px solid $o-view-background-color;
-            border-radius: 4px !important;
+            border: var(--border-width, 1px) var(--border-style, solid) var(--border-color, #ccc);
+            border-radius: var(--border-radius-lg, 4px);
 
             // Ensure Terra Draw overlay canvas renders on top
             canvas {

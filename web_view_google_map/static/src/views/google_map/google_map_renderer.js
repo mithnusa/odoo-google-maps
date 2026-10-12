@@ -860,6 +860,7 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
             toggleGroup: this.toggleGroup.bind(this),
             renderGroupedRecordsFitBounds: this._renderGroupedRecordsFitBounds.bind(this),
             openRecord: this.props.openRecord.bind(this),
+            showRecord: this.props.showRecord.bind(this),
             showRecordsByDomain: this.props.showRecordsByDomain.bind(this),
             showNearbyRecords: this.searchNearbyRecords.bind(this),
             showUnlocatedRecords: this.props.showUnlocatedRecords.bind(this),

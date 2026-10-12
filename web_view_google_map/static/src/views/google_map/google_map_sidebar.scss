@@ -4,7 +4,6 @@
             // Base styles
             position: relative;
             height: 100%;
-            background-color: $o-view-background-color;
             z-index: 1;
             width: 18%;
             max-width: 400px;
@@ -35,24 +34,23 @@
                 width: 100%;
                 min-width: 300px;
                 padding: 0 2px;
-                background-color: $o-view-background-color;
                 overflow-y: auto;
                 overflow-x: hidden;
                 opacity: 1;
                 transition: opacity 0.25s ease-in-out;
 
                 button[data-bs-toggle="collapse"] {
-                    .fa-caret-down {
+                    [data-icon="arrow_drop_down"] {
                         display: block;
                     }
-                    .fa-caret-right {
+                    [data-icon="arrow_right"] {
                         display: none;
                     }
                     &.collapsed {
-                        .fa-caret-down {
+                        [data-icon="arrow_drop_down"] {
                             display: none;
                         }
-                        .fa-caret-right {
+                        [data-icon="arrow_right"] {
                             display: block;
                         }
                     }
@@ -118,8 +116,8 @@
                     border-left: 0;
                     border-radius: 0 10px 10px 0;
                     font-size: 16px;
-                    background-color: $o-view-background-color;
                     cursor: pointer;
+                    background-color: var(--body-bg, $o-view-background-color);
                     transition: background-color 0.15s ease, color 0.15s ease;
 
                     &:hover {
@@ -180,7 +178,6 @@
             // Open state
             &.open {
                 min-width: 300px;
-                border-right: var(--ControlPanel-border-bottom, #{$o-control-panel-border-bottom});
                 // No transition override here — inherits the consolidated
                 // base transition (width + min-width + box-shadow all at once)
 
