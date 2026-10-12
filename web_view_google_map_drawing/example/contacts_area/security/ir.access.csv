@@ -1,0 +1,3 @@
+id,name,model_id,group_id/id,operation,domain
+access_res_partner_area,access_res_partner_area,res.partner.area,base.group_user,crud,
+access_google_geojson_upload_wizard,access_google_geojson_upload_wizard,google.geojson.upload.wizard,base.group_user,crud,
