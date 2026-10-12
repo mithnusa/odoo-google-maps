@@ -1,4 +1,4 @@
-import { Component, onWillPatch, onWillStart, usePlugin, useProps, proxy, signal, t } from '@odoo/owl';
+import { Component, onWillPatch, onWillStart, usePlugin, useProps, useScope, proxy, signal, t } from '@odoo/owl';
 import { useLayoutEffect, useSubEnv } from '@web/owl2/utils';
 import { _t } from '@web/core/l10n/translation';
 import { OfflinePlugin } from '@web/core/offline/offline_plugin';
@@ -66,6 +66,7 @@ export class GoogleMapController extends Component {
     props = useProps(this.constructor.propsSchema);
 
     setup() {
+        this.scope = useScope();
         this.uiService = useService('ui');
         this.dialogService = useService('dialog');
         this.actionService = useService('action');
@@ -320,7 +321,7 @@ export class GoogleMapController extends Component {
         if (this.props.allowSelectors) {
             this.uiService.bus.trigger('google-map-center-map');
         } else {
-            this.render(true);
+            this.scope.render(true);
         }
     }
 

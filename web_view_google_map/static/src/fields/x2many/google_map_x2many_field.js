@@ -1,7 +1,7 @@
 import { registry } from '@web/core/registry';
 import { _t } from '@web/core/l10n/translation';
 import { x2ManyField, X2ManyField } from '@web/views/fields/x2many/x2many_field';
-import { onWillUnmount } from '@odoo/owl';
+import { onWillUnmount, useScope } from '@odoo/owl';
 import { gMapViewAttrsContextManager } from '../../helpers/view_attrs_context_manager';
 import { GoogleMapRenderer } from '../../views/google_map/google_map_renderer';
 import { parseRecord } from '../../views/google_map/utils';
@@ -12,6 +12,7 @@ export class X2ManyFieldGoogleMap extends X2ManyField {
 
     setup() {
         super.setup();
+        this.scope = useScope();
         this.googleViewAttrContext = gMapViewAttrsContextManager;
         this.controls = this.controls || [];
         if (this.props.viewMode === 'google_map' && this.activeActions.create && !this.props.readonly) {
@@ -105,7 +106,7 @@ export class X2ManyFieldGoogleMap extends X2ManyField {
     }
 
     centerMap() {
-        this.render(true);
+        this.scope.render(true);
     }
 }
 
