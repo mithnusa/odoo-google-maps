@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <templates xml:space="preserve">
     <t t-name="web_view_google_map.GoogleMapView">
-        <div t-att-class="this.className" t-custom-ref="root">
+        <div t-att-class="this.className" t-ref="this.rootRef">
             <Layout className="this.model.useSampleModel ? 'o_view_sample_data' : ''" display="this.display">
                 <t t-set-slot="control-panel-buttons">
                     <t t-if="!this.model.root.editedRecord and this.activeActions.create and !this.env.inDialog">
@@ -37,8 +37,12 @@
                     </t>
                 </t>
                 <t t-set-slot="control-panel-actions">
-                    <SearchBar t-if="!this.offlinePlugin.isOffline()" toggler="this.searchBarToggler" autofocus="this.firstLoad" />
-                    <OfflineSearchBar t-else="" toggler="this.searchBarToggler" autofocus="this.firstLoad"/>
+                    <SearchBar
+                        t-if="!this.offlinePlugin.isOffline()"
+                        toggler="this.searchBarToggler"
+                        autofocus="this.firstLoad"
+                    />
+                    <OfflineSearchBar t-else="" toggler="this.searchBarToggler" autofocus="this.firstLoad" />
                 </t>
                 <t t-set-slot="control-panel-navigation-additional">
                     <t
@@ -50,7 +54,7 @@
                 <t t-set-slot="control-panel-additional-actions">
                     <CogMenu t-if="!this.hasSelectedRecords" />
                     <CogMenu
-                        t-elif="this.env.isSmall and (this.props.info.actionMenus or this.archInfo.headerButtons.length)"
+                        t-elif="this.uiService.isSmall and (this.props.info.actionMenus or this.archInfo.headerButtons.length)"
                         t-props="this.actionMenuProps"
                         hasSelectedRecords="this.hasSelectedRecords"
                     >
@@ -80,7 +84,7 @@
                 <t t-set-slot="control-panel-selection-actions">
                     <div t-if="this.hasSelectedRecords" class="o_selection_container m-1 m-md-0 d-flex gap-1">
                         <SelectionBox root="this.model.root" />
-                        <t t-if="!this.env.isSmall">
+                        <t t-if="!this.uiService.isSmall">
                             <t
                                 t-foreach="this.archInfo.headerButtons"
                                 t-as="button"
@@ -106,11 +110,31 @@
                         </t>
                     </div>
                 </t>
-                <t t-if="this.model.isReady()">
-                    <t t-component="this.props.Renderer" t-props="this.rendererProps"/>
+                <t t-if="this.offlinePlugin.isOffline()">
+                    <!--
+                        The map itself (tiles, markers, geocoding) needs the Google Maps
+                        JS API, which requires network — unlike list/kanban/form, cached
+                        record data alone is never enough to render this view. Block
+                        before even checking model.isReady() instead of attempting (and
+                        failing or hanging) to mount the renderer offline.
+                    -->
+                    <div class="o_view_nocontent">
+                        <div class="o_nocontent_help">
+                            <p>
+                                <i class="oi oi-4x opacity-75" data-icon="link_off" />
+                            </p>
+                            <p>
+                                Google Maps requires an internet connection. Switch to another view to browse your
+                                records offline.
+                            </p>
+                        </div>
+                    </div>
+                </t>
+                <t t-elif="this.model.isReady()">
+                    <t t-component="this.props.Renderer" t-props="this.rendererProps" />
                 </t>
                 <t t-elif="this.model.couldNotLoadRootOffline">
-                    <OfflineActionHelper/>
+                    <OfflineActionHelper />
                 </t>
             </Layout>
         </div>

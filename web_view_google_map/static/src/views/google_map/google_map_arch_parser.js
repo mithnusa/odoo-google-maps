@@ -18,21 +18,20 @@ export class GoogleMapArchParser {
         return processButton(node);
     }
 
-
     parseFieldNode(node, models, modelName, fieldNextIds, fieldNodes) {
-        const fieldInfo = Field.parseFieldNode(node, models, modelName, "google_map");
+        const fieldInfo = Field.parseFieldNode(node, models, modelName, 'google_map');
         if (!(fieldInfo.name in fieldNextIds)) {
             fieldNextIds[fieldInfo.name] = 0;
         }
         const fieldId = `${fieldInfo.name}_${fieldNextIds[fieldInfo.name]++}`;
         fieldNodes[fieldId] = fieldInfo;
-        node.setAttribute("field_id", fieldId);
+        node.setAttribute('field_id', fieldId);
         const label = fieldInfo.field.label;
         return {
             ...fieldInfo,
-            className: node.getAttribute("class"),
-            optional: node.getAttribute("optional") || false,
-            type: "field",
+            className: node.getAttribute('class'),
+            optional: node.getAttribute('optional') || false,
+            type: 'field',
             fieldType: fieldInfo.type,
             label: (fieldInfo.widget && label && label.toString()) || fieldInfo.string,
         };
@@ -66,13 +65,7 @@ export class GoogleMapArchParser {
 
         visitXML(xmlDoc, (node) => {
             if (node.tagName === 'field') {
-                const fieldDescriptor = this.parseFieldNode(
-                    node,
-                    models,
-                    modelName,
-                    fieldNextIds,
-                    fieldNodes
-                );
+                const fieldDescriptor = this.parseFieldNode(node, models, modelName, fieldNextIds, fieldNodes);
                 if (fieldDescriptor.isHandle) {
                     handleField = fieldDescriptor.name;
                 }
@@ -80,30 +73,29 @@ export class GoogleMapArchParser {
                     ...fieldDescriptor,
                     id: `column_${nextId++}`,
                     hasLabel: !(
-                        fieldDescriptor.field.label === false ||
-                        exprToBoolean(fieldDescriptor.attrs.nolabel) === true
+                        fieldDescriptor.field.label === false || exprToBoolean(fieldDescriptor.attrs.nolabel) === true
                     ),
                 });
             } else if (node.tagName === 'control') {
                 for (const childNode of node.children) {
-                    if (childNode.tagName === "button") {
+                    if (childNode.tagName === 'button') {
                         controls.push({
-                            type: "button",
+                            type: 'button',
                             ...processButton(childNode),
                         });
-                    } else if (childNode.tagName === "create") {
+                    } else if (childNode.tagName === 'create') {
                         controls.push({
-                            type: "create",
-                            name: childNode.getAttribute("name"),
-                            context: childNode.getAttribute("context"),
-                            string: childNode.getAttribute("string"),
-                            invisible: childNode.getAttribute("invisible"),
-                            hotkey: childNode.getAttribute("data-hotkey"),
+                            type: 'create',
+                            name: childNode.getAttribute('name'),
+                            context: childNode.getAttribute('context'),
+                            string: childNode.getAttribute('string'),
+                            invisible: childNode.getAttribute('invisible'),
+                            hotkey: childNode.getAttribute('data-hotkey'),
                         });
-                    } else if (childNode.tagName === "delete") {
+                    } else if (childNode.tagName === 'delete') {
                         controls.push({
-                            type: "delete",
-                            invisible: childNode.getAttribute("invisible"),
+                            type: 'delete',
+                            invisible: childNode.getAttribute('invisible'),
                         });
                     }
                 }
