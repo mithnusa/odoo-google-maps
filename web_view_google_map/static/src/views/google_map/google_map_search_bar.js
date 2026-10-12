@@ -17,12 +17,13 @@ export class GoogleMapSearchBarMenu extends SearchBarMenu {
      * Blocks activation of a second group-by before the search model is updated,
      * keeping the map view's single-group constraint enforced at the UI layer.
      */
-    onGroupBySelected(item) {
-        if (!item.isActive && this.groupByItems.some((v) => v.isActive)) {
+    onGroupBySelected({ itemId, optionId }) {
+        const [item] = this.env.searchModel.getSearchItems((searchItem) => searchItem.id === itemId);
+        if (!item?.isActive && this.groupByItems.some((v) => v.isActive)) {
             this.notificationService.add(_t('You can only have one active group at a time.'), { type: 'warning' });
             return;
         }
-        super.onGroupBySelected(item);
+        super.onGroupBySelected({ itemId, optionId });
     }
 }
 
