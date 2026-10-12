@@ -188,7 +188,9 @@ export class GoogleMapDeckGLRenderer extends BaseGoogleMapComponent {
         });
 
         if (this.props.allowSelectors) {
-            useBus(this.uiService.bus, 'google-map-center-map', this.centerMap);
+            useBus(this.uiService.bus, 'google-map-center-map', () =>
+                this.centerMap().catch((e) => console.error('GoogleMapDeckGLRenderer: centerMap failed:', e))
+            );
         }
     }
 
