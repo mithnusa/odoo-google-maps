@@ -6,7 +6,7 @@
     <t t-name="web_widget_google_map.GeolocateBtn">
         <div id="custom-control-geolocate" class="button_geolocate_user">
             <button
-                class="btn btn-sm btn-light rounded-5 shadow-sm p-1"
+                class="btn btn-secondary rounded-5"
                 type="button"
                 data-tooltip="Get Current location"
                 aria-label="Get Current location"

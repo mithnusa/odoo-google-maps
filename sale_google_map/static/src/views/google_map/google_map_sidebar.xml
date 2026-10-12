@@ -12,7 +12,7 @@
                         <img
                             loading="lazy"
                             t-att-src="avatar_url"
-                            class="o_avatar rounded"
+                            class="o_avatar rounded border"
                             alt="Avatar"
                             height="24"
                             width="24"

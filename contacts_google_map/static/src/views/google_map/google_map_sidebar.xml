@@ -14,7 +14,7 @@
                 <img
                     loading="lazy"
                     t-att-src="avatar_url"
-                    class="img img-fluid o_avatar rounded"
+                    class="img img-fluid o_avatar rounded border"
                     alt="Avatar"
                     height="24"
                     width="24"

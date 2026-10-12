@@ -4,11 +4,11 @@
         <button
             t-if="!this.props.invisible"
             type="button"
-            class="btn btn-link p-0"
+            class="btn btn-secondary"
             t-on-click="this.handleOnEdit"
             t-attf-data-tooltip="{{ this.props.readonly ? 'Show on Map' : 'Update Location on Map' }}"
         >
-            <i class="oi oi-fw me-1" t-att-data-icon="this.props.readonly ? 'map' : 'push_pin'" />
+            <i class="o_button_icon oi me-1" t-att-data-icon="this.props.readonly ? 'map' : 'push_pin'" />
             <span t-if="this.props.readonly">View on Map</span>
             <span t-else="">Update on Map</span>
         </button>

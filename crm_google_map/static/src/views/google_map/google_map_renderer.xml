@@ -6,10 +6,14 @@
                 <span t-if="this.title" class="d-block marker-icon-title mb-1" t-att-data-tooltip="this.title">
                     <small class="font-sans-serif" t-out="this.title" />
                 </span>
-                <i class="oi oi-fw small" data-icon="label" t-attf-style="color: {{ this.markerColor || 'red' }};" />
+                <i
+                    class="oi oi-fw small me-1"
+                    data-icon="label"
+                    t-attf-style="color: {{ this.markerColor || 'red' }};"
+                />
                 <small t-if="this.stage" class="font-sans-serif" t-out="this.stage" />
                 <span t-if="this.expectedRevenue" class="d-block mt-1">
-                    <i class="oi oi-fw small text-muted" data-icon="attach_money" />
+                    <i class="oi oi-fw small text-muted me-1" data-icon="attach_money" />
                     <small class="font-monospace" t-out="this.expectedRevenue" />
                 </span>
             </div>

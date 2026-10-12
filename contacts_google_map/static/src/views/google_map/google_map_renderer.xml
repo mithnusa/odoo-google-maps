@@ -12,7 +12,7 @@
                         <div class="d-inline-block position-relative opacity-trigger-hover">
                             <img
                                 loading="lazy"
-                                class="img img-fluid object-fit-contain"
+                                class="img img-fluid object-fit-contain rounded border"
                                 alt="Contact image"
                                 t-attf-src="{{ avatarUrl }}"
                                 name="avatar_128"

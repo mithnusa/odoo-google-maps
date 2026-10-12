@@ -11,11 +11,11 @@
                         <Sidebar t-props="this.sidebarProps" t-if="this.state.isMapReady" />
                     </div>
                 </div>
-                <div class="toggle_left_sidenav">
+                <div class="toggle_left_sidenav ms-2">
                     <button t-att-data-tooltip="this.sidebarToggleTooltip" t-on-click="this.toggleSidebar" />
                 </div>
             </div>
-            <div class="o_google_map_view" t-ref="this.mapRef" />
+            <div class="o_google_map_view rounded-3 m-2 border" t-ref="this.mapRef" />
             <InMapSearchPlaces googleMap="this.googleMap" t-if="this.state.isMapReady" />
         </div>
     </t>

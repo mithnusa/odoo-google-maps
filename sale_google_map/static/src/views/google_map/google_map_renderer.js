@@ -26,7 +26,7 @@ const SALE_MARKER_CONFIG = {
             ICON: 'oi oi-lg',
             INFO_ICON: 'oi oi-filled ms-1 text-info',
             IMG_LOGO_CONTAINER: 'd-inline-block position-relative opacity-trigger-hover',
-            IMG_LOGO: 'img img-fluid o_avatar rounded',
+            IMG_LOGO: 'img img-fluid object-fit-contain rounded border',
         },
         Z_INDEX: {
             DEFAULT: 1,
@@ -219,8 +219,7 @@ export class GoogleMapRendererSaleOrder extends GoogleMapRenderer {
         logoEl.loading = 'lazy';
         logoEl.src = `/web/image/res.partner/${partnerId}/avatar_128`;
         logoEl.alt = _t('Logo');
-        logoEl.height = 32;
-        logoEl.width = 32;
+        logoEl.width = 48;
 
         divEl.appendChild(logoEl);
         return divEl;
