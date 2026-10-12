@@ -7,16 +7,16 @@
             <google_map
                 string="Leads"
                 js_class="google_map_crm"
-                lat="partner_latitude"
-                lng="partner_longitude"
+                lat="customer_latitude"
+                lng="customer_longitude"
                 color="stage_id_color"
                 sidebar_title="name"
-                sidebar_subtitle="contact_address"
+                sidebar_subtitle="customer_address"
             >
                 <field name="name" />
-                <field name="partner_latitude" />
-                <field name="partner_longitude" />
-                <field name="contact_address" />
+                <field name="customer_latitude" />
+                <field name="customer_longitude" />
+                <field name="customer_address" />
                 <field name="stage_id_color" />
                 <field name="expected_revenue" />
                 <field name="probability" />
@@ -40,36 +40,36 @@
                 <page string="Geolocation" name="geo_location">
                     <group>
                         <group string="Geolocation">
-                            <label for="partner_latitude" string="Geo Location" />
+                            <label for="customer_latitude" string="Geo Location" />
                             <div>
                                 <span>
                                     Lat :
-                                    <field name="partner_latitude" nolabel="1" class="oe_inline" />
+                                    <field name="customer_latitude" nolabel="1" class="oe_inline" />
                                 </span>
                                 <br />
                                 <span>
                                     Long:
-                                    <field name="partner_longitude" nolabel="1" class="oe_inline" />
+                                    <field name="customer_longitude" nolabel="1" class="oe_inline" />
                                 </span>
                                 <br />
                                 <div class="d-flex gap-2">
                                     <button
-                                        invisible="partner_latitude != 0.0 or partner_longitude != 0.0"
+                                        invisible="customer_latitude != 0.0 or customer_longitude != 0.0"
                                         icon="settings"
                                         string="Compute based on address"
                                         name="geo_localize"
                                         type="object"
-                                        class="btn btn-link p-0"
+                                        class="btn btn-secondary"
                                     />
                                     <button
-                                        invisible="partner_latitude == 0.0 and partner_longitude == 0.0"
+                                        invisible="customer_latitude == 0.0 and customer_longitude == 0.0"
                                         icon="refresh"
                                         string="Refresh"
                                         name="geo_localize"
                                         type="object"
-                                        class="btn btn-link p-0"
+                                        class="btn btn-secondary"
                                     />
-                                    <widget name="google_map" lat="partner_latitude" lng="partner_longitude" />
+                                    <widget name="google_map" lat="customer_latitude" lng="customer_longitude" />
                                 </div>
                             </div>
                         </group>
