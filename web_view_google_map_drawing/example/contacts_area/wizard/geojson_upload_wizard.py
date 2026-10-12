@@ -1,7 +1,7 @@
-# -*- coding: utf-8 -*-
+import base64
 import json
 import logging
-import base64
+
 from odoo import api, fields, models
 from odoo.exceptions import UserError, ValidationError
 

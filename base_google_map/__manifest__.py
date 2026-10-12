@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 {
     'name': 'Base Google Maps',
     'summary': 'Core Google Maps API configuration and base utilities for Odoo',

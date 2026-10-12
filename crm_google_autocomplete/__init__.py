@@ -1,5 +1,7 @@
 import secrets
+
 from odoo import Command
+
 from . import models
 
 

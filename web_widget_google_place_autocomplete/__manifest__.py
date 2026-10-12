@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 {
     'name': 'Web widget Google Place Autocomplete',
     'summary': 'Configurable Google Places autocomplete widget and field mapping system for any Odoo model',
