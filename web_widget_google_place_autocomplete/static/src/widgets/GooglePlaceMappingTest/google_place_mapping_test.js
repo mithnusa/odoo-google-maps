@@ -3,7 +3,7 @@ import { _t } from '@web/core/l10n/translation';
 import { standardFieldProps } from '@web/views/fields/standard_field_props';
 import { ConfirmationDialog } from '@web/core/confirmation_dialog/confirmation_dialog';
 import { renderToString } from '@web/core/utils/render';
-import { Component, markup, props } from '@odoo/owl';
+import { Component, markup, useProps } from '@odoo/owl';
 import { useService } from '@web/core/utils/hooks';
 import { GooglePlaceAutocompleteElement } from '../../component/google_place_autocomplete';
 
@@ -62,7 +62,10 @@ function formatStringToObject(str) {
 export class GooglePlaceMappingTestField extends Component {
     static template = 'web_widget_google_place_autocomplete.GooglePlacesMappingTestField';
     static components = { GooglePlaceAutocompleteElement };
-    props = props({ ...standardFieldProps });
+    static propsSchema = {
+        ...standardFieldProps,
+    };
+    props = useProps(this.constructor.propsSchema);
 
     setup() {
         this.notificationService = useService('notification');

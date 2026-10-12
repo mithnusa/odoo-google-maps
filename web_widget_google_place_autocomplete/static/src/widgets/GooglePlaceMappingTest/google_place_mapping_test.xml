@@ -14,7 +14,11 @@
                 callback.bind="this.showValues"
             />
             <div class="mt-2">
-                <button type="button" class="btn btn-sm btn-secondary w-50" t-on-click="this.reloadTestPlaceAutocomplete">
+                <button
+                    type="button"
+                    class="btn btn-sm btn-secondary w-50"
+                    t-on-click="this.reloadTestPlaceAutocomplete"
+                >
                     Reload
                 </button>
             </div>
@@ -24,28 +28,28 @@
         <ul class="list-group list-group-flush">
             <li class="list-group-item">
                 <p class="fs-4 mb-1">
-                    <i class="fa fa-angle-right me-1" />
+                    <i class="oi me-1" data-icon="keyboard_arrow_right" />
                     <span>Address</span>
                 </p>
                 <pre t-out="this.addressMappingResult" />
             </li>
             <li t-if="this.mode == 'places'" class="list-group-item">
                 <p class="fs-4 mb-1">
-                    <i class="fa fa-angle-right me-1" />
+                    <i class="oi me-1" data-icon="keyboard_arrow_right" />
                     <span>Other</span>
                 </p>
                 <pre t-out="this.otherMappingResult" />
             </li>
             <li class="list-group-item">
                 <p class="fs-4 mb-1">
-                    <i class="fa fa-angle-right me-1" />
+                    <i class="oi me-1" data-icon="keyboard_arrow_right" />
                     <span>Geolocation</span>
                 </p>
                 <pre t-out="this.geoLocationResult" />
             </li>
             <li class="list-group-item">
                 <p class="fs-4 mb-1">
-                    <i class="fa fa-angle-right me-1" />
+                    <i class="oi me-1" data-icon="keyboard_arrow_right" />
                     <span>Google Place JSON</span>
                 </p>
                 <pre t-out="this.placeDetailsResult" />

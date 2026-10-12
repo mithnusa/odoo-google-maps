@@ -1,11 +1,14 @@
 import { useService } from '@web/core/utils/hooks';
 import { _t } from '@web/core/l10n/translation';
-import { Component, onMounted, onWillUnmount, props, t } from '@odoo/owl';
+import { Component, onMounted, onWillUnmount, useProps, t } from '@odoo/owl';
 import { renderToString } from '@web/core/utils/render';
 
 export class GoogleMapGeolocate extends Component {
     static template = 'web_widget_google_map.Geolocate';
-    props = props({ googleMap: t.or([t.object(), t.literal(null)]).optional() });
+    static propsSchema = {
+        googleMap: t.or([t.object(), t.literal(null)]).optional(),
+    };
+    props = useProps(this.constructor.propsSchema);
 
     setup() {
         this.notificationService = useService('notification');

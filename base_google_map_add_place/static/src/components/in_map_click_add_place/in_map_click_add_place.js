@@ -1,5 +1,5 @@
 import { _t } from '@web/core/l10n/translation';
-import { Component, onMounted, onWillUnmount, props, t } from '@odoo/owl';
+import { Component, onMounted, onWillUnmount, useProps, t } from '@odoo/owl';
 import { useService } from '@web/core/utils/hooks';
 import { renderToString } from '@web/core/utils/render';
 
@@ -10,10 +10,6 @@ import { renderToString } from '@web/core/utils/render';
  * @constant {number}
  */
 const ZOOM_THRESHOLD = 15;
-
-export const inMapClickAddPlaceProps = {
-    googleMap: t.or([t.object(), t.literal(null)]).optional(),
-};
 
 /**
  * OWL component that enables users to add new Odoo record directly from
@@ -34,8 +30,10 @@ export const inMapClickAddPlaceProps = {
  */
 export class InMapClickAddPlace extends Component {
     static template = 'base_google_map_add_place.ClickAddPlace';
-    static props = inMapClickAddPlaceProps;
-    props = props(this.constructor.props);
+    static propsSchema = {
+        googleMap: t.or([t.object(), t.literal(null)]).optional(),
+    };
+    props = useProps(this.constructor.propsSchema);
 
     /**
      * Initialises OWL services, pre-binds event handler references, and
@@ -110,7 +108,7 @@ export class InMapClickAddPlace extends Component {
      * pan or zoom settles.
      *
      * Active state (zoom >= {@link ZOOM_THRESHOLD}): `btn-success` + `animate`.
-     * Inactive state (zoom < {@link ZOOM_THRESHOLD}): `btn-light`, no animation.
+     * Inactive state (zoom < {@link ZOOM_THRESHOLD}): `btn-secondary`, no animation.
      *
      * Uses {@link _indicatorElement} directly instead of scanning the controls
      * array — the reference is captured at mount time, so no DOM search is needed.
@@ -125,7 +123,7 @@ export class InMapClickAddPlace extends Component {
 
         const isActive = this.props.googleMap.getZoom() >= ZOOM_THRESHOLD;
         const button = this._indicatorElement.querySelector('button');
-        button.classList.toggle('btn-light', !isActive);
+        button.classList.toggle('btn-secondary', !isActive);
         button.classList.toggle('btn-success', isActive);
         button.classList.toggle('animate', isActive);
     }
