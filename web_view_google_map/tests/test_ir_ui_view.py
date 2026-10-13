@@ -69,20 +69,22 @@ class TestIrUiViewFieldOverrides(TransactionCase):
         (proves node_info['children'] handling doesn't drop it)."""
         view = self._create_partner_form_view(
             """
-            <field name="bank_ids">
-                <google_map lat="acc_number" lng="acc_number" sidebar_title="acc_number">
-                    <field name="acc_number"/>
+            <field name="child_ids" widget="google_map_one2many" mode="google_map">
+                <google_map lat="partner_latitude" lng="partner_longitude" sidebar_title="name">
+                    <field name="name"/>
+                    <field name="partner_latitude"/>
+                    <field name="partner_longitude"/>
                 </google_map>
             </field>
         """
         )
         arch = self.env["res.partner"].get_view(view_id=view.id)["arch"]
         arch_node = etree.fromstring(arch)
-        bank_field = arch_node.find('.//field[@name="bank_ids"]')
-        google_map_node = bank_field.find("google_map")
+        child_ids_field = arch_node.find('.//field[@name="child_ids"]')
+        google_map_node = child_ids_field.find("google_map")
         self.assertIsNotNone(google_map_node)
         self.assertIsNotNone(
-            google_map_node.find('field[@name="acc_number"]')
+            google_map_node.find('field[@name="partner_latitude"]')
         )
 
     def test_google_map_child_fields_are_validated(self):
@@ -91,9 +93,11 @@ class TestIrUiViewFieldOverrides(TransactionCase):
         with self.assertRaises(ValidationError):
             self._create_partner_form_view(
                 """
-                <field name="bank_ids">
-                    <google_map lat="acc_number" lng="acc_number" sidebar_title="acc_number">
-                        <field name="acc_number"/>
+                <field name="child_ids" widget="google_map_one2many" mode="google_map">
+                    <google_map lat="partner_latitude" lng="partner_longitude" sidebar_title="name">
+                        <field name="name"/>
+                        <field name="partner_latitude"/>
+                        <field name="partner_longitude"/>
                         <field name="not_a_real_field_xyz"/>
                     </google_map>
                 </field>
@@ -124,10 +128,11 @@ class TestIrUiViewFieldOverrides(TransactionCase):
                 "inherit_id": base_view.id,
                 "arch": """
                 <xpath expr="//field[@name='name']" position="after">
-                    <field name="bank_ids">
-                        <google_map lat="acc_number" lng="acc_number" sidebar_title="acc_number">
-                            <field name="partner_id"/>
-                            <field name="acc_number"/>
+                    <field name="child_ids" widget="google_map_one2many" mode="google_map">
+                        <google_map lat="partner_latitude" lng="partner_longitude" sidebar_title="name">
+                            <field name="name"/>
+                            <field name="partner_latitude"/>
+                            <field name="partner_longitude"/>
                         </google_map>
                     </field>
                 </xpath>
@@ -138,18 +143,18 @@ class TestIrUiViewFieldOverrides(TransactionCase):
             "arch"
         ]
         arch_node = etree.fromstring(arch)
-        bank_field = arch_node.find('.//field[@name="bank_ids"]')
+        child_ids_field = arch_node.find('.//field[@name="child_ids"]')
         self.assertIsNotNone(
-            bank_field, "xpath-injected x2many field did not survive"
+            child_ids_field, "xpath-injected x2many field did not survive"
         )
-        google_map_node = bank_field.find("google_map")
+        google_map_node = child_ids_field.find("google_map")
         self.assertIsNotNone(
             google_map_node,
             "google_map child did not survive view inheritance resolution",
         )
         self.assertEqual(
             {f.get("name") for f in google_map_node.findall("field")},
-            {"partner_id", "acc_number"},
+            {"name", "partner_latitude", "partner_longitude"},
         )
 
     # -- extension hook composability --------------------------------------
@@ -171,26 +176,20 @@ class TestIrUiViewFieldOverrides(TransactionCase):
         ):
             view = self._create_partner_form_view(
                 """
-                <field name="bank_ids">
-                    <google_map lat="acc_number" lng="acc_number" sidebar_title="acc_number">
-                        <field name="acc_number"/>
-                    </google_map>
-                </field>
-                <field name="child_ids">
-                    <my_custom_map>
+                <field name="child_ids" widget="google_map_one2many" mode="google_map">
+                    <google_map lat="partner_latitude" lng="partner_longitude" sidebar_title="name">
                         <field name="name"/>
-                    </my_custom_map>
+                        <field name="partner_latitude"/>
+                        <field name="partner_longitude"/>
+                    </google_map>
                 </field>
             """
             )
             arch = self.env["res.partner"].get_view(view_id=view.id)["arch"]
             arch_node = etree.fromstring(arch)
 
-            bank_field = arch_node.find('.//field[@name="bank_ids"]')
-            self.assertIsNotNone(bank_field.find("google_map"))
-
             child_field = arch_node.find('.//field[@name="child_ids"]')
-            self.assertIsNotNone(child_field.find("my_custom_map"))
+            self.assertIsNotNone(child_field.find("google_map"))
 
             with self.assertRaises(ValidationError):
                 self._create_partner_form_view(

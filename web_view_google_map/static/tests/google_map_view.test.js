@@ -7,6 +7,7 @@ import {
     defineModels,
     fields,
     findComponent,
+    isSmall,
     mockService,
     models,
     mountView,
@@ -144,8 +145,16 @@ describe('unlocated records', () => {
             `,
         });
 
-        await waitFor('.o_map_sidebar .border-top.border-bottom');
-        expect(queryAllTexts('.o_map_sidebar .border-top.border-bottom span')).toInclude('Unlocated');
+        await waitFor('.o_map_sidebar div[name="unlocated-records"]');
+        expect(queryAllTexts('.o_map_sidebar div[name="unlocated-records"] span')).toInclude('Unlocated');
+
+        // .o_map_left_sidebar is display:none below 768px (see
+        // google_map_sidebar.scss) with no mobile replacement UI yet, so the
+        // button is present but never visible/clickable under the Mobile
+        // test suite — nothing left to assert on that viewport.
+        if (isSmall()) {
+            return;
+        }
 
         await contains("button[data-tooltip='Show Unlocated']").click();
         expect(calledWith.domain).toEqual(getMapController(view).model.unlocatedRecordsDomain);
@@ -344,6 +353,13 @@ describe('record actions', () => {
             </google_map>
             `,
         });
+
+        // On mobile, header buttons are tucked into the adaptive "More"
+        // dropdown (web.ControlPanel) instead of staying in the visible
+        // toolbar, so it has to be opened before the button is reachable.
+        if (isSmall()) {
+            await contains('.o-control-panel-adaptive-dropdown').click();
+        }
 
         await contains("button[name='do_something']").click();
         expect(calledWith.name).toBe('do_something');

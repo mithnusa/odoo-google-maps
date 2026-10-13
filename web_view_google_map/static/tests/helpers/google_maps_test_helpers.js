@@ -87,18 +87,22 @@ export class FakeAdvancedMarkerElement {
         Object.assign(this, options);
         this._listeners = {};
     }
-    addListener(eventName, cb) {
-        this._listeners[eventName] = cb;
-        return {
-            remove: () => {
-                delete this._listeners[eventName];
-            },
-        };
+    // Real AdvancedMarkerElement extends HTMLElement and dispatches gmp-*
+    // events via the standard DOM EventTarget API, not the legacy
+    // google.maps.event addListener/removeListener MVCObject system —
+    // mirror that contract here.
+    addEventListener(eventName, cb) {
+        (this._listeners[eventName] ??= new Set()).add(cb);
     }
-    // Test helper — no real 'gmp-click' DOM event to dispatch against a fake
-    // marker, so tests trigger the captured handler directly instead.
+    removeEventListener(eventName, cb) {
+        this._listeners[eventName]?.delete(cb);
+    }
+    dispatchEvent(event) {
+        this._listeners[event.type]?.forEach((cb) => cb(event));
+    }
+    // Test helper for simulating a user click.
     fireClick() {
-        this._listeners['gmp-click']?.();
+        this.dispatchEvent(new Event('gmp-click'));
     }
 }
 
