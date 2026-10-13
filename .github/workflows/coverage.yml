@@ -261,6 +261,7 @@ jobs:
             --db_password=odoo
             -d odoo_test_ci
             -i "$ALL_MODULES"
+            --without-demo
           )
 
           if [[ -n "$TEST_TAGS" ]]; then
