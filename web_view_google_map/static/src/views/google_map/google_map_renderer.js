@@ -744,9 +744,9 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
     }
 
     _handleAfterZoomAtMarker(marker) {
-        // Use Google Maps event trigger so subclasses that register a different
+        // Dispatch a real DOM event so subclasses that register a different
         // gmp-click handler (e.g. CRM's toggleMarkerHighlight) are dispatched correctly
-        google.maps.event.trigger(marker, 'gmp-click');
+        marker.dispatchEvent(new Event('gmp-click'));
         const { ZOOM, TILT } = MARKER_CONFIG.VISUAL;
         this.googleMap.setTilt(TILT);
         if (this.googleMap.getZoom() < ZOOM.DEFAULT) {
@@ -1430,8 +1430,9 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
      * @param {Object} record Record data
      */
     _attachMarkerEventListeners(marker, record) {
-        const clickListener = marker.addListener('gmp-click', this._handleMarkerClick.bind(this, marker));
-        this._storeMarkerEventListener(record.resId, 'gmp-click', clickListener);
+        const clickHandler = this._handleMarkerClick.bind(this, marker);
+        marker.addEventListener('gmp-click', clickHandler);
+        this._storeMarkerEventListener(record.resId, 'gmp-click', clickHandler);
     }
 
     /**
@@ -1633,13 +1634,14 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
      * Remove all event listeners for a marker
      * @private
      * @param {string|number} markerId Marker ID
+     * @param {Object} marker The marker the listeners were attached to
      */
-    _removeMarkerEventListeners(markerId) {
+    _removeMarkerEventListeners(markerId, marker) {
         const listeners = this._markerEventListeners.get(markerId);
 
         if (listeners) {
-            listeners.forEach((listener) => {
-                google.maps.event.removeListener(listener);
+            listeners.forEach((handler, eventType) => {
+                marker.removeEventListener(eventType, handler);
             });
 
             this._markerEventListeners.delete(markerId);
@@ -1855,7 +1857,7 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
                 delete marker._connectionLine;
             }
             marker.map = null;
-            this._removeMarkerEventListeners(id);
+            this._removeMarkerEventListeners(id, marker);
         }
     }
 }

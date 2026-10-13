@@ -213,10 +213,11 @@ export class GoogleMapRendererCRM extends GoogleMapRenderer {
     }
 
     addMarkerMouseEventHandler(record, marker) {
-        const clickListener = marker.addListener('gmp-click', () => {
+        const clickHandler = () => {
             this.toggleMarkerHighlight(marker);
-        });
-        this._storeMarkerEventListener(record.resId, 'gmp-click', clickListener);
+        };
+        marker.addEventListener('gmp-click', clickHandler);
+        this._storeMarkerEventListener(record.resId, 'gmp-click', clickHandler);
 
         const hoverHandlers = this._hoverMarkerHighlight(marker);
         Object.entries(hoverHandlers).forEach(([event, handler]) => {

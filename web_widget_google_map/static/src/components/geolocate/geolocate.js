@@ -106,7 +106,7 @@ export class GoogleMapGeolocate extends Component {
                 content,
             });
 
-            this.marker.addListener('gmp-click', this._onMarkerClick.bind(this));
+            this.marker.addEventListener('gmp-click', this._onMarkerClick.bind(this));
 
             // Hide marker when info window is closed
             this.infoWindow.addListener('closeclick', () => {
