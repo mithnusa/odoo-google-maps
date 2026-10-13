@@ -406,6 +406,9 @@ export class GoogleMapRendererSaleOrder extends GoogleMapRenderer {
             position: geolocation,
             map: this.googleMap,
             zIndex: SALE_MARKER_CONFIG.VISUAL.Z_INDEX.DEFAULT,
+            // Required for the marker to dispatch 'gmp-click' — see base
+            // GoogleMapRenderer._createMarkerOptions for details.
+            gmpClickable: true,
         };
     }
 

@@ -104,6 +104,8 @@ export class GoogleMapGeolocate extends Component {
                 map: this.props.googleMap,
                 position: latLng,
                 content,
+                // Required for the marker to dispatch 'gmp-click'.
+                gmpClickable: true,
             });
 
             this.marker.addEventListener('gmp-click', this._onMarkerClick.bind(this));
