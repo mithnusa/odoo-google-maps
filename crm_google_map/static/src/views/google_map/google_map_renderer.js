@@ -291,6 +291,9 @@ export class GoogleMapRendererCRM extends GoogleMapRenderer {
             position: geolocation,
             map: this.googleMap,
             collisionBehavior: google.maps.CollisionBehavior.REQUIRED_AND_HIDES_OPTIONAL,
+            // Required for the marker to dispatch 'gmp-click' — see base
+            // GoogleMapRenderer._createMarkerOptions for details.
+            gmpClickable: true,
         };
     }
 

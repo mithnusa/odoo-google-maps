@@ -1094,6 +1094,10 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
             position: geolocation,
             map: this.googleMap,
             title: data.title || '',
+            // Required for the marker to dispatch 'gmp-click' and be keyboard-
+            // accessible — without it, AdvancedMarkerElement ignores clicks
+            // entirely regardless of any gmp-click listener being attached.
+            gmpClickable: true,
         };
     }
 
