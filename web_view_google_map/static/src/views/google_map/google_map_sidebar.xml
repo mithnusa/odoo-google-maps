@@ -211,7 +211,7 @@
                     <h3 t-if="this.props.header" t-out="this.props.header" />
                 </div>
             </div>
-            <div t-if="this.props.unLocatedCount &gt; 0" class="py-1">
+            <div t-if="this.props.unLocatedCount &gt; 0" class="py-1" name="unlocated-records">
                 <div class="d-flex align-items-center justify-content-end">
                     <div>
                         <span>Unlocated</span>
