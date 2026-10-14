@@ -1,5 +1,15 @@
 # Change Log
 
+## 19.0.2.0.5
+
+### Fixed
+
+- **`GoogleMapSearchBarMenu.onGroupBySelected()` — Signature Drift from Core**: Odoo core's `SearchBarMenu.onGroupBySelected` now receives `{itemId, optionId}` instead of the `item` object directly. This override still destructured a positional `item` argument, so the single-active-group guard always read `item.isActive` as `undefined` and the `super()` call forwarded the wrong shape. Updated to accept `{itemId, optionId}`, resolve the `item` via `this.env.searchModel.getSearchItems(...)`, and forward the same `{itemId, optionId}` payload to `super()`.
+
+### Changed
+
+- **Warning Message Wording**: "You can only have one active group at a time." reworded to "Only one group-by can be active at a time." for clarity.
+
 ## 19.0.2.0.4
 
 ### Improved
