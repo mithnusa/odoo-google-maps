@@ -40,6 +40,9 @@ const MARKER_CONFIG = {
             },
             ICON_OFFSET: '0',
             ICON_REPEAT: '10px',
+            // Connection lines are only meaningful once markers are visually close enough
+            // to need disambiguation; hide them at low zoom to avoid visual clutter.
+            MIN_ZOOM_VISIBLE: 16,
         },
         MARKER: {
             SELECTED_CLASS: 'marker-circle selected',
@@ -108,6 +111,8 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
 
         this._nearbySearchCoverageRectangle = null;
         this._nearbySearchCoveragePolylines = [];
+        this._connectionLines = new Set();
+        this._connectionLineZoomListener = null;
 
         // Make sidebar state non-reactive
         this._isSidebarAction = false;
@@ -236,7 +241,26 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
             // this.markerInfoWindow = new google.maps.InfoWindow({ disableAutoPan: true });
             this.markerInfoWindow = new google.maps.InfoWindow();
         }
+        if (!this._connectionLineZoomListener) {
+            this._connectionLineZoomListener = this.googleMap.addListener('zoom_changed', () =>
+                this._updateConnectionLinesVisibility()
+            );
+        }
         this.initMapboxSelector();
+    }
+
+    /**
+     * Toggles visibility of all tracked overlap-connection polylines based on the
+     * current zoom level. Uses a single map-level listener rather than one per
+     * polyline, since the connection lines can number in the hundreds for large
+     * datasets with many co-located records.
+     * @private
+     */
+    _updateConnectionLinesVisibility() {
+        const visible = this.googleMap.getZoom() >= MARKER_CONFIG.VISUAL.CONNECTION_LINE.MIN_ZOOM_VISIBLE;
+        for (const line of this._connectionLines) {
+            line.setVisible(visible);
+        }
     }
 
     /**
@@ -1570,7 +1594,7 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
     _createConnectionLinePolyline(marker) {
         const { CONNECTION_LINE } = MARKER_CONFIG.VISUAL;
 
-        return new google.maps.Polyline({
+        const line = new google.maps.Polyline({
             path: [marker._originalPosition, { lat: marker.position.lat, lng: marker.position.lng }],
             strokeColor: CONNECTION_LINE.STROKE_COLOR,
             strokeOpacity: CONNECTION_LINE.STROKE_OPACITY,
@@ -1583,7 +1607,11 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
                 },
             ],
             map: this.googleMap,
+            visible: this.googleMap.getZoom() >= CONNECTION_LINE.MIN_ZOOM_VISIBLE,
         });
+
+        this._connectionLines.add(line);
+        return line;
     }
 
     /**
@@ -1800,6 +1828,12 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
         super._cleanUp();
         this._terminateAnyZoomOperations();
 
+        if (this._connectionLineZoomListener) {
+            google.maps.event.removeListener(this._connectionLineZoomListener);
+            this._connectionLineZoomListener = null;
+        }
+        this._connectionLines.clear();
+
         // Cancel any pending idle callbacks to prevent post-destroy access
         if (window.cancelIdleCallback) {
             for (const handle of this._idleCallbackHandles) {
@@ -1847,6 +1881,7 @@ export class GoogleMapRenderer extends BaseGoogleMapComponent {
             }
             // Remove connection line if exists
             if (marker._connectionLine) {
+                this._connectionLines.delete(marker._connectionLine);
                 marker._connectionLine.setMap(null);
                 delete marker._connectionLine;
             }
