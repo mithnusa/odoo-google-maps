@@ -2,6 +2,12 @@
 
 ## 19.0.2.0.5
 
+### Added
+
+- **Zoom-Gated Overlap Connection Lines**: The dashed connection line drawn between a shifted marker and its original (overlapping) position now only becomes visible from zoom level `16` upward, instead of always rendering. At low zoom these lines added visual clutter without being meaningful, since the overlap/shift itself is only relevant once zoomed in enough to see individual markers apart. New `MARKER_CONFIG.VISUAL.CONNECTION_LINE.MIN_ZOOM_VISIBLE` constant controls the threshold.
+- **`_updateConnectionLinesVisibility()`** (`google_map_renderer.js`): New method that toggles `Polyline.setVisible()` on every tracked connection line based on the map's current zoom. A single `zoom_changed` listener (added once in `onMapReady`) drives this, rather than one listener per polyline — avoids listener bloat for datasets with many co-located records, and toggling visibility is cheap enough to not need debouncing.
+- **`this._connectionLines` Set** (`google_map_renderer.js`): Tracks all active connection-line polylines so they can be updated in bulk on zoom change and untracked individually in `_cleanUpMarker()`/cleared in `_cleanUp()`.
+
 ### Fixed
 
 - **`GoogleMapSearchBarMenu.onGroupBySelected()` — Signature Drift from Core**: Odoo core's `SearchBarMenu.onGroupBySelected` now receives `{itemId, optionId}` instead of the `item` object directly. This override still destructured a positional `item` argument, so the single-active-group guard always read `item.isActive` as `undefined` and the `super()` call forwarded the wrong shape. Updated to accept `{itemId, optionId}`, resolve the `item` via `this.env.searchModel.getSearchItems(...)`, and forward the same `{itemId, optionId}` payload to `super()`.
