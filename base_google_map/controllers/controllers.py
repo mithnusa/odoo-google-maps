@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from odoo import http
 from odoo.http import request
 from odoo.tools.safe_eval import safe_eval

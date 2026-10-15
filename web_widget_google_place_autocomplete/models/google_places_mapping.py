@@ -1,9 +1,10 @@
-from collections import OrderedDict
-import secrets
 import logging
+import secrets
+from collections import OrderedDict
 
-from odoo import api, Command, fields, models
-from odoo.exceptions import ValidationError, UserError
+from odoo import Command, api, fields, models
+from odoo.exceptions import UserError, ValidationError
+
 from .utils import safe_literal_eval, validate_component_list
 
 _logger = logging.getLogger(__name__)
@@ -387,9 +388,9 @@ class GooglePlacesMapping(models.Model):
         widget_res_model = self.env.context.get('widget_res_model')
 
         if not is_mapping_test:
-            self = self.sudo()
-
-        mapping_id = self.search([('code', '=', code)])
+            mapping_id = self.sudo().search([('code', '=', code)])
+        else:
+            mapping_id = self.search([('code', '=', code)])
 
         if not mapping_id or (not is_mapping_test and not widget_res_model):
             return {}
@@ -451,9 +452,10 @@ class GooglePlacesMapping(models.Model):
         """
         is_mapping_test = self.env.context.get('is_mapping_test', False)
         if not is_mapping_test:
-            self = self.sudo()
+            mapping_id = self.sudo().search([('code', '=', code)])
+        else:
+            mapping_id = self.search([('code', '=', code)])
 
-        mapping_id = self.search([('code', '=', code)])
         if not mapping_id:
             return {}
 

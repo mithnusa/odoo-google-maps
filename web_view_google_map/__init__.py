@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
-from . import models
-from . import controllers
+from . import controllers, models
 
 
 def _uninstall_view_google_map(env):

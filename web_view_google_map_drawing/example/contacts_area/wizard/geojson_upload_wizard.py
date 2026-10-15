@@ -1,7 +1,7 @@
-# -*- coding: utf-8 -*-
+import base64
 import json
 import logging
-import base64
+
 from odoo import api, fields, models
 from odoo.exceptions import UserError, ValidationError
 
@@ -176,7 +176,7 @@ class GeoJsonUploadWizard(models.TransientModel):
         properties = feature.get("properties", {})
         feature_name = None
 
-        if self.feature_name not in properties.keys():
+        if self.feature_name not in properties:
             raise UserError(
                 self.env._(
                     'The specified feature name source "%s" does not exist in feature properties. Please close the pop-up window and try again',

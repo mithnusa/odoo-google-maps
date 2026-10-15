@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 {
     'name': 'Contacts Google Maps',
     'summary': 'Google Maps view for Contacts with nearby search, marker colors, and geocoding cron',

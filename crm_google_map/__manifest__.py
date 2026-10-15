@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 {
     "name": "CRM Google Maps",
     "summary": "Google Maps view for CRM Leads and Opportunities with geolocation and marker colors",
