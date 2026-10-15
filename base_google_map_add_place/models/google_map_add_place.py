@@ -373,7 +373,7 @@ class GoogleMapAddPlaceMixin(models.AbstractModel):
                 self.env.context,
                 is_from_google_maps=True,
                 model_description=model_description,
-                **default_values
+                **default_values,
             ),
         }
 
