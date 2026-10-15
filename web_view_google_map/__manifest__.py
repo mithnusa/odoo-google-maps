@@ -32,7 +32,7 @@ Provides:
     "website": "https://github.com/mithnusa",
     "support": "yopiangi@gmail.com",
     "category": "Extra Tools",
-    "version": "19.0.2.0.4",
+    "version": "19.0.2.0.5",
     "depends": ["base_google_map", "web_widget_google_map"],
     "data": ["views/res_config_settings.xml"],
     "assets": {

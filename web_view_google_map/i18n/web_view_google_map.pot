@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 19.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-17 11:10+0000\n"
-"PO-Revision-Date: 2026-06-17 11:10+0000\n"
+"POT-Creation-Date: 2026-10-14 01:48+0000\n"
+"PO-Revision-Date: 2026-10-14 01:48+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -24,13 +24,6 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/web_view_google_map/static/src/fields/x2many/google_map_x2many_field.js:0
 msgid "Add"
-msgstr ""
-
-#. module: web_view_google_map
-#. odoo-javascript
-#: code:addons/web_view_google_map/static/src/views/google_map/components/geolocate/geolocate.js:0
-msgid ""
-"An unknown error occurred. Please check Javascript console for details."
 msgstr ""
 
 #. module: web_view_google_map
@@ -83,14 +76,6 @@ msgid "Display Name"
 msgstr ""
 
 #. module: web_view_google_map
-#. odoo-python
-#: code:addons/web_view_google_map/models/ir_ui_view.py:0
-msgid ""
-"Domain on non-relational field \"%(name)s\" makes no sense "
-"(domain:%(domain)s)"
-msgstr ""
-
-#. module: web_view_google_map
 #. odoo-javascript
 #: code:addons/web_view_google_map/static/src/views/google_map/google_map_controller.js:0
 msgid "Duplicate"
@@ -118,18 +103,6 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/web_view_google_map/static/src/views/google_map/google_map_renderer.js:0
 msgid "Failed to center map. Please try again."
-msgstr ""
-
-#. module: web_view_google_map
-#. odoo-javascript
-#: code:addons/web_view_google_map/static/src/views/google_map/components/search_places/search_places.js:0
-msgid "Failed to fetch Google place detail."
-msgstr ""
-
-#. module: web_view_google_map
-#. odoo-python
-#: code:addons/web_view_google_map/models/ir_ui_view.py:0
-msgid "Field \"%(field_name)s\" does not exist in model \"%(model_name)s\""
 msgstr ""
 
 #. module: web_view_google_map
@@ -165,29 +138,9 @@ msgid ""
 msgstr ""
 
 #. module: web_view_google_map
-#. odoo-python
-#: code:addons/web_view_google_map/models/ir_ui_view.py:0
-msgid "Field tag must have a \"name\" attribute defined"
-msgstr ""
-
-#. module: web_view_google_map
 #. odoo-javascript
-#: code:addons/web_view_google_map/static/src/views/google_map/components/geolocate/geolocate.js:0
-msgid ""
-"Geolocation is disabled. Please enable it in your browser settings if you "
-"want browser to detect your location."
-msgstr ""
-
-#. module: web_view_google_map
-#. odoo-javascript
-#: code:addons/web_view_google_map/static/src/views/google_map/components/geolocate/geolocate.js:0
-msgid "Geolocation is not supported by your browser."
-msgstr ""
-
-#. module: web_view_google_map
-#. odoo-javascript
-#: code:addons/web_view_google_map/static/src/views/google_map/components/geolocate/geolocate.xml:0
-msgid "Get Current location"
+#: code:addons/web_view_google_map/static/src/views/google_map/google_map_controller.js:0
+msgid "Geolocation is not available for this record."
 msgstr ""
 
 #. module: web_view_google_map
@@ -197,30 +150,10 @@ msgid "Google Maps"
 msgstr ""
 
 #. module: web_view_google_map
-#. odoo-javascript
-#: code:addons/web_view_google_map/static/src/views/google_map/components/search_places/search_places.js:0
-msgid "Google Maps Places Autocomplete"
-msgstr ""
-
-#. module: web_view_google_map
-#. odoo-javascript
-#: code:addons/web_view_google_map/static/src/views/google_map/components/search_places/search_places.js:0
-msgid ""
-"Google Maps Places Autocomplete couldn't be created. You might need to check"
-" the Google Maps version and ensure that the Places API is enabled."
-msgstr ""
-
-#. module: web_view_google_map
 #: model:ir.model.fields,field_description:web_view_google_map.field_ir_actions_act_window_view__id
 #: model:ir.model.fields,field_description:web_view_google_map.field_ir_ui_view__id
 #: model:ir.model.fields,field_description:web_view_google_map.field_res_config_settings__id
 msgid "ID"
-msgstr ""
-
-#. module: web_view_google_map
-#. odoo-javascript
-#: code:addons/web_view_google_map/static/src/views/google_map/components/geolocate/geolocate.js:0
-msgid "Location information is unavailable."
 msgstr ""
 
 #. module: web_view_google_map
@@ -257,7 +190,7 @@ msgstr ""
 #. module: web_view_google_map
 #. odoo-javascript
 #: code:addons/web_view_google_map/static/src/views/google_map/google_map_controller.js:0
-msgid "Nearby %s (within %s km)"
+msgid "Nearby %(title)s (within %(radius)s km)"
 msgstr ""
 
 #. module: web_view_google_map
@@ -298,6 +231,12 @@ msgstr ""
 
 #. module: web_view_google_map
 #. odoo-javascript
+#: code:addons/web_view_google_map/static/src/views/google_map/google_map_search_bar.js:0
+msgid "Only one group-by can be active at a time."
+msgstr ""
+
+#. module: web_view_google_map
+#. odoo-javascript
 #: code:addons/web_view_google_map/static/src/views/google_map/google_map_sidebar.js:0
 msgid "Only records with geolocation data set are displayed"
 msgstr ""
@@ -323,14 +262,9 @@ msgstr ""
 
 #. module: web_view_google_map
 #. odoo-javascript
+#: code:addons/web_view_google_map/static/src/fields/x2many/google_map_x2many_field.js:0
 #: code:addons/web_view_google_map/static/src/views/google_map/google_map_controller.js:0
 msgid "Records"
-msgstr ""
-
-#. module: web_view_google_map
-#. odoo-javascript
-#: code:addons/web_view_google_map/static/src/views/google_map/components/search_places/search_places.js:0
-msgid "Search for a place"
 msgstr ""
 
 #. module: web_view_google_map
@@ -347,6 +281,12 @@ msgid ""
 "radius around the selected location are returned. The radius is specified in"
 " meters and must be a positive integer. The default value is 1000 meters (1 "
 "kilometer)."
+msgstr ""
+
+#. module: web_view_google_map
+#. odoo-javascript
+#: code:addons/web_view_google_map/static/src/views/google_map/google_map_sidebar.xml:0
+msgid "Show Unlocated"
 msgstr ""
 
 #. module: web_view_google_map
@@ -373,14 +313,15 @@ msgstr ""
 
 #. module: web_view_google_map
 #. odoo-javascript
-#: code:addons/web_view_google_map/static/src/views/google_map/components/search_places/search_places.js:0
-msgid "Something went wrong. See Javascript console for technical details. "
+#: code:addons/web_view_google_map/static/src/views/google_map/google_map_controller.js:0
+#: code:addons/web_view_google_map/static/src/views/google_map/google_map_renderer.xml:0
+msgid "Street View"
 msgstr ""
 
 #. module: web_view_google_map
 #. odoo-javascript
-#: code:addons/web_view_google_map/static/src/views/google_map/components/geolocate/geolocate.js:0
-msgid "The request to get user location timed out."
+#: code:addons/web_view_google_map/static/src/views/google_map/google_map_renderer.xml:0
+msgid "Street View Side by Side"
 msgstr ""
 
 #. module: web_view_google_map
@@ -410,6 +351,19 @@ msgid "Unarchive"
 msgstr ""
 
 #. module: web_view_google_map
+#. odoo-javascript
+#: code:addons/web_view_google_map/static/src/views/google_map/google_map_controller.js:0
+#: code:addons/web_view_google_map/static/src/views/google_map/google_map_sidebar.xml:0
+msgid "Unlocated"
+msgstr ""
+
+#. module: web_view_google_map
+#. odoo-javascript
+#: code:addons/web_view_google_map/static/src/fields/x2many/google_map_x2many_field.js:0
+msgid "Unlocated %(title)s"
+msgstr ""
+
+#. module: web_view_google_map
 #: model:ir.model,name:web_view_google_map.model_ir_ui_view
 msgid "View"
 msgstr ""
@@ -424,18 +378,6 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/web_view_google_map/static/src/views/google_map/google_map_renderer.xml:0
 msgid "View on Google Maps website"
-msgstr ""
-
-#. module: web_view_google_map
-#. odoo-javascript
-#: code:addons/web_view_google_map/static/src/views/google_map/google_map_search_bar.js:0
-msgid "You can only have one active group at a time."
-msgstr ""
-
-#. module: web_view_google_map
-#. odoo-javascript
-#: code:addons/web_view_google_map/static/src/views/google_map/components/geolocate/geolocate.js:0
-msgid "Your location"
 msgstr ""
 
 #. module: web_view_google_map
