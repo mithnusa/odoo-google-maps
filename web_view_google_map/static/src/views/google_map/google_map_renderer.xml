@@ -15,7 +15,10 @@
                     <button t-att-data-tooltip="this.sidebarToggleTooltip" t-on-click="this.toggleSidebar" />
                 </div>
             </div>
-            <div t-att-class="{ 'o_google_map_view': true, 'rounded-3 mb-2 border': this.isEnterprise }" t-ref="this.mapRef" />
+            <div
+                t-att-class="{ 'o_google_map_view': true, 'rounded-3 mb-2 border': this.isEnterprise }"
+                t-ref="this.mapRef"
+            />
             <InMapSearchPlaces googleMap="this.googleMap" t-if="this.state.isMapReady" />
         </div>
     </t>
