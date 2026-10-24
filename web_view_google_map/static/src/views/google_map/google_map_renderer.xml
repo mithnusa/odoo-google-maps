@@ -1,21 +1,24 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <templates xml:space="preserve">
     <t t-name="web_view_google_map.GoogleMapRenderer">
-        <div class="o_google_map_renderer">
+        <div t-att-class="{ 'o_google_map_renderer': true, 'ms-1 me-2': this.isEnterprise }">
             <Geolocate googleMap="this.googleMap" t-if="this.state.isMapReady" />
             <div
                 t-att-class="{ 'o_map_left_sidebar': true, closed: this.state.sidebarIsFolded, open: !this.state.sidebarIsFolded }"
             >
                 <div class="sidebar_content_clip">
-                    <div class="content">
+                    <div class="content px-2">
                         <Sidebar t-props="this.sidebarProps" t-if="this.state.isMapReady" />
                     </div>
                 </div>
-                <div class="toggle_left_sidenav ms-2">
+                <div class="toggle_left_sidenav">
                     <button t-att-data-tooltip="this.sidebarToggleTooltip" t-on-click="this.toggleSidebar" />
                 </div>
             </div>
-            <div class="o_google_map_view rounded-3 m-2 border" t-ref="this.mapRef" />
+            <div
+                t-att-class="{ 'o_google_map_view': true, 'rounded-3 mb-2 border': this.isEnterprise }"
+                t-ref="this.mapRef"
+            />
             <InMapSearchPlaces googleMap="this.googleMap" t-if="this.state.isMapReady" />
         </div>
     </t>

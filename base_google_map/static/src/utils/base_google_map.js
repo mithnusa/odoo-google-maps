@@ -24,6 +24,9 @@ export class BaseGoogleMapComponent extends Component {
     setup() {
         this.errorMessage = '';
 
+        // Check if the current Odoo instance is Enterprise edition
+        this.isEnterprise = odoo.info?.isEnterprise ?? false;
+
         // Core properties
         this.googleMap = null;
         this.resizeObserver = null;
