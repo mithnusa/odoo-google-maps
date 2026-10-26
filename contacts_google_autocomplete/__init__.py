@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import secrets
+
 from odoo import Command
 
 

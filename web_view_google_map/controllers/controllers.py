@@ -1,5 +1,5 @@
-from odoo.http import route
 from odoo.addons.base_google_map.controllers.controllers import Main
+from odoo.http import route
 
 
 class WebViewGoogleMapController(Main):
