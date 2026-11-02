@@ -353,7 +353,7 @@ class GoogleMapAddPlaceMixin(models.AbstractModel):
 
         default_values = {}
         for key, val in values.items():
-            default_values["default_{}".format(key)] = val
+            default_values[f"default_{key}"] = val
 
         if place_id:
             default_values["default_gplace_id"] = place_id
@@ -451,7 +451,7 @@ class GoogleMapAddPlaceMixin(models.AbstractModel):
 
         default_values = {}
         for key, val in values.items():
-            default_values["default_{}".format(key)] = val
+            default_values[f"default_{key}"] = val
 
         if place_id:
             default_values["default_gplace_id"] = place_id
