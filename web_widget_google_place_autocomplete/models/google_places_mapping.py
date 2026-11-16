@@ -1,9 +1,10 @@
-from collections import OrderedDict
-import secrets
 import logging
+import secrets
+from collections import OrderedDict
 
-from odoo import api, Command, fields, models
-from odoo.exceptions import ValidationError, UserError
+from odoo import Command, api, fields, models
+from odoo.exceptions import UserError, ValidationError
+
 from .utils import safe_literal_eval, validate_component_list
 
 _logger = logging.getLogger(__name__)
