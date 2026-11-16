@@ -1,11 +1,11 @@
-from collections import defaultdict
-import time
 import logging
+import time
+from collections import defaultdict
 
 from odoo import api, fields, models
-from odoo.fields import Domain
 from odoo.addons.base.models.res_partner import ADDRESS_FIELDS
 from odoo.addons.crm.models.crm_lead import PARTNER_ADDRESS_FIELDS_TO_SYNC
+from odoo.fields import Domain
 
 _logger = logging.getLogger(__name__)
 
