@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from odoo import fields, models
+
 from .fields import SearchableJson
 
 

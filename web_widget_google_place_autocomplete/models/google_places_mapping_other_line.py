@@ -1,5 +1,6 @@
 from odoo import api, fields, models
 from odoo.exceptions import ValidationError
+
 from .utils import safe_literal_eval
 
 
